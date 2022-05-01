@@ -1,17 +1,19 @@
 <template>
-  <img alt="Vue logo" src="./assets/logo.png">
-  <HelloWorld msg="Welcome to Your Vue.js App"/>
+  <LeftHalf name="Left Half" />
+  <RightHalf name="Right Half" />
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import LeftHalf from "./components/LeftHalf.vue";
+import RightHalf from "./components/RightHalf.vue";
 
 export default {
-  name: 'App',
+  name: "App",
   components: {
-    HelloWorld
-  }
-}
+    LeftHalf,
+    RightHalf,
+  },
+};
 </script>
 
 <style>
@@ -21,6 +23,24 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
+}
+/* Pattern styles */
+.container {
+  display: table;
+  width: 100%;
+}
+
+.left-half {
+  background-color: #ff9e2c;
+  position: absolute;
+  left: 0px;
+  width: 65%;
+}
+
+.right-half {
+  background-color: #b6701e;
+  position: absolute;
+  right: 0px;
+  width: 35%;
 }
 </style>
