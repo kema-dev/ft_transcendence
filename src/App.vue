@@ -1,6 +1,6 @@
 <template>
-  <LeftHalf name="Left Half" />
-  <RightHalf name="Right Half" />
+  <LeftHalf/>
+  <RightHalf/>
 </template>
 
 <script>
@@ -31,16 +31,20 @@ export default {
 }
 
 .left-half {
-  background-color: #ff9e2c;
+  background-color: #ffffff;
   position: absolute;
   left: 0px;
   width: 65%;
 }
 
 .right-half {
-  background-color: #b6701e;
+  background-color: #92a9e7;
   position: absolute;
   right: 0px;
   width: 35%;
+}
+
+body {
+  margin: 0%;
 }
 </style>
