@@ -1,0 +1,29 @@
+version: "3"
+
+services:
+  backend:
+    build:
+      context: ./backend
+    networks:
+      - default
+    ports:
+      - "3000:3000"
+    container_name: "ft_transcendence_backend"
+    image: backend
+    volumes:
+      # - postgre-volume:/var/lib/postgresql/data
+      - ./backend/src:/app/src
+    restart: unless-stopped
+
+networks:
+  default:
+    name: ft_transcendence_network
+    driver: bridge
+
+# volumes:
+#   postgre-volume:
+#     driver: local
+#     driver_opts:
+#       type: none
+#       device: /home/jjourdan/dev/github/ft_transcendence/data
+#       o: bind
