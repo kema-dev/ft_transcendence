@@ -51,7 +51,7 @@ services:
       - ./website/frontend/vuejs/bind:/app
     command: "sh -c '\
               npm install -g npm@8.9.0 && \
-              npm install -g @vue/cli \
+              npm install -g @vue/cli && \
               npm install && \
               npm run ${VUE_PHASE} \
               '"

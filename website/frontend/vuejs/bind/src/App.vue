@@ -1,17 +1,42 @@
 <template>
-  <img alt="Vue logo" src="./assets/logo.png">
-  <HelloWorld msg="Welcome to Your Vue.js App"/>
+  <div id="app">
+    <h1>{{ message }}!</h1>
+    <p>
+      <button @click="test_post">POST</button>
+      <button @click="test_get">GET</button>
+    </p>
+  </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+  import axios from 'axios';
 
-export default {
-  name: 'App',
-  components: {
-    HelloWorld
+  export default {
+    name: 'App',
+    data() {
+      return {
+        message: 'Hello Vue!'
+      }
+    },
+    methods: {
+      test_post() {
+        axios.post('/api/test:8000', {
+          message: this.message
+        }).then(response => {
+          console.log(response.data);
+        }).catch(error => {
+          console.log(error);
+        });
+      },
+      test_get() {
+        axios.get('/api/test:8000').then(response => {
+          console.log(response.data);
+        }).catch(error => {
+          console.log(error);
+        });
+      }
+    }
   }
-}
 </script>
 
 <style>
