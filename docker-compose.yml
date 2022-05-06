@@ -1,29 +1,58 @@
-version: "3"
-
-services:
-  backend:
-    build:
-      context: ./backend
-    networks:
-      - default
-    ports:
-      - "3000:3000"
-    container_name: "ft_transcendence_backend"
-    image: backend
-    volumes:
-      # - postgre-volume:/var/lib/postgresql/data
-      - ./backend/src:/app/src
-    restart: unless-stopped
+version: '2'
 
 networks:
-  default:
-    name: ft_transcendence_network
+  n_backend:
     driver: bridge
+    name: n_backend
+  n_frontend:
+    driver: bridge
+    name: n_frontend
 
-# volumes:
-#   postgre-volume:
-#     driver: local
-#     driver_opts:
-#       type: none
-#       device: /home/jjourdan/dev/github/ft_transcendence/data
-#       o: bind
+services:
+  s_postgresql:
+    build:
+      context: ./website/backend/postgresql/
+    image: 'bitnami/postgresql:latest'
+    networks:
+      - n_backend
+    environment:
+      - POSTGRESQL_PASSWORD=${POSTGRESQL_PASSWORD}
+      - POSTGRESQL_DATABASE=${POSTGRESQL_DATABASE}
+
+  s_nestjs:
+    build:
+      context: ./website/backend/nestjs/
+    image: 's_nestjs'
+    networks:
+      - n_backend
+    ports:
+      - "${BACKEND_PORT}:${BACKEND_PORT}"
+    volumes:
+      - ./website/backend/nestjs/bind:/app
+    command: "sh -c '\
+              npm install -g npm@8.9.0 && \
+              npm i -g @nestjs/cli && \
+              npm install && \
+              npm run ${NEST_PHASE} \
+              '"
+    restart: unless-stopped
+
+  s_vuejs:
+    build:
+      context: ./website/frontend/vuejs/
+    image: 's_vuejs'
+    networks:
+      - n_backend
+      - n_frontend
+    ports:
+      - "${FRONTEND_PORT}:${FRONTEND_PORT}"
+      # TODO add frontend port (for full http / https / socket.io)
+    volumes:
+      - ./website/frontend/vuejs/bind:/app
+    command: "sh -c '\
+              npm install -g npm@8.9.0 && \
+              npm install -g @vue/cli \
+              npm install && \
+              npm run ${VUE_PHASE} \
+              '"
+    restart: unless-stopped
