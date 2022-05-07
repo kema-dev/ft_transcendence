@@ -1,4 +1,4 @@
-version: '2'
+version: '3'
 
 networks:
   n_backend:
@@ -16,8 +16,11 @@ services:
     networks:
       - n_backend
     environment:
-      - POSTGRESQL_PASSWORD=${POSTGRESQL_PASSWORD}
       - POSTGRESQL_DATABASE=${POSTGRESQL_DATABASE}
+      - POSTGRESQL_PASSWORD=${POSTGRESQL_PASSWORD}
+      - POSTGRESQL_PORT=${POSTGRESQL_PORT}
+      - POSTGRESQL_USERNAME=${POSTGRESQL_USERNAME}
+      - POSTGRESQL_HOST=${POSTGRESQL_HOST}
 
   s_nestjs:
     build:
