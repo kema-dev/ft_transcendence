@@ -1,4 +1,4 @@
-version: '2'
+version: '3'
 
 networks:
   n_backend:
@@ -16,8 +16,11 @@ services:
     networks:
       - n_backend
     environment:
-      - POSTGRESQL_PASSWORD=${POSTGRESQL_PASSWORD}
       - POSTGRESQL_DATABASE=${POSTGRESQL_DATABASE}
+      - POSTGRESQL_PASSWORD=${POSTGRESQL_PASSWORD}
+      - POSTGRESQL_PORT=${POSTGRESQL_PORT}
+      - POSTGRESQL_USERNAME=${POSTGRESQL_USERNAME}
+      - POSTGRESQL_HOST=${POSTGRESQL_HOST}
 
   s_nestjs:
     build:
@@ -51,7 +54,7 @@ services:
       - ./website/frontend/vuejs/bind:/app
     command: "sh -c '\
               npm install -g npm@8.9.0 && \
-              npm install -g @vue/cli \
+              npm install -g @vue/cli && \
               npm install && \
               npm run ${VUE_PHASE} \
               '"
