@@ -9,18 +9,18 @@ networks:
     name: n_frontend
 
 services:
-  # s_postgresql:
-  #   build:
-  #     context: ./website/backend/postgresql/
-  #   image: 'bitnami/postgresql:latest'
-  #   networks:
-  #     - n_backend
-  #   environment:
-  #     - POSTGRESQL_DATABASE=${POSTGRESQL_DATABASE}
-  #     - POSTGRESQL_PASSWORD=${POSTGRESQL_PASSWORD}
-  #     - POSTGRESQL_PORT=${POSTGRESQL_PORT}
-  #     - POSTGRESQL_USERNAME=${POSTGRESQL_USERNAME}
-  #     - POSTGRESQL_HOST=${POSTGRESQL_HOST}
+  s_postgresql:
+    build:
+      context: ./website/backend/postgresql/
+    image: 'bitnami/postgresql:latest'
+    networks:
+      - n_backend
+    environment:
+      - POSTGRESQL_DATABASE=${POSTGRESQL_DATABASE}
+      - POSTGRESQL_PASSWORD=${POSTGRESQL_PASSWORD}
+      - POSTGRESQL_PORT=${POSTGRESQL_PORT}
+      - POSTGRESQL_USERNAME=${POSTGRESQL_USERNAME}
+      - POSTGRESQL_HOST=${POSTGRESQL_HOST}
 
   s_nestjs:
     build:
@@ -33,8 +33,10 @@ services:
     volumes:
       - ./website/backend/nestjs/bind:/app
     command: "sh -c '\
+              npm config set fund false \
               npm install -g npm@8.9.0 && \
               npm i -g @nestjs/cli && \
+              npm i -g passport-oauth2 \
               npm install && \
               npm run ${NEST_PHASE} \
               '"
@@ -53,6 +55,7 @@ services:
     volumes:
       - ./website/frontend/vuejs/bind:/app
     command: "sh -c '\
+              npm config set fund false \
               npm install -g npm@8.9.0 && \
               npm install -g @vue/cli && \
               npm install && \
