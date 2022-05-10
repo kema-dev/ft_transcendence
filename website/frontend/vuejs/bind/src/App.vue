@@ -1,9 +1,20 @@
 <template>
   <div id="app">
-    <h1>{{ message }}!</h1>
+    <img src="./assets/logo.png" alt="VueLogo" />
+    <h1>Hello Vue!</h1>
     <p>
-      <button @click="test_post">POST</button>
+      <input v-model="title" placeholder="Set title here">
+    </p>
+    <p>
+      <input v-model="number" placeholder="Set number here">
+    </p>
+    <p>
       <button @click="test_get">GET</button>
+      <button @click="test_post">POST</button>
+    </p>
+    <p>
+      <button @click="get_cookie">GET COOKIE</button>
+      <a> Cookie: {{ cookie }} </a>
     </p>
   </div>
 </template>
@@ -15,13 +26,16 @@
     name: 'App',
     data() {
       return {
-        message: 'Hello Vue!'
-      }
+        title: '',
+        number: '',
+        apiPath: 'http://localhost:3000/api/',
+        cookie: '',
+      };
     },
     methods: {
       test_post() {
-        axios.post('/api/test:8000', {
-          message: this.message
+        axios.post(this.apiPath + 'posts/', {
+          "title": this.title,
         }).then(response => {
           console.log(response.data);
         }).catch(error => {
@@ -29,12 +43,19 @@
         });
       },
       test_get() {
-        axios.get('/api/test:8000').then(response => {
+        axios.get(this.apiPath + 'posts/' + this.number).then(response => {
           console.log(response.data);
         }).catch(error => {
           console.log(error);
         });
-      }
+      },
+      get_cookie() {
+        axios.get(this.apiPath + 'cookie/').then(response => {
+          this.cookie = response.data;
+        }).catch(error => {
+          console.log(error);
+        });
+      },
     }
   }
 </script>

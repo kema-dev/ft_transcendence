@@ -9,18 +9,18 @@ networks:
     name: n_frontend
 
 services:
-  s_postgresql:
-    build:
-      context: ./website/backend/postgresql/
-    image: 'bitnami/postgresql:latest'
-    networks:
-      - n_backend
-    environment:
-      - POSTGRESQL_DATABASE=${POSTGRESQL_DATABASE}
-      - POSTGRESQL_PASSWORD=${POSTGRESQL_PASSWORD}
-      - POSTGRESQL_PORT=${POSTGRESQL_PORT}
-      - POSTGRESQL_USERNAME=${POSTGRESQL_USERNAME}
-      - POSTGRESQL_HOST=${POSTGRESQL_HOST}
+  # s_postgresql:
+  #   build:
+  #     context: ./website/backend/postgresql/
+  #   image: 'bitnami/postgresql:latest'
+  #   networks:
+  #     - n_backend
+  #   environment:
+  #     - POSTGRESQL_DATABASE=${POSTGRESQL_DATABASE}
+  #     - POSTGRESQL_PASSWORD=${POSTGRESQL_PASSWORD}
+  #     - POSTGRESQL_PORT=${POSTGRESQL_PORT}
+  #     - POSTGRESQL_USERNAME=${POSTGRESQL_USERNAME}
+  #     - POSTGRESQL_HOST=${POSTGRESQL_HOST}
 
   s_nestjs:
     build:

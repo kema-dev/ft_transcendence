@@ -4,4 +4,4 @@ export interface PostModel {
 	title: string;
 	body: string;
 	category: string;
-  }
+}
