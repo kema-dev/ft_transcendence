@@ -2,16 +2,10 @@
   <div id="app">
     <h1>Hello Vue!</h1>
     <p>
-      <a :href="this.api42Path">GET 42 TOKEN</a>
+      <a :href="this.api42Path">AUTHENTICATE WITH 42</a>
     </p>
     <p>
-      <a> TOKEN: {{ token42 }} </a>
-    </p>
-    <p>
-      <button @click="post_42">POST</button>
-    </p>
-    <p>
-      <a :href="this.rootPath">RESET</a>
+      <button @click=this.reset()>RESET</button>
     </p>
   </div>
 </template>
@@ -23,37 +17,37 @@ export default {
   name: "App",
   data() {
     return {
-      title: "",
-      number: "",
       rootPath: "http://localhost:8080",
       apiPath: "http://localhost:3000/api/",
       api42Path:
         "https://api.intra.42.fr/oauth/authorize?client_id=4b42a21a05efa463774526895b6026f4d6119d07eac916ee0670f6985f63904e&redirect_uri=http%3A%2F%2Flocalhost%3A8080&response_type=code",
-      token42: "",
     };
   },
   created() {
+    // TODO replace get code by backend api check connection
     let urlParams = new URLSearchParams(window.location.search);
-    this.token42 = urlParams.get("code");
+    let code = urlParams.get("code");
+    if (code) {
+      axios.post(this.apiPath + 'auth/', {
+        "code": code,
+      }).then(response => {
+        console.log(response.data); // TODO Find a way not to receive the token in the response
+      }).catch(error => {
+        console.log(error);
+      });
+    }
   },
   methods: {
-    post_42() {
-      axios
-        .post("https://api.intra.42.fr/oauth/token", {
-          grant_type: "authorization_code",
-          client_id: "4b42a21a05efa463774526895b6026f4d6119d07eac916ee0670f6985f63904e",
-          client_secret: "f5e657ee7b55efdf4754f7b00ae9ea2d96c18d54db453e8b0644668eebc8133e",
-          code: this.token42,
-          redirect_uri: "http://localhost:8080",
-        })
-        .then((response) => {
-          console.log(response.data);
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    },
-  },
+    reset() {
+      window.location.href = this.rootPath;
+      axios.post(this.apiPath + 'auth/reset/', {
+      }).then(response => {
+        console.log(response.data);
+      }).catch(error => {
+        console.log(error);
+      });
+    }
+  }
 };
 </script>
 
