@@ -7,5 +7,14 @@ export interface AuthModel {
   refreshToken: string;
   scope: string;
   createdAt: Date;
-  data: string;
+  login: string;
+}
+
+export interface AuthResponse {
+  accessToken: string;
+  tokenType: string;
+  expiresIn: number;
+  refreshToken: string;
+  scope: string;
+  createdAt: Date;
 }
