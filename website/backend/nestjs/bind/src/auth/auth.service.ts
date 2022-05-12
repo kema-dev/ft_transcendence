@@ -15,10 +15,14 @@ export class AuthService {
   public getAll(): Array<AuthModel> {
     return this.users;
   }
+  private checkLogin(login: string): boolean {
+    return this.users.some((user) => user.login === login);
+  }
   public async create(code: string): Promise<AuthResponse> {
     this.logger.log(`START: create with code ${code}`);
     // TODO Check if code is already in use
     // TODO Check if user is already logged in
+    // TODO Issue a JWT
     try {
       const response = await firstValueFrom(
         this.httpService.post('https://api.intra.42.fr/oauth/token', {
@@ -38,22 +42,29 @@ export class AuthService {
           },
         }),
       );
-      const maxId: number = Math.max(...this.users.map((users) => users.id), 0);
-      const id: number = maxId + 1;
-      const user: AuthModel = {
-        code: code,
-        id: id,
-        accessToken: response.data.accessToken,
-        tokenType: response.data.tokenType,
-        expiresIn: response.data.expiresIn,
-        refreshToken: response.data.refreshToken,
-        scope: response.data.scope,
-        createdAt: new Date(),
-        login: logobj.data.login,
-      };
-      this.users.push(user);
-      this.logger.log(`SUCCESS: create with code ${code}`);
-      return { login: user.login, success: true };
+      if (this.checkLogin(logobj.data.login) === true) {
+        // TODO refresh token
+      } else {
+        const maxId: number = Math.max(
+          ...this.users.map((users) => users.id),
+          0,
+        );
+        const id: number = maxId + 1;
+        const user: AuthModel = {
+          code: code,
+          id: id,
+          accessToken: response.data.accessToken,
+          tokenType: response.data.tokenType,
+          expiresIn: response.data.expiresIn,
+          refreshToken: response.data.refreshToken,
+          scope: response.data.scope,
+          createdAt: new Date(),
+          login: logobj.data.login,
+        };
+        this.users.push(user);
+        this.logger.log(`SUCCESS: create with code ${code}`);
+        return { login: user.login, success: true };
+    }
     } catch (error) {
       this.logger.error(error.response.data.error_description);
       this.logger.error(`FAILURE: create with code ${code}`);

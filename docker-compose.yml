@@ -21,6 +21,9 @@ services:
       - POSTGRESQL_PORT=${POSTGRESQL_PORT}
       - POSTGRESQL_USERNAME=${POSTGRESQL_USERNAME}
       - POSTGRESQL_HOST=${POSTGRESQL_HOST}
+      - POSTGRESQL_POSTGRES_PASSWORD=${POSTGRESQL_POSTGRES_PASSWORD}
+    # volumes:
+    #   - ./website/backend/postgresql/db:/bitnami/postgresql
 
   s_nestjs:
     build:
