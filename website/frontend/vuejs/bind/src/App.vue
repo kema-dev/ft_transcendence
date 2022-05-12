@@ -7,6 +7,9 @@
 		<p>
 			<button @click="this.reset()">RESET</button>
 		</p>
+    <p>
+			<button @click="this.getAll()">GET ALL USERS</button>
+		</p>
 	</div>
 </template>
 
@@ -27,8 +30,6 @@ export default {
 		// TODO replace get code by backend api check connection
 		let urlParams = new URLSearchParams(window.location.search);
 		let code = urlParams.get("code");
-		console.log(typeof(code));
-		console.log(code);
 		if (code) {
 			axios
 				.post(this.apiPath + "auth/login", {
@@ -54,6 +55,16 @@ export default {
 					console.log(error);
 				});
 		},
+    getAll() {
+      axios
+        .get(this.apiPath + "auth/getUsers/")
+        .then((response) => {
+          console.log(response.data);
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    }
 	},
 };
 </script>

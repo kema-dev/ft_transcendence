@@ -1,6 +1,6 @@
-import { Controller, Post, Body, Param } from '@nestjs/common';
+import { Controller, Post, Body, Get } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { AuthResponse } from './auth.interface';
+import { AuthResponse, AuthModel } from './auth.interface';
 
 @Controller('auth')
 export class AuthController {
@@ -8,6 +8,10 @@ export class AuthController {
   @Post('login')
   public async create(@Body('code') code: string): Promise<AuthResponse> {
     return this.authService.create(code);
+  }
+  @Get('getUsers')
+  public getAll(): Array<AuthModel> { // TODO Debugging purpose function, needs to be removed
+    return this.authService.getAll();
   }
   @Post('reset')
   public reset(): void {

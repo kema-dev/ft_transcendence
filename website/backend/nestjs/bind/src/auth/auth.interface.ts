@@ -11,10 +11,6 @@ export interface AuthModel {
 }
 
 export interface AuthResponse {
-  accessToken: string;
-  tokenType: string;
-  expiresIn: number;
-  refreshToken: string;
-  scope: string;
-  createdAt: Date;
+  login: string;
+  success: boolean;
 }
