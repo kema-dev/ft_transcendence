@@ -15,6 +15,7 @@ services:
     image: 'bitnami/postgresql:latest'
     networks:
       - n_backend
+    restart: unless-stopped
     environment:
       - POSTGRESQL_DATABASE=${POSTGRESQL_DATABASE}
       - POSTGRESQL_PASSWORD=${POSTGRESQL_PASSWORD}
@@ -36,14 +37,21 @@ services:
     volumes:
       - ./website/backend/nestjs/bind:/app
     command: "sh -c '\
+              echo \"API_42_CLIENT_ID=$API_42_CLIENT_ID\nAPI_42_CLIENT_SECRET=$API_42_CLIENT_SECRET\nAPI_42_REDIRECT_URI=$API_42_REDIRECT_URI\n\" > src/.env && \
               npm config set fund false \
-              npm install -g npm@8.9.0 && \
+              npm i -g npm@latest && \
               npm i -g @nestjs/cli && \
-              npm i -g passport-oauth2 \
+              npm i @nestjs/config && \
+              npm i @nestjs/common && \
+              npm update && \
               npm install && \
               npm run ${NEST_PHASE} \
               '"
+
     restart: unless-stopped
+    environment:
+      - API_42_CLIENT_ID=${API_42_CLIENT_ID}
+      - API_42_CLIENT_SECRET=${API_42_CLIENT_SECRET}
 
   s_vuejs:
     build:
@@ -58,10 +66,15 @@ services:
     volumes:
       - ./website/frontend/vuejs/bind:/app
     command: "sh -c '\
-              npm config set fund false \
-              npm install -g npm@8.9.0 && \
-              npm install -g @vue/cli && \
+              echo \"{\\\"API_42_CLIENT_ID\\\":\\\"$API_42_CLIENT_ID\\\",\\\"API_42_REDIRECT_URI\\\":\\\"$API_42_REDIRECT_URI\\\"}\" > src/env.json && \
+              npm config set fund false && \
+              npm i -g npm@latest && \
+              npm i -g @vue/cli && \
+              npm update && \
               npm install && \
               npm run ${VUE_PHASE} \
               '"
     restart: unless-stopped
+    environment:
+      - API_42_CLIENT_ID=${API_42_CLIENT_ID}
+      - API_42_REDIRECT_URI=${API_42_REDIRECT_URI}

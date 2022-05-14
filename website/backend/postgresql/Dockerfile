@@ -1,3 +1,3 @@
 FROM bitnami/postgresql:latest
 
-LABEL "Maintainer"="kemadev"
+LABEL "Maintainer"="kema-dev"

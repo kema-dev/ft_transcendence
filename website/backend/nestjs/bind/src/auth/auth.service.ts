@@ -27,12 +27,10 @@ export class AuthService {
       const response = await firstValueFrom(
         this.httpService.post('https://api.intra.42.fr/oauth/token', {
           grant_type: 'authorization_code',
-          client_id:
-            '4b42a21a05efa463774526895b6026f4d6119d07eac916ee0670f6985f63904e',
-          client_secret:
-            'f5e657ee7b55efdf4754f7b00ae9ea2d96c18d54db453e8b0644668eebc8133e',
+          client_id: process.env.API_42_CLIENT_ID,
+          client_secret: process.env.API_42_CLIENT_SECRET,
           code: code,
-          redirect_uri: 'http://localhost:8080',
+          redirect_uri: 'http://localhost:8080', // FIXME Must use env var instead, but currently not working
         }),
       );
       const logobj = await firstValueFrom(

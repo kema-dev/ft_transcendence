@@ -15,6 +15,7 @@
 
 <script>
 import axios from "axios";
+import Config from "./env.json";
 
 export default {
 	name: "App",
@@ -23,7 +24,7 @@ export default {
 			rootPath: "http://localhost:8080",
 			apiPath: "http://localhost:3000/api/",
 			api42Path:
-				"https://api.intra.42.fr/oauth/authorize?client_id=4b42a21a05efa463774526895b6026f4d6119d07eac916ee0670f6985f63904e&redirect_uri=http%3A%2F%2Flocalhost%3A8080&response_type=code",
+				"https://api.intra.42.fr/oauth/authorize?client_id=" + Config.API_42_CLIENT_ID + "&redirect_uri=" + Config.API_42_REDIRECT_URI + "&response_type=code",
 		};
 	},
 	created() {

@@ -1,4 +1,4 @@
 # First build stage
 FROM bitnami/node
 
-LABEL "Maintainer"="kemadev"
+LABEL "Maintainer"="kema-dev"
