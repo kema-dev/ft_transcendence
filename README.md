@@ -60,7 +60,7 @@ ft_transcendence is a 42 project, aiming to create a pong like game using NestJS
 
 ### Prerequisites
 
-* {Docker and Docker compose](https://docs.docker.com/compose/install/)
+* [Docker and Docker compose](https://docs.docker.com/compose/install/)
 
 ### Installation
 
