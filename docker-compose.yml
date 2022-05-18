@@ -17,12 +17,9 @@ services:
       - n_backend
     restart: unless-stopped
     environment:
-      # - POSTGRES_DB=${POSTGRESQL_DATABASE}
+      - POSTGRES_DB=${POSTGRESQL_DATABASE}
       - POSTGRES_PASSWORD=${POSTGRESQL_PASSWORD}
-      # - POSTGRESQL_PORT=${POSTGRESQL_PORT}
-      # - POSTGRES_USER=${POSTGRESQL_USERNAME}
-      # - POSTGRESQL_HOST=${POSTGRESQL_HOST}
-      # - POSTGRESQL_POSTGRES_PASSWORD=${POSTGRESQL_POSTGRES_PASSWORD}
+      - POSTGRES_USER=${POSTGRESQL_USERNAME}
     # volumes:
     #   - ./website/backend/postgresql/db:/bitnami/postgresql
 
@@ -39,8 +36,6 @@ services:
     command: "sh -c '\
               echo \"API_42_CLIENT_ID=$API_42_CLIENT_ID\nAPI_42_CLIENT_SECRET=$API_42_CLIENT_SECRET\nAPI_42_REDIRECT_URI=$API_42_REDIRECT_URI\n\" > src/.env && \
               npm config set fund false \
-              npm i -g npm@latest && \
-              npm i -g @nestjs/cli && \
               npm i @nestjs/config && \
               npm i @nestjs/common && \
               npm i @nestjs/typeorm && \
@@ -58,7 +53,6 @@ services:
       - POSTGRESQL_PASSWORD=${POSTGRESQL_PASSWORD}
       - POSTGRESQL_PORT=${POSTGRESQL_PORT}
       - POSTGRESQL_USERNAME=${POSTGRESQL_USERNAME}
-      # - POSTGRESQL_POSTGRES_PASSWORD=${POSTGRESQL_POSTGRES_PASSWORD}
       - POSTGRESQL_HOST=${POSTGRESQL_HOST}
 
   s_vuejs:
@@ -76,8 +70,6 @@ services:
     command: "sh -c '\
               echo \"{\\\"API_42_CLIENT_ID\\\":\\\"$API_42_CLIENT_ID\\\",\\\"API_42_REDIRECT_URI\\\":\\\"$API_42_REDIRECT_URI\\\"}\" > src/env.json && \
               npm config set fund false && \
-              npm i -g npm@latest && \
-              npm i -g @vue/cli && \
               npm update && \
               npm install && \
               npm run ${VUE_PHASE} \
