@@ -11,17 +11,16 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
+      useFactory: () => ({
         type: 'postgres',
-        host: configService.get('POSTGRESQL_HOST'),
-        port: +configService.get<number>('POSTGRESQL_PORT'),
-        username: configService.get('POSTGRESQL_USERNAME'),
-        password: configService.get('POSTGRESQL_PASSWORD'),
-        database: configService.get('POSTGRESQL_DATABASE'),
+        host: process.env.POSTGRESQL_HOST,
+        port: +process.env.POSTGRESQL_PORT,
+        username: process.env.POSTGRESQL_USERNAME,
+        password: process.env.POSTGRESQL_PASSWORD,
+        database: process.env.POSTGRESQL_DATABASE,
         entities: [],
         synchronize: true,
       }),
-      inject: [ConfigService],
     }),
   ],
   controllers: [],

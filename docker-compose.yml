@@ -12,17 +12,17 @@ services:
   s_postgresql:
     build:
       context: ./website/backend/postgresql/
-    image: 'bitnami/postgresql:latest'
+    image: 's_postgres'
     networks:
       - n_backend
     restart: unless-stopped
     environment:
-      - POSTGRESQL_DATABASE=${POSTGRESQL_DATABASE}
-      - POSTGRESQL_PASSWORD=${POSTGRESQL_PASSWORD}
-      - POSTGRESQL_PORT=${POSTGRESQL_PORT}
-      - POSTGRESQL_USERNAME=${POSTGRESQL_USERNAME}
-      - POSTGRESQL_HOST=${POSTGRESQL_HOST}
-      - POSTGRESQL_POSTGRES_PASSWORD=${POSTGRESQL_POSTGRES_PASSWORD}
+      # - POSTGRES_DB=${POSTGRESQL_DATABASE}
+      - POSTGRES_PASSWORD=${POSTGRESQL_PASSWORD}
+      # - POSTGRESQL_PORT=${POSTGRESQL_PORT}
+      # - POSTGRES_USER=${POSTGRESQL_USERNAME}
+      # - POSTGRESQL_HOST=${POSTGRESQL_HOST}
+      # - POSTGRESQL_POSTGRES_PASSWORD=${POSTGRESQL_POSTGRES_PASSWORD}
     # volumes:
     #   - ./website/backend/postgresql/db:/bitnami/postgresql
 
@@ -54,6 +54,12 @@ services:
     environment:
       - API_42_CLIENT_ID=${API_42_CLIENT_ID}
       - API_42_CLIENT_SECRET=${API_42_CLIENT_SECRET}
+      - POSTGRESQL_DATABASE=${POSTGRESQL_DATABASE}
+      - POSTGRESQL_PASSWORD=${POSTGRESQL_PASSWORD}
+      - POSTGRESQL_PORT=${POSTGRESQL_PORT}
+      - POSTGRESQL_USERNAME=${POSTGRESQL_USERNAME}
+      # - POSTGRESQL_POSTGRES_PASSWORD=${POSTGRESQL_POSTGRES_PASSWORD}
+      - POSTGRESQL_HOST=${POSTGRESQL_HOST}
 
   s_vuejs:
     build:
