@@ -9,7 +9,7 @@
 <br />
 <div align="center" style="height:200px; margin-bottom:10%">
   <a>
-    <img src="docs/assets/docker_moby.png" alt="Docker logo">
+    <img src="assets/docker_moby.png" alt="Docker logo">
   </a>
 </div>
 
@@ -41,7 +41,7 @@
 
 <div align="center" style="height:200px; margin-bottom:10%">
   <a>
-    <img src="docs/assets/docker_moby.png" alt="Docker logo">
+    <img src="assets/docker_moby.png" alt="Docker logo">
   </a>
 </div>
 <!-- TODO Put images from the project here -->
