@@ -43,6 +43,8 @@ services:
               npm i -g @nestjs/cli && \
               npm i @nestjs/config && \
               npm i @nestjs/common && \
+              npm i @nestjs/typeorm && \
+              npm i pg && \
               npm update && \
               npm install && \
               npm run ${NEST_PHASE} \
