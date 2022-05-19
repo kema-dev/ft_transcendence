@@ -23,6 +23,21 @@ services:
     # volumes:
     #   - ./website/backend/postgresql/db:/bitnami/postgresql
 
+  s_pgadmin:
+    build:
+      context: ./website/backend/pgadmin/
+    image: 's_pgadmin'
+    networks:
+      - n_backend
+    ports:
+      - "${PGADMIN_PORT_HTTP}:${PGADMIN_PORT_HTTP}"
+      # - "${PGADMIN_PORT_HTTPS}:${PGADMIN_PORT_HTTPS}" # TODO enable https
+    restart: unless-stopped
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL} # TODO change email
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD}
+      - PGADMIN_ENABLE_TLS=${PGADMIN_ENABLE_TLS} # TODO enable https
+
   s_nestjs:
     build:
       context: ./website/backend/nestjs/

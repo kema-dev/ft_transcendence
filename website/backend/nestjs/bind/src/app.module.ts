@@ -1,16 +1,14 @@
 import { Module } from '@nestjs/common';
 import { PostsModule } from './posts/posts.module';
 import { AuthModule } from './auth/auth.module';
-import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
   imports: [
     PostsModule,
     AuthModule,
-    ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
+      imports: [],
       useFactory: () => ({
         type: 'postgres',
         host: process.env.POSTGRESQL_HOST,
