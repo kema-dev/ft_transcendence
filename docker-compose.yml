@@ -51,10 +51,6 @@ services:
     command: "sh -c '\
               echo \"API_42_CLIENT_ID=$API_42_CLIENT_ID\nAPI_42_CLIENT_SECRET=$API_42_CLIENT_SECRET\nAPI_42_REDIRECT_URI=$API_42_REDIRECT_URI\n\" > src/.env && \
               npm config set fund false \
-              npm i @nestjs/config && \
-              npm i @nestjs/common && \
-              npm i @nestjs/typeorm && \
-              npm i pg && \
               npm update && \
               npm install && \
               npm run ${NEST_PHASE} \
