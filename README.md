@@ -89,6 +89,11 @@ ft_transcendence is a 42 project, aiming to create a pong like game using NestJS
    POSTGRESQL_USERNAME=postgres
    POSTGRESQL_HOST=localhost
    POSTGRESQL_POSTGRES_PASSWORD=postgres_pass
+   PGADMIN_PORT_HTTP=80
+   # PGADMIN_PORT_HTTPS=443
+   # PGADMIN_ENABLE_TLS=false
+   PGADMIN_EMAIL=pgadmin@example.com
+   PGADMIN_PASSWORD=pgadmin_pass
    API_42_CLIENT_ID=YOUR_API_42_CLIENT_ID
    API_42_CLIENT_SECRET=YOUR_API_42_CLIENT_SECRET
    API_42_REDIRECT_URI=YOUR_API_42_REDIRECT_URI
