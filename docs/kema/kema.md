@@ -7,5 +7,6 @@ TODO document every part of my code
 TODO make a wiki-like documentation for my API
 TODO improve restart policy to docker containers
 TODO implement HTTPS
+TODO remove latest versions from dockerfiles
 
 TODO Git action to push built images to GitHub packages (maybe pull these with compose later on ?)
