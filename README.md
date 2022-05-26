@@ -46,7 +46,9 @@
 </div>
 <!-- TODO Put images from the project here -->
 
-ft_transcendence is a 42 project, aiming to create a pong like game using NestJS as backend framework, any TypeScript framework for frontend, and get this altogether using docker compose. You can find complete subject <a href="docs/subject">here</a>.
+ft_transcendence is a 42 project, aiming to create a pong like game using NestJS as backend framework, any TypeScript framework for frontend, and get this altogether using docker compose.
+
+You can find complete subject <a href="docs/subject">here</a>.
 
 ### Built With
 
