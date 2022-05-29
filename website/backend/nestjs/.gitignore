@@ -130,4 +130,4 @@ dist
 .pnp.*
 
 # custom
-# package-lock.json
+package-lock.json
