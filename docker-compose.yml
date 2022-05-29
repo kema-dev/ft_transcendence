@@ -54,7 +54,7 @@ services:
       - POSTGRES_PASSWORD=${POSTGRESQL_PASSWORD}
       - POSTGRES_DB=${POSTGRESQL_DATABASE}
       - POSTGRES_HOST=s_postgresql
-    command: "sh -c '\ 
+    command: "sh -c '\
               echo \"POSTGRES_PORT=${POSTGRESQL_PORT}\\nPOSTGRES_PORT=${POSTGRESQL_PORT}\\nPOSTGRES_USER=${POSTGRESQL_USERNAME}\\nPOSTGRES_PASSWORD=${POSTGRESQL_PASSWORD}\\nPOSTGRES_DB=${POSTGRESQL_DATABASE}\" > .env && \
               npm config set fund false && \
               npm update && \
@@ -78,8 +78,9 @@ services:
     command: "sh -c '\
               echo \"{\\\"API_42_CLIENT_ID\\\":\\\"$API_42_CLIENT_ID\\\",\\\"API_42_REDIRECT_URI\\\":\\\"$API_42_REDIRECT_URI\\\"}\" > src/env.json && \
               npm config set fund false && \
+              npm i yarn && \
               npm update && \
-              npm install && \
+              npm i && \
               yarn run ${VUE_PHASE} \
               '"
     restart: unless-stopped

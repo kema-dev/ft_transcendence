@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "core-js": "^3.8.3",
+    "npm": "^8.11.0",
     "vue": "^3.2.13",
     "vue-router": "4",
     "yarn": "^1.22.18"
