@@ -68,47 +68,47 @@ You can find complete subject <a href="docs/subject">here</a>.
 
 1. Clone the repo
 
-   ```sh
-   git clone https://github.com/kema-dev/ft_transcendence.git
-   ```
+```sh
+git clone https://github.com/kema-dev/ft_transcendence.git
+```
 
-2. Go to repository's folder
+1. Go to repository's folder
 
-   ```sh
-   cd ft_transcendence
-   ```
+```sh
+cd ft_transcendence
+```
 
-3. Create a `.env` file containing the project variables (do not forget to change default values)
+1. Create a `.env` file containing the project variables (do not forget to change default values)
 
-   ```.env
-   BACKEND_PORT=3000
-   FRONTEND_PORT=8080
-   VUE_PHASE=serve
-   NEST_PHASE=start:dev
-   POSTGRESQL_PASSWORD=postgres_pass
-   POSTGRESQL_DATABASE=postgres_db
-   POSTGRESQL_PORT=5432
-   POSTGRESQL_USERNAME=postgres
-   POSTGRESQL_HOST=localhost
-   POSTGRESQL_POSTGRES_PASSWORD=postgres_pass
-   PGADMIN_PORT_HTTP=80
-   # PGADMIN_PORT_HTTPS=443
-   # PGADMIN_ENABLE_TLS=false
-   PGADMIN_EMAIL=pgadmin@example.com
-   PGADMIN_PASSWORD=pgadmin_pass
-   API_42_CLIENT_ID=YOUR_API_42_CLIENT_ID
-   API_42_CLIENT_SECRET=YOUR_API_42_CLIENT_SECRET
-   API_42_REDIRECT_URI=YOUR_API_42_REDIRECT_URI
-   ```
+```.env
+BACKEND_PORT=3000
+FRONTEND_PORT=8080
+VUE_PHASE=serve
+NEST_PHASE=start:dev
+POSTGRESQL_PASSWORD=postgres_pass
+POSTGRESQL_DATABASE=postgres_db
+POSTGRESQL_PORT=5432
+POSTGRESQL_USERNAME=postgres
+POSTGRESQL_HOST=localhost
+POSTGRESQL_POSTGRES_PASSWORD=postgres_pass
+PGADMIN_PORT_HTTP=80
+# PGADMIN_PORT_HTTPS=443
+# PGADMIN_ENABLE_TLS=false
+PGADMIN_EMAIL=pgadmin@example.com
+PGADMIN_PASSWORD=pgadmin_pass
+API_42_CLIENT_ID=YOUR_API_42_CLIENT_ID
+API_42_CLIENT_SECRET=YOUR_API_42_CLIENT_SECRET
+API_42_REDIRECT_URI=YOUR_API_42_REDIRECT_URI
+```
 
 <!-- USAGE EXAMPLES -->
 ## Usage
 
 1. Build the project and make it available !
 
-   ```sh
-   docker compose up --build
-   ```
+```sh
+docker compose up --build
+```
 
 <!-- ROADMAP -->
 ## Roadmap
@@ -126,7 +126,9 @@ kema-dev - [GitHub](https://github.com/kema-dev)
 
 dorianginisty - [GitHub](https://github.com/dorianginisty)
 
-<!-- TODO Add Ocean and Thomas as creators -->
+oc8 - [GitHub](https://github.com/oc8)
+
+Totolosa - [GitHub](https://github.com/Totolosa)
 
 ## Acknowledgments
 
