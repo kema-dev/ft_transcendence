@@ -31,12 +31,12 @@ services:
       - n_backend
     ports:
       - "${PGADMIN_PORT_HTTP}:${PGADMIN_PORT_HTTP}"
-      # - "${PGADMIN_PORT_HTTPS}:${PGADMIN_PORT_HTTPS}" # TODO enable https
+      # - "${PGADMIN_PORT_HTTPS}:${PGADMIN_PORT_HTTPS}"
     restart: unless-stopped
     environment:
-      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL} # TODO change email
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL}
       - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD}
-      - PGADMIN_ENABLE_TLS=${PGADMIN_ENABLE_TLS} # TODO enable https
+      - PGADMIN_ENABLE_TLS=${PGADMIN_ENABLE_TLS}
 
   s_nestjs:
     build:
@@ -84,9 +84,10 @@ services:
     command: "sh -c '\
               echo \"{\\\"API_42_CLIENT_ID\\\":\\\"$API_42_CLIENT_ID\\\",\\\"API_42_REDIRECT_URI\\\":\\\"$API_42_REDIRECT_URI\\\"}\" > src/env.json && \
               npm config set fund false && \
+              npm install yarn && \
               npm update && \
               npm install && \
-              npm run ${VUE_PHASE} \
+              yarn run ${VUE_PHASE} \
               '"
     restart: unless-stopped
     environment:

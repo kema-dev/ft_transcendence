@@ -1,82 +1,64 @@
 <template>
-	<div id="app">
-		<h1>Hello Vue!</h1>
-		<p>
-			<a :href="this.api42Path">AUTHENTICATE WITH 42</a>
-		</p>
-		<p>
-			<button @click="this.reset()">RESET</button>
-		</p>
-    <p>
-			<button @click="this.getAll()">GET ALL USERS</button>
-		</p>
+	<div>
+		<router-view />
 	</div>
 </template>
 
-<script>
-import axios from "axios";
-import Config from "./env.json";
-
-export default {
-	name: "App",
-	data() {
-		return {
-			rootPath: "http://localhost:8080",
-			apiPath: "http://localhost:3000/api/",
-			api42Path:
-				"https://api.intra.42.fr/oauth/authorize?client_id=" + Config.API_42_CLIENT_ID + "&redirect_uri=" + Config.API_42_REDIRECT_URI + "&response_type=code",
-		};
-	},
-	created() {
-		// TODO replace get code by backend api check connection
-		let urlParams = new URLSearchParams(window.location.search);
-		let code = urlParams.get("code");
-		if (code) {
-			axios
-				.post(this.apiPath + "auth/login", {
-					code: code,
-				})
-				.then((response) => {
-					console.log(response.data); // TODO Find a way not to receive the token in the response
-				})
-				.catch((error) => {
-					console.log(error);
-				});
-		}
-	},
-	methods: {
-		reset() {
-			window.location.href = this.rootPath;
-			axios
-				.post(this.apiPath + "auth/reset/", {})
-				.then((response) => {
-					console.log(response.data);
-				})
-				.catch((error) => {
-					console.log(error);
-				});
-		},
-    getAll() {
-      axios
-        .get(this.apiPath + "auth/getUsers/")
-        .then((response) => {
-          console.log(response.data);
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    }
-	},
-};
+<script setup>
+import colors from "@/utils/define.js";
 </script>
 
 <style>
+* {
+	border: 0;
+	font-size: 100%;
+	font-family: inherit;
+	text-decoration: none;
+}
+*,
+::before,
+::after {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
 #app {
 	font-family: Avenir, Helvetica, Arial, sans-serif;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 	text-align: center;
 	color: #2c3e50;
-	margin-top: 60px;
+}
+h1 {
+	font-family: 'Orbitron', sans-serif;
+}
+h2 {
+	font-family: 'Orbitron', sans-serif;
+}
+h3 {
+	font-family: 'Orbitron', sans-serif;
+}
+a {
+	color: black;
+}
+.column {
+	flex-direction: column;
+}
+.row {
+	flex-direction: row;
+}
+.center {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+.wrap {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex-direction: column;
+}
+.stack {
+	position: relative;
 }
 </style>
