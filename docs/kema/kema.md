@@ -1,11 +1,9 @@
 # kema-dev
 
-TODO Fix npm warnings in all containers
-TODO push my base images to docker hub
+FIXME npm warnings in all containers
+
 TODO use env variables to create nestjs' .env
 TODO document every part of my code
 TODO make a wiki-like documentation for my API
-TODO improve restart policy to docker containers
 TODO implement HTTPS on backend
-TODO remove latest versions from dockerfiles
-TODO Setup GitHub Actions
+TODO Setup GitHub Actions for build testing
