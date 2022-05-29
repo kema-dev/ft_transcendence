@@ -56,7 +56,7 @@ services:
       - POSTGRES_HOST=s_postgresql
     command: "sh -c '\ 
               echo \"POSTGRES_PORT=${POSTGRESQL_PORT}\\nPOSTGRES_PORT=${POSTGRESQL_PORT}\\nPOSTGRES_USER=${POSTGRESQL_USERNAME}\\nPOSTGRES_PASSWORD=${POSTGRESQL_PASSWORD}\\nPOSTGRES_DB=${POSTGRESQL_DATABASE}\" > .env && \
-              npm config set fund false \
+              npm config set fund false && \
               npm update && \
               npm install && \
               npm run ${NEST_PHASE} \
