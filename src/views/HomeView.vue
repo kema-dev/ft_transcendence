@@ -1,5 +1,5 @@
 <template>
-	<div id="home" class="center row">
+	<div id="home" class="wrap">
 		<NavbarItem />
 		<!-- <router-link to="/">Log out</router-link> -->
 		<div id="game" class="center"><div id="field"></div></div>
@@ -39,7 +39,7 @@ import define from "@/utils/define";
 #menu {
 	height: 100vh;
 	width: 30vw;
-	background: v-bind('define.color3');
+	background: v-bind("define.color3");
 	box-shadow: -4px 0px 4px rgba(0, 0, 0, 0.25);
 	padding-top: 60px;
 }
@@ -48,10 +48,22 @@ import define from "@/utils/define";
 	height: 60px;
 	justify-content: space-around;
 	align-items: center;
-	background-color: v-bind('define.color0');
+	background-color: v-bind("define.color0");
 	box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
 }
 .nav_menu_text {
 	font-size: clamp(0.5rem, 1.5vw, 1.3rem);
+}
+@media screen and (max-width: 1000px) {
+	#menu {
+		width: 100%;
+		padding: 0;
+	}
+	#game {
+		margin: 100px 0;
+	}
+	.nav_menu_text {
+		font-size: clamp(1rem, 2vw, 1.3rem);
+	}
 }
 </style>

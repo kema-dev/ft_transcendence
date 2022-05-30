@@ -52,13 +52,18 @@ a {
 	justify-content: center;
 	align-items: center;
 }
+.stack {
+	position: relative;
+}
 .wrap {
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	flex-direction: column;
+	flex-direction: row;
 }
-.stack {
-	position: relative;
+@media screen and (max-width: 1000px) {
+  .wrap {
+    flex-direction: column;
+  }
 }
 </style>
