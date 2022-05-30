@@ -78,28 +78,13 @@ git clone https://github.com/kema-dev/ft_transcendence.git
 cd ft_transcendence
 ```
 
-1. Create a `.env` file containing the project variables (do not forget to change default values)
+1. Create a `.env` file by executing a script
 
-```.env
-BACKEND_PORT=3000
-FRONTEND_PORT=8080
-VUE_PHASE=serve
-NEST_PHASE=start:dev
-POSTGRESQL_PASSWORD=postgres_pass
-POSTGRESQL_DATABASE=postgres_db
-POSTGRESQL_PORT=5432
-POSTGRESQL_USERNAME=postgres
-POSTGRESQL_HOST=localhost
-POSTGRESQL_POSTGRES_PASSWORD=postgres_pass
-PGADMIN_PORT_HTTP=80
-# PGADMIN_PORT_HTTPS=443
-# PGADMIN_ENABLE_TLS=false
-PGADMIN_EMAIL=pgadmin@example.com
-PGADMIN_PASSWORD=pgadmin_pass
-API_42_CLIENT_ID=YOUR_API_42_CLIENT_ID
-API_42_CLIENT_SECRET=YOUR_API_42_CLIENT_SECRET
-API_42_REDIRECT_URI=YOUR_API_42_REDIRECT_URI
+```sh
+./generate_env_file.sh
 ```
+
+1. Change default value in `.env` file and add your API informations
 
 <!-- USAGE EXAMPLES -->
 ## Usage
