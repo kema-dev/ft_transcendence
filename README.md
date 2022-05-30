@@ -84,7 +84,7 @@ cd ft_transcendence
 ./generate_env_file.sh
 ```
 
-1. Change default value in `.env` file and add your API informations
+1. Change default values in `.env` file and add your API informations
 
 <!-- USAGE EXAMPLES -->
 ## Usage
