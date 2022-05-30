@@ -16,6 +16,12 @@
 <script setup>
 import NavbarItem from "@/components/NavbarItem.vue";
 import define from "@/utils/define";
+import { onMounted } from "vue";
+
+onMounted(() => {
+	let field = document.querySelector('#field');
+	field.style.height = 10 + 'px';
+})
 </script>
 
 <style>
@@ -26,11 +32,11 @@ import define from "@/utils/define";
 }
 #game {
 	width: 70vw;
-	height: 100vh;
+	height: 100%;
 	padding-top: 60px;
 }
 #field {
-	width: 50vw;
+	width: 75%;
 	height: 50vh;
 	border: solid 3px v-bind("define.color2");
 	background: v-bind("define.color3");
@@ -61,6 +67,7 @@ import define from "@/utils/define";
 	}
 	#game {
 		margin: 100px 0;
+		width: 100%;
 	}
 	.nav_menu_text {
 		font-size: clamp(1rem, 2vw, 1.3rem);
