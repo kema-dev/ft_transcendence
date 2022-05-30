@@ -18,7 +18,7 @@ import { UsersModule } from './users/users.module';
 				POSTGRES_DB: Joi.string().required(),
 				PORT: Joi.number(),
 				JWT_SECRET: Joi.string().required(),
-				JWT_EXPIRATION_TIME: Joi.string().required(),
+				JWT_MAX_AGE: Joi.string().required(),
 			}),
 		}),
 		DatabaseModule,
