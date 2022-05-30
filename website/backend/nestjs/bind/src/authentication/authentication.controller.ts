@@ -1,11 +1,11 @@
 import {
 	Body,
 	Req,
+	Res,
 	Controller,
 	HttpCode,
 	Post,
 	UseGuards,
-	Res,
 } from '@nestjs/common';
 import { AuthenticationService } from './authentication.service';
 import RegisterDto from './dto/register.dto';
@@ -13,7 +13,10 @@ import RequestWithUser from './requestWithUser.interface';
 import { LocalAuthenticationGuard } from './localAuthentication.guard';
 import { JwtAuthenticationGuard } from './jwtAuthentication.guard';
 
-@Controller('authentication')
+import { Response } from 'express';
+import { Request } from 'express';
+
+@Controller('auth')
 export class AuthenticationController {
 	constructor(private readonly authenticationService: AuthenticationService) {}
 
@@ -25,41 +28,26 @@ export class AuthenticationController {
 	@HttpCode(200)
 	@UseGuards(LocalAuthenticationGuard)
 	@Post('log-in')
-	async logIn(@Req() req: RequestWithUser, @Res() res: Response) {
-		const { user } = req;
+	async logIn(@Req() request: RequestWithUser, @Res() response: Response) {
+		const { user } = request;
 		const cookie = await this.authenticationService.getCookieFromJwt(user.id);
-		res.headers.set('Set-Cookie', cookie);
-		return {
-			user,
-		};
+		response.setHeader('Set-Cookie', cookie);
+		return response.send(user);
 	}
 
 	@UseGuards(JwtAuthenticationGuard)
 	@Post('log-out')
-	async logOut(@Req() request: RequestWithUser, @Res() response: Response) {
-		response.headers.set(
+	async logOut(@Res() response: Response) {
+		response.setHeader(
 			'Set-Cookie',
 			this.authenticationService.getLogOutCookie(),
 		);
-		return response.status.toFixed(200);
-	}
-
-	@UseGuards(JwtAuthenticationGuard)
-	@Post('refresh-token')
-	async refreshToken(
-		@Req() request: RequestWithUser,
-		@Res() response: Response,
-	) {
-		const cookie = await this.authenticationService.getCookieFromJwt(
-			request.user.id,
-		);
-		response.headers.set('Set-Cookie', cookie);
-		return response.status.toFixed(200);
+		return response.status(200);
 	}
 
 	@UseGuards(JwtAuthenticationGuard)
 	@Post('check-auth')
-	async checkAuth(@Req() request: RequestWithUser) {
+	async checkAuth(request: RequestWithUser) {
 		return request.user;
 	}
 }

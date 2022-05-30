@@ -8,6 +8,8 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
+    "@eneto/axios-es6-class": "^2.0.1",
+    "axios": "^0.19.2",
     "core-js": "^3.8.3",
     "npm": "^8.11.0",
     "vue": "^3.2.13",
