@@ -72,19 +72,19 @@ You can find complete subject <a href="docs/subject">here</a>.
 git clone https://github.com/kema-dev/ft_transcendence.git
 ```
 
-1. Go to repository's folder
+2. Go to repository's folder
 
 ```sh
 cd ft_transcendence
 ```
 
-1. Create a `.env` file by executing a script
+3. Create a `.env` file by executing a script
 
 ```sh
 ./generate_env_file.sh
 ```
 
-1. Change default values in `.env` file and add your API informations
+4. Change default values in `.env` file and add your API informations
 
 <!-- USAGE EXAMPLES -->
 ## Usage
