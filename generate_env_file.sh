@@ -17,5 +17,4 @@ PGADMIN_PASSWORD=pgadmin_pass
 API_42_CLIENT_ID=
 API_42_CLIENT_SECRET=
 API_42_REDIRECT_URI=
-JWT_EXPIRATION_TIME=86400
-JWT_SECRET=`date +%s%N | cut -b10-19 | md5sum | head -c 20 | xxd -r -p | base64 | head -c 32`" > .env
+JWT_EXPIRATION_TIME=86400" > .env
