@@ -1,6 +1,8 @@
 # kema-dev
 
 * FIXME npm warnings in all containers if possible and revelant
+* TODO check if I run docker in rootless mode
+* TODO add 2FA option
 * TODO add option to log in with 42 (see nestjs_old)
 * TODO put elements on frontend to test my API endpoints
 * TODO add '/api' prefix to all API endpoints
