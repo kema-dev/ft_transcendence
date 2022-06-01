@@ -1,6 +1,7 @@
 # kema-dev
 
 * FIXME npm warnings in all containers if possible and revelant
+* TODO fix session cookie not being set on client's browser
 * TODO check if I run docker in rootless mode
 * TODO add 2FA option
 * TODO add option to log in with 42 (see nestjs_old)
