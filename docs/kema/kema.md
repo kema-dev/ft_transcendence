@@ -11,3 +11,4 @@
 * TODO make a wiki-like documentation for my API
 * TODO implement HTTPS on backend
 * TODO Setup GitHub Actions for build testing
+* TODO use composition API for Vue.js
