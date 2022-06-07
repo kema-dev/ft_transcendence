@@ -27,7 +27,7 @@ export class AuthenticationController {
 
 	@HttpCode(200)
 	@UseGuards(LocalAuthenticationGuard)
-	@Post('log-in')
+	@Post('login')
 	async logIn(@Req() request: RequestWithUser, @Res() response: Response) {
 		const { user } = request;
 		const cookie = await this.authenticationService.getCookieFromJwt(user.id);
@@ -36,7 +36,7 @@ export class AuthenticationController {
 	}
 
 	@UseGuards(JwtAuthenticationGuard)
-	@Post('log-out')
+	@Post('logout')
 	async logOut(@Res() response: Response) {
 		response.setHeader(
 			'Set-Cookie',
@@ -46,7 +46,7 @@ export class AuthenticationController {
 	}
 
 	@UseGuards(JwtAuthenticationGuard)
-	@Post('check-auth')
+	@Post('checkauth')
 	async checkAuth(request: RequestWithUser) {
 		return request.user;
 	}

@@ -22,7 +22,7 @@ export default {
 	data() {
 		return {
 			rootPath: "http://localhost:8080/",
-			apiPath: "http://localhost:3000/",
+			apiPath: "http://localhost:3000/api/v1/",
 			api42Path:
 				"https://api.intra.42.fr/oauth/authorize?client_id=" + Config.API_42_CLIENT_ID + "&redirect_uri=" + Config.API_42_REDIRECT_URI + "&response_type=code",
 			email_register: "",
@@ -49,7 +49,7 @@ export default {
 		},
 		auth() {
 			axios
-				.post(this.apiPath + "auth/log-in", {
+				.post(this.apiPath + "auth/login", {
 					email: this.email_auth,
 					password: this.password_auth,
 				})
