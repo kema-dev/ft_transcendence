@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { PostsModule } from './posts/posts.module';
 import { ConfigModule } from '@nestjs/config';
-import * as Joi from '@hapi/joi';
+import * as Joi from 'joi';
 import { DatabaseModule } from './database/database.module';
 import { AuthenticationModule } from './authentication/authentication.module';
 import { UsersModule } from './users/users.module';
@@ -19,6 +19,9 @@ import { UsersModule } from './users/users.module';
 				PORT: Joi.number(),
 				JWT_SECRET: Joi.string().required(),
 				JWT_MAX_AGE: Joi.string().required(),
+				API_42_CLIENT_ID: Joi.string().required(),
+				API_42_CLIENT_SECRET: Joi.string().required(),
+				API_42_REDIRECT_URI: Joi.string().required(),
 			}),
 		}),
 		DatabaseModule,

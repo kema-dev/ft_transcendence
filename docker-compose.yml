@@ -55,9 +55,9 @@ services:
       - POSTGRES_DB=${POSTGRESQL_DATABASE}
       - POSTGRES_HOST=s_postgresql
     command: "sh -c '\
-              echo \"POSTGRES_PORT=${POSTGRESQL_PORT}\\nPOSTGRES_PORT=${POSTGRESQL_PORT}\\nPOSTGRES_USER=${POSTGRESQL_USERNAME}\\nPOSTGRES_PASSWORD=${POSTGRESQL_PASSWORD}\\nPOSTGRES_DB=${POSTGRESQL_DATABASE}\\nJWT_MAX_AGE=${JWT_MAX_AGE}\\nJWT_SECRET=`date +%s%N | cut -b10-19 | md5sum | head -c 20`\" > .env && \
+              echo \"POSTGRES_PORT=${POSTGRESQL_PORT}\\nPOSTGRES_PORT=${POSTGRESQL_PORT}\\nPOSTGRES_USER=${POSTGRESQL_USERNAME}\\nPOSTGRES_PASSWORD=${POSTGRESQL_PASSWORD}\\nPOSTGRES_DB=${POSTGRESQL_DATABASE}\\nJWT_MAX_AGE=${JWT_MAX_AGE}\\nJWT_SECRET=`date +%s%N | cut -b10-19 | md5sum | head -c 20`\\nAPI_42_CLIENT_ID=${API_42_CLIENT_ID}\\nAPI_42_CLIENT_SECRET=${API_42_CLIENT_SECRET}\\nAPI_42_REDIRECT_URI=${API_42_REDIRECT_URI}\" > .env && \
               npm config set fund false && \
-              npm install && \
+              npm install --force && \
               npm run ${NEST_PHASE} \
               '"
     restart: unless-stopped

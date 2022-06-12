@@ -12,9 +12,9 @@ import RegisterDto from './dto/register.dto';
 import RequestWithUser from './requestWithUser.interface';
 import { LocalAuthenticationGuard } from './localAuthentication.guard';
 import { JwtAuthenticationGuard } from './jwtAuthentication.guard';
+import { AuthResponse } from './authResponse.interface';
 
-import { Response } from 'express';
-import { Request } from 'express';
+import { Response, Request } from 'express';
 
 @Controller('auth')
 export class AuthenticationController {
@@ -31,8 +31,14 @@ export class AuthenticationController {
 	async logIn(@Req() request: RequestWithUser, @Res() response: Response) {
 		const { user } = request;
 		const cookie = await this.authenticationService.getCookieFromJwt(user.id);
-		response.setHeader('Set-Cookie', cookie);
+		response.setHeader('Set-Cookie', cookie); // FIXME cookie setting is not working
 		return response.send(user);
+	}
+
+	@HttpCode(200)
+	@Post('login42')
+	public async create(@Body('code') code: string): Promise<AuthResponse> {
+		return this.authenticationService.auth42(code);
 	}
 
 	@UseGuards(JwtAuthenticationGuard)

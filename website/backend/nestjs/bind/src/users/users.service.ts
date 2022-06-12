@@ -36,6 +36,13 @@ export class UsersService {
 	async create(userData: CreateUserDto) {
 		const newUser = await this.usersRepository.create(userData);
 		await this.usersRepository.save(newUser);
+		// FIXME Find a way to return the user without useless data
+		return newUser;
+	}
+
+	async ft_create(userData: CreateUserDto) {
+		const newUser = await this.usersRepository.create(userData);
+		await this.usersRepository.save(newUser);
 		return newUser;
 	}
 }

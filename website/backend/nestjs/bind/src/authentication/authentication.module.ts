@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { HttpModule, Module } from '@nestjs/common';
 import { AuthenticationService } from './authentication.service';
 import { UsersModule } from '../users/users.module';
 import { AuthenticationController } from './authentication.controller';
@@ -10,6 +10,7 @@ import { JwtStrategy } from './jwt.strategy';
 
 @Module({
 	imports: [
+		HttpModule,
 		UsersModule,
 		PassportModule,
 		ConfigModule,
