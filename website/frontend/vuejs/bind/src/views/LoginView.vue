@@ -9,7 +9,6 @@
 </template>
 
 <script setup lang="ts">
-import colors from "@/utils/define.js";
 </script>
 
 <style></style>

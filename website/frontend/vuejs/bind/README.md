@@ -1,4 +1,4 @@
-# new_vuejs_project
+# bind
 
 ## Project setup
 ```

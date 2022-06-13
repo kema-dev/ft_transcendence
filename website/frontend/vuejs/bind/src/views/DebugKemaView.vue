@@ -1,4 +1,4 @@
-<template>
+<!-- <template>
 	<div class="center column">
 		<img src="@/assets/logo.png" alt='logo'/>
 		<h1>PONG.IO</h1>
@@ -21,7 +21,7 @@
 	</div>
 </template>
 
-<script>
+<script lang="ts">
 import Config from '../env.json';
 import axios from 'axios';
 
@@ -111,4 +111,4 @@ export default {
 </script>
 
 
-<style></style>
+<style></style> -->
