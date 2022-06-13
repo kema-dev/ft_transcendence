@@ -1,14 +1,13 @@
 <template>
-	<div>
-
+	<div height="100vh">
+		<h1>SETTINGS</h1>
 	</div>
 </template>
 
 <script setup lang="ts">
-import colors from '@/utils/define.js'
 
 </script>
 
-<style scoped>
+<style>
 
 </style>
