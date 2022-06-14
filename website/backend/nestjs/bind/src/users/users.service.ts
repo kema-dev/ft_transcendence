@@ -68,4 +68,19 @@ export class UsersService {
 		await this.usersRepository.save(newUser);
 		return newUser;
 	}
+
+	async ft_update(
+		login: string,
+		ft_accessToken: string,
+		ft_expiresIn: number,
+		ft_createdAt: Date,
+	) {
+		const user = await this.usersRepository.findOne({ login });
+		if (user) {
+			user.ft_accessToken = ft_accessToken;
+			user.ft_expiresIn = ft_expiresIn;
+			user.ft_createdAt = ft_createdAt;
+			await this.usersRepository.save(user);
+		}
+	}
 }

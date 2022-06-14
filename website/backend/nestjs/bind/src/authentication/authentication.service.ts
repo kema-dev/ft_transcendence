@@ -8,6 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { AuthResponse } from './authResponse.interface';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class AuthenticationService {
@@ -28,7 +29,6 @@ export class AuthenticationService {
 				ft_accessToken: '',
 				ft_tokenType: '',
 				ft_expiresIn: 0,
-				ft_refreshToken: '',
 				ft_scope: '',
 				ft_createdAt: new Date(),
 			});
@@ -130,14 +130,26 @@ export class AuthenticationService {
 					},
 				}),
 			);
+			if (
+				(await this.usersService.checkEmailExistence(logobj.data.email)) == true
+			) {
+				await this.usersService.ft_update(
+					response.data.login,
+					response.data.access_token,
+					response.data.expires_in,
+					new Date(),
+				);
+				console.log('auth42: ' + logobj.data.email + ' updated');
+				return { login: response.data.login, success: true };
+			}
 			try {
+				const password = crypto.randomBytes(16).toString('hex');
 				const createdUser = await this.usersService.ft_create({
 					email: logobj.data.email,
 					login: logobj.data.login,
-					password: '', // FIXME generate random password and send it to user
+					password: password, // TODO send default password to user and / or prompt him to change it
 					ft_code: code,
 					ft_accessToken: response.data.access_token,
-					ft_refreshToken: response.data.refresh_token,
 					ft_expiresIn: response.data.expires_in,
 					ft_tokenType: response.data.token_type,
 					ft_scope: response.data.scope,

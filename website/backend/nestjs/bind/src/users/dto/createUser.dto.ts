@@ -6,7 +6,6 @@ export class CreateUserDto {
 	ft_accessToken: string;
 	ft_tokenType: string;
 	ft_expiresIn: number;
-	ft_refreshToken: string;
 	ft_scope: string;
 	ft_createdAt: Date;
 }
