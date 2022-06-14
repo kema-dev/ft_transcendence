@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import RegisterDto from './dto/register.dto';
 import * as bcrypt from 'bcrypt';
@@ -32,34 +32,39 @@ export class AuthenticationService {
 				ft_scope: '',
 				ft_createdAt: new Date(),
 			});
-			return { login: createdUser.name, success: true };
+			console.log('register: ' + createdUser.login + ' created');
+			return { login: createdUser.login, success: true };
 		} catch (error) {
 			if (error?.code === PostgresErrorCode.UniqueViolation) {
+				console.error(
+					'register: ' + registrationData.email + ' already exists',
+				);
 				throw new HttpException(
 					'User with that email already exists',
 					HttpStatus.BAD_REQUEST,
 				);
 			}
+			console.error('register: ' + error);
 			throw new HttpException(
 				'Something went wrong',
 				HttpStatus.INTERNAL_SERVER_ERROR,
 			);
 		}
-		// TODO add console logging
 	}
 
 	public async getAuthenticatedUser(email: string, plainTextPassword: string) {
 		try {
 			const user = await this.usersService.getByEmail(email);
 			await this.verifyPassword(plainTextPassword, user.password);
-			return { login: user.name, success: true };
+			console.log('getAuthenticatedUser: ' + user.login + ' authenticated');
+			return { login: user.login, success: true };
 		} catch (error) {
+			console.error('getAuthenticatedUser: ' + error);
 			throw new HttpException(
 				'Wrong credentials provided',
 				HttpStatus.BAD_REQUEST,
 			);
 		}
-		// TODO add console logging
 	}
 
 	private async verifyPassword(
@@ -71,34 +76,43 @@ export class AuthenticationService {
 			hashedPassword,
 		);
 		if (!isPasswordMatching) {
+			console.error('verifyPassword: ' + 'mismatch');
 			throw new HttpException(
 				'Wrong credentials provided',
 				HttpStatus.BAD_REQUEST,
 			);
 		}
+		console.log('verifyPassword: ' + 'match');
 	}
 
 	public async getCookieFromJwt(userId: number) {
 		const jwtPayload = { userId };
 		const jwt = await this.jwtService.sign(jwtPayload);
+		console.log('getCookieFromJwt: ' + 'jwt created');
 		return `Authentication=${jwt}; HttpOnly; Path=/; Max-Age=${this.configService.get(
 			'JWT_MAX_AGE',
 		)}`;
 	}
 
 	public getLogOutCookie() {
+		console.log('getLogOutCookie: ' + 'cookie created');
 		return `Authentication=; HttpOnly; Path=/; Max-Age=0`;
 	}
 
-	private checkLogin(login: string): boolean {
-		// TODO check if login is already existing
-		return false;
+	public async checkJwt(jwt: string) {
+		const jwtPayload = await this.jwtService.verify(jwt);
+		console.log('checkJwt: ' + 'jwt verified');
+		return jwtPayload;
 	}
 
-	private readonly logger = new Logger(AuthenticationService.name);
-
 	public async auth42(code: string): Promise<AuthResponse> {
-		// TODO Check if code is already in use
+		if (!code) {
+			console.log('auth42: ' + 'no code provided');
+			throw new HttpException('No code provided', HttpStatus.BAD_REQUEST);
+		} else if ((await this.usersService.checkCodeInUse(code)) === true) {
+			console.log('auth42: ' + 'code already in use');
+			throw new HttpException('Code already in use', HttpStatus.BAD_REQUEST);
+		}
 		try {
 			const response = await firstValueFrom(
 				this.httpService.post('https://api.intra.42.fr/oauth/token', {
@@ -116,37 +130,33 @@ export class AuthenticationService {
 					},
 				}),
 			);
-			if (this.checkLogin(logobj.data.login) === true) {
-				// TODO refresh token / cookie from our db and from 42 api
-			} else {
-				try {
-					const createdUser = await this.usersService.ft_create({
-						email: logobj.data.email,
-						name: logobj.data.login,
-						password: '', // FIXME generate random password and send it to user
-						ft_code: code,
-						ft_accessToken: response.data.access_token,
-						ft_refreshToken: response.data.refresh_token,
-						ft_expiresIn: response.data.expires_in,
-						ft_tokenType: response.data.token_type,
-						ft_scope: response.data.scope,
-						ft_createdAt: new Date(),
-					});
-					this.logger.log(`SUCCESS: create with code ${code}`);
-					// TODO set cookie
-					return { login: createdUser.name, success: true };
-				} catch (error) {
-					throw new HttpException(
-						'Something went wrong',
-						HttpStatus.INTERNAL_SERVER_ERROR,
-					);
-				}
+			try {
+				const createdUser = await this.usersService.ft_create({
+					email: logobj.data.email,
+					login: logobj.data.login,
+					password: '', // FIXME generate random password and send it to user
+					ft_code: code,
+					ft_accessToken: response.data.access_token,
+					ft_refreshToken: response.data.refresh_token,
+					ft_expiresIn: response.data.expires_in,
+					ft_tokenType: response.data.token_type,
+					ft_scope: response.data.scope,
+					ft_createdAt: new Date(),
+				});
+				console.log('auth42: ' + createdUser.login + ' created');
+				// TODO set cookie
+				return { login: createdUser.login, success: true };
+			} catch (error) {
+				console.error('auth42: ' + error);
+				throw new HttpException(
+					'Something went wrong',
+					HttpStatus.INTERNAL_SERVER_ERROR,
+				);
 			}
 		} catch (error) {
-			this.logger.error(error.response.data.error_description);
-			this.logger.error(`FAILURE: create with code ${code}`);
+			console.error('auth42: ' + error);
 		}
+		console.error('auth42: ' + 'returning false');
 		return { login: '', success: false };
 	}
-	// TODO add console logging
 }

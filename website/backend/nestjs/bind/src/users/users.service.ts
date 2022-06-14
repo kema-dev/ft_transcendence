@@ -22,6 +22,30 @@ export class UsersService {
 		);
 	}
 
+	async checkLoginExistence(login: string) {
+		const user = await this.usersRepository.findOne({ login });
+		if (user) {
+			return true;
+		}
+		return false;
+	}
+
+	async checkEmailExistence(email: string) {
+		const user = await this.usersRepository.findOne({ email });
+		if (user) {
+			return true;
+		}
+		return false;
+	}
+
+	async checkCodeInUse(code: string): Promise<boolean> {
+		const user = await this.usersRepository.findOne({ ft_code: code });
+		if (user) {
+			return true;
+		}
+		return false;
+	}
+
 	async getById(id: number) {
 		const user = await this.usersRepository.findOne({ id });
 		if (user) {
@@ -36,7 +60,6 @@ export class UsersService {
 	async create(userData: CreateUserDto) {
 		const newUser = await this.usersRepository.create(userData);
 		await this.usersRepository.save(newUser);
-		// FIXME Find a way to return the user without useless data
 		return newUser;
 	}
 

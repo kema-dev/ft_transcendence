@@ -9,7 +9,7 @@ class User {
 	public email: string;
 
 	@Column()
-	public name: string;
+	public login: string;
 
 	@Column()
 	public password: string;

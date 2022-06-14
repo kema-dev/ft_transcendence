@@ -10,7 +10,10 @@ import { JwtStrategy } from './jwt.strategy';
 
 @Module({
 	imports: [
-		HttpModule,
+		HttpModule.register({
+			timeout: 5000,
+			maxRedirects: 5,
+		}),
 		UsersModule,
 		PassportModule,
 		ConfigModule,

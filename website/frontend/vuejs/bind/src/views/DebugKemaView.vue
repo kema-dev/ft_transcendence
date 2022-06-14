@@ -69,8 +69,7 @@ export default {
 				});
 		},
 	},
-	created() { // FIXME redirect without code when successfully authenticated
-		// TODO replace get code by backend api check connection
+	created() { // FIXME redirect without code when successfully authenticated, using api check
 		let urlParams = new URLSearchParams(window.location.search);
 		let code = urlParams.get("code");
 		if (code) {
