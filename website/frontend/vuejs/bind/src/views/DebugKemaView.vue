@@ -2,7 +2,7 @@
 	<div class="center column">
 		<img src="@/assets/logo.png" alt='logo'/>
 		<h1>PONG.IO</h1>
-		<input input-type="email" v-model="email_register" placeholder="email_register" />
+		<input v-model="email_register" placeholder="email_register" />
 		<input v-model="login_register" placeholder="login_register" />
 		<input v-model="password_register" placeholder="password_register" />
 		<button @click="this.register()">Register with email / username / password</button>
