@@ -70,12 +70,12 @@ export class UsersService {
 	}
 
 	async ft_update(
-		login: string,
+		email: string,
 		ft_accessToken: string,
 		ft_expiresIn: number,
 		ft_createdAt: Date,
 	) {
-		const user = await this.usersRepository.findOne({ login });
+		const user = await this.usersRepository.findOne({ email });
 		if (user) {
 			user.ft_accessToken = ft_accessToken;
 			user.ft_expiresIn = ft_expiresIn;

@@ -20,6 +20,7 @@ export class AuthenticationService {
 	) {}
 
 	public async register(registrationData: RegisterDto) {
+		console.error('register: ' + registrationData.login);
 		const hashedPassword = await bcrypt.hash(registrationData.password, 10);
 		try {
 			const createdUser = await this.usersService.create({
@@ -27,13 +28,14 @@ export class AuthenticationService {
 				password: hashedPassword,
 				ft_code: '',
 				ft_accessToken: '',
+				ft_refreshToken: '',
 				ft_tokenType: '',
 				ft_expiresIn: 0,
 				ft_scope: '',
 				ft_createdAt: new Date(),
 			});
-			console.log('register: ' + createdUser.login + ' created');
-			return { login: createdUser.login, success: true };
+			console.log('register: ' + createdUser.email + ' created');
+			return { email: createdUser.email, success: true };
 		} catch (error) {
 			if (error?.code === PostgresErrorCode.UniqueViolation) {
 				console.error(
@@ -56,8 +58,8 @@ export class AuthenticationService {
 		try {
 			const user = await this.usersService.getByEmail(email);
 			await this.verifyPassword(plainTextPassword, user.password);
-			console.log('getAuthenticatedUser: ' + user.login + ' authenticated');
-			return { login: user.login, success: true };
+			console.log('getAuthenticatedUser: ' + user.email + ' authenticated');
+			return { email: user.email, success: true };
 		} catch (error) {
 			console.error('getAuthenticatedUser: ' + error);
 			throw new HttpException(
@@ -134,13 +136,13 @@ export class AuthenticationService {
 				(await this.usersService.checkEmailExistence(logobj.data.email)) == true
 			) {
 				await this.usersService.ft_update(
-					response.data.login,
+					response.data.email,
 					response.data.access_token,
 					response.data.expires_in,
 					new Date(),
 				);
 				console.log('auth42: ' + logobj.data.email + ' updated');
-				return { login: response.data.login, success: true };
+				return { email: logobj.data.email, success: true };
 			}
 			try {
 				const password = crypto.randomBytes(16).toString('hex');
@@ -150,14 +152,15 @@ export class AuthenticationService {
 					password: password, // TODO send default password to user and / or prompt him to change it
 					ft_code: code,
 					ft_accessToken: response.data.access_token,
+					ft_refreshToken: response.data.access_token,
 					ft_expiresIn: response.data.expires_in,
 					ft_tokenType: response.data.token_type,
 					ft_scope: response.data.scope,
 					ft_createdAt: new Date(),
 				});
-				console.log('auth42: ' + createdUser.login + ' created');
+				console.log('auth42: ' + createdUser.email + ' created');
 				// TODO set cookie
-				return { login: createdUser.login, success: true };
+				return { email: createdUser.email, success: true };
 			} catch (error) {
 				console.error('auth42: ' + error);
 				throw new HttpException(
@@ -169,6 +172,6 @@ export class AuthenticationService {
 			console.error('auth42: ' + error);
 		}
 		console.error('auth42: ' + 'returning false');
-		return { login: '', success: false };
+		return { email: '', success: false };
 	}
 }

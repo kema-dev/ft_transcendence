@@ -76,8 +76,7 @@ services:
       - ./website/frontend/vuejs/bind:/app
     command: "sh -c '\
               echo \"{\\\"API_42_CLIENT_ID\\\":\\\"$API_42_CLIENT_ID\\\",\\\"API_42_REDIRECT_URI\\\":\\\"$API_42_REDIRECT_URI\\\"}\" > src/env.json && \
-              npm config set fund false && \
-              npm install && \
+              yarn install --ignore-engines && \
               yarn run ${VUE_PHASE} \
               '"
     restart: unless-stopped

@@ -1,7 +1,8 @@
 # kema-dev
 
 * FIXME npm warnings in all containers if possible and revelant, and remove --force for npm install in nestjs container
-* TODO mettre des types de retour pour les méthodes de l'API
+* TODO add return type to all functions
+* TODO find a way not to send error when a user is registering with 42 when the email is already used
 * TODO check registration / auth input with regex in frontend
 * TODO add 2FA option
 * TODO check if I run docker in rootless mode

@@ -2,8 +2,8 @@
 	<div class="center column">
 		<img src="@/assets/logo.png" alt='logo'/>
 		<h1>PONG.IO</h1>
-		<input v-model="email_register" placeholder="email_register" />
-		<input v-model="username_register" placeholder="username_register" />
+		<input input-type="email" v-model="email_register" placeholder="email_register" />
+		<input v-model="login_register" placeholder="login_register" />
 		<input v-model="password_register" placeholder="password_register" />
 		<button @click="this.register()">Register with email / username / password</button>
 		<input v-model="email_auth" placeholder="email_auth" />
@@ -12,18 +12,12 @@
 		<p>
 			<a :href="this.api42Path">AUTHENTICATE WITH 42</a>
 		</p>
-		<p>
-			<button @click="this.reset()">RESET</button>
-		</p>
-    <p>
-			<button @click="this.getAll()">GET ALL USERS</button>
-		</p>
 	</div>
 </template>
 
-<script lang="ts">
-import Config from '../env.json';
+<script>
 import axios from 'axios';
+import Config from '../env.json';
 
 export default {
 	name: "App",
@@ -34,7 +28,7 @@ export default {
 			api42Path:
 				"https://api.intra.42.fr/oauth/authorize?client_id=" + Config.API_42_CLIENT_ID + "&redirect_uri=" + Config.API_42_REDIRECT_URI + "&response_type=code",
 			email_register: "",
-			username_register: "",
+			login_register: "",
 			password_register: "",
 			email_auth: "",
 			password_auth: "",
@@ -45,7 +39,7 @@ export default {
 			axios
 				.post(this.apiPath + "auth/register", {
 					email: this.email_register,
-					name: this.username_register,
+					login: this.login_register,
 					password: this.password_register,
 				})
 				.then((response) => {
@@ -69,7 +63,7 @@ export default {
 				});
 		},
 	},
-	created() { // FIXME redirect without code when successfully authenticated, using api check
+	created() {
 		let urlParams = new URLSearchParams(window.location.search);
 		let code = urlParams.get("code");
 		if (code) {
@@ -79,33 +73,13 @@ export default {
 				})
 				.then((response) => {
 					console.log(response.data);
+					this.$router.push("/debug_kema");
 				})
 				.catch((error) => {
 					console.log(error);
 				});
 		}
 	},
-	reset() {
-		window.location.href = this.rootPath;
-		axios
-			.post(this.apiPath + "auth/reset/", {})
-			.then((response) => {
-				console.log(response.data);
-			})
-			.catch((error) => {
-				console.log(error);
-			});
-	},
-	getAll() {
-		axios
-			.get(this.apiPath + "auth/getUsers/")
-			.then((response) => {
-				console.log(response.data);
-			})
-			.catch((error) => {
-				console.log(error);
-			});
-	}
 }
 </script>
 

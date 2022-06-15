@@ -1,4 +1,4 @@
 export interface AuthResponse {
-	login: string;
+	email: string;
 	success: boolean;
 }
