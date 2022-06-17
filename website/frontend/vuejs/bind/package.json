@@ -12,11 +12,14 @@
     "@vuelidate/validators": "^2.0.0-alpha.29",
     "axios": "^0.27.2",
     "core-js": "^3.8.3",
+    "three": "^0.141.0",
+    "three-csg-ts": "^3.1.10",
     "vue": "^3.2.13",
     "vue-class-component": "^8.0.0-0",
     "vue-router": "^4.0.3"
   },
   "devDependencies": {
+    "@types/three": "^0.141.0",
     "@typescript-eslint/eslint-plugin": "^5.4.0",
     "@typescript-eslint/parser": "^5.4.0",
     "@vue/cli-plugin-babel": "~5.0.0",
