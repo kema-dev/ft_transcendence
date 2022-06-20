@@ -56,6 +56,10 @@ services:
       - POSTGRES_HOST=s_postgresql
     command: "sh -c '\
               echo \"POSTGRES_PORT=${POSTGRESQL_PORT}\\nPOSTGRES_PORT=${POSTGRESQL_PORT}\\nPOSTGRES_USER=${POSTGRESQL_USERNAME}\\nPOSTGRES_PASSWORD=${POSTGRESQL_PASSWORD}\\nPOSTGRES_DB=${POSTGRESQL_DATABASE}\\nJWT_MAX_AGE=${JWT_MAX_AGE}\\nJWT_SECRET=`date +%s%N | cut -b10-19 | md5sum | head -c 20`\\nAPI_42_CLIENT_ID=${API_42_CLIENT_ID}\\nAPI_42_CLIENT_SECRET=${API_42_CLIENT_SECRET}\\nAPI_42_REDIRECT_URI=${API_42_REDIRECT_URI}\" > .env && \
+              mkdir -p /secrets && \
+              openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /secrets/key.pem -out /secrets/cert.pem -subj \"/C=FR/ST=France/L=Paris/O=42/OU=42/CN=${HOSTNAME}\" && \
+              chown 1000:1000 /secrets/key.pem && \
+              chown 1000:1000 /secrets/cert.pem && \
               npm config set fund false && \
               npm install --force && \
               npm run ${NEST_PHASE} \
@@ -76,6 +80,10 @@ services:
       - ./website/frontend/vuejs/bind:/app
     command: "sh -c '\
               echo \"{\\\"API_42_CLIENT_ID\\\":\\\"$API_42_CLIENT_ID\\\",\\\"API_42_REDIRECT_URI\\\":\\\"$API_42_REDIRECT_URI\\\"}\" > src/env.json && \
+              mkdir -p /secrets && \
+              openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /secrets/key.pem -out /secrets/cert.pem -subj \"/C=FR/ST=France/L=Paris/O=42/OU=42/CN=${HOSTNAME}\" && \
+              chown 1000:1000 /secrets/key.pem && \
+              chown 1000:1000 /secrets/cert.pem && \
               yarn install --ignore-engines && \
               yarn run ${VUE_PHASE} \
               '"
