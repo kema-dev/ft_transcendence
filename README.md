@@ -95,6 +95,12 @@ cd ft_transcendence
 docker compose up --build
 ```
 
+Below is a list of links to website's pages
+
+* [pgadmin](http://localhost:8081) - PostgreSQL administration tool
+* [website](http://localhost:80) - website served by vue.js
+* [api](http://localhost:3000) - REST api served by nestjs
+
 <!-- ROADMAP -->
 ## Roadmap
 

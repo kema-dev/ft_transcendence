@@ -30,7 +30,7 @@ services:
     networks:
       - n_backend
     ports:
-      - "${PGADMIN_PORT_HTTP}:${PGADMIN_PORT_HTTP}"
+      - "${PGADMIN_HOST_PORT}:${PGADMIN_PORT_HTTP}"
       # - "${PGADMIN_PORT_HTTPS}:${PGADMIN_PORT_HTTPS}"
     restart: unless-stopped
     environment:
@@ -70,8 +70,8 @@ services:
       - n_backend
       - n_frontend
     ports:
-      - "${FRONTEND_PORT}:${FRONTEND_PORT}"
-      # TODO add frontend port (for full http / https / socket.io)
+      - "${FRONTEND_EXPOSED_HTTP}:${FRONTEND_PORT_HTTP}"
+      - "${FRONTEND_EXPOSED_HTTPS}:${FRONTEND_PORT_HTTPS}"
     volumes:
       - ./website/frontend/vuejs/bind:/app
     command: "sh -c '\

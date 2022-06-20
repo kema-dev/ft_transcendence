@@ -8,6 +8,6 @@
 * TODO check if I run docker in rootless mode
 * TODO document every part of my code
 * TODO update api's wiki
-* TODO implement HTTPS on backend
+* TODO implement HTTPS on both backend and frontend
 * TODO Setup GitHub Actions for build testing
 * TODO use composition API for Vue.js
