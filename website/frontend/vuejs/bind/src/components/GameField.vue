@@ -189,6 +189,8 @@ function updateBallSpeed (bar : PlayerBar) {
 	// console.log('contactBarLimit = ', contactBarLimit);
 }
 
+
+
 function mooveBall (elapsed: number) {
 	let newPos: BallPos = { x: ball.mesh.position.x + elapsed * ball.speedX, y: ball.mesh.position.y + elapsed * ball.speedY };
 
@@ -220,7 +222,7 @@ function mooveBall (elapsed: number) {
 
 	else if (ball.mesh.position.x < -width / 2 - ball.geometry.parameters.radius) {
 		Player1.value.points++;
-			ball.mesh.position.x = 0;
+		ball.mesh.position.x = 0;
 		ball.mesh.position.y = 0;
 		ball.speedX = -0.005;
 		ball.speedY = -0.001;
