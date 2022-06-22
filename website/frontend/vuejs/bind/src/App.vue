@@ -43,23 +43,43 @@ h2 {
 }
 h3 {
 	font-family: "Orbitron", sans-serif;
+	font-size: 0.8rem;
 }
 button {
 	cursor: pointer;
+	background: none;
+	font-family: "Orbitron", sans-serif;
+	font-size: 1rem;
 }
 a {
 	color: black;
 }
 .column {
 	flex-direction: column;
+	width: 100%;
 }
 .row {
 	flex-direction: row;
+	width: 100%;
 }
 .center {
 	display: flex;
 	justify-content: center;
 	align-items: center;
+}
+.left {
+	display: flex;
+	justify-content: flex-start;
+	align-items: flex-start;
+}
+.right {
+	display: flex;
+	justify-content: flex-end;
+	align-items: flex-end;
+}
+.space-between {
+	display: flex;
+	justify-content: space-between !important;
 }
 .stack {
 	position: relative;
