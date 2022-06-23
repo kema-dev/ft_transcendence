@@ -37,9 +37,11 @@ provide("colors", {
 }
 h1 {
 	font-family: "Orbitron", sans-serif;
+	font-size: 2rem;
 }
 h2 {
 	font-family: "Orbitron", sans-serif;
+	font-size: 1rem;
 }
 h3 {
 	font-family: "Orbitron", sans-serif;

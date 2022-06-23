@@ -6,6 +6,7 @@ import GameView from '@/views/GameView.vue'
 import Friends from '@/menu/FriendsTab.vue'
 import Chat from '@/menu/ChatTab.vue'
 import Settings from '@/menu/SettingsTab.vue'
+import Player from '@/menu/PlayerTab.vue'
 import Navmenu from '@/components/NavmenuItem.vue'
 
 const routes: Array<RouteRecordRaw> = [
@@ -43,7 +44,12 @@ const routes: Array<RouteRecordRaw> = [
 				name: 'settings',
 				path: '/home/settings',
 				components: {menu: Settings}
-			}
+			},
+			{
+				name: 'player',
+				path: '/home/player/:player',
+				components: {menu: Player},
+			},
 		]
 	},
 ]

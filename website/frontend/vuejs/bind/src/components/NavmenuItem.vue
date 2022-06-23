@@ -4,11 +4,11 @@
 			<router-link to="/home/chat" class="nav_menu_link">
 				<h2 class="nav_menu_text">CHAT</h2>
 			</router-link>
-			<h1>|</h1>
+			<h1 class="pipe">|</h1>
 			<router-link to="/home/friends" class="nav_menu_link">
 				<h2 class="nav_menu_text">FRIENDS</h2>
 			</router-link>
-			<h1>|</h1>
+			<h1 class="pipe">|</h1>
 			<router-link to="/home/settings" class="nav_menu_link">
 				<h2 class="nav_menu_text">SETTINGS</h2>
 			</router-link>
@@ -40,6 +40,10 @@ let define = inject('colors');
 	align-items: center;
 	background-color: v-bind("define.color0");
 	box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+}
+.pipe {
+	font-size: 1.5rem;
+	font-weight: 100;
 }
 .nav_menu_link {
 	width: 30%;

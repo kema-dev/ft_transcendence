@@ -30,6 +30,14 @@ export class UsersService {
 		return false;
 	}
 
+	async getRank(login: string) {
+		const user = await this.usersRepository.findOne({ login });
+		if (user) {
+			return user.login;
+		}
+		return 'Not found';
+	}
+
 	async checkEmailExistence(email: string) {
 		const user = await this.usersRepository.findOne({ email });
 		if (user) {

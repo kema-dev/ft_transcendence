@@ -15,6 +15,7 @@ import { JwtAuthenticationGuard } from './jwtAuthentication.guard';
 import { AuthResponse } from './authResponse.interface';
 
 import { Response, Request } from 'express';
+import { get } from 'http';
 
 @Controller('auth')
 export class AuthenticationController {
