@@ -1,17 +1,24 @@
 <template>
     <div>
-		<h1>test: {{test}}</h1>
+		<h1>{{route.params.name}}</h1>
     </div>
 </template>
 
 <script setup lang="ts">
-import { inject, defineProps } from 'vue'
+import { inject } from 'vue'
 import { useRoute } from 'vue-router'
+import axios from "axios";
 let define = inject('colors');
 const route = useRoute()
-const props = defineProps(['player'])
-let test = route.params.player
-console.log(route.params.player)
+let user;
+axios
+.get("http://localhost:3000/api/v1/auth/getInfo", )
+.then((response) => {
+	user = response.data;
+})
+.catch((error) => {
+	console.log(error);
+});
 </script>
 
 <style scoped>

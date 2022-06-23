@@ -14,24 +14,31 @@
 			</router-link>
 		</div>
 		<!-- <transition name="slide-fade" mode="out-in"> -->
-		<router-view name="menu" />
+		<div class="content">
+			<router-view name="menu" />
+		</div>
 		<!-- </transition> -->
 	</div>
 </template>
 
 <script setup lang="ts">
-import { inject } from 'vue'
+import { inject } from "vue";
 
-let define = inject('colors');
+let define = inject("colors");
 </script>
 
 <style scoped>
 #menu {
-	height: 100vh;
+	height: calc(100vh - 60px);
 	width: 30vw;
 	background: v-bind("define.color3");
 	box-shadow: -4px 0px 4px rgba(0, 0, 0, 0.25);
-	padding-top: 60px;
+	margin-top: 60px;
+}
+.content {
+	overflow-y: scroll;
+	overflow: auto;
+	height: calc(100vh - 120px);
 }
 #nav_menu {
 	width: 100%;
@@ -55,7 +62,7 @@ let define = inject('colors');
 	#menu {
 		width: 100%;
 		padding: 0;
-		height: 50vh;
+		height: auto;
 	}
 	.nav_menu_text {
 		font-size: clamp(1rem, 2vw, 1.3rem);

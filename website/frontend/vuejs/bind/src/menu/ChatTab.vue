@@ -1,5 +1,5 @@
 <template>
-	<div height="100vh">
+	<div>
 		<h1>CHAT</h1>
 	</div>
 </template>

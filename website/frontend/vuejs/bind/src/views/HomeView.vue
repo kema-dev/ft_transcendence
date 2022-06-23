@@ -24,7 +24,6 @@ onMounted(() => {
 <style>
 #home {
 	width: 100%;
-	/* height: 100vh; */
 	align-items: center;
 }
 #game {

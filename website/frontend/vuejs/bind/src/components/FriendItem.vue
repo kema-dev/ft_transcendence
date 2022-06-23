@@ -3,12 +3,11 @@
 		class="friend_case space-between row"
 	>
 		<div class="center row">
-			<img :src="friend.avatar" class="avatar" alt="avatar" />
+			<router-link :to="{name: 'player', params: {name: friend.name}}"><img :src="friend.avatar" class="avatar" alt="avatar" /></router-link>
 			<div class="center column">
 				<div class="space-between left row">
 					<div class="left column">
-						<router-link :to="{name: 'player', params: {player: friend}}"><h2 class="name">{{ friend.name }}</h2></router-link>
-						<!-- <router-link to="/home/player" :props="{player: friend}"><h2 class="name">{{ friend.name }}</h2></router-link> -->
+						<router-link :to="{name: 'player', params: {name: friend.name}}"><h2 class="name">{{ friend.name }}</h2></router-link>
 						<h3 class="text">level {{ friend.level }}</h3>
 					</div>
 					<div class="right column">
@@ -101,14 +100,14 @@ function remove_friend(name: string) {
 }
 .name {
 	overflow: hidden;
-	white-space: nowrap; /* Don't forget this one */
+	white-space: nowrap;
 	text-overflow: ellipsis;
 	width: 8.5rem;
 	text-align: left;
 }
 .text {
 	overflow: hidden;
-	white-space: nowrap; /* Don't forget this one */
+	white-space: nowrap;
 	text-overflow: ellipsis;
 	width: 7rem;
 	text-align: left;

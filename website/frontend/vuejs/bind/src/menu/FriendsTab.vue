@@ -1,5 +1,5 @@
 <template>
-	<div height="100vh">
+	<div>
 		<div class="center column">
 			<!-- <div class="stack"> -->
 			<div class="search_groupe center row">
@@ -55,7 +55,6 @@ import axios from "axios";
 import { inject, onMounted, ref } from "vue";
 import FriendItem from '@/components/FriendItem.vue';
 let define = inject("colors");
-axios.get("http://localhost:3000/api/users/");
 
 
 

@@ -35,6 +35,10 @@ provide("colors", {
 	text-align: center;
 	color: #2c3e50;
 }
+div {
+	width: 100%;
+	align-items: center;
+}
 h1 {
 	font-family: "Orbitron", sans-serif;
 	font-size: 2rem;
@@ -58,11 +62,9 @@ a {
 }
 .column {
 	flex-direction: column;
-	width: 100%;
 }
 .row {
 	flex-direction: row;
-	width: 100%;
 }
 .center {
 	display: flex;
