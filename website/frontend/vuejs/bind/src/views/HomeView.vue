@@ -2,7 +2,13 @@
 	<div id="home" class="wrap">
 		<NavbarItem />
 		<!-- <router-link to="/">Log out</router-link> -->
-		<div id="game" class="center"><div id="field"></div></div>
+		<div id="game" class="center">
+			<div id="field">
+
+			<!-- <GameItem /> -->
+			</div>
+		</div>
+		<!-- <GameItem /> -->
 		<NavmenuItem />
 	</div>
 </template>
@@ -11,9 +17,10 @@
 import NavbarItem from "@/components/NavbarItem.vue";
 import NavmenuItem from "@/components/NavmenuItem.vue";
 import { onMounted } from "vue";
-import { inject } from 'vue'
+import { inject } from "vue";
+import GameItem from "@/components/GameItem.vue";
 
-let define = inject('colors');
+let define = inject("colors");
 
 onMounted(() => {
 	// let field = document.querySelector('#field');

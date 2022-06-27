@@ -42,9 +42,12 @@
 						class="center row"
 						v-if="friend.name == search.value"
 					>
+						<div :set="find = true" style="display: none;"></div>
 						<FriendItem :friend="friend" />
 					</div>
 				</div>
+				<h2 v-if="find == false">No user</h2>
+				<div :set="find = false"></div>
 			</div>
 		</div>
 	</div>
@@ -56,7 +59,7 @@ import { inject, onMounted, ref } from "vue";
 import FriendItem from '@/components/FriendItem.vue';
 let define = inject("colors");
 
-
+let find = false;
 
 const search = ref("");
 onMounted(() => {
