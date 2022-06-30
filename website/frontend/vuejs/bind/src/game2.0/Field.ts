@@ -34,6 +34,7 @@ export default class Field {
 			v.rotate(this.angleBase)
 			// console.log("after: x:" + v.x + " y:" + v.y)
 			pos.rotate(this.angleBase)
+			// TODO 90deg rotation
 		}
 	}
 	getWalls() {

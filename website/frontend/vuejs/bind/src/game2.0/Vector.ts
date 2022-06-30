@@ -13,6 +13,11 @@ export default class Vector {
 	add(src: Vector) {
 		return new Vector(this.x + src.x, this.y + src.y)
 	}
+
+	reverse(): Vector {
+		return new Vector(-this.x, -this.y);
+	}
+
 	normalize() {
 		const size = Math.sqrt(this.x ** 2 + this.y ** 2);
 		this.x /= size;
@@ -20,6 +25,15 @@ export default class Vector {
 		this.x = Math.round(this.x * 100) / 100
 		this.y = Math.round(this.y * 100) / 100
 	}
+
+	dotPorduct(v: Vector): number {
+		return this.x * v.x + this.y * v.y;
+	}
+
+	multiplication(n: number): Vector {
+		return new Vector(this.x * n, this.y * n)
+	}
+
 	clone() {
 		return new Vector(this.x, this.y)
 	}

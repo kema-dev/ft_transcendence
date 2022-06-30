@@ -3,13 +3,12 @@ import Konva from 'konva';
 import Wall from '@/game2.0/Wall';
 
 export default class Racket {
-	vector: Vector;
 	width: number;
 	x: number;
 	y: number;
-	angle: number
+	angle: number;
+
 	constructor(wall: Wall) {
-		this.vector = wall.vector
 		this.width = wall.width / 4
 		this.x = wall.x
 		this.y = wall.y

@@ -17,6 +17,7 @@ let define = inject('colors');
 <style>
 nav {
 	position: fixed;
+	z-index: 100;
 	top: 0;
 	height: 60px;
 	display: flex;
