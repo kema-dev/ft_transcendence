@@ -5,10 +5,9 @@
 		<div id="game" class="center">
 			<div id="field">
 
-			<!-- <GameItem /> -->
+			<GameItem />
 			</div>
 		</div>
-		<!-- <GameItem /> -->
 		<NavmenuItem />
 	</div>
 </template>
@@ -41,9 +40,9 @@ onMounted(() => {
 #field {
 	width: clamp(0px, 50vw, 80vh);
 	height: clamp(0px, 50vw, 80vh);
-	border: solid 3px v-bind("define.color2");
-	background: v-bind("define.color3");
-	box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+	/* border: solid 3px v-bind("define.color2"); */
+	/* background: v-bind("define.color3"); */
+	/* box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25); */
 }
 @media screen and (max-width: 1000px) {
 	#game {
