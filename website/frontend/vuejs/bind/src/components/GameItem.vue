@@ -1,53 +1,51 @@
 <template>
-	<div>
+	<div id="stage-parent" class="stack">
 		<div id="container"></div>
 	</div>
 </template>
 <script setup lang="ts">
-import { inject, onMounted } from "vue";
+import { inject, onMounted, defineProps } from "vue";
 import Konva from "konva";
 import Field from "@/game2.0/Field";
 import Racket from "@/game2.0/Racket";
 import Ball from "@/game2.0/Ball";
 
 let define = inject("colors");
+let props = defineProps(["nbrPlayer"]);
 onMounted(() => {
+	var sceneWidth = 1000;
+	var sceneHeight = 1000;
 	var stage = new Konva.Stage({
 		container: "container",
-		width: window.innerWidth,
-		height: window.innerHeight,
+		width: sceneWidth,
+		height: sceneHeight,
 	});
-
-	var raq = new Konva.Rect({
-		x: 15,
-		y: 300,
-		width: 7,
-		height: 100,
-		fill: "#16638D",
+	let field = new Field(props.nbrPlayer);
+	const layer = new Konva.Layer();
+	let walls = field.getWalls();
+	let fieldPoints: Array<number> = [];
+	walls.forEach((wall) => {
+		fieldPoints.push(wall.x);
+		fieldPoints.push(wall.y);
 	});
-	var raq2 = new Konva.Rect({
-		x: 712,
-		y: 300,
-		width: 7,
-		height: 100,
-		fill: "#16638D",
+	let background = new Konva.Line({
+		points: fieldPoints,
+		closed: true,
+		fill: "#E5F4FB",
 	});
-	let myField = new Field(4);
-	let layer = myField.getLayer();
-	let walls = myField.getWalls();
 	stage.add(layer);
-	// layer.add(raq);
-	// layer.add(raq2);
+	layer.add(background);
+	walls.forEach((wall) => {
+		layer.add(wall.getKonva());
+		if (wall.side) {
+			layer.add(wall.getKonvaRacket());
+		}
+	});
 	let ball = new Ball(300, 300).getKonva();
 	layer.add(ball);
 
 	var container = stage.container();
-
-	// make it focusable
-
 	container.tabIndex = 1;
-	// focus it
-	// also stage will be in focus on its click
 	container.focus();
 	var text = new Konva.Text({
 		x: 5,
@@ -70,19 +68,21 @@ onMounted(() => {
 	var mov = 0;
 	// var ballX = Math.random() * 5;
 	// var ballY = 5 - ballX;
-	var ballX = 2.5;
-	var ballY = 2.5;
+	var ballX = 5;
+	var ballY = 0;
 	if (Math.floor(Math.random() * 2) == 1) ballX = -ballX;
 	if (Math.floor(Math.random() * 2) == 1) ballY = -ballY;
 	let first = true;
+	let rack = walls.get(0)!.getKonvaRacket();
+
+	console.log(rack.y());
 	const delay = (time: number) =>
 		new Promise((resolve) => setTimeout(resolve, time));
-	async function loop(raq: Konva.Rect) {
+	async function loop() {
 		for (let i = 0; i < Infinity; i++) {
-			raq.y(raq.y() + mov);
+			rack.y(rack.y() + mov);
 			layer.children?.forEach(function (elem) {
 				if (elem == ball) return;
-				// if (haveIntersection(elem.getClientRect(), ball.getClientRect())) {
 				if (
 					detectCollision(
 						new Rectangle(elem.x(), elem.y(), elem.height()),
@@ -93,13 +93,15 @@ onMounted(() => {
 					const wall = walls.get(elem.rotation());
 					const v = wall!.vector;
 					v.normalize();
-					console.log(wall!.angle + " = x: " + v.x + " y: " + v.y);
+					// console.log(wall!.angle + " = x: " + v.x + " y: " + v.y);
 					// ballX = ballY + v.x;
 					// ballY = ballX + v.y;
 					const tmpBX = ballX;
-					ballX = ballY * v.y + ballX * v.x;
-					ballY = tmpBX * v.x + ballY * v.y;
-					console.log(ballX + " " + ballY);
+					// ballX = ballY * v.y + ballX * v.x;
+					// ballY = tmpBX * v.x + ballY * v.y;
+					ballX = Math.cos(2*elem.rotation()) * ballX + Math.sin(2*elem.rotation()) * ballY;
+					ballY = Math.sin(2*elem.rotation()) * tmpBX - Math.cos(2*elem.rotation()) * ballY;
+					// console.log(ballX + " " + ballY);
 					// console.log(
 					// 	elem.rotation() + " = x: " + elem.x() + " y: " + elem.y()
 					// );
@@ -113,24 +115,20 @@ onMounted(() => {
 			await delay(1); // TODO delta
 		}
 	}
-	loop(raq);
+	loop();
 	container.addEventListener("keydown", function (e) {
-		// if (e.key == "ArrowUp") {
-		// 	mov = -5;
-		// } else if (e.key == "ArrowDown") {
-		// 	mov = 5;
 		if (e.key == "ArrowUp") {
-			ball.y(ball.y() - 5);
+			mov = -5;
 		} else if (e.key == "ArrowDown") {
-			ball.y(ball.y() + 5);
-		} else if (e.key == "ArrowLeft") {
-			ball.x(ball.x() - 5);
-		} else if (e.key == "ArrowRight") {
-			ball.x(ball.x() + 5);
-		} else if (e.key == "8") {
-			raq2.y(raq2.y() - 8);
-		} else if (e.key == "2") {
-			raq2.y(raq2.y() + 8);
+			mov = 5;
+			// if (e.key == "ArrowUp") {
+			// 	ball.y(ball.y() - 5);
+			// } else if (e.key == "ArrowDown") {
+			// 	ball.y(ball.y() + 5);
+			// } else if (e.key == "ArrowLeft") {
+			// 	ball.x(ball.x() - 5);
+			// } else if (e.key == "ArrowRight") {
+			// 	ball.x(ball.x() + 5);
 		} else {
 			return;
 		}
@@ -141,18 +139,27 @@ onMounted(() => {
 			if (mov == -5) mov = 0;
 		} else if (e.key == "ArrowDown") {
 			if (mov == 5) mov = 0;
-		} else if (e.key == "8") {
-			raq2.y(raq2.y() - 8);
-		} else if (e.key == "2") {
-			raq2.y(raq2.y() + 8);
 		} else {
 			return;
 		}
 		e.preventDefault();
 	});
-	container.addEventListener("always", function (e) {
-		console.log("test");
-	});
+	function fitStageIntoParentContainer() {
+		var container = document.getElementById("stage-parent");
+
+		// now we need to fit stage into parent container
+		var containerWidth = container!.offsetWidth;
+
+		// but we also make the full scene visible
+		// so we need to scale all objects on canvas
+		var scale = containerWidth / sceneWidth;
+
+		stage.width(sceneWidth * scale);
+		stage.height(sceneHeight * scale);
+		stage.scale({ x: scale, y: scale });
+	}
+	fitStageIntoParentContainer();
+	window.addEventListener("resize", fitStageIntoParentContainer);
 });
 class Rectangle {
 	x: number;
@@ -227,4 +234,8 @@ function degToRad(deg: number) {
 }
 </script>
 
-<style scoped></style>
+<style scoped>
+#stage-parent {
+	width: 100%;
+}
+</style>

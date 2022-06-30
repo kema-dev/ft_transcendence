@@ -21,18 +21,11 @@ export default class Wall {
 		this.angle = index * (360 / nbrWall);
 		// console.log(this.angle + " = x:" + this.x + " y: " + this.y)
 		if (side) {
-			this.racket = new Racket()
+			this.racket = new Racket(this)
 		}
 	}
 	getKonvaRacket() {
-		return new Konva.Rect({
-			x: this.x,
-			y: this.y,
-			rotation: this.angle,
-			width: this.width / 4,
-			height: 10,
-			fill: "#16638D",
-		});
+		return this.racket!.getKonva()
 	}
 	getKonva() {
 		const rec = new Konva.Rect({

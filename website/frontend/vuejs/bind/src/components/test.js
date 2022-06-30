@@ -185,7 +185,7 @@ var canvas = document.getElementById('canvas')
 			if (isCollisions) {
 				context.fillText('collision', 15, canvas.height - 10);
 			} else {
-				context.fillText('通过↑↓←→键移动元素', 15, canvas.height - 10)
+				context.fillText('', 15, canvas.height - 10)
 			}
 			context.restore()
 

@@ -4,8 +4,8 @@
 		<!-- <router-link to="/">Log out</router-link> -->
 		<div id="game" class="center">
 			<div id="field">
-
-			<GameItem />
+				<MatchmakingItem />
+			<!-- <GameItem /> -->
 			</div>
 		</div>
 		<NavmenuItem />
@@ -18,6 +18,7 @@ import NavmenuItem from "@/components/NavmenuItem.vue";
 import { onMounted } from "vue";
 import { inject } from "vue";
 import GameItem from "@/components/GameItem.vue";
+import MatchmakingItem from '@/components/MatchmakingItem.vue';
 
 let define = inject("colors");
 
