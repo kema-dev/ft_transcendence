@@ -3,17 +3,17 @@ import Wall from '@/game2.0/Wall'
 import Konva from "konva"
 
 export default class Ball {
-	x: number
-	y: number
-	r: number
-	v: Vector
+	x: number;
+	y: number;
+	r: number;
+	v: Vector;
 	speed: number;
-	konva: Konva.Circle
+	konva: Konva.Circle;
 	constructor(x: number, y: number) {
-		this.x = x
-		this.y = y
-		this.r = 10
-		this.speed = 5
+		this.x = x;
+		this.y = y;
+		this.r = 10;
+		this.speed = 3;
 		let ballX = Math.random() * 5;
 		let ballY = 5 - ballX;
 		if (Math.floor(Math.random() * 2) == 1) ballX = -ballX;
@@ -30,12 +30,14 @@ export default class Ball {
 	getKonva() {
 		return this.konva
 	}
-	detectCollision(group: Konva.Group, walls: Map<number, Wall>) {
-		for (let i = 0; i < group.children!.length; ++i) {
-			if (group.children![i] == this.konva) return;
-			const wall = walls.get(group.children![i].rotation());
-			if (this.v.dotPorduct(wall!.vector) < 0 && detectCollisionRC(group.children![i], this.konva)) {
+	detectCollision(objects: Konva.Group, walls: Map<number, Wall>) {
+		for (let i = 0; i < objects.children!.length; ++i) {
+			if (objects.children![i] == this.konva) return;
+			const wall = walls.get(objects.children![i].rotation());
+			if (this.v.dotPorduct(wall!.vector) < 0 && detectCollisionRC(objects.children![i], this.konva)) {
 				const v = wall!.vector;
+				if (this.speed < 8)
+					this.speed += 0.1
 				this.v = this.v.add(
 					v.multiplication(v.dotPorduct(this.v.reverse()) * 2));
 			}

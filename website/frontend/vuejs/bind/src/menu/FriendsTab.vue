@@ -27,7 +27,7 @@
 						v-if="user.friends.includes(friend.name)"
 						class="center column"
 					>
-						<FriendItem :friend="friend"/>
+						<FriendItem :friend="friend" />
 					</div>
 					<!-- </div> -->
 				</div>
@@ -38,16 +38,13 @@
 					v-bind:key="friend.name"
 					class="row center"
 				>
-					<div
-						class="center row"
-						v-if="friend.name == search.value"
-					>
-						<div :set="find = true" style="display: none;"></div>
+					<div class="center row" v-if="friend.name == search.value">
+						<div :set="(find = true)" style="display: none"></div>
 						<FriendItem :friend="friend" />
 					</div>
 				</div>
 				<h2 v-if="find == false">No user</h2>
-				<div :set="find = false"></div>
+				<div :set="(find = false)"></div>
 			</div>
 		</div>
 	</div>
@@ -56,7 +53,7 @@
 <script setup lang="ts">
 import axios from "axios";
 import { inject, onMounted, ref } from "vue";
-import FriendItem from '@/components/FriendItem.vue';
+import FriendItem from "@/components/FriendItem.vue";
 let define = inject("colors");
 
 let find = false;
@@ -75,7 +72,7 @@ onMounted(() => {
 });
 
 function search_user(str: string) {
-	users.forEach(u => u.name == str)
+	users.forEach((u) => u.name == str);
 }
 let user = {
 	name: "zeus",
@@ -83,67 +80,66 @@ let user = {
 	avatar: require("@/assets/avatars/(2).jpg"),
 	friends: ["Jane", "John", "Jacksdfgtertwdsfadfsafdertert"],
 };
-let rank = '';
+let rank = "";
 axios
-.get("http://localhost:3000/api/v1/user/getRank" , { login: user.name })
-.then((response) => {
-	rank = response.data;
-	console.log('rank:', rank);
-})
-.catch((error) => {
-	console.log(error);
-	console.log('rank: failed request')
-});
+	.get("http://localhost:3000/api/v1/user/getRank", { login: user.name })
+	.then((response) => {
+		rank = response.data;
+		console.log("rank:", rank);
+	})
+	.catch((error) => {
+		console.log(error);
+		console.log("rank: failed request");
+	});
 let users = [
 	{
 		name: "John",
 		level: "25",
 		avatar: require("@/assets/avatars/(1).jpg"),
 		friends: ["Jane"],
-		status: 'offline',
-		rank: '1st',
-		ratiov: '10',
-		ratiod: '5',
-
+		status: "offline",
+		rank: "1st",
+		ratiov: "10",
+		ratiod: "5",
 	},
 	{
 		name: "Jane",
 		level: "24",
 		avatar: require("@/assets/avatars/(2).jpg"),
 		friends: ["Jill"],
-		status: 'online',
-		rank: '2st',
-		ratiov: '10',
-		ratiod: '5',
+		status: "online",
+		rank: "2st",
+		ratiov: "10",
+		ratiod: "5",
 	},
 	{
 		name: "Jacksdfgtertwdsfadfsafdertert",
 		level: "2365464654654654646546546545",
 		avatar: require("@/assets/avatars/(3).jpg"),
-		status: 'in game',
-		rank: '3st',
-		ratiov: '10',
-		ratiod: '5',
+		status: "in game",
+		rank: "3st",
+		ratiov: "10",
+		ratiod: "5",
 	},
 	{
 		name: "Jill",
 		level: "2",
 		avatar: require("@/assets/avatars/(4).jpg"),
 		friends: ["Jane", "Jacksdfgtertwdsfadfsafdertert"],
-		status: 'online',
-		rank: '4st',
-		ratiov: '10',
-		ratiod: '5',
+		status: "online",
+		rank: "4st",
+		ratiov: "10",
+		ratiod: "5",
 	},
 	{
 		name: "Joe",
 		level: "21",
 		avatar: require("@/assets/avatars/(5).jpg"),
 		friends: ["Jane", "Jacksdfgtertwdsfadfsafdertert"],
-		status: 'online',
-		rank: '5st',
-		ratiov: '10',
-		ratiod: '5',
+		status: "online",
+		rank: "5st",
+		ratiov: "10",
+		ratiod: "5",
 	},
 ];
 </script>
