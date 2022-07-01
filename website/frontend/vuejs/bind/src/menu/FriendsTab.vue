@@ -85,12 +85,14 @@ let user = {
 };
 let rank = '';
 axios
-.get("http://localhost:3000/api/v1/user/getRank")
+.get("http://localhost:3000/api/v1/user/getRank" , { login: user.name })
 .then((response) => {
 	rank = response.data;
+	console.log('rank:', rank);
 })
 .catch((error) => {
 	console.log(error);
+	console.log('rank: failed request')
 });
 let users = [
 	{

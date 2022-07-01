@@ -17,7 +17,7 @@ export class UsersController {
 
 	// @UseGuards(JwtAuthenticationGuard) FIXME
 	@Get('getRank')
-	async getRank() {
-		return this.usersService.getRank();
+	async getRank(login: string) {
+		return this.usersService.getRank(login);
 	}
 }
