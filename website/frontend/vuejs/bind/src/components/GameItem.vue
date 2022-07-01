@@ -10,7 +10,7 @@ import Field from "@/game2.0/Field";
 import Ball from "@/game2.0/Ball";
 
 let define = inject("colors");
-let props = defineProps(["nbrPlayer", "nbrBall"]);
+let props = defineProps(["nbrPlayer", "nbrBall", "start"]);
 let run = true;
 
 onMounted(() => {
@@ -24,7 +24,10 @@ onMounted(() => {
 	let field = new Field(props.nbrPlayer);
 	let balls: Array<Ball> = [];
 	for (let i = 0; i < props.nbrBall; ++i) {
-		balls.push(new Ball(sceneWidth / 2, sceneHeight / 2));
+		if (i % 2 == 1)
+			balls.push(new Ball(sceneWidth / 2, sceneHeight / 2 + -i / 2 * 30 - 15));
+		else
+			balls.push(new Ball(sceneWidth / 2, sceneHeight / 2 + i / 2 * 30));
 	}
 	var group = new Konva.Group({
 		x: 500,
@@ -117,8 +120,8 @@ onMounted(() => {
 			await delay(1); // TODO delta
 		}
 	}
-
-	loop();
+	if (props.start)
+		loop();
 	let delta = (walls.get(0)!.width / 100) * deltaTime;
 	// let delta = 5
 	container.addEventListener("keydown", function (e) {
