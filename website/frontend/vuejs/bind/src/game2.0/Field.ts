@@ -1,6 +1,5 @@
 import Vector from '@/game2.0/Vector';
 import Wall from "@/game2.0/Wall"
-import Konva from "konva"
 
 export default class Field {
 	nbrPlayer: number;
@@ -12,7 +11,7 @@ export default class Field {
 		this.nbrPlayer = nbrPlayer;
 		this.nbrWall = nbrPlayer * 2
 		this.angleBase = Math.PI * 2 / this.nbrWall
-		this.radius = 500;
+		this.radius = 410;
 		const centerPos = new Vector(this.radius, this.radius);
 		this.walls = []
 		// const v = new Vector(-1, 0)

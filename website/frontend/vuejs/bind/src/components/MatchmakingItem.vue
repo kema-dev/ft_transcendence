@@ -1,5 +1,5 @@
 <template>
-	<div class="stack">
+	<div class="stack" id="page">
 		<div id="game_pos">
 			<GameItem :nbrPlayer="nbrPlayer" :nbrBall="nbrBall" :start="start" :key="reload" />
 		</div>
@@ -53,10 +53,18 @@ onMounted(() => {
 	let game = document.getElementById("container");
 	let settings = document.getElementById("settings");
 	if (game && settings) settings.style.height = game.offsetHeight + "px";
+	// window.addEventListener("resize", () => {
+	// 	reload.value++;
+	// })
 });
 </script>
 
 <style scoped>
+#page {
+	height: 100%;
+	max-width: calc(100vh - 65px);
+	/* padding: 0 calc(); */
+}
 #settings {
 	position: relative;
 	z-index: 10;

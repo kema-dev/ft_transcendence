@@ -63,6 +63,7 @@ let define = inject("colors");
 		width: 100%;
 		padding: 0;
 		height: auto;
+		margin-top: 0;
 	}
 	.nav_menu_text {
 		font-size: clamp(1rem, 2vw, 1.3rem);

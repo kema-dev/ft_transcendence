@@ -16,6 +16,7 @@ let run = true;
 onMounted(() => {
 	var sceneWidth = 1000;
 	var sceneHeight = 1000;
+	let radius = 410
 	var stage = new Konva.Stage({
 		container: "container",
 		width: sceneWidth,
@@ -25,16 +26,16 @@ onMounted(() => {
 	let balls: Array<Ball> = [];
 	for (let i = 0; i < props.nbrBall; ++i) {
 		if (i % 2 == 1)
-			balls.push(new Ball(sceneWidth / 2, sceneHeight / 2 + -i / 2 * 30 - 15));
+			balls.push(new Ball(radius, radius + -i / 2 * 30 - 10));
 		else
-			balls.push(new Ball(sceneWidth / 2, sceneHeight / 2 + i / 2 * 30));
+			balls.push(new Ball(radius, radius + i / 2 * 30 + 5));
 	}
 	var group = new Konva.Group({
 		x: 500,
 		y: 500,
 		rotation: -90,
-		offsetX: 500,
-		offsetY: 500,
+		offsetX: radius,
+		offsetY: radius,
 	});
 	var g = new Konva.Group();
 	const layer = new Konva.Layer();
