@@ -30,8 +30,8 @@ export class UsersService {
 		return false;
 	}
 
-	async getRank(login: string) {
-		const user = await this.usersRepository.findOne({ login });
+	async getRank() {
+		const user = await this.usersRepository.findOne( 'login' );
 		if (user) {
 			return user.login;
 		}

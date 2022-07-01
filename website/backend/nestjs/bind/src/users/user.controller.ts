@@ -5,18 +5,19 @@ import {
 	Controller,
 	HttpCode,
 	Post,
+	Get,
 	UseGuards,
 } from '@nestjs/common';
 
 import { UsersService } from './users.service';
 
-@Controller('auth')
+@Controller('user')
 export class UsersController {
 	constructor(private readonly usersService: UsersService) {}
 
 	// @UseGuards(JwtAuthenticationGuard) FIXME
-	@Post('getlog')
-	async getRank(login: string) {
-		return this.usersService.getRank(login);
+	@Get('getRank')
+	async getRank() {
+		return this.usersService.getRank();
 	}
 }

@@ -85,7 +85,7 @@ let user = {
 };
 let rank = '';
 axios
-.get("http://localhost:3000/api/v1/auth/getlog", )
+.get("http://localhost:3000/api/v1/user/getRank")
 .then((response) => {
 	rank = response.data;
 })

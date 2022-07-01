@@ -26,18 +26,18 @@ onMounted(() => {
 	let balls: Array<Ball> = [];
 	for (let i = 0; i < props.nbrBall; ++i) {
 		if (i % 2 == 1)
-			balls.push(new Ball(radius, radius + -i / 2 * 30 - 10));
+			balls.push(new Ball(radius, radius + -i / 2 * 30 - 7.5));
 		else
-			balls.push(new Ball(radius, radius + i / 2 * 30 + 5));
+			balls.push(new Ball(radius, radius + i / 2 * 30 + 7.5));
 	}
-	var group = new Konva.Group({
+	var game = new Konva.Group({
 		x: 500,
 		y: 500,
 		rotation: -90,
 		offsetX: radius,
 		offsetY: radius,
 	});
-	var g = new Konva.Group();
+	var objects = new Konva.Group();
 	const layer = new Konva.Layer();
 	let walls = field.getWalls();
 	let fieldPoints: Array<number> = [];
@@ -55,20 +55,20 @@ onMounted(() => {
 		shadowOpacity: 0.3,
 	});
 	stage.add(layer);
-	group.add(background);
+	game.add(background);
 	let rack: Konva.Rect;
 	walls.forEach((wall) => {
-		g.add(wall.getKonva());
+		objects.add(wall.getKonva());
 		if (wall.side) {
 			let tmp = wall.getKonvaRacket();
-			g.add(tmp);
+			objects.add(tmp);
 			if (wall.angle == 0) rack = tmp;
 		}
 	});
 	// let ball.konva = ball.getKonva()
-	for (let i = 0; i < props.nbrBall; ++i) group.add(balls[i].konva);
-	group.add(g);
-	layer.add(group);
+	for (let i = 0; i < props.nbrBall; ++i) game.add(balls[i].konva);
+	game.add(objects);
+	layer.add(game);
 	var container = stage.container();
 	container.tabIndex = 1;
 	container.focus();
@@ -98,7 +98,7 @@ onMounted(() => {
 		// let start = 1000000 * performance.now();
 		while (run) {
 			for (let i = 0; i < props.nbrBall; ++i) {
-				balls[i].detectCollision(g, walls);
+				balls[i].detectCollision(objects, walls);
 				balls[i].konva.x(
 					balls[i].konva.x() + balls[i].v.x * balls[i].speed * deltaTime
 				);

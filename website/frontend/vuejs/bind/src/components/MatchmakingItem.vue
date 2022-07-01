@@ -1,10 +1,15 @@
 <template>
 	<div class="stack" id="page">
 		<div id="game_pos">
-			<GameItem :nbrPlayer="nbrPlayer" :nbrBall="nbrBall" :start="start" :key="reload" />
+			<GameItem
+				:nbrPlayer="nbrPlayer"
+				:nbrBall="nbrBall"
+				:start="start"
+				:key="reload"
+			/>
 		</div>
 		<div class="center column" id="settings">
-			<h1 v-if="!start">{{nbrPlayer}}</h1>
+			<h1 v-if="!start">{{ nbrPlayer }}</h1>
 			<h2 class="title">Players</h2>
 			<div class="center row">
 				<button class="button" v-on:click="decr">LESS</button>
@@ -24,30 +29,38 @@
 import { inject, onMounted, ref } from "vue";
 import GameItem from "@/components/GameItem.vue";
 let define = inject("colors");
-let start = ref(false)
+let start = ref(false);
 let reload = ref(0);
 let nbrPlayer = ref(4);
 let nbrBall = ref(1);
 function launch() {
-	start.value = !start.value
-	reload.value++
+	start.value = !start.value;
+	reload.value++;
 }
 function incr() {
-	if (nbrPlayer.value + 1 <= 8) nbrPlayer.value++;
-	reload.value++;
+	if (nbrPlayer.value + 1 <= 8) {
+		nbrPlayer.value++;
+		reload.value++;
+	}
 }
 function decr() {
-	if (nbrPlayer.value - 1 >= 2) nbrPlayer.value--;
-	reload.value++;
+	if (nbrPlayer.value - 1 >= 2) {
+		nbrPlayer.value--;
+		reload.value++;
+	}
 }
 function incrBall() {
 	// if (nbrBall.value + 1 <= 3)
-	nbrBall.value++;
-	reload.value++;
+	{
+		nbrBall.value++;
+		reload.value++;
+	}
 }
 function decrBall() {
-	if (nbrBall.value - 1 >= 1) nbrBall.value--;
-	reload.value++;
+	if (nbrBall.value - 1 >= 1) {
+		nbrBall.value--;
+		reload.value++;
+	}
 }
 onMounted(() => {
 	let game = document.getElementById("container");
@@ -87,9 +100,9 @@ onMounted(() => {
 .start {
 	/* margin-top: 10px; */
 	/* margin-bottom: 95px; */
-	background-color: v-bind('define.color2');
+	background-color: v-bind("define.color2");
 	border-radius: 10px;
-	color: v-bind('define.color0');
+	color: v-bind("define.color0");
 	width: 4.5rem;
 	height: 1.5rem;
 }
