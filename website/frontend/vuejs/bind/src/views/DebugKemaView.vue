@@ -18,6 +18,7 @@
 <script>
 import axios from 'axios';
 import Config from '../env.json';
+import { useToast } from "vue-toastification";
 
 export default {
 	name: "App",
@@ -34,6 +35,10 @@ export default {
 			password_auth: "",
 		};
 	},
+	setup() {
+		const toast = useToast();
+		return { toast }
+	},
 	methods: {
 		register() {
 			axios
@@ -43,10 +48,16 @@ export default {
 					password: this.password_register,
 				})
 				.then((response) => {
-					console.log(response.data);
+					this.toast.success("Register success");
+					// console.log(response.data);
 				})
 				.catch((error) => {
-					console.log(error);
+					if (error.response.data.message === "User with that email already exists") {
+						this.toast.warning("User with that email already exists");
+					} else {
+						this.toast.error("Unknown error");
+					}
+					// console.log(error.response.data.message);
 				});
 		},
 		auth() {
