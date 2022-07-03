@@ -29,6 +29,7 @@ onMounted(() => {
 			balls.push(new Ball(radius, radius + -i / 2 * 30 - 7.5));
 		else
 			balls.push(new Ball(radius, radius + i / 2 * 30 + 7.5));
+		// balls.push(new Ball(radius, radius));
 	}
 	var game = new Konva.Group({
 		x: 500,
