@@ -1,14 +1,15 @@
 <template>
+	<div>
+		
+	</div>
 	<div id="scene-container">
-		<div>{{Player1.points}}</div>
-		<div>{{Player2.points}}</div>
-		<!-- <PlayerBar :scene="scene" :camera="camera" :renderer="renderer" id="pbar1"></PlayerBar>
-		<PlayerBar :scene="scene" :camera="camera" :renderer="renderer" id="pbar2"></PlayerBar> -->
+		<PlayerHUD name="TOTOLOSA" :points="Player1.points"></PlayerHUD>
 	</div>
 </template>
 
 <script lang="ts" setup>
 // import PlayerBar from './PlayerBar.vue';
+import PlayerHUD from './PlayerHUD.vue' 
 import FieldBorders from '../game/FieldBorders' 
 import FieldPlane from '../game/FieldPlane' 
 import PlayerBar from '../game/PlayerBar' 
