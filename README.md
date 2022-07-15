@@ -1,6 +1,5 @@
 <div id="top"></div>
 <p align=center>
-  <img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/kema-dev/ft_transcendence">
   <img alt="GitHub issues" src="https://img.shields.io/github/issues/kema-dev/ft_transcendence">
   <img alt="GitHub top language" src="https://img.shields.io/github/languages/top/kema-dev/ft_transcendence">
 </p>
