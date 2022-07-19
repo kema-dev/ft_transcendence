@@ -85,6 +85,10 @@ a {
 	display: flex;
 	justify-content: space-between !important;
 }
+.space-around {
+	display: flex;
+	justify-content: space-around !important;
+}
 .stack {
 	position: relative;
 }
