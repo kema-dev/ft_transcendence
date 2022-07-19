@@ -5,6 +5,7 @@ import SecurityView from '@/views/SecurityView.vue'
 import GameView from '@/views/GameView.vue'
 import Friends from '@/menu/FriendsTab.vue'
 import Chat from '@/menu/ChatTab.vue'
+import inGame from '@/menu/InGameTab.vue'
 import Settings from '@/menu/SettingsTab.vue'
 import Player from '@/menu/PlayerTab.vue'
 
@@ -39,8 +40,20 @@ const routes: Array<RouteRecordRaw> = [
 			{
 				name: 'chat',
 				path: '/home/chat',
-				components: {menu: Chat}
+				components: {menu: Chat},
+				children: [
+					{
+						name: 'in-game',
+						path: '/home/chat/in-game',
+						component: {chat_menu: inGame}
+					}
+				],
 			},
+			// {
+			// 	name: 'in-game',
+			// 	path: '/home/chat/in-game',
+			// 	component: {menu: inGame}
+			// },
 			{
 				name: 'settings',
 				path: '/home/settings',
