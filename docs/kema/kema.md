@@ -1,7 +1,5 @@
 # kema-dev
 
-* TODO login seemlessly with login OR mail
-* TODO check registration / auth input with a regex in backend, then send appropriate message to frontend in order to display a notification
 * TODO add 2FA option
 * TODO Fix cookie seting for authentication
 * TODO check if I run docker in rootless mode

@@ -20,6 +20,7 @@
 								class="input_box"
 								v-model="email_register"
 								placeholder="email"
+								type="email"
 							/>
 						</div>
 						<div>
@@ -27,6 +28,7 @@
 								class="input_box"
 								v-model="login_register"
 								placeholder="login"
+								type="text"
 							/>
 						</div>
 						<div>
@@ -34,6 +36,15 @@
 								class="input_box"
 								v-model="password_register"
 								placeholder="password"
+								type="password"
+							/>
+						</div>
+						<div>
+							<input
+								class="input_box"
+								v-model="password_confirmation"
+								placeholder="password"
+								type="password"
 							/>
 						</div>
 						<div>
@@ -52,6 +63,7 @@
 								class="input_box"
 								v-model="email_auth"
 								placeholder="email or login"
+								type="text"
 							/>
 						</div>
 						<div>
@@ -59,6 +71,7 @@
 								class="input_box"
 								v-model="password_auth"
 								placeholder="password"
+								type="password"
 							/>
 						</div>
 						<div>
@@ -97,6 +110,7 @@ export default {
 			email_register: "",
 			login_register: "",
 			password_register: "",
+			password_confirmation: "",
 			email_auth: "",
 			password_auth: "",
 			show: false,
@@ -121,6 +135,7 @@ export default {
 					email: this.email_register,
 					login: this.login_register,
 					password: this.password_register,
+					password_confirmation: this.password_confirmation,
 				})
 				.then((response) => {
 					this.toast.success("Register success");
@@ -132,6 +147,20 @@ export default {
 						"User with that email already exists"
 					) {
 						this.toast.warning("User with that email already exists");
+					} else if (
+						error.response.data.message ===
+						"Passwords do not match"
+					) {
+						this.toast.warning("Passwords do not match");
+					} else if (
+						error.response.data.message.search("Password must contain") !== -1
+					) {
+						this.toast.warning("Password must contain at least one lowercase letter, one uppercase letter, one digit, one special character (!@#$%^&*) and must be between 10 and 32 characters long");
+					} else if (
+						error.response.data.message ===
+						"Email is not valid"
+					) {
+						this.toast.warning("Email is not valid");
 					} else {
 						this.toast.error("Unknown error");
 						console.log(error);
