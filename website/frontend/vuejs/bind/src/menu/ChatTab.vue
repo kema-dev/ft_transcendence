@@ -27,18 +27,22 @@ let define = inject("colors");
 
 <style>
 
+/* #chat_menu {
+	height: 100%;
+} */
+
 #chat_bar {
-	margin-top: 1rem;
-	margin-bottom: 1rem;
-	display: flex;
+	/* margin-top: 1rem;
+	margin-bottom: 1rem; */
+	height: 60px;
+	/* display: flex; */
 }
 
-.chat_item {
-	}
 
 .chat_item_text {
 	font-weight: 100;
 	font-size: 0.9rem;
+	padding-top: 1rem;
 	padding-bottom: 1rem;
 }
 
