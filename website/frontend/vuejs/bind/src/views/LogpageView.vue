@@ -4,7 +4,9 @@
 			<div v-if="show" class="outer">
 				<div class="inner">
 					<img src="@/assets/logo.png" alt="logo" />
-					<h1>pong.io</h1>
+					<div class="top_margin">
+						<h1>pong.io</h1>
+					</div>
 					<span class="switcher switcher-1">
 						<input
 							type="checkbox"
@@ -14,75 +16,55 @@
 						/>
 						<label for="switcher-1"></label>
 					</span>
-
-					<div v-if="switch_value">
-						<div>
-							<input
-								class="input_box"
-								v-model="email_register"
-								placeholder="email"
-								type="email"
-							/>
-						</div>
-						<div>
-							<input
-								class="input_box"
-								v-model="login_register"
-								placeholder="login"
-								type="text"
-							/>
-						</div>
-						<div>
-							<input
-								class="input_box"
-								v-model="password_register"
-								placeholder="password"
-								type="password"
-							/>
-						</div>
-						<div>
-							<input
-								class="input_box"
-								v-model="password_confirmation"
-								placeholder="password confirmation"
-								type="password"
-							/>
-						</div>
-						<div>
-							<button class="log_button" @click="this.register()">
-								Register
-							</button>
-						</div>
-						<div>
-							<a class="ft_button" :href="this.api42Path">Register with 42</a>
-						</div>
-					</div>
-
-					<div v-else>
-						<div>
-							<input
-								class="input_box"
-								v-model="email_auth"
-								placeholder="email or login"
-								type="text"
-							/>
-						</div>
-						<div>
-							<input
-								class="input_box"
-								v-model="password_auth"
-								placeholder="password"
-								type="password"
-							/>
-						</div>
-						<div>
-							<button @click="this.auth()">Login</button>
-						</div>
-						<div>
-							<p>
+					<div class="transi">
+						<Transition name="slide-up">
+							<div v-if="switch_value" class="form">
+								<input
+									class="input_box"
+									v-model="email_register"
+									placeholder="email"
+									type="email"
+								/>
+								<input
+									class="input_box"
+									v-model="login_register"
+									placeholder="login"
+									type="text"
+								/>
+								<input
+									class="input_box"
+									v-model="password_register"
+									placeholder="password"
+									type="password"
+								/>
+								<input
+									class="input_box"
+									v-model="password_confirmation"
+									placeholder="password confirmation"
+									type="password"
+								/>
+								<button class="login-btn" @click="this.register()">
+									Register
+								</button>
+								<a class="ft_button" :href="this.api42Path">Register with 42</a>
+							</div>
+							<div v-else class="form">
+								<input
+									class="input_box"
+									v-model="email_auth"
+									placeholder="email or login"
+									type="text"
+								/>
+								<input
+									class="input_box"
+									v-model="password_auth"
+									placeholder="password"
+									type="password"
+								/>
+								<button @click="this.auth()">Login</button>
 								<a class="ft_button" :href="this.api42Path">Login with 42</a>
-							</p>
-						</div>
+							</div>
+						</Transition>
 					</div>
 				</div>
 			</div>
@@ -94,7 +76,6 @@
 import axios from "axios";
 import Config from "../env.json";
 import { useToast } from "vue-toastification";
-import ToggleButton from "../components/ToggleButton.vue";
 
 export default {
 	name: "App",
@@ -116,15 +97,13 @@ export default {
 			password_auth: "",
 			show: false,
 			switch_value: true,
+			docState: "saved",
 		};
 	},
 	provide() {
 		return {
 			defaultState: this.switch_value,
 		};
-	},
-	components: {
-		// ToggleButton,
 	},
 	setup() {
 		const toast = useToast();
@@ -143,7 +122,9 @@ export default {
 					password_confirmation: this.password_confirmation,
 				})
 				.then((response) => {
-					this.toast.success("Register success");
+					this.toast.success(
+						"Register success, welcome " + this.login_register
+					);
 					// console.log(response.data);
 				})
 				.catch((error) => {
@@ -270,6 +251,9 @@ export default {
 	text-align: center;
 	font-family: "Orbitron", sans-serif;
 	font-size: 1rem;
+	/* display: flex;
+	flex-direction: column;
+  position: absolute; */
 }
 
 .ft_button {
@@ -298,7 +282,7 @@ body span.switcher input {
 	width: 200px;
 	height: 50px;
 	border-radius: 25px;
-	background-color: #16638D;
+	background-color: #16638d;
 	outline: none;
 	font-family: sans-serif;
 }
@@ -312,11 +296,11 @@ body span.switcher input:after {
 }
 body span.switcher input:before {
 	content: "Register";
-	left: 20px;
+	left: 1.65rem;
 }
 body span.switcher input:after {
 	content: "Login";
-	right: 20px;
+	right: 2.15rem;
 }
 body span.switcher label {
 	z-index: 1;
@@ -333,44 +317,44 @@ body span.switcher.switcher-1 input:checked {
 }
 body span.switcher.switcher-1 input:checked:before {
 	color: #fff;
-	transition: color 0.5s 0.2s;
+	transition: color 0.3s 0.2s;
 }
 body span.switcher.switcher-1 input:checked:after {
 	color: #ccc;
-	transition: color 0.5s;
+	transition: color 0.3s;
 }
 body span.switcher.switcher-1 input:checked + label {
 	left: 10px;
 	right: 100px;
-	background: #16638D;
-	transition: left 0.5s, right 0.4s 0.2s;
+	background: #16638d;
+	transition: left 0.2s, right 0.2s 0.1s;
 }
 body span.switcher.switcher-1 input:not(:checked) {
 	background: #fff;
-	transition: background 0.5s -0.1s;
+	transition: background 0.3s -0.1s;
 }
 body span.switcher.switcher-1 input:not(:checked):before {
 	color: #ccc;
-	transition: color 0.5s;
+	transition: color 0.3s;
 }
 body span.switcher.switcher-1 input:not(:checked):after {
 	color: #fff;
-	transition: color 0.5s 0.2s;
+	transition: color 0.3s 0.2s;
 }
 body span.switcher.switcher-1 input:not(:checked) + label {
 	left: 100px;
 	right: 10px;
-	background: #16638D;
-	transition: left 0.4s 0.2s, right 0.5s, background 0.35s -0.1s;
+	background: #16638d;
+	transition: left 0.2s 0.1s, right 0.2s, background 0.35s -0.1s;
 }
 body span.switcher.switcher-2 {
 	overflow: hidden;
 }
 body span.switcher.switcher-2 input {
-	transition: background-color 0s 0.5s;
+	transition: background-color 0s 0.3s;
 }
 body span.switcher.switcher-2 input:before {
-	color: #16638D;
+	color: #16638d;
 }
 body span.switcher.switcher-2 input:after {
 	color: #fff;
@@ -380,7 +364,7 @@ body span.switcher.switcher-2 input:checked {
 }
 body span.switcher.switcher-2 input:checked + label {
 	background: #fff;
-	animation: turn-on 0.5s ease-out;
+	animation: turn-on 0.3s ease-out;
 }
 @keyframes turn-on {
 	0% {
@@ -391,11 +375,11 @@ body span.switcher.switcher-2 input:checked + label {
 	}
 }
 body span.switcher.switcher-2 input:not(:checked) {
-	background: #16638D;
+	background: #16638d;
 }
 body span.switcher.switcher-2 input:not(:checked) + label {
-	background: #16638D;
-	animation: turn-off 0.5s ease-out;
+	background: #16638d;
+	animation: turn-off 0.3s ease-out;
 }
 @keyframes turn-off {
 	0% {
@@ -410,5 +394,69 @@ body span.switcher.switcher-2 label {
 	width: 200px;
 	height: 50px;
 	border-radius: 25px;
+}
+
+.slide-fade-enter-active,
+.slide-fade-leave-active {
+	transition: opacity 0.5s;
+	position: absolute;
+}
+
+.slide-fade-enter,
+.slide-fade-leave-to {
+	position: absolute;
+	opacity: 0;
+}
+
+.slide-enter-active {
+	transition: all 0.3s ease;
+	position: absolute;
+}
+
+.slide-leave-active {
+	transition: all 0.8s cubic-bezier(1, 0.5, 0.8, 1);
+	position: absolute;
+}
+
+.slide-enter,
+.slide-leave-to {
+	transform: translateX(10px);
+	opacity: 0;
+	position: absolute;
+}
+
+.slide-up-enter-active,
+.slide-up-leave-active {
+	transition: all 0.4s ease-out;
+	position: absolute;
+}
+
+.slide-up-enter-from {
+	opacity: 0;
+	transform: translateY(-10vw);
+	position: absolute;
+}
+
+.slide-up-leave-to {
+	opacity: 0;
+	transform: translateY(10vw);
+	position: absolute;
+}
+
+.form-container {
+	display: inline-block;
+	position: relative;
+	height: 1em;
+}
+
+.form {
+	display: flex;
+	flex-direction: column;
+}
+
+.transi {
+	display: inline-flex;
+	position: relative;
+	height: 5rem;
 }
 </style>
