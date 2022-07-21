@@ -3,16 +3,17 @@
 		<Transition name="showup">
 			<div v-if="show" class="outer">
 				<div class="inner">
-					<div>
-						<input id="switch" value="true" v-model="switch_value" type="checkbox"/>
-					</div>
-					<div v-if="switch_value">
-						<p>Register</p>
-					</div>
-					<div v-else>
-						<p>Login</p>
-					</div>
 					<img src="@/assets/logo.png" alt="logo" />
+					<h1>pong.io</h1>
+					<span class="switcher switcher-1">
+						<input
+							type="checkbox"
+							id="switcher-1"
+							value="true"
+							v-model="switch_value"
+						/>
+						<label for="switcher-1"></label>
+					</span>
 
 					<div v-if="switch_value">
 						<div>
@@ -43,7 +44,7 @@
 							<input
 								class="input_box"
 								v-model="password_confirmation"
-								placeholder="password"
+								placeholder="password confirmation"
 								type="password"
 							/>
 						</div>
@@ -117,6 +118,11 @@ export default {
 			switch_value: true,
 		};
 	},
+	provide() {
+		return {
+			defaultState: this.switch_value,
+		};
+	},
 	components: {
 		// ToggleButton,
 	},
@@ -125,10 +131,9 @@ export default {
 		return { toast };
 	},
 	methods: {
-		// change_form(value) {
-		// 	this.switch_value = value;
-		// 	console.log("sw val: " + this.switch_value);
-		// },
+		change_form() {
+			this.switch_value = !this.switch_value;
+		},
 		register() {
 			axios
 				.post(this.apiPath + "auth/register", {
@@ -147,19 +152,15 @@ export default {
 						"User with that email already exists"
 					) {
 						this.toast.warning("User with that email already exists");
-					} else if (
-						error.response.data.message ===
-						"Passwords do not match"
-					) {
+					} else if (error.response.data.message === "Passwords do not match") {
 						this.toast.warning("Passwords do not match");
 					} else if (
 						error.response.data.message.search("Password must contain") !== -1
 					) {
-						this.toast.warning("Password must contain at least one lowercase letter, one uppercase letter, one digit, one special character (!@#$%^&*) and must be between 10 and 32 characters long");
-					} else if (
-						error.response.data.message ===
-						"Email is not valid"
-					) {
+						this.toast.warning(
+							"Password must contain at least one lowercase letter, one uppercase letter, one digit, one special character (!@#$%^&*) and must be between 10 and 32 characters long"
+						);
+					} else if (error.response.data.message === "Email is not valid") {
 						this.toast.warning("Email is not valid");
 					} else {
 						this.toast.error("Unknown error");
@@ -175,7 +176,9 @@ export default {
 					password: this.password_auth,
 				})
 				.then((response) => {
-					this.toast.success("Authentication success, welcome " + response.data.email + " !");
+					this.toast.success(
+						"Authentication success, welcome " + response.data.email + " !"
+					);
 					// console.log(response.data);
 				})
 				.catch((error) => {
@@ -187,8 +190,7 @@ export default {
 	created() {
 		setTimeout(() => {
 			this.show = true;
-		}, 0);
-		console.log(this.show);
+		}, 0.5);
 		let urlParams = new URLSearchParams(window.location.search);
 		let code = urlParams.get("code");
 		if (code) {
@@ -198,8 +200,10 @@ export default {
 				})
 				.then((response) => {
 					// console.log(response.data);
-					this.$router.push("/debug_kema");
-					this.toast.success("Authentication success, welcome " + response.data.email + " !");
+					this.$router.push("/");
+					this.toast.success(
+						"Authentication success, welcome " + response.data.email + " !"
+					);
 				})
 				.catch((error) => {
 					this.toast.error("Authentication failure, please try again");
@@ -278,69 +282,133 @@ export default {
 	text-align: center;
 	font-family: "Orbitron", sans-serif;
 	font-size: 1rem;
-	background-color: rgba(135, 196, 253, 0.925);
+	background-color: #fff;
 }
 
-.custom__button {
-    vertical-align: middle;
-    user-select: none;
-    cursor: pointer;
+body span.switcher {
+	position: relative;
+	width: 200px;
+	height: 50px;
+	border-radius: 25px;
+	margin: 20px 0;
 }
-.custom__button input[type="checkbox"] {
-    opacity: 0;
-    position: absolute;
-    width: 1px;
-    height: 1px;
+body span.switcher input {
+	appearance: none;
+	position: relative;
+	width: 200px;
+	height: 50px;
+	border-radius: 25px;
+	background-color: #16638D;
+	outline: none;
+	font-family: sans-serif;
 }
-.custom__button .custom__switch {
-    display:inline-block;
-    height:12px;
-    border-radius:6px;
-    width:40px;
-    background: #BFCBD9;
-    box-shadow: inset 0 0 1px #BFCBD9;
-    position:relative;
-    margin-left: 10px;
-    transition: all .25s;
+body span.switcher input:before,
+body span.switcher input:after {
+	z-index: 2;
+	position: absolute;
+	top: 50%;
+	transform: translateY(-50%);
+	color: #fff;
 }
-
-.custom__button .custom__switch::after, 
-.custom__button .custom__switch::before {
-    content: "";
-    position: absolute;
-    display: block;
-    height: 18px;
-    width: 18px;
-    border-radius: 50%;
-    left: 0;
-    top: -3px;
-    transform: translateX(0);
-    transition: all .25s cubic-bezier(.5, -.6, .5, 1.6);
+body span.switcher input:before {
+	content: "Register";
+	left: 20px;
 }
-
-.custom__button .custom__switch::after {
-    background: #4D4D4D;
-    box-shadow: 0 0 1px #666;
+body span.switcher input:after {
+	content: "Login";
+	right: 20px;
 }
-.custom__button .custom__switch::before {
-    background: #4D4D4D;
-    box-shadow: 0 0 0 3px rgba(0,0,0,0.1);
-    opacity:0;
+body span.switcher label {
+	z-index: 1;
+	position: absolute;
+	top: 10px;
+	bottom: 10px;
+	border-radius: 20px;
 }
-
-.active .custom__switch {
-    background: #3da7e0;
-    box-shadow: inset 0 0 1px #3da7e0;
+body span.switcher.switcher-1 input {
+	transition: 0.25s -0.1s;
 }
-
-.active .custom__switch::after,
-.active .custom__switch::before{
-    transform:translateX(40px - 18px);
+body span.switcher.switcher-1 input:checked {
+	background-color: #fff;
 }
-
-.active .custom__switch::after {
-    left: 23px;
-    background: #16638D;
-    box-shadow: 0 0 1px #16638D;
+body span.switcher.switcher-1 input:checked:before {
+	color: #fff;
+	transition: color 0.5s 0.2s;
+}
+body span.switcher.switcher-1 input:checked:after {
+	color: #ccc;
+	transition: color 0.5s;
+}
+body span.switcher.switcher-1 input:checked + label {
+	left: 10px;
+	right: 100px;
+	background: #16638D;
+	transition: left 0.5s, right 0.4s 0.2s;
+}
+body span.switcher.switcher-1 input:not(:checked) {
+	background: #fff;
+	transition: background 0.5s -0.1s;
+}
+body span.switcher.switcher-1 input:not(:checked):before {
+	color: #ccc;
+	transition: color 0.5s;
+}
+body span.switcher.switcher-1 input:not(:checked):after {
+	color: #fff;
+	transition: color 0.5s 0.2s;
+}
+body span.switcher.switcher-1 input:not(:checked) + label {
+	left: 100px;
+	right: 10px;
+	background: #16638D;
+	transition: left 0.4s 0.2s, right 0.5s, background 0.35s -0.1s;
+}
+body span.switcher.switcher-2 {
+	overflow: hidden;
+}
+body span.switcher.switcher-2 input {
+	transition: background-color 0s 0.5s;
+}
+body span.switcher.switcher-2 input:before {
+	color: #16638D;
+}
+body span.switcher.switcher-2 input:after {
+	color: #fff;
+}
+body span.switcher.switcher-2 input:checked {
+	background-color: #fff;
+}
+body span.switcher.switcher-2 input:checked + label {
+	background: #fff;
+	animation: turn-on 0.5s ease-out;
+}
+@keyframes turn-on {
+	0% {
+		left: 100%;
+	}
+	100% {
+		left: 0%;
+	}
+}
+body span.switcher.switcher-2 input:not(:checked) {
+	background: #16638D;
+}
+body span.switcher.switcher-2 input:not(:checked) + label {
+	background: #16638D;
+	animation: turn-off 0.5s ease-out;
+}
+@keyframes turn-off {
+	0% {
+		right: 100%;
+	}
+	100% {
+		right: 0%;
+	}
+}
+body span.switcher.switcher-2 label {
+	top: 0px;
+	width: 200px;
+	height: 50px;
+	border-radius: 25px;
 }
 </style>
