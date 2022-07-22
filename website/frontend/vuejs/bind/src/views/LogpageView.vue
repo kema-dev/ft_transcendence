@@ -163,6 +163,7 @@ export default {
 					this.toast.success(
 						"Authentication success, welcome " + response.data.login + " !"
 					);
+					this.$router.push("/security");
 					// console.log(response.data);
 				})
 				.catch((error) => {
@@ -192,10 +193,10 @@ export default {
 				})
 				.then((response) => {
 					// console.log(response.data);
-					this.$router.push("/");
 					this.toast.success(
 						"Authentication success, welcome " + response.data.login + " !"
 					);
+					this.$router.push("/home");
 				})
 				.catch((error) => {
 					this.toast.error("Authentication failure, please try again");

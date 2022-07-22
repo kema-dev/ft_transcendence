@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import Home from "@/views/HomeView.vue"
 import LogpageView from '@/views/LogpageView.vue'
+import SecurityView from '@/views/SecurityView.vue'
 import GameView from '@/views/GameView.vue'
 import Friends from '@/menu/FriendsTab.vue'
 import Chat from '@/menu/ChatTab.vue'
@@ -13,6 +14,11 @@ const routes: Array<RouteRecordRaw> = [
 		name: 'logpage',
 		path: '/',
 		component: LogpageView
+	},
+	{
+		name: 'security',
+		path: '/security',
+		component: SecurityView
 	},
 	{
 		name: 'game',
