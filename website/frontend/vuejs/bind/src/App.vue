@@ -5,7 +5,10 @@
 </template>
 
 <script setup lang="ts">
-import { provide } from "vue";
+import { provide, ref } from "vue";
+
+let playing = ref(false);
+provide("playing", playing);
 provide("colors", {
 	color0: "#fff",
 	color1: "#000",

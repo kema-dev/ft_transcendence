@@ -55,4 +55,13 @@ let define = inject("colors");
 	font-weight: 500;
 }
 
+/* @media screen and (max-width: 1000px) {
+	#chat_menu {
+		width: 100%;
+		padding: 0;
+		height: auto;
+		margin-top: 0;
+	}
+} */
+
 </style>

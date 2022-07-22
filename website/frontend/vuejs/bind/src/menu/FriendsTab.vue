@@ -15,6 +15,7 @@
 					</span>
 				</button>
 			</div>
+			<!-- <SearchItem :search="search.value"/> -->
 			<div v-if="search.value == ''" class="column center">
 				<!-- <div class="center column"> -->
 				<h2 v-if="user.friends.length == 0">No friends</h2>
@@ -54,6 +55,7 @@
 import axios from "axios";
 import { inject, onMounted, ref } from "vue";
 import FriendItem from "@/components/FriendItem.vue";
+import SearchItem from "@/components/SearchItem.vue";
 let define = inject("colors");
 
 let find = false;
