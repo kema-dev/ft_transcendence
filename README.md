@@ -110,7 +110,7 @@ See the [open issues](https://github.com/kema-dev/ft_transcendence/issues) for a
 <!-- CONTACT -->
 ## Contact
 
-We are 4 creators :
+We are 3 creators :
 
 kema-dev - [GitHub](https://github.com/kema-dev)
 
