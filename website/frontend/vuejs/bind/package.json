@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@babel/core": "^7.0.0",
+    "@types/node": "^18.0.6",
     "@types/vuelidate": "^0.7.15",
     "@vuelidate/core": "^2.0.0-alpha.41",
     "@vuelidate/validators": "^2.0.0-alpha.29",
