@@ -114,8 +114,6 @@ We are 4 creators :
 
 kema-dev - [GitHub](https://github.com/kema-dev)
 
-dorianginisty - [GitHub](https://github.com/dorianginisty)
-
 oc8 - [GitHub](https://github.com/oc8)
 
 Totolosa - [GitHub](https://github.com/Totolosa)
