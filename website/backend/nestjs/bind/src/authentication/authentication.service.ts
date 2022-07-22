@@ -36,10 +36,13 @@ export class AuthenticationService {
 		}
 		if (
 			!registrationData.email.match(
-				/^[a-zA-Z0-9-]+(?:[\.+-][a-zA-Z0-9]+)+@[a-zA-Z0-9-_]+(?:\.[a-zA-Z]{1,10}){1,3}$/,
+				/^[a-zA-Z0-9-]+(?:[\.+-][a-zA-Z0-9]+){0,}@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]{1,}){1,}$/,
 			)
 		) {
 			throw new HttpException('Email is not valid', HttpStatus.BAD_REQUEST);
+		}
+		if (!registrationData.login.match(/^[a-zA-z0-9-_ ]{1,25}$/)) {
+			throw new HttpException('Login is not valid', HttpStatus.BAD_REQUEST);
 		}
 		const hashedPassword = await bcrypt.hash(registrationData.password, 10);
 		try {
@@ -62,7 +65,7 @@ export class AuthenticationService {
 					'register: ' + registrationData.email + ' already exists',
 				);
 				throw new HttpException(
-					'User with that email already exists',
+					'User with that email and/or login already exists',
 					HttpStatus.BAD_REQUEST,
 				);
 			}

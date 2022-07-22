@@ -18,7 +18,7 @@
 					</span>
 					<div class="transi">
 						<Transition name="slide-up">
-							<div v-if="switch_value" class="form">
+							<div v-if="switch_value" class="form_register">
 								<input
 									class="input_box"
 									v-model="email_register"
@@ -46,9 +46,8 @@
 								<button class="login-btn" @click="this.register()">
 									Register
 								</button>
-								<a class="ft_button" :href="this.api42Path">Register with 42</a>
 							</div>
-							<div v-else class="form">
+							<div v-else class="form_login">
 								<input
 									class="input_box"
 									v-model="email_auth"
@@ -62,10 +61,12 @@
 									type="password"
 								/>
 								<button @click="this.auth()">Login</button>
-								<a class="ft_button" :href="this.api42Path">Login with 42</a>
 							</div>
 						</Transition>
 					</div>
+						<div class="ft_login">
+							<a :href="this.api42Path"><img src="@/assets/connect_with_42.svg" alt="connect with 42" class="connect_img" /></a>
+						</div>
 				</div>
 			</div>
 		</Transition>
@@ -123,16 +124,16 @@ export default {
 				})
 				.then((response) => {
 					this.toast.success(
-						"Register success, welcome " + this.login_register
+						"Registration success, welcome " + this.login_register + " !"
 					);
 					// console.log(response.data);
 				})
 				.catch((error) => {
 					if (
 						error.response.data.message ===
-						"User with that email already exists"
+						"User with that email and/or login already exists"
 					) {
-						this.toast.warning("User with that email already exists");
+						this.toast.warning("User with that email and/or login already exists");
 					} else if (error.response.data.message === "Passwords do not match") {
 						this.toast.warning("Passwords do not match");
 					} else if (
@@ -143,6 +144,8 @@ export default {
 						);
 					} else if (error.response.data.message === "Email is not valid") {
 						this.toast.warning("Email is not valid");
+					} else if (error.response.data.message === "Login is not valid") {
+						this.toast.warning("Login is not valid, must be between 1 and 25 characters long, using alphanumeric characters, \"_\" and \"-\" only");
 					} else {
 						this.toast.error("Unknown error");
 						console.log(error);
@@ -158,13 +161,21 @@ export default {
 				})
 				.then((response) => {
 					this.toast.success(
-						"Authentication success, welcome " + response.data.email + " !"
+						"Authentication success, welcome " + response.data.login + " !"
 					);
 					// console.log(response.data);
 				})
 				.catch((error) => {
-					this.toast.error("Authentication failure, please try again");
+					if (
+						error.response.data.message ===
+						"Wrong credentials provided"
+					) {
+						this.toast.warning("Wrong credentials provided, please try again");
+					}
+					else {
+						this.toast.error("Authentication failure, unknown error, please try again");
 					console.log(error);
+					}
 				});
 		},
 	},
@@ -183,7 +194,7 @@ export default {
 					// console.log(response.data);
 					this.$router.push("/");
 					this.toast.success(
-						"Authentication success, welcome " + response.data.email + " !"
+						"Authentication success, welcome " + response.data.login + " !"
 					);
 				})
 				.catch((error) => {
@@ -433,23 +444,29 @@ body span.switcher.switcher-2 label {
 
 .slide-up-enter-from {
 	opacity: 0;
-	transform: translateY(-10vw);
+	transform: translateX(-10vw);
 	position: absolute;
 }
 
 .slide-up-leave-to {
 	opacity: 0;
-	transform: translateY(10vw);
+	transform: translateX(10vw);
 	position: absolute;
 }
 
 .form-container {
-	display: inline-block;
+	display: flex;
+	flex-direction: column;
 	position: relative;
 	height: 1em;
 }
 
-.form {
+.form_register {
+	display: flex;
+	flex-direction: column;
+}
+
+.form_login {
 	display: flex;
 	flex-direction: column;
 }
@@ -458,5 +475,21 @@ body span.switcher.switcher-2 label {
 	display: inline-flex;
 	position: relative;
 	height: 5rem;
+}
+
+.connect_img {
+	display: flex;
+	flex-direction: column;
+	position: relative;
+	height: 5.5rem;
+}
+
+.ft_login {
+	display: flex;
+	flex-direction: column;
+	position: relative;
+	justify-content: center;
+  align-items: center;
+	margin-top: 1.5rem;
 }
 </style>
