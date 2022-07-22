@@ -11,13 +11,28 @@ export class UsersService {
 		private usersRepository: Repository<User>,
 	) {}
 
-	async getByEmail(email: string) {
-		const user = await this.usersRepository.findOne({ email });
+	async getByEmail(mail: string) {
+		const user = await this.usersRepository.findOne({
+			where: { email: mail },
+		});
 		if (user) {
 			return user;
 		}
 		throw new HttpException(
 			'User with this email does not exist',
+			HttpStatus.NOT_FOUND,
+		);
+	}
+
+	async getByLogin(logname: string) {
+		const user = await this.usersRepository.findOne({
+			where: { login: logname },
+		});
+		if (user) {
+			return user;
+		}
+		throw new HttpException(
+			'User with this login does not exist',
 			HttpStatus.NOT_FOUND,
 		);
 	}

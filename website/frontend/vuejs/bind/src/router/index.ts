@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import Home from "@/views/HomeView.vue"
-import Login from '@/views/LoginView.vue'
-import DebugKemaView from '@/views/DebugKemaView.vue'
+import LogpageView from '@/views/LogpageView.vue'
+import SecurityView from '@/views/SecurityView.vue'
 import GameView from '@/views/GameView.vue'
 import Friends from '@/menu/FriendsTab.vue'
 import Chat from '@/menu/ChatTab.vue'
@@ -11,14 +11,14 @@ import Navmenu from '@/components/NavmenuItem.vue'
 
 const routes: Array<RouteRecordRaw> = [
 	{
-		name: 'login',
+		name: 'logpage',
 		path: '/',
-		components: {default: Login, menu: Navmenu}
+		component: LogpageView
 	},
 	{
-		name: 'debug_kema',
-		path: '/debug_kema',
-		component: DebugKemaView
+		name: 'security',
+		path: '/security',
+		component: SecurityView
 	},
 	{
 		name: 'game',

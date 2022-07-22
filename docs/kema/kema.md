@@ -1,6 +1,5 @@
 # kema-dev
 
-* TODO check registration / auth input with vuelidate or a regex in frontend
 * TODO add 2FA option
 * TODO Fix cookie seting for authentication
 * TODO check if I run docker in rootless mode

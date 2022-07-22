@@ -8,7 +8,7 @@ class User {
 	@Column({ unique: true })
 	public email: string;
 
-	@Column()
+	@Column({ unique: true })
 	public login: string;
 
 	@Column()
