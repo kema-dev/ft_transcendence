@@ -1,5 +1,7 @@
 # kema-dev
 
+* TODO remove 42 code from browser history
+* TODO improve backend terminal logging
 * TODO add 2FA option
 * TODO Fix cookie seting for authentication
 * TODO check if I run docker in rootless mode

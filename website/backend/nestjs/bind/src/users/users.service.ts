@@ -38,7 +38,9 @@ export class UsersService {
 	}
 
 	async checkLoginExistence(login: string) {
-		const user = await this.usersRepository.findOne({ login });
+		const user = await this.usersRepository.findOne({
+			where: { login: login },
+		});
 		if (user) {
 			return true;
 		}
@@ -46,7 +48,9 @@ export class UsersService {
 	}
 
 	async getRank(login: string) {
-		const user = await this.usersRepository.findOne({ login });
+		const user = await this.usersRepository.findOne({
+			where: { login: login },
+		});
 		if (user) {
 			return user.login;
 		}
@@ -54,7 +58,9 @@ export class UsersService {
 	}
 
 	async checkEmailExistence(email: string) {
-		const user = await this.usersRepository.findOne({ email });
+		const user = await this.usersRepository.findOne({
+			where: { email: email },
+		});
 		if (user) {
 			return true;
 		}
@@ -62,7 +68,9 @@ export class UsersService {
 	}
 
 	async checkCodeInUse(code: string): Promise<boolean> {
-		const user = await this.usersRepository.findOne({ ft_code: code });
+		const user = await this.usersRepository.findOne({
+			where: { ft_code: code },
+		});
 		if (user) {
 			return true;
 		}
@@ -70,7 +78,9 @@ export class UsersService {
 	}
 
 	async getById(id: number) {
-		const user = await this.usersRepository.findOne({ id });
+		const user = await this.usersRepository.findOne({
+			where: { id: id },
+		});
 		if (user) {
 			return user;
 		}
@@ -98,7 +108,9 @@ export class UsersService {
 		ft_expiresIn: number,
 		ft_createdAt: Date,
 	) {
-		const user = await this.usersRepository.findOne({ email });
+		const user = await this.usersRepository.findOne({
+			where: { email: email },
+		});
 		if (user) {
 			user.ft_accessToken = ft_accessToken;
 			user.ft_expiresIn = ft_expiresIn;

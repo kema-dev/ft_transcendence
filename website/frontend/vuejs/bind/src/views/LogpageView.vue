@@ -86,7 +86,7 @@ export default {
 			apiPath: "http://localhost:3000/api/v1/",
 			api42Path:
 				"https://api.intra.42.fr/oauth/authorize?client_id=" +
-				Config.API_42_CLIENT_ID +
+				Config.API_42_UID +
 				"&redirect_uri=" +
 				Config.API_42_REDIRECT_URI +
 				"&response_type=code",
@@ -126,6 +126,7 @@ export default {
 					this.toast.success(
 						"Registration success, welcome " + this.login_register + " !"
 					);
+					this.$router.push("/home");
 					// console.log(response.data);
 				})
 				.catch((error) => {
@@ -163,7 +164,7 @@ export default {
 					this.toast.success(
 						"Authentication success, welcome " + response.data.login + " !"
 					);
-					this.$router.push("/security");
+					this.$router.push("/home");
 					// console.log(response.data);
 				})
 				.catch((error) => {
@@ -175,7 +176,7 @@ export default {
 					}
 					else {
 						this.toast.error("Authentication failure, unknown error, please try again");
-					console.log(error);
+						console.log(error);
 					}
 				});
 		},

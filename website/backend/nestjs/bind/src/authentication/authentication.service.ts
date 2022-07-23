@@ -1,6 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import RegisterDto from './dto/register.dto';
+// import LogInDto from './dto/logIn.dto';
 import * as bcrypt from 'bcrypt';
 import { PostgresErrorCode } from '../database/postgresErrorCodes.enum';
 import { JwtService } from '@nestjs/jwt';
@@ -57,12 +58,12 @@ export class AuthenticationService {
 				ft_scope: '',
 				ft_createdAt: new Date(),
 			});
-			console.log('register: ' + createdUser.email + ' created');
-			return { email: createdUser.email, success: true };
+			console.log('register: ' + createdUser.login + ' created');
+			return { login: createdUser.login, success: true };
 		} catch (error) {
 			if (error?.code === PostgresErrorCode.UniqueViolation) {
 				console.error(
-					'register: ' + registrationData.email + ' already exists',
+					'register: ' + registrationData.email + ' and/or ' + registrationData.login + ' already exists',
 				);
 				throw new HttpException(
 					'User with that email and/or login already exists',
@@ -77,18 +78,19 @@ export class AuthenticationService {
 		}
 	}
 
-	public async getAuthenticatedUser(email: string, plainTextPassword: string) {
+	public async getAuthenticatedUser(email: string, password: string) {
+		console.error('getAuthenticatedUser: ' + email);
 		try {
 			const user = await this.usersService.getByEmail(email);
-			await this.verifyPassword(plainTextPassword, user.password);
-			console.log('getAuthenticatedUser: ' + user.email + ' authenticated');
-			return { email: user.email, success: true };
+			await this.verifyPassword(password, user.password);
+			console.log('getAuthenticatedUser: ' + user.login + ' authenticated');
+			return { login: user.login, success: true };
 		} catch (error) {
 			try {
 				const user = await this.usersService.getByLogin(email);
-				await this.verifyPassword(plainTextPassword, user.password);
-				console.log('getAuthenticatedUser: ' + user.email + ' authenticated');
-				return { email: user.email, success: true };
+				await this.verifyPassword(password, user.password);
+				console.log('getAuthenticatedUser: ' + user.login + ' authenticated');
+				return { login: user.login, success: true };
 			} catch (error) {
 				console.error('getAuthenticatedUser: ' + error);
 				throw new HttpException(
@@ -149,8 +151,8 @@ export class AuthenticationService {
 			const response = await firstValueFrom(
 				this.httpService.post('https://api.intra.42.fr/oauth/token', {
 					grant_type: 'authorization_code',
-					client_id: process.env.API_42_CLIENT_ID,
-					client_secret: process.env.API_42_CLIENT_SECRET,
+					client_id: process.env.API_42_UID,
+					client_secret: process.env.API_42_SECRET,
 					code: code,
 					redirect_uri: process.env.API_42_REDIRECT_URI,
 				}),
@@ -171,8 +173,8 @@ export class AuthenticationService {
 					response.data.expires_in,
 					new Date(),
 				);
-				console.log('auth42: ' + logobj.data.email + ' updated');
-				return { email: logobj.data.email, success: true };
+				console.log('auth42: ' + logobj.data.login + ' updated');
+				return { login: logobj.data.login, success: true };
 			}
 			try {
 				const password = crypto.randomBytes(16).toString('hex');
@@ -188,9 +190,9 @@ export class AuthenticationService {
 					ft_scope: response.data.scope,
 					ft_createdAt: new Date(),
 				});
-				console.log('auth42: ' + createdUser.email + ' created');
+				console.log('auth42: ' + createdUser.login + ' created');
 				// TODO set cookie
-				return { email: createdUser.email, success: true };
+				return { login: createdUser.login, success: true };
 			} catch (error) {
 				console.error('auth42: ' + error);
 				throw new HttpException(
@@ -202,6 +204,6 @@ export class AuthenticationService {
 			console.error('auth42: ' + error);
 		}
 		console.error('auth42: ' + 'returning false');
-		return { email: '', success: false };
+		return { login: '', success: false };
 	}
 }
