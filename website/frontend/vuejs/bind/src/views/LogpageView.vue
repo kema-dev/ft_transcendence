@@ -86,7 +86,7 @@ export default {
 			apiPath: "http://localhost:3000/api/v1/",
 			api42Path:
 				"https://api.intra.42.fr/oauth/authorize?client_id=" +
-				Config.API_42_CLIENT_ID +
+				Config.API_42_UID +
 				"&redirect_uri=" +
 				Config.API_42_REDIRECT_URI +
 				"&response_type=code",

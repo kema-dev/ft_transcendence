@@ -83,7 +83,7 @@ cd ft_transcendence
 ./generate_env_file.sh
 ```
 
-4. Change default values (passwords, emails...) in `.env` file and add your API informations (API_42_CLIENT_ID, API_42_CLIENT_SECRET, and API_42_REDIRECT_URI)
+4. Change default values (passwords, emails...) and add your 42 API's informations (API_42_UID, API_42_SECRET, and API_42_REDIRECT_URI) in `.env` file
 
 <!-- USAGE EXAMPLES -->
 ## Usage
