@@ -13,7 +13,7 @@
 				</span>
 			</button>
 		</div>
-		<div v-for="(data, i) in conversations" :key="i">
+		<div v-for="(data, i) in conversations" :key="i" class="center">
 			<ConversationItem :conv="data"/>
 		</div>
 	</div>

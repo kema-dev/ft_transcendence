@@ -10,10 +10,8 @@
 
 <script setup lang="ts">
 import { inject } from "vue";
-import { useRoute } from 'vue-router'
 
 let define = inject("colors");
-const route = useRoute();
 
 function create_room() {
 	console.log("create a new room");
@@ -24,12 +22,9 @@ function join_room() {
 }
 
 let playing = false;
-
-
 </script>
 
 <style>
-
 #ingame_container {
 	--heightContainer: calc(100vh - 180px);
 	height: var(--heightContainer);
