@@ -35,15 +35,31 @@ let user3 = new User("Patrick la trick", require("@/assets/avatars/(3).jpg"));
 // let user2 = new User("Ocean", "@/assets/avatars/(2).jpg");
 // let user3 = new User("Patrick la trick", "@/assets/avatars/(3).jpg");
 
-let msg1 = new Message(user1, "Salut frere", new Date('July 17, 2022 03:24:00'));
-let msg2 = new Message(user2, "Salut poto", new Date('July 17, 2022 03:25:12'));
+let msg1 = new Message(user1, "Salut frere rwf;jnavionra'mrv'aomfgifsivbdfvndfnvjsdglbjgb;fgklb;s;bg", new Date('July 17, 2022 03:24:00'));
+let msg2 = new Message(user2, "Salut poto", new Date('July 22, 2022 03:25:12'));
 let msg3 = new Message(user3, "Game?", new Date('July 18, 2022 12:45:45'));
-let msg4 = new Message(user1, "Non je dois finir de faire le front", new Date('July 18, 2022 12:47:55'));
+let msg4 = new Message(user1, "Non je dois finir de faire le front, et wallah c'est chaud", new Date('July 18, 2022 12:47:55'));
+let msg5 = new Message(user1, "dsaibciauwncopneejvnjnfcoamsdomvcafosnvonsvonoans", new Date());
+let msg6 = new Message(user2, "Mais tu sais pas parler en fait", new Date());
 
 let conv1 = new Conversation(false, [msg1, msg2], undefined, user2);
 let conv2 = new Conversation(false, [msg3, msg4], undefined, user3);
+let conv3 = new Conversation(false, [msg5, msg6], undefined, user1);
 
-let conversations = [conv1, conv2];
+function compareDate(a: Conversation, b: Conversation) : number {
+	return 1;
+}
+
+let conversations = [conv1, conv2, conv3];
+conversations.sort(function(x,y) {
+    if (x.messages[x.messages.length - 1].date < y.messages[x.messages.length - 1].date) {
+        return 1;
+    }
+    if (x.messages[x.messages.length - 1].date > y.messages[x.messages.length - 1].date) {
+        return -1;
+    }
+    return 0;
+});
 
 </script>
 
