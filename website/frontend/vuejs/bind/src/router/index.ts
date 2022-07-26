@@ -7,6 +7,8 @@ import Friends from '@/menu/FriendsTab.vue'
 import Chat from '@/menu/ChatTab.vue'
 import InGame from '@/menu/InGameTab.vue'
 import Private from '@/menu/PrivateTab.vue'
+import Conversation from '@/menu/ConversationItem.vue'
+import ConversationClass from '@/chat/Conversation'
 import Settings from '@/menu/SettingsTab.vue'
 import Player from '@/menu/PlayerTab.vue'
 
@@ -53,6 +55,12 @@ const routes: Array<RouteRecordRaw> = [
 						path: '/home/chat/private',
 						components: {chat_menu: Private},
 					},
+					{
+						name: 'conversation',
+						path: '/home/chat/private/:conv_name',
+						components: {chat_menu: Conversation},
+						// props: ConversationClass
+					}
 				],
 			},
 			// {
