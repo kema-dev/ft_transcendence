@@ -1,20 +1,24 @@
 <template>
-  <div class="conv_container left row stack" >
-    <!-- <router-link :to=""></router-link> -->
-    <div class="avatar_cont">
-      <img v-if="conv?.user" :src="conv.user.avatar" class="avatar" alt="avatar">
-    </div>
-    <div class="info center column">
-      <div class="top-bar row center stack">
-        <div class="login">{{conv?.user?.name}}</div>
-        <!-- <div class="date">{{conv!.messages[conv!.messages.length - 1].date.toLocaleDateString()}}</div> -->
-        <div class="date">{{display_date()}}</div>
+  <div class="center">
+    <router-link :to="{name: 'conversation', params: {conv_name: conv!.user?.name, conv: conv!}}" class="conv_container left row stack">
+      <div class="avatar_cont">
+        <img v-if="conv?.user" :src="conv.user.avatar" class="avatar" alt="avatar">
       </div>
-      <div class="message_cont center">
-        <div class="message">{{conv?.messages[conv.messages.length - 1].msg}}</div>
+      <div class="info center column">
+        <div class="top-bar row center stack">
+          <div class="login">{{conv?.user?.name}}</div>
+          <!-- <div class="date">{{conv!.messages[conv!.messages.length - 1].date.toLocaleDateString()}}</div> -->
+          <div class="date">{{display_date()}}</div>
+        </div>
+        <div class="message_cont center">
+          <div class="message">{{conv?.messages[conv.messages.length - 1].msg}}</div>
+        </div>
       </div>
-    </div>
+    </router-link>
   </div>
+  <!-- <div class="content">
+    <router-view name="chat_menu" />
+  </div> -->
 </template>
 
 <script setup lang="ts">
@@ -34,16 +38,19 @@ function convertDate(date : Date) : string {
 function display_date() : string {
   const now = new Date();
   let diff = now.getTime() - props.conv!.messages[props.conv!.messages.length - 1].date.getTime();
-  if (diff / (1000 * 3600 * 24) >= 7) {
+  let days = (diff / (1000 * 3600 * 24));
+  let hours = days * 24;
+  let mins = hours * 60;
+  if (days >= 7) {
     return convertDate(props.conv!.messages[props.conv!.messages.length - 1].date);
   }
-  else if (diff / (1000 * 3600 * 24) >= 1){
-    return Math.floor(diff / (1000 * 3600 * 24)) + "d";
+  else if (days >= 1){
+    return Math.floor(days) + "d";
   }
-  else if (diff / (1000 * 3600) >= 1){
+  else if (hours >= 1){
     return Math.floor(diff / (1000 * 3600)) + "h";
   }
-  else { return Math.floor(diff / (1000 * 60)) + "min";}
+  else { return Math.floor(mins) + "min";}
 }
 
 </script>

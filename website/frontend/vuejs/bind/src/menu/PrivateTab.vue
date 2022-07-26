@@ -14,7 +14,7 @@
 			</button>
 		</div>
 		<div v-for="(data, i) in conversations" :key="i" class="center">
-			<ConversationItem :conv="data"/>
+			<ConversationTab :conv="data"/>
 		</div>
 	</div>
 </template>
@@ -22,7 +22,7 @@
 <script setup lang="ts">
 /* eslint @typescript-eslint/no-var-requires: "off" */
 import { inject, onMounted, ref } from "vue";
-import ConversationItem from "@/components/ConversationItem.vue";
+import ConversationTab from "@/menu/ConversationTab.vue";
 import Conversation from "@/chat/Conversation";
 import User from "@/chat/User";
 import Message from "@/chat/Message";

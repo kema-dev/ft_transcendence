@@ -1,7 +1,7 @@
 <template>
 	<div id="menu">
 		<div id="nav_menu" class="center row">
-			<router-link to="/home/chat/in-game" class="nav_menu_link">
+			<router-link to="/home/chat" class="nav_menu_link">
 				<h2 class="nav_menu_text">CHAT</h2>
 			</router-link>
 			<h1 class="pipe">|</h1>
