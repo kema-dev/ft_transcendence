@@ -96,9 +96,9 @@ docker compose up --build
 
 Below is a list of links to website's pages
 
-* [pgadmin](http://localhost:8081) - PostgreSQL administration tool
-* [website](http://localhost:80) - website served by vue.js
-* [api](http://localhost:3000) - REST api served by nestjs
+* [pgadmin](http://localhost:8080) - PostgreSQL administration tool
+* [website](https://localhost:443) - website served by vue.js
+* [api](https://localhost:3000) - REST api served by nestjs
 
 <!-- ROADMAP -->
 ## Roadmap

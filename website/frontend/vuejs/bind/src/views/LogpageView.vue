@@ -78,6 +78,9 @@ import axios from "axios";
 import Config from "../env.json";
 import { useToast } from "vue-toastification";
 
+// make https request accept self signed certificates
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+
 export default {
 	name: "App",
 	title: "Pong.io",
@@ -116,6 +119,7 @@ export default {
 			this.switch_value = !this.switch_value;
 		},
 		register() {
+			// make axios skip ssl errors
 			axios
 				.post(this.apiPath + "auth/register", {
 					email: this.email_register,
@@ -133,9 +137,9 @@ export default {
 				.catch((error) => {
 					if (
 						error.response.data.message ===
-						"User with that email and/or login already exists"
+						"User with that email and/or login already exists, please try again"
 					) {
-						this.toast.warning("User with that email and/or login already exists");
+						this.toast.warning("User with that email and/or login already exists, please try again");
 					} else if (error.response.data.message === "Passwords do not match") {
 						this.toast.warning("Passwords do not match");
 					} else if (
@@ -149,7 +153,7 @@ export default {
 					} else if (error.response.data.message === "Login is not valid") {
 						this.toast.warning("Login is not valid, must be between 1 and 25 characters long, using alphanumeric characters, \"_\" and \"-\" only");
 					} else {
-						this.toast.error("Unknown error");
+						this.toast.error("Unknown error, we are sorry for that 😥");
 						console.log(error);
 					}
 					// console.log(error.response.data.message);

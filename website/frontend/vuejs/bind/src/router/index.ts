@@ -9,6 +9,8 @@ import Settings from '@/menu/SettingsTab.vue'
 import Player from '@/menu/PlayerTab.vue'
 import Navmenu from '@/components/NavmenuItem.vue'
 
+document.title = "pong.io"
+
 const routes: Array<RouteRecordRaw> = [
 	{
 		name: 'logpage',

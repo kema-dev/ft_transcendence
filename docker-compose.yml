@@ -31,12 +31,10 @@ services:
       - n_backend
     ports:
       - "${PGADMIN_HOST_PORT}:${PGADMIN_PORT_HTTP}"
-      # - "${PGADMIN_PORT_HTTPS}:${PGADMIN_PORT_HTTPS}"
     restart: unless-stopped
     environment:
       - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL}
       - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD}
-      - PGADMIN_ENABLE_TLS=${PGADMIN_ENABLE_TLS}
 
   s_nestjs:
     build:
@@ -57,7 +55,10 @@ services:
     command: "sh -c '\
               echo \"POSTGRES_PORT=${POSTGRESQL_PORT}\\nPOSTGRES_PORT=${POSTGRESQL_PORT}\\nPOSTGRES_USER=${POSTGRESQL_USERNAME}\\nPOSTGRES_PASSWORD=${POSTGRESQL_PASSWORD}\\nPOSTGRES_DB=${POSTGRESQL_DATABASE}\\nJWT_MAX_AGE=${JWT_MAX_AGE}\\nJWT_SECRET=`date +%s%N | cut -b10-19 | md5sum | head -c 20`\\nAPI_42_UID=${API_42_UID}\\nAPI_42_SECRET=${API_42_SECRET}\\nAPI_42_REDIRECT_URI=${API_42_REDIRECT_URI}\" > .env && \
               mkdir -p /secrets && \
-              openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /secrets/key.pem -out /secrets/cert.pem -subj \"/C=FR/ST=France/L=Paris/O=42/OU=42/CN=${HOSTNAME}\" && \
+              rm -f /secrets/cert.pem && \
+              rm -f /secrets/key.pem && \
+              cp cert/cert.pem /secrets/cert.pem && \
+              cp cert/key.pem /secrets/key.pem && \
               chown 1000:1000 /secrets/key.pem && \
               chown 1000:1000 /secrets/cert.pem && \
               npm config set fund false && \
@@ -81,7 +82,7 @@ services:
     command: "sh -c '\
               echo \"{\\\"API_42_UID\\\":\\\"$API_42_UID\\\",\\\"API_42_REDIRECT_URI\\\":\\\"$API_42_REDIRECT_URI\\\"}\" > src/env.json && \
               mkdir -p /secrets && \
-              openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /secrets/key.pem -out /secrets/cert.pem -subj \"/C=FR/ST=France/L=Paris/O=42/OU=42/CN=${HOSTNAME}\" && \
+              openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /secrets/key.pem -out /secrets/cert.pem -subj \"/C=FR/ST=France/L=Paris/O=42/OU=42/CN=ft_transcendence\" && \
               chown 1000:1000 /secrets/key.pem && \
               chown 1000:1000 /secrets/cert.pem && \
               yarn install --ignore-engines && \
