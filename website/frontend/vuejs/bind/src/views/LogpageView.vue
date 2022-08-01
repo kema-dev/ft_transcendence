@@ -67,6 +67,7 @@
 						<div class="ft_login">
 							<a :href="this.api42Path"><img src="@/assets/connect_with_42.svg" alt="connect with 42" class="connect_img" /></a>
 						</div>
+					<a :href="this.apiPath">Please click here on your first login to authorize backend's certificate</a>
 				</div>
 			</div>
 		</Transition>
