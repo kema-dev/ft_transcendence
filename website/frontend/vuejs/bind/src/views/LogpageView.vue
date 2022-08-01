@@ -80,6 +80,7 @@ import { useToast } from "vue-toastification";
 
 export default {
 	name: "App",
+	title: "Pong.io",
 	data() {
 		return {
 			rootPath: "http://localhost/",
@@ -197,7 +198,7 @@ export default {
 					this.toast.success(
 						"Authentication success, welcome " + response.data.login + " !"
 					);
-					this.$router.push("/home");
+					this.$router.replace("/home");
 				})
 				.catch((error) => {
 					this.toast.error("Authentication failure, please try again");
