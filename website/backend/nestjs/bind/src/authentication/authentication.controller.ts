@@ -51,10 +51,4 @@ export class AuthenticationController {
 		);
 		return response.status(200);
 	}
-
-	@UseGuards(JwtAuthenticationGuard)
-	@Post('checkauth')
-	async checkAuth(request: RequestWithUser) {
-		return request.user;
-	}
 }
