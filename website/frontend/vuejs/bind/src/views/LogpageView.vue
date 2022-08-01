@@ -83,8 +83,8 @@ export default {
 	title: "Pong.io",
 	data() {
 		return {
-			rootPath: "http://localhost/",
-			apiPath: "http://localhost:3000/api/v1/",
+			rootPath: "https://localhost/",
+			apiPath: "https://localhost:3000/api/v1/",
 			api42Path:
 				"https://api.intra.42.fr/oauth/authorize?client_id=" +
 				Config.API_42_UID +
