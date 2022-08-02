@@ -277,13 +277,13 @@ export class AuthenticationService {
 		let secret = crypto.randomBytes(16).toString('hex').toUpperCase();
 		const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
 		const hex = '0123456789ABCDEF';
-		let res = '1234567890123456'.split('');
+		const res = '1234567890123456'.split('');
 		let c1 = '';
 		let c2 = '';
 		let j = 0;
-		for (let i = 0; i < secret.length; i+=2) {
+		for (let i = 0; i < secret.length; i += 2) {
 			c1 = secret[i];
-			c2 = secret[i+1];
+			c2 = secret[i + 1];
 			res[j] = charset[hex.indexOf(c1) + hex.indexOf(c2)];
 			j++;
 		}
@@ -300,7 +300,9 @@ export class AuthenticationService {
 		if (!request.email) {
 			console.error('verify_totp: ' + 'no email provided, returning ✘');
 			throw new HttpException('No email provided', HttpStatus.BAD_REQUEST);
-		} else if ((await this.usersService.checkEmailExistence(request.email)) === false) {
+		} else if (
+			(await this.usersService.checkEmailExistence(request.email)) === false
+		) {
 			console.error('verify_totp: ' + 'email not found, returning ✘');
 			throw new HttpException('Email not found', HttpStatus.BAD_REQUEST);
 		}
@@ -308,9 +310,7 @@ export class AuthenticationService {
 			console.error('verify_totp: ' + 'no code provided, returning ✘');
 			throw new HttpException('No code provided', HttpStatus.BAD_REQUEST);
 		}
-		if (
-			(await this.check_totp_code(request.email, request.code)) === true
-		) {
+		if ((await this.check_totp_code(request.email, request.code)) === true) {
 			console.log('verify_totp: ' + 'code match, returning ✔');
 			return { success: true };
 		} else {
