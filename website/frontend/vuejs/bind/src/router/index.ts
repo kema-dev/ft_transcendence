@@ -7,7 +7,6 @@ import Friends from '@/menu/FriendsTab.vue'
 import Chat from '@/menu/ChatTab.vue'
 import Settings from '@/menu/SettingsTab.vue'
 import Player from '@/menu/PlayerTab.vue'
-import Navmenu from '@/components/NavmenuItem.vue'
 
 document.title = "pong.io"
 

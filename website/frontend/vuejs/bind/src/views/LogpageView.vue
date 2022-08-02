@@ -134,7 +134,7 @@ export default {
 					password: this.password_register,
 					password_confirmation: this.password_confirmation,
 				})
-				.then((response) => {
+				.then(() => {
 					this.toast.success(
 						"Registration success, welcome " + this.login_register + " !"
 					);
@@ -196,7 +196,7 @@ export default {
 	created() {
 		axios
 			.get(this.apiPath + "auth/status")
-			.then((response) => {
+			.then(() => {
 				this.backend_status = true;
 				setTimeout(() => {
 					this.show = true;
@@ -221,7 +221,7 @@ export default {
 						});
 				}
 			})
-			.catch((error) => {
+			.catch(() => {
 				setTimeout(() => {
 					this.backend_status = false;
 					this.toast.error(
