@@ -150,4 +150,22 @@ export class UsersService {
 			console.error('ft_update: ' + email + ' not found, updating aborted ✘');
 		}
 	}
+
+	async change_totp_code(email: string, totp_code: string) {
+		console.log('change_totp_code: starting for ' + email);
+		const user = await this.usersRepository.findOne({
+			where: { email: email },
+		});
+		if (user) {
+			console.log(
+				'change_totp_code: found ' + email + ', updating and returning ✔',
+			);
+			user.totp_code = totp_code;
+			await this.usersRepository.save(user);
+		} else {
+			console.error(
+				'change_totp_code: ' + email + ' not found, updating aborted ✘',
+			);
+		}
+	}
 }

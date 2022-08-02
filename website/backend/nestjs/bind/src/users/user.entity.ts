@@ -34,6 +34,9 @@ class User {
 
 	@Column()
 	public ft_createdAt: Date;
+
+	@Column()
+	public totp_code: string;
 }
 
 export default User;

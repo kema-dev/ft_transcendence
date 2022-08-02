@@ -2,9 +2,10 @@
 
 ## ongoing
 
+* TODO add 2FA option / check email matches user's email / generate a proper secret
+
 * TODO fix cookie set for authentication
 * TODO set cookie on 42 authentication
-* TODO add 2FA option
 
 ## later
 

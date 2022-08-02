@@ -9,6 +9,7 @@ export class CreateUserDto {
 	ft_refreshToken: string;
 	ft_scope: string;
 	ft_createdAt: Date;
+	totp_code: string;
 }
 
 export default CreateUserDto;

@@ -32,6 +32,11 @@ export class AuthenticationController {
 		return 'Backend is up and running, you can go back to the website';
 	}
 
+	@Post('totp')
+	totp(@Body('email') email: string) {
+		return this.authenticationService.totp(email);
+	}
+
 	@HttpCode(200)
 	@UseGuards(LocalAuthenticationGuard)
 	@Post('login')

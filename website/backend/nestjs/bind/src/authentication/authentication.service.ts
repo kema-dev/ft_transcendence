@@ -9,6 +9,7 @@ import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { AuthResponse } from './authResponse.interface';
+import OTP from 'otp';
 
 // NOTE - API's documentation can be found at `docs/api/v1.md`
 
@@ -82,6 +83,7 @@ export class AuthenticationService {
 				ft_expiresIn: 0,
 				ft_scope: '',
 				ft_createdAt: new Date(),
+				totp_code: '',
 			});
 			console.log(
 				'register: ' + createdUser.login + ' created successfully, returning ✔',
@@ -244,6 +246,7 @@ export class AuthenticationService {
 					ft_tokenType: response.data.token_type,
 					ft_scope: response.data.scope,
 					ft_createdAt: new Date(),
+					totp_code: '',
 				});
 				console.log(
 					'auth42: ' + createdUser.login + ' created / updated, returning ✔',
@@ -259,5 +262,22 @@ export class AuthenticationService {
 		}
 		console.error('auth42: ' + 'unexpected error, returning ✘');
 		return { login: '', success: false };
+	}
+
+	public async totp(email: string) {
+		console.log('totp: starting');
+		console.log(process.env.APP_NAME);
+		if (!email) {
+			console.error('totp: ' + 'no email provided, returning ✘');
+			throw new HttpException('No email provided', HttpStatus.BAD_REQUEST);
+		} else if ((await this.usersService.checkEmailExistence(email)) === false) {
+			console.error('totp: ' + 'email not found, returning ✘');
+			throw new HttpException('Email not found', HttpStatus.BAD_REQUEST);
+		}
+		const secret = 'base32secret3232';
+		this.usersService.change_totp_code(email, secret);
+		const url = `otpauth://totp/${email}?secret=${secret}&issuer=pong.io`;
+		console.log('totp: ' + 'code sent, returning ✔');
+		return { key_uri: url };
 	}
 }
