@@ -5,6 +5,7 @@ import {
 	Controller,
 	HttpCode,
 	Post,
+	Get,
 	UseGuards,
 } from '@nestjs/common';
 import { AuthenticationService } from './authentication.service';
@@ -24,6 +25,11 @@ export class AuthenticationController {
 	@Post('register')
 	async register(@Body() registrationData: RegisterDto) {
 		return this.authenticationService.register(registrationData);
+	}
+
+	@Get('status')
+	check() {
+		return 'Backend is up and running, you can go back to the website';
 	}
 
 	@HttpCode(200)
