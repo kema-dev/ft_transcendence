@@ -9,7 +9,7 @@ import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { AuthResponse } from './authResponse.interface';
-import OTP from 'otp';
+import * as crypto from 'crypto';
 
 // NOTE - API's documentation can be found at `docs/api/v1.md`
 
@@ -274,7 +274,7 @@ export class AuthenticationService {
 			console.error('totp: ' + 'email not found, returning ✘');
 			throw new HttpException('Email not found', HttpStatus.BAD_REQUEST);
 		}
-		const secret = 'base32secret3232';
+		let secret = crypto.randomBytes(20).toString('hex');
 		this.usersService.change_totp_code(email, secret);
 		const url = `otpauth://totp/${email}?secret=${secret}&issuer=pong.io`;
 		console.log('totp: ' + 'code sent, returning ✔');
