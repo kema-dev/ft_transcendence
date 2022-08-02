@@ -3,7 +3,9 @@
 		<h1>Security</h1>
 		<p>2FA will be implemented on this page.</p>
 		<qrcode-vue v-if="code" :value="code" :size="300" level="H" class="qr"/>
+		<p>Code: {{ code }}</p>
 		<button @click="get_totp_url">CLICK</button>
+		<button @click="verify">VERIFY</button>
 	</div>
 </template>
 
@@ -17,6 +19,8 @@ export default {
 		return {
 			apiPath: "https://localhost:3000/api/v1/",
 			code: "",
+			test_mail: "q@q.q",
+			test_code: "123456",
 		};
 	},
 	components: {
@@ -25,17 +29,29 @@ export default {
 	methods: {
 		get_totp_url() {
 			axios
-				.post(this.apiPath + "auth/totp", {
-					email: "jjourdan@student.42lyon.fr",
+				.post(this.apiPath + "auth/set_totp", {
+					email: this.test_mail,
 				})
 				.then((response) => {
-					this.code = response.data.key_uri;
+					this.code = response.data.url;
 					console.log(response);
 				})
 				.catch((error) => {
 					console.error(error);
 				});
 		},
+		verify() {
+			axios
+				.post(this.apiPath + "auth/verify_totp", {
+					email: this.test_mail,
+					code: this.test_code,
+				})
+				.then((response) => {
+					console.log(response);
+				}).catch((error) => {
+					console.error(error);
+				});
+		}
 	},
 };
 </script>

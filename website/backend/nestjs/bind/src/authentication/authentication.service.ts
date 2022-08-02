@@ -10,6 +10,7 @@ import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { AuthResponse } from './authResponse.interface';
 import * as crypto from 'crypto';
+import TotpDto from './dto/totp.dto';
 
 // NOTE - API's documentation can be found at `docs/api/v1.md`
 
@@ -264,20 +265,79 @@ export class AuthenticationService {
 		return { login: '', success: false };
 	}
 
-	public async totp(email: string) {
-		console.log('totp: starting');
-		console.log(process.env.APP_NAME);
+	public async set_totp(email: string) {
+		console.log('set_totp: starting');
 		if (!email) {
-			console.error('totp: ' + 'no email provided, returning ✘');
+			console.error('set_totp: ' + 'no email provided, returning ✘');
 			throw new HttpException('No email provided', HttpStatus.BAD_REQUEST);
 		} else if ((await this.usersService.checkEmailExistence(email)) === false) {
-			console.error('totp: ' + 'email not found, returning ✘');
+			console.error('set_totp: ' + 'email not found, returning ✘');
 			throw new HttpException('Email not found', HttpStatus.BAD_REQUEST);
 		}
-		let secret = crypto.randomBytes(20).toString('hex');
+		let secret = crypto.randomBytes(16).toString('hex').toUpperCase();
+		const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+		const hex = '0123456789ABCDEF';
+		let res = '1234567890123456'.split('');
+		let c1 = '';
+		let c2 = '';
+		let j = 0;
+		for (let i = 0; i < secret.length; i+=2) {
+			c1 = secret[i];
+			c2 = secret[i+1];
+			res[j] = charset[hex.indexOf(c1) + hex.indexOf(c2)];
+			j++;
+		}
+		secret = res.join('');
 		this.usersService.change_totp_code(email, secret);
 		const url = `otpauth://totp/${email}?secret=${secret}&issuer=pong.io`;
-		console.log('totp: ' + 'code sent, returning ✔');
-		return { key_uri: url };
+		console.log('set_totp: ' + 'code sent, returning ✔');
+		return { url: url };
+	}
+
+	public async verify_totp(request: TotpDto) {
+		console.log('verify_totp: starting');
+		console.log(request.email);
+		if (!request.email) {
+			console.error('verify_totp: ' + 'no email provided, returning ✘');
+			throw new HttpException('No email provided', HttpStatus.BAD_REQUEST);
+		} else if ((await this.usersService.checkEmailExistence(request.email)) === false) {
+			console.error('verify_totp: ' + 'email not found, returning ✘');
+			throw new HttpException('Email not found', HttpStatus.BAD_REQUEST);
+		}
+		if (!request.code) {
+			console.error('verify_totp: ' + 'no code provided, returning ✘');
+			throw new HttpException('No code provided', HttpStatus.BAD_REQUEST);
+		}
+		if (
+			(await this.check_totp_code(request.email, request.code)) === true
+		) {
+			console.log('verify_totp: ' + 'code match, returning ✔');
+			return { success: true };
+		} else {
+			console.error('verify_totp: ' + 'code mismatch, returning ✘');
+			return { success: false };
+		}
+	}
+
+	private async check_totp_code(email: string, code: string) {
+		console.log('check_totp_code: starting');
+		const usr = await this.usersService.getByEmail(email);
+		const totp_code = usr.totp_code;
+		const target = this.compute_totp(totp_code);
+		if (target === code) {
+			return true;
+		}
+		return false;
+	}
+
+	public compute_totp(totp_code: string) {
+		console.log('compute_totp: starting');
+		const epoch = Math.floor(Date.now() / 1000 / 30);
+		const secret = totp_code;
+		// TODO compute the result, time based
+		const target = 'this is the result';
+		console.log('compute_totp: computed, returning ✔');
+		console.log('target: ' + target); // TODO remove
+		return target;
 	}
 }

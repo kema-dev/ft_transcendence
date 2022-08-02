@@ -14,6 +14,7 @@ import RequestWithUser from './requestWithUser.interface';
 import { LocalAuthenticationGuard } from './localAuthentication.guard';
 import { JwtAuthenticationGuard } from './jwtAuthentication.guard';
 import { AuthResponse } from './authResponse.interface';
+import TotpDto from './dto/totp.dto';
 
 import { Response, Request } from 'express';
 import { get } from 'http';
@@ -32,9 +33,14 @@ export class AuthenticationController {
 		return 'Backend is up and running, you can go back to the website';
 	}
 
-	@Post('totp')
-	totp(@Body('email') email: string) {
-		return this.authenticationService.totp(email);
+	@Post('set_totp')
+	set_totp(@Body('email') email: string) {
+		return this.authenticationService.set_totp(email);
+	}
+
+	@Post('verify_totp')
+	verify_totp(@Body() request: TotpDto) {
+		return this.authenticationService.verify_totp(request);
 	}
 
 	@HttpCode(200)
