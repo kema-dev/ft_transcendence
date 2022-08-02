@@ -29,6 +29,7 @@ export class AuthenticationService {
 			throw new HttpException('Passwords do not match', HttpStatus.BAD_REQUEST);
 		}
 		if (
+			registrationData.password.length > 32 ||
 			!registrationData.password.match(
 				/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=^[a-zA-Z0-9!@#$%^&*]*$).{10,32}$/,
 			)
@@ -42,6 +43,7 @@ export class AuthenticationService {
 			);
 		}
 		if (
+			registrationData.email.length > 50 ||
 			!registrationData.email.match(
 				/^[a-zA-Z0-9-]+(?:[\.+-][a-zA-Z0-9]+){0,}@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]{1,}){1,}$/,
 			)
@@ -51,7 +53,10 @@ export class AuthenticationService {
 			);
 			throw new HttpException('Email is not valid', HttpStatus.BAD_REQUEST);
 		}
-		if (!registrationData.login.match(/^[a-zA-z0-9-_ ]{1,25}$/)) {
+		if (
+			registrationData.login.length > 25 ||
+			!registrationData.login.match(/^[a-zA-z0-9-_ ]{1,25}$/)
+		) {
 			console.error(
 				'register: ' + 'login does not meet requirements, returning ✘',
 			);
