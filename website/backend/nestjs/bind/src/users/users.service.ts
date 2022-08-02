@@ -22,7 +22,7 @@ export class UsersService {
 			console.log('getByEmail: found ' + mail + ', returning ✔');
 			return user;
 		}
-		console.error('getByEmail: ' + mail + 'not found, returning ✘');
+		console.error('getByEmail: ' + mail + ' not found, returning ✘');
 		throw new HttpException(
 			'User with this email does not exist',
 			HttpStatus.NOT_FOUND,
@@ -86,15 +86,15 @@ export class UsersService {
 	}
 
 	async checkCodeInUse(code: string): Promise<boolean> {
-		console.log('checkCodeInUse: starting for ' + code);
+		console.log('checkCodeInUse: starting');
 		const user = await this.usersRepository.findOne({
 			where: { ft_code: code },
 		});
 		if (user) {
-			console.log('checkCodeInUse: found ' + code + ', returning ✔');
+			console.log('checkCodeInUse: found, returning ✔');
 			return true;
 		}
-		console.error('checkCodeInUse: ' + code + ' not found, returning ✘');
+		console.error('checkCodeInUse: not found, returning ✘');
 		return false;
 	}
 

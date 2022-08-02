@@ -237,15 +237,12 @@ export class AuthenticationService {
 				return { login: createdUser.login, success: true };
 			} catch (error) {
 				console.error('auth42: unexpected error: ' + error + ' returning ✘');
-				throw new HttpException(
-					'Something went wrong',
-					HttpStatus.INTERNAL_SERVER_ERROR,
-				);
+				return { login: '', success: false };
 			}
 		} catch (error) {
 			console.error('auth42: unexpected error' + error);
 		}
-		console.error('auth42: ' + 'unexpected error, returning ❌');
+		console.error('auth42: ' + 'unexpected error, returning ✘');
 		return { login: '', success: false };
 	}
 }
