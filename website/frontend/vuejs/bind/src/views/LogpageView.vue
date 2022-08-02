@@ -1,5 +1,6 @@
 <template>
 	<div class="center column" id="app">
+		<a v-if="!backend_status" class="back_msg" :href="this.apiPath + 'auth/status'">Please click here to authorize backend's certificate</a>
 		<Transition name="showup">
 			<div v-if="show" class="outer">
 				<div class="inner">
@@ -64,9 +65,14 @@
 							</div>
 						</Transition>
 					</div>
-						<div class="ft_login">
-							<a :href="this.api42Path"><img src="@/assets/connect_with_42.svg" alt="connect with 42" class="connect_img" /></a>
-						</div>
+					<div class="ft_login">
+						<a :href="this.api42Path"
+							><img
+								src="@/assets/connect_with_42.svg"
+								alt="connect with 42"
+								class="connect_img"
+						/></a>
+					</div>
 				</div>
 			</div>
 		</Transition>
@@ -78,12 +84,16 @@ import axios from "axios";
 import Config from "../env.json";
 import { useToast } from "vue-toastification";
 
+// make https request accept self signed certificates
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+
 export default {
 	name: "App",
+	title: "Pong.io",
 	data() {
 		return {
-			rootPath: "http://localhost/",
-			apiPath: "http://localhost:3000/api/v1/",
+			rootPath: "https://localhost/",
+			apiPath: "https://localhost:3000/api/v1/",
 			api42Path:
 				"https://api.intra.42.fr/oauth/authorize?client_id=" +
 				Config.API_42_UID +
@@ -99,6 +109,7 @@ export default {
 			show: false,
 			switch_value: true,
 			docState: "saved",
+			backend_status: true,
 		};
 	},
 	provide() {
@@ -115,6 +126,7 @@ export default {
 			this.switch_value = !this.switch_value;
 		},
 		register() {
+			// make axios skip ssl errors
 			axios
 				.post(this.apiPath + "auth/register", {
 					email: this.email_register,
@@ -122,7 +134,7 @@ export default {
 					password: this.password_register,
 					password_confirmation: this.password_confirmation,
 				})
-				.then((response) => {
+				.then(() => {
 					this.toast.success(
 						"Registration success, welcome " + this.login_register + " !"
 					);
@@ -132,9 +144,11 @@ export default {
 				.catch((error) => {
 					if (
 						error.response.data.message ===
-						"User with that email and/or login already exists"
+						"User with that email and/or login already exists, please try again"
 					) {
-						this.toast.warning("User with that email and/or login already exists");
+						this.toast.warning(
+							"User with that email and/or login already exists, please try again"
+						);
 					} else if (error.response.data.message === "Passwords do not match") {
 						this.toast.warning("Passwords do not match");
 					} else if (
@@ -146,9 +160,11 @@ export default {
 					} else if (error.response.data.message === "Email is not valid") {
 						this.toast.warning("Email is not valid");
 					} else if (error.response.data.message === "Login is not valid") {
-						this.toast.warning("Login is not valid, must be between 1 and 25 characters long, using alphanumeric characters, \"_\" and \"-\" only");
+						this.toast.warning(
+							'Login is not valid, must be between 1 and 25 characters long, using alphanumeric characters, "_" and "-" only'
+						);
 					} else {
-						this.toast.error("Unknown error");
+						this.toast.error("Unknown error, we are sorry for that 😥");
 						console.log(error);
 					}
 					// console.log(error.response.data.message);
@@ -168,42 +184,51 @@ export default {
 					// console.log(response.data);
 				})
 				.catch((error) => {
-					if (
-						error.response.data.message ===
-						"Wrong credentials provided"
-					) {
+					if (error.response.data.message === "Wrong credentials provided") {
 						this.toast.warning("Wrong credentials provided, please try again");
-					}
-					else {
-						this.toast.error("Authentication failure, unknown error, please try again");
+					} else {
+						this.toast.error("Unknown error, we are sorry for that 😥");
 						console.log(error);
 					}
 				});
 		},
 	},
 	created() {
-		setTimeout(() => {
-			this.show = true;
-		}, 0.5);
-		let urlParams = new URLSearchParams(window.location.search);
-		let code = urlParams.get("code");
-		if (code) {
-			axios
-				.post(this.apiPath + "auth/login42", {
-					code: code,
-				})
-				.then((response) => {
-					// console.log(response.data);
-					this.toast.success(
-						"Authentication success, welcome " + response.data.login + " !"
+		axios
+			.get(this.apiPath + "auth/status")
+			.then(() => {
+				this.backend_status = true;
+				setTimeout(() => {
+					this.show = true;
+				}, 0.5);
+				let urlParams = new URLSearchParams(window.location.search);
+				let code = urlParams.get("code");
+				if (code) {
+					axios
+						.post(this.apiPath + "auth/login42", {
+							code: code,
+						})
+						.then((response) => {
+							// console.log(response.data);
+							this.toast.success(
+								"Authentication success, welcome " + response.data.login + " !"
+							);
+							this.$router.replace("/home");
+						})
+						.catch((error) => {
+							this.toast.error("Authentication failure, please try again");
+							console.log(error);
+						});
+				}
+			})
+			.catch(() => {
+				setTimeout(() => {
+					this.backend_status = false;
+					this.toast.error(
+						"Backend is down, please authorize our self-signed certificate manually by clicking the button at the center of your screen"
 					);
-					this.$router.push("/home");
-				})
-				.catch((error) => {
-					this.toast.error("Authentication failure, please try again");
-					console.log(error);
-				});
-		}
+				}, 0.5);
+			});
 	},
 };
 </script>
@@ -491,7 +516,19 @@ body span.switcher.switcher-2 label {
 	flex-direction: column;
 	position: relative;
 	justify-content: center;
-  align-items: center;
+	align-items: center;
 	margin-top: 1.5rem;
+}
+
+.back_msg {
+	width: 100%;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	position: absolute;
+	top: 0;
+	left: 0;
 }
 </style>

@@ -1,10 +1,13 @@
 const { defineConfig } = require('@vue/cli-service')
 module.exports = defineConfig({
 	devServer: {
-		port: 80,
+		port: 443,
+		server: {
+			type: 'https',
+		},
 		proxy: {
 			'/api': {
-				target: 'http://localhost:3000',
+				target: 'https://localhost:3000',
 				changeOrigin: true,
 				secure: false,
 				pathRewrite: {

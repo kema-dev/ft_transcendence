@@ -5,6 +5,7 @@ import {
 	Controller,
 	HttpCode,
 	Post,
+	Get,
 	UseGuards,
 } from '@nestjs/common';
 import { AuthenticationService } from './authentication.service';
@@ -24,6 +25,11 @@ export class AuthenticationController {
 	@Post('register')
 	async register(@Body() registrationData: RegisterDto) {
 		return this.authenticationService.register(registrationData);
+	}
+
+	@Get('status')
+	check() {
+		return 'Backend is up and running, you can go back to the website';
 	}
 
 	@HttpCode(200)
@@ -50,11 +56,5 @@ export class AuthenticationController {
 			this.authenticationService.getLogOutCookie(),
 		);
 		return response.status(200);
-	}
-
-	@UseGuards(JwtAuthenticationGuard)
-	@Post('checkauth')
-	async checkAuth(request: RequestWithUser) {
-		return request.user;
 	}
 }

@@ -1,12 +1,12 @@
 # kema-dev
 
-* TODO remove 42 code from browser history
-* TODO improve backend terminal logging
 * TODO add 2FA option
 * TODO Fix cookie seting for authentication
-* TODO check if I run docker in rootless mode
-* FIXME npm warnings in all containers if possible and revelant, and remove --force for npm install in nestjs container
-* TODO make https work on backend and frontend
-* TODO update api's wiki
-* TODO document every part of my code
+* TODO fix npm warnings in all containers if possible and relevant, and remove --force for npm install in nestjs container
+* TODO find a way to generate valid https certificates for nestjs and vuejs (maybe with lets encrypt)
 * TODO Setup GitHub Actions for build testing
+
+## final server
+
+* http to https redirection
+* save logs every 10 minutes

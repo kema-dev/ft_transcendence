@@ -11,6 +11,8 @@ import { firstValueFrom } from 'rxjs';
 import { AuthResponse } from './authResponse.interface';
 import * as crypto from 'crypto';
 
+// NOTE - API's documentation can be found at `docs/api/v1.md`
+
 @Injectable()
 export class AuthenticationService {
 	constructor(
@@ -21,31 +23,55 @@ export class AuthenticationService {
 	) {}
 
 	public async register(registrationData: RegisterDto) {
-		console.error('register: ' + registrationData.login);
+		console.log('register: starting for login: ' + registrationData.login);
 		if (registrationData.password !== registrationData.password_confirmation) {
+			console.error('register: ' + 'passwords do not match, returning ✘');
 			throw new HttpException('Passwords do not match', HttpStatus.BAD_REQUEST);
 		}
 		if (
+			registrationData.password.length > 32 ||
 			!registrationData.password.match(
 				/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=^[a-zA-Z0-9!@#$%^&*]*$).{10,32}$/,
 			)
 		) {
+			console.error(
+				'register: ' + 'password does not meet requirements, returning ✘',
+			);
 			throw new HttpException(
 				'Password must contain at least one lowercase letter, one uppercase letter, one digit, one special character (!@#$%^&*) and must be between 10 and 32 characters long',
 				HttpStatus.BAD_REQUEST,
 			);
 		}
 		if (
+			registrationData.email.length > 50 ||
 			!registrationData.email.match(
 				/^[a-zA-Z0-9-]+(?:[\.+-][a-zA-Z0-9]+){0,}@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]{1,}){1,}$/,
 			)
 		) {
+			console.error(
+				'register: ' + 'email does not meet requirements, returning ✘',
+			);
 			throw new HttpException('Email is not valid', HttpStatus.BAD_REQUEST);
 		}
-		if (!registrationData.login.match(/^[a-zA-z0-9-_ ]{1,25}$/)) {
+		if (
+			registrationData.login.length > 25 ||
+			!registrationData.login.match(/^[a-zA-z0-9-_ ]{1,25}$/)
+		) {
+			console.error(
+				'register: ' + 'login does not meet requirements, returning ✘',
+			);
 			throw new HttpException('Login is not valid', HttpStatus.BAD_REQUEST);
 		}
-		const hashedPassword = await bcrypt.hash(registrationData.password, 10);
+		let hashedPassword = '';
+		try {
+			hashedPassword = await bcrypt.hash(registrationData.password, 10);
+		} catch (error) {
+			console.error('register: ' + 'bcrypt error, returning ✘');
+			throw new HttpException(
+				'Something went wrong',
+				HttpStatus.INTERNAL_SERVER_ERROR,
+			);
+		}
 		try {
 			const createdUser = await this.usersService.create({
 				...registrationData,
@@ -58,19 +84,25 @@ export class AuthenticationService {
 				ft_scope: '',
 				ft_createdAt: new Date(),
 			});
-			console.log('register: ' + createdUser.login + ' created');
+			console.log(
+				'register: ' + createdUser.login + ' created successfully, returning ✔',
+			);
 			return { login: createdUser.login, success: true };
 		} catch (error) {
 			if (error?.code === PostgresErrorCode.UniqueViolation) {
 				console.error(
-					'register: ' + registrationData.email + ' and/or ' + registrationData.login + ' already exists',
+					'register: email: ' +
+						registrationData.email +
+						' and/or login: ' +
+						registrationData.login +
+						' already exists, returning ✘',
 				);
 				throw new HttpException(
-					'User with that email and/or login already exists',
+					'User with that email and/or login already exists, please try again',
 					HttpStatus.BAD_REQUEST,
 				);
 			}
-			console.error('register: ' + error);
+			console.error('register: unknown error: ' + error + ' returning ✘');
 			throw new HttpException(
 				'Something went wrong',
 				HttpStatus.INTERNAL_SERVER_ERROR,
@@ -79,20 +111,28 @@ export class AuthenticationService {
 	}
 
 	public async getAuthenticatedUser(email: string, password: string) {
-		console.error('getAuthenticatedUser: ' + email);
+		console.log('getAuthenticatedUser: starting for email / login: ' + email);
 		try {
 			const user = await this.usersService.getByEmail(email);
 			await this.verifyPassword(password, user.password);
-			console.log('getAuthenticatedUser: ' + user.login + ' authenticated');
+			console.log(
+				'getAuthenticatedUser: ' +
+					user.login +
+					' authenticated successfully, returning ✔',
+			);
 			return { login: user.login, success: true };
 		} catch (error) {
 			try {
 				const user = await this.usersService.getByLogin(email);
 				await this.verifyPassword(password, user.password);
-				console.log('getAuthenticatedUser: ' + user.login + ' authenticated');
+				console.log(
+					'getAuthenticatedUser: ' +
+						user.login +
+						' authenticated successfully, returning ✔',
+				);
 				return { login: user.login, success: true };
 			} catch (error) {
-				console.error('getAuthenticatedUser: ' + error);
+				console.error('getAuthenticatedUser: ' + error + ' returning ✘');
 				throw new HttpException(
 					'Wrong credentials provided',
 					HttpStatus.BAD_REQUEST,
@@ -105,6 +145,7 @@ export class AuthenticationService {
 		plainTextPassword: string,
 		hashedPassword: string,
 	) {
+		console.log('verifyPassword: starting');
 		const isPasswordMatching = await bcrypt.compare(
 			plainTextPassword,
 			hashedPassword,
@@ -116,35 +157,39 @@ export class AuthenticationService {
 				HttpStatus.BAD_REQUEST,
 			);
 		}
-		console.log('verifyPassword: ' + 'match');
+		console.log('verifyPassword: ' + 'match, returning');
 	}
 
 	public async getCookieFromJwt(userId: number) {
+		console.log('getCookieFromJwt: starting for userId: ' + userId);
 		const jwtPayload = { userId };
 		const jwt = await this.jwtService.sign(jwtPayload);
-		console.log('getCookieFromJwt: ' + 'jwt created');
+		console.log('getCookieFromJwt: ' + 'jwt created, returning ✔');
 		return `Authentication=${jwt}; HttpOnly; Path=/; Max-Age=${this.configService.get(
 			'JWT_MAX_AGE',
 		)}`;
 	}
 
 	public getLogOutCookie() {
-		console.log('getLogOutCookie: ' + 'cookie created');
+		console.log('getLogOutCookie: starting');
+		console.log('getLogOutCookie: success, returning ✔');
 		return `Authentication=; HttpOnly; Path=/; Max-Age=0`;
 	}
 
 	public async checkJwt(jwt: string) {
+		console.log('checkJwt: starting');
 		const jwtPayload = await this.jwtService.verify(jwt);
-		console.log('checkJwt: ' + 'jwt verified');
+		console.log('checkJwt: ' + 'jwt verified, returning ✔ or ✘');
 		return jwtPayload;
 	}
 
 	public async auth42(code: string): Promise<AuthResponse> {
+		console.log('auth42: starting');
 		if (!code) {
-			console.log('auth42: ' + 'no code provided');
+			console.error('auth42: ' + 'no code provided, returning ✘');
 			throw new HttpException('No code provided', HttpStatus.BAD_REQUEST);
 		} else if ((await this.usersService.checkCodeInUse(code)) === true) {
-			console.log('auth42: ' + 'code already in use');
+			console.error('auth42: ' + 'code already in use, returning ✘');
 			throw new HttpException('Code already in use', HttpStatus.BAD_REQUEST);
 		}
 		try {
@@ -173,7 +218,7 @@ export class AuthenticationService {
 					response.data.expires_in,
 					new Date(),
 				);
-				console.log('auth42: ' + logobj.data.login + ' updated');
+				console.log('auth42: ' + logobj.data.login + ' updated, returning ✔');
 				return { login: logobj.data.login, success: true };
 			}
 			try {
@@ -190,20 +235,19 @@ export class AuthenticationService {
 					ft_scope: response.data.scope,
 					ft_createdAt: new Date(),
 				});
-				console.log('auth42: ' + createdUser.login + ' created');
+				console.log(
+					'auth42: ' + createdUser.login + ' created / updated, returning ✔',
+				);
 				// TODO set cookie
 				return { login: createdUser.login, success: true };
 			} catch (error) {
-				console.error('auth42: ' + error);
-				throw new HttpException(
-					'Something went wrong',
-					HttpStatus.INTERNAL_SERVER_ERROR,
-				);
+				console.error('auth42: unexpected error: ' + error + ' returning ✘');
+				return { login: '', success: false };
 			}
 		} catch (error) {
-			console.error('auth42: ' + error);
+			console.error('auth42: unexpected error' + error);
 		}
-		console.error('auth42: ' + 'returning false');
+		console.error('auth42: ' + 'unexpected error, returning ✘');
 		return { login: '', success: false };
 	}
 }
