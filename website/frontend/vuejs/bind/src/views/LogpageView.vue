@@ -84,9 +84,6 @@ import axios from "axios";
 import Config from "../env.json";
 import { useToast } from "vue-toastification";
 
-// make https request accept self signed certificates
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
-
 export default {
 	name: "App",
 	title: "Pong.io",
@@ -126,7 +123,6 @@ export default {
 			this.switch_value = !this.switch_value;
 		},
 		register() {
-			// make axios skip ssl errors
 			axios
 				.post(this.apiPath + "auth/register", {
 					email: this.email_register,
@@ -139,7 +135,6 @@ export default {
 						"Registration success, welcome " + this.login_register + " !"
 					);
 					this.$router.push("/home");
-					// console.log(response.data);
 				})
 				.catch((error) => {
 					if (
@@ -165,9 +160,8 @@ export default {
 						);
 					} else {
 						this.toast.error("Unknown error, we are sorry for that 😥");
-						console.log(error);
+						console.error(error);
 					}
-					// console.log(error.response.data.message);
 				});
 		},
 		auth() {
@@ -181,14 +175,13 @@ export default {
 						"Authentication success, welcome " + response.data.login + " !"
 					);
 					this.$router.push("/home");
-					// console.log(response.data);
 				})
 				.catch((error) => {
 					if (error.response.data.message === "Wrong credentials provided") {
 						this.toast.warning("Wrong credentials provided, please try again");
 					} else {
 						this.toast.error("Unknown error, we are sorry for that 😥");
-						console.log(error);
+						console.error(error);
 					}
 				});
 		},
@@ -217,7 +210,7 @@ export default {
 						})
 						.catch((error) => {
 							this.toast.error("Authentication failure, please try again");
-							console.log(error);
+							console.error(error);
 						});
 				}
 			})
