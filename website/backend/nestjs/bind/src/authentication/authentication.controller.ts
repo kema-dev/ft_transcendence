@@ -38,7 +38,8 @@ export class AuthenticationController {
 	async logIn(@Req() request: RequestWithUser, @Res() response: Response) {
 		const { user } = request;
 		const cookie = await this.authenticationService.getCookieFromJwt(user.id);
-		response.setHeader('Set-Cookie', cookie); // FIXME cookie setting is not working
+		// FIXME cookie setting is not working
+		response.setHeader('Set-Cookie', cookie);
 		return response.send(user);
 	}
 

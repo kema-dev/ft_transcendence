@@ -226,7 +226,8 @@ export class AuthenticationService {
 				const createdUser = await this.usersService.ft_create({
 					email: logobj.data.email,
 					login: logobj.data.login,
-					password: password, // TODO send default password to user and / or prompt him to change it
+					// TODO send default password to user and / or prompt him to change it
+					password: password,
 					ft_code: code,
 					ft_accessToken: response.data.access_token,
 					ft_refreshToken: response.data.access_token,
@@ -238,7 +239,7 @@ export class AuthenticationService {
 				console.log(
 					'auth42: ' + createdUser.login + ' created / updated, returning ✔',
 				);
-				// TODO set cookie
+				// TODO set cookie in order to stay logged in
 				return { login: createdUser.login, success: true };
 			} catch (error) {
 				console.error('auth42: unexpected error: ' + error + ' returning ✘');
