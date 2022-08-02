@@ -2,10 +2,9 @@
 
 ## ongoing
 
-* TODO add 2FA option / check email matches user's email / convert the secret to b32
+* TODO add 2FA option
 
-* TODO fix cookie set for authentication
-* TODO set cookie on 42 authentication
+* TODO set cookie on ALL authentication methods
 
 ## later
 
