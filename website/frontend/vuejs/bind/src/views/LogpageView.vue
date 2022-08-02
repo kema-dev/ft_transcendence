@@ -179,6 +179,8 @@ export default {
 				.catch((error) => {
 					if (error.response.data.message === "Wrong credentials provided") {
 						this.toast.warning("Wrong credentials provided, please try again");
+					} else if (error.response.data.message === "User has no password, please connect using 42 API") {
+						this.toast.warning("You created your account using your 42 account, you have to connect with 42");
 					} else {
 						this.toast.error("Unknown error, we are sorry for that 😥");
 						console.error(error);

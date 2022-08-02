@@ -9,7 +9,6 @@ import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { AuthResponse } from './authResponse.interface';
-import * as crypto from 'crypto';
 
 // NOTE - API's documentation can be found at `docs/api/v1.md`
 
@@ -124,6 +123,17 @@ export class AuthenticationService {
 		} catch (error) {
 			try {
 				const user = await this.usersService.getByLogin(email);
+				if (user.password === '') {
+					console.error(
+						'getAuthenticatedUser: ' +
+							user.login +
+							' has no password, returning ✘',
+					);
+					throw new HttpException(
+						'User has no password, please connect using 42 API',
+						HttpStatus.BAD_REQUEST,
+					);
+				}
 				await this.verifyPassword(password, user.password);
 				console.log(
 					'getAuthenticatedUser: ' +
@@ -213,7 +223,7 @@ export class AuthenticationService {
 				(await this.usersService.checkEmailExistence(logobj.data.email)) == true
 			) {
 				await this.usersService.ft_update(
-					response.data.email,
+					logobj.data.email,
 					response.data.access_token,
 					response.data.expires_in,
 					new Date(),
@@ -222,12 +232,11 @@ export class AuthenticationService {
 				return { login: logobj.data.login, success: true };
 			}
 			try {
-				const password = crypto.randomBytes(16).toString('hex');
 				const createdUser = await this.usersService.ft_create({
 					email: logobj.data.email,
 					login: logobj.data.login,
 					// TODO send default password to user and / or prompt him to change it
-					password: password,
+					password: '',
 					ft_code: code,
 					ft_accessToken: response.data.access_token,
 					ft_refreshToken: response.data.access_token,

@@ -1,14 +1,22 @@
 # kema-dev
 
-* TODO add 2FA option
+## ongoing
+
 * TODO fix cookie set for authentication
-* TODO set cookie with auth42
-* TODO send default password to user and / or prompt him to change it when authenticating with 42 / or just disable password for such users
-* TODO fix npm warnings in all containers if possible and relevant
-* TODO find a way to generate valid https certificates for nestjs and vuejs (maybe with lets encrypt)
+* TODO set cookie on 42 authentication
+* TODO add 2FA option
+
+## later
+
+* TODO find a way to generate valid https certificates for nestjs and vuejs (maybe using lets encrypt's certbot)
+* TODO change readme's images using a gif of a live game and some screenshots of the website
 * TODO Setup GitHub Actions for build testing
 
-## final server
+## known issues
+
+* registering with a login / email further used with 42 connection makes 42 account override the previous account
+
+## on final server deployment
 
 * http to https redirection
 * save logs every 10 minutes

@@ -146,7 +146,8 @@ export class UsersService {
 			user.ft_expiresIn = ft_expiresIn;
 			user.ft_createdAt = ft_createdAt;
 			await this.usersRepository.save(user);
+		} else {
+			console.error('ft_update: ' + email + ' not found, updating aborted ✘');
 		}
-		console.error('ft_update: ' + email + ' not found, updating aborted ✘');
 	}
 }
