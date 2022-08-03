@@ -1,6 +1,11 @@
 <template>
 	<div class="center column" id="app">
-		<a v-if="!backend_status" class="back_msg" :href="this.apiPath + 'auth/status'">Please click here to authorize backend's certificate</a>
+		<a
+			v-if="!backend_status"
+			class="back_msg"
+			:href="this.apiPath + 'auth/status'"
+			>Please click here to authorize backend's certificate</a
+		>
 		<Transition name="showup">
 			<div v-if="show" class="outer">
 				<div class="inner">
@@ -61,17 +66,37 @@
 									placeholder="password"
 									type="password"
 								/>
+								<input
+									v-if="this.mfa_enabled_login"
+									class="input_box"
+									v-model="mfa_code_login"
+									placeholder="mfa code"
+									type="text"
+								/>
 								<button @click="this.auth()">Login</button>
 							</div>
 						</Transition>
 					</div>
 					<div class="ft_login">
-						<a :href="this.api42Path"
+						<a v-if="!mfa_enabled_42" :href="this.api42Path"
 							><img
 								src="@/assets/connect_with_42.svg"
 								alt="connect with 42"
 								class="connect_img"
 						/></a>
+						<a v-if="mfa_enabled_42" @click="this.mfa_login_42()"
+							><img
+								src="@/assets/connect_with_42.svg"
+								alt="connect with 42"
+								class="connect_img"
+						/></a>
+						<input
+							v-if="this.mfa_enabled_42"
+							class="input_box"
+							v-model="mfa_code_42"
+							placeholder="mfa code"
+							type="text"
+						/>
 					</div>
 				</div>
 			</div>
@@ -107,6 +132,10 @@ export default {
 			switch_value: true,
 			docState: "saved",
 			backend_status: true,
+			mfa_enabled_login: false,
+			mfa_enabled_42: false,
+			mfa_code_login: "",
+			mfa_code_42: "",
 		};
 	},
 	provide() {
@@ -169,6 +198,7 @@ export default {
 				.post(this.apiPath + "auth/login", {
 					email: this.email_auth,
 					password: this.password_auth,
+					mfa_code: this.mfa_code_login,
 				})
 				.then((response) => {
 					this.toast.success(
@@ -177,15 +207,60 @@ export default {
 					this.$router.push("/home");
 				})
 				.catch((error) => {
+					console.error(error.response.data.message);
 					if (error.response.data.message === "Wrong credentials provided") {
 						this.toast.warning("Wrong credentials provided, please try again");
-					} else if (error.response.data.message === "User has no password, please connect using 42 API") {
-						this.toast.warning("You created your account using your 42 account, you have to connect with 42");
+					} else if (
+						error.response.data.message ===
+						"User has no password, please connect using 42 API"
+					) {
+						this.toast.warning(
+							"You created your account using your 42 account, you have to connect with 42"
+						);
+					} else if (
+						error.response.data.message ===
+						"You have 2FA enabled, please send your 2FA code"
+					) {
+						this.toast.success(
+							"You have 2FA enabled, please send your 2FA code"
+						);
+						this.mfa_enabled_login = true;
 					} else {
 						this.toast.error("Unknown error, we are sorry for that 😥");
 						console.error(error);
 					}
 				});
+		},
+		mfa_login_42() {
+			let urlParams = new URLSearchParams(window.location.search);
+			let code = urlParams.get("code");
+			if (code) {
+				axios
+					.post(this.apiPath + "auth/login42", {
+						code: code,
+						mfa_code: this.mfa_code_42,
+					})
+					.then((response) => {
+						this.toast.success(
+							"Authentication success, welcome " + response.data.login + " !"
+						);
+						this.$router.replace("/home");
+					})
+					.catch((error) => {
+						if (
+							error.response.data.message ===
+							"You have 2FA enabled, please send your 2FA code"
+						) {
+							this.toast.success(
+								"You have 2FA enabled, please send your 2FA code"
+							);
+							this.mfa_enabled_42 = true;
+						} else {
+							this.toast.error("Authentication failure, please try again");
+							console.error(error);
+						}
+					});
+			}
 		},
 	},
 	created() {
@@ -202,17 +277,27 @@ export default {
 					axios
 						.post(this.apiPath + "auth/login42", {
 							code: code,
+							mfa_code: this.mfa_code_42,
 						})
 						.then((response) => {
-							// console.log(response.data);
 							this.toast.success(
 								"Authentication success, welcome " + response.data.login + " !"
 							);
 							this.$router.replace("/home");
 						})
 						.catch((error) => {
-							this.toast.error("Authentication failure, please try again");
-							console.error(error);
+							if (
+								error.response.data.message ===
+								"You have 2FA enabled, please send your 2FA code"
+							) {
+								this.toast.success(
+									"You have 2FA enabled, please send your 2FA code"
+								);
+								this.mfa_enabled_42 = true;
+							} else {
+								this.toast.error("Authentication failure, please try again");
+								console.error(error);
+							}
 						});
 				}
 			})
