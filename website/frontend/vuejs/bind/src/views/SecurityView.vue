@@ -2,10 +2,10 @@
 	<div class="security-view">
 		<h1>Security</h1>
 		<p>2FA will be implemented on this page.</p>
-		<qrcode-vue v-if="code" :value="code" :size="300" level="H" class="qr"/>
-		<p>Code: {{ code }}</p>
-		<button @click="get_totp_url">CLICK</button>
-		<button @click="verify">VERIFY</button>
+		<qrcode-vue v-if="totp_url" :value="totp_url" :size="300" level="H" class="qr"/>
+		<p>URL: {{ totp_url }}</p>
+		<button @click="get_totp_url">GET TOTP URL</button>
+		<button @click="verify">VERIFY TOTP</button>
 	</div>
 </template>
 
@@ -18,7 +18,7 @@ export default {
 	data() {
 		return {
 			apiPath: "https://localhost:3000/api/v1/",
-			code: "",
+			totp_url: "",
 			test_mail: "q@q.q",
 			test_code: "123456",
 		};
@@ -33,7 +33,7 @@ export default {
 					email: this.test_mail,
 				})
 				.then((response) => {
-					this.code = response.data.url;
+					this.totp_url = response.data.url;
 					console.log(response);
 				})
 				.catch((error) => {

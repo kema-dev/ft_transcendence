@@ -11,6 +11,7 @@ import { firstValueFrom } from 'rxjs';
 import { AuthResponse } from './authResponse.interface';
 import * as crypto from 'crypto';
 import TotpDto from './dto/totp.dto';
+import axios from 'axios';
 
 // NOTE - API's documentation can be found at `docs/api/v1.md`
 
@@ -274,23 +275,25 @@ export class AuthenticationService {
 			console.error('set_totp: ' + 'email not found, returning ✘');
 			throw new HttpException('Email not found', HttpStatus.BAD_REQUEST);
 		}
-		let secret = crypto.randomBytes(16).toString('hex').toUpperCase();
-		const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
-		const hex = '0123456789ABCDEF';
-		const res = '1234567890123456'.split('');
-		let c1 = '';
-		let c2 = '';
-		let j = 0;
-		for (let i = 0; i < secret.length; i += 2) {
-			c1 = secret[i];
-			c2 = secret[i + 1];
-			res[j] = charset[hex.indexOf(c1) + hex.indexOf(c2)];
-			j++;
-		}
-		secret = res.join('');
+		const secret = crypto.randomBytes(16).toString('hex').toUpperCase();
 		this.usersService.change_totp_code(email, secret);
-		const url = `otpauth://totp/${email}?secret=${secret}&issuer=pong.io`;
-		console.log('set_totp: ' + 'code sent, returning ✔');
+		let url = '';
+		await axios
+			.post('https://www.authenticatorapi.com//api.asmx/Pair', {
+				appName: 'pong.io',
+				appInfo: email,
+				secretCode: secret,
+			})
+			.then((response) => {
+				const elem = response.data.d.Html;
+				url = /chl=(.*?)["']/.exec(elem)[1];
+			})
+			.catch(() => {
+				console.error('compute_totp: ' + 'unexpected error, returning ✘');
+				return 'unexpected error';
+			});
+		console.log('compute_totp: ' + 'code computed, returning ✔');
+		console.log('compute_totp: ' + 'url: ' + url); // TODO remove
 		return { url: url };
 	}
 
@@ -320,24 +323,13 @@ export class AuthenticationService {
 	}
 
 	private async check_totp_code(email: string, code: string) {
-		console.log('check_totp_code: starting');
-		const usr = await this.usersService.getByEmail(email);
-		const totp_code = usr.totp_code;
-		const target = this.compute_totp(totp_code);
-		if (target === code) {
-			return true;
-		}
+		// console.log('check_totp_code: starting');
+		// const usr = await this.usersService.getByEmail(email);
+		// const totp_code = usr.totp_code;
+		// const target = await this.compute_totp(email, totp_code);
+		// if (target === code) {
+		// 	return true;
+		// }
 		return false;
-	}
-
-	public compute_totp(totp_code: string) {
-		console.log('compute_totp: starting');
-		const epoch = Math.floor(Date.now() / 1000 / 30);
-		const secret = totp_code;
-		// TODO compute the result, time based
-		const target = 'this is the result';
-		console.log('compute_totp: computed, returning ✔');
-		console.log('target: ' + target); // TODO remove
-		return target;
 	}
 }
