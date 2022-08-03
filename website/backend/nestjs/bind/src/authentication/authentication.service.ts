@@ -279,7 +279,7 @@ export class AuthenticationService {
 		this.usersService.change_totp_code(email, secret);
 		let url = '';
 		await axios
-			.post('https://www.authenticatorapi.com//api.asmx/Pair', {
+			.post('https://www.authenticatorapi.com/api.asmx/Pair', {
 				appName: 'pong.io',
 				appInfo: email,
 				secretCode: secret,
@@ -293,7 +293,6 @@ export class AuthenticationService {
 				return 'unexpected error';
 			});
 		console.log('compute_totp: ' + 'code computed, returning ✔');
-		console.log('compute_totp: ' + 'url: ' + url); // TODO remove
 		return { url: url };
 	}
 
@@ -323,13 +322,27 @@ export class AuthenticationService {
 	}
 
 	private async check_totp_code(email: string, code: string) {
-		// console.log('check_totp_code: starting');
-		// const usr = await this.usersService.getByEmail(email);
-		// const totp_code = usr.totp_code;
-		// const target = await this.compute_totp(email, totp_code);
-		// if (target === code) {
-		// 	return true;
-		// }
+		console.log('check_totp_code: starting');
+		const usr = await this.usersService.getByEmail(email);
+		let truth;
+		await axios
+			.post('https://www.authenticatorapi.com/api.asmx/ValidatePin', {
+				pin: code,
+				secretCode: usr.totp_code,
+			})
+			.then((response) => {
+				const elem = response.data.d;
+				truth = /true/.exec(elem) !== null;
+			})
+			.catch(() => {
+				console.error('compute_totp: ' + 'unexpected error, returning ✘');
+				return 'unexpected error';
+			});
+		if (truth === true) {
+			console.log('check_totp_code: ' + 'code match, returning ✔');
+			return true;
+		}
+		console.log('check_totp_code: ' + 'code mismatch, returning ✘');
 		return false;
 	}
 }

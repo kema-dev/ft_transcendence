@@ -1,10 +1,10 @@
 <template>
 	<div class="security-view">
 		<h1>Security</h1>
-		<p>2FA will be implemented on this page.</p>
 		<qrcode-vue v-if="totp_url" :value="totp_url" :size="300" level="H" class="qr"/>
 		<p>URL: {{ totp_url }}</p>
 		<button @click="get_totp_url">GET TOTP URL</button>
+		<input type="text" v-model="test_code" placeholder="TOTP Code"/>
 		<button @click="verify">VERIFY TOTP</button>
 	</div>
 </template>
