@@ -1,13 +1,12 @@
 <template>
-  <div class="center">
-    <router-link :to="{name: 'conversation', params: {conv_name: conv!.user?.name, conv: conv!}}" class="conv_container left row stack">
+    <router-link :to="{name: 'conversation', params: {conv_name: conv!.name }}" class="conv_container left row stack">
       <div class="avatar_cont">
-        <img v-if="conv?.user" :src="conv.user.avatar" class="avatar" alt="avatar">
+        <img v-if="!conv!.channel" :src="conv!.users[0].avatar" class="avatar" alt="avatar">
+        <img v-else :src="conv!.messages[conv!.messages.length -1].user.avatar" class="avatar" alt="avatar">
       </div>
       <div class="info center column">
         <div class="top-bar row center stack">
-          <div class="login">{{conv?.user?.name}}</div>
-          <!-- <div class="date">{{conv!.messages[conv!.messages.length - 1].date.toLocaleDateString()}}</div> -->
+          <div class="login">{{conv!.name}}</div>
           <div class="date">{{display_date()}}</div>
         </div>
         <div class="message_cont center">
@@ -15,10 +14,6 @@
         </div>
       </div>
     </router-link>
-  </div>
-  <!-- <div class="content">
-    <router-view name="chat_menu" />
-  </div> -->
 </template>
 
 <script setup lang="ts">
@@ -73,19 +68,14 @@ function display_date() : string {
 .avatar_cont {
   width: var(--height);
   height: var(--height);
-  /* height: calc(var(--height) - 10px);
-  width: calc(var(--height) - 10px); */
 }
 .avatar {
   height: calc(var(--height) - 10px);
   width: calc(var(--height) - 10px);
-  /* width: var(--height); */
   position: absolute;
   left: 4px;
   top: 50%;
   transform: translate(0, -50%);
-  /* border: solid 3px;
-  border-color: v-bind(define.color2); */
   border-radius: 50%;
 }
 .info {
@@ -104,12 +94,15 @@ function display_date() : string {
   text-align: start;
   font-family: "Orbitron", sans-serif;
   font-weight: bold;
-    overflow: hidden;
+  overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
 .date {
   text-align: end;
+  color: grey;
+  /* font-family: "Orbitron", sans-serif;
+  font-size: 0.8rem; */
 }
 .message_cont {
   height: 100%;

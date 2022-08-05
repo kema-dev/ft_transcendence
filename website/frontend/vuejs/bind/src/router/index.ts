@@ -5,9 +5,10 @@ import SecurityView from '@/views/SecurityView.vue'
 import GameView from '@/views/GameView.vue'
 import Friends from '@/menu/FriendsTab.vue'
 import Chat from '@/menu/ChatTab.vue'
-import InGame from '@/menu/InGameTab.vue'
-import Private from '@/menu/PrivateTab.vue'
-import Conversation from '@/menu/ConversationItem.vue'
+import InGame from '@/chat/InGameTab.vue'
+import Private from '@/chat/PrivateTab.vue'
+import Channels from '@/chat/ChannelsTab.vue'
+import Conversation from '@/chat/ConversationItem.vue'
 import ConversationClass from '@/chat/Conversation'
 import Settings from '@/menu/SettingsTab.vue'
 import Player from '@/menu/PlayerTab.vue'
@@ -44,6 +45,7 @@ const routes: Array<RouteRecordRaw> = [
 				name: 'chat',
 				path: '/home/chat',
 				components: {menu: Chat},
+				redirect: '/home/chat/in-game',
 				children: [
 					{
 						name: 'in-game',
@@ -54,6 +56,11 @@ const routes: Array<RouteRecordRaw> = [
 						name: 'private',
 						path: '/home/chat/private',
 						components: {chat_menu: Private},
+					},
+					{
+						name: 'channels',
+						path: '/home/chat/channels',
+						components: {chat_menu: Channels},
 					},
 					{
 						name: 'conversation',

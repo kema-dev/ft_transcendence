@@ -3,19 +3,27 @@ import Message from "@/chat/Message"
 
 export default class Conversation {
     
+    // channel: boolean;
     channel: boolean;
-    users?: User[];
-    user?: User;
+    users: User[];
     messages: Message[];
-    constructor(channel: boolean, messages: Message[],
-        users?: User[], user?: User) {
+    name: string;
+    constructor(channel: boolean, users: User[], messages: Message[], name?: string) {
         this.channel = channel;
-        if (users) {
-            this.users = users;
-        }
-        else if (user){
-            this.user = user;
-        }
+        this.users = users;
         this.messages = messages;
+        if (name) {
+            this.name = name;
+        }
+        else {
+            let namejoin = "";
+            for (let i = 0; i < users.length; i++) {
+                namejoin += users[i].name;
+                if (i != users.length - 1) {
+                    namejoin += ", ";
+                }
+            }
+            this.name = namejoin;
+        }
     }
 }

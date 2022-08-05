@@ -1,5 +1,5 @@
 <template>
-	<div id="ingame_container">
+	<div id="ingame_view">
 		<div v-if="playing == false" class="center column not_playing">
 			<h3>Not actually playing ...</h3>
 			<button class="button_ingame" @click="create_room">Create a new room</button>
@@ -25,7 +25,7 @@ let playing = false;
 </script>
 
 <style>
-#ingame_container {
+#ingame_view {
 	--heightContainer: calc(100vh - 180px);
 	height: var(--heightContainer);
 	position: relative;

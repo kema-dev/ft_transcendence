@@ -15,7 +15,7 @@
 					</span>
 				</button>
 			</div>
-			<!-- <SearchItem :search="search.value"/> -->
+			<!-- <SearchItem @change="searchChange" :search="search.value"/> -->
 			<div v-if="search.value == ''" class="column center">
 				<!-- <div class="center column"> -->
 				<h2 v-if="user.friends.length == 0">No friends</h2>
