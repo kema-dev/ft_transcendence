@@ -2,6 +2,7 @@ export class CreateUserDto {
 	email: string;
 	login: string;
 	password: string;
+	level: number;
 	ft_code: string;
 	ft_accessToken: string;
 	ft_tokenType: string;

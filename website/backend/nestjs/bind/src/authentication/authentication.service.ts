@@ -76,6 +76,7 @@ export class AuthenticationService {
 			const createdUser = await this.usersService.create({
 				...registrationData,
 				password: hashedPassword,
+				level: 0,
 				ft_code: '',
 				ft_accessToken: '',
 				ft_refreshToken: '',
@@ -227,6 +228,7 @@ export class AuthenticationService {
 					email: logobj.data.email,
 					login: logobj.data.login,
 					password: password, // TODO send default password to user and / or prompt him to change it
+					level: 0,
 					ft_code: code,
 					ft_accessToken: response.data.access_token,
 					ft_refreshToken: response.data.access_token,

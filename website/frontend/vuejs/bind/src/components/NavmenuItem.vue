@@ -9,8 +9,8 @@
 				<h2 class="nav_menu_text">FRIENDS</h2>
 			</router-link>
 			<h1 class="pipe">|</h1>
-			<router-link to="/home/settings" class="nav_menu_link">
-				<h2 class="nav_menu_text">SETTINGS</h2>
+			<router-link to="/home/profile" class="nav_menu_link">
+				<h2 class="nav_menu_text">PROFILE</h2>
 			</router-link>
 		</div>
 		<!-- <transition name="slide-fade" mode="out-in"> -->
