@@ -70,18 +70,11 @@ let conv = ref(new Conversation(false, [user2], [msg1, msg2, msg3, msg5, msg6]))
 
 watch(conv.value.messages, (newMsg) => {
 	let msgs = document.getElementById("messages_cont");
-	console.log(conv.value.messages);
-	console.log(msgs!.scrollHeight);
-	if (msgs!.scrollHeight > msgs!.clientHeight || msgs!.scrollWidth > msgs!.clientWidth) {
-		msgs!.style.setProperty("justify-content", "flex-end");
-		// msgs!.style.setProperty("overflow-y", "scroll");
-		console.log("scroll");
-	}
+	msgs!.scrollTop = msgs!.scrollHeight;
 }, {flush:'post'});
-// });
+
 
 onMounted(() => {
-	// scroll = ref(document.getElementById("messages_cont")!.scrollHeight);
 	const box = document.getElementById('privateTabText');
 	if (box != null) {
 		box.style.setProperty('border-bottom', '2px solid #16638D');

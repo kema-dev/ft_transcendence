@@ -47,11 +47,11 @@ const routes: Array<RouteRecordRaw> = [
 				components: {menu: Chat},
 				redirect: '/home/chat/private',
 				children: [
-					{
-						name: 'in-game',
-						path: '/home/chat/in-game',
-						components: {chat_menu: InGame},
-					},
+					// {
+					// 	name: 'in-game',
+					// 	path: '/home/chat/in-game',
+					// 	components: {chat_menu: InGame},
+					// },
 					{
 						name: 'private',
 						path: '/home/chat/private',
@@ -66,7 +66,7 @@ const routes: Array<RouteRecordRaw> = [
 						name: 'conversation',
 						path: '/home/chat/private/:conv_name',
 						components: {chat_menu: Conversation},
-						// props: ConversationClass
+						// meta: { transition: 'slideUp' },
 					}
 				],
 			},

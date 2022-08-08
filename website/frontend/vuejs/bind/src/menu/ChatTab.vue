@@ -14,7 +14,7 @@
 		</div>
 		<div class="content">
 			<!-- <router-view name="chat_menu" v-slot="{ Component }">
-				<transition :name="slide">
+				<transition name="slideUp" mode="out-in">
 					<component :is="Component" />
 				</transition>
 			</router-view> -->
@@ -49,5 +49,21 @@ let define = inject("colors");
 	font-weight: 500;
 }
 
+/* ROUTER TRANSITION  */
+
+/* .slideUp-enter-from {
+	opacity:0;
+	transform: translateX(100px);
+}
+.slideUp-leave-to {
+	opacity:0;
+	transform: translateX(-100px);
+}
+	.slideUp-enter-active {
+		transition: all 0,5s ease-out;
+} 
+.slideUp-leave-active {
+	transition: all 0,5s ease-in;
+} */
 
 </style>
