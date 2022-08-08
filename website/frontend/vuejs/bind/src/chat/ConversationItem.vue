@@ -21,7 +21,7 @@
 					</button>
 				</div>
 			</div>
-			<div class="messages">
+			<div id="messages_cont" class="messages ">
 					<MessageItem v-for="(message, i) in conv.messages" :key="i" :message="message"/>
 			</div>
 			<div class="sendbox_cont">
@@ -40,7 +40,7 @@
 
 <script setup lang="ts">
 /* eslint @typescript-eslint/no-var-requires: "off" */
-import { inject, defineProps, onMounted, ref, onBeforeUnmount } from "vue";
+import { inject, defineProps, onMounted, ref, onBeforeUnmount, watch } from "vue";
 import { useRoute } from 'vue-router';
 import MessageItem from "@/chat/MessageItem.vue";
 import Conversation from '@/chat/Conversation';
@@ -68,7 +68,20 @@ let conv = ref(new Conversation(false, [user2], [msg1, msg2, msg3, msg5, msg6]))
 // let conv2 = new Conversation(false, [user1, user2, user3], [msg1, msg2]);
 
 
+watch(conv.value.messages, (newMsg) => {
+	let msgs = document.getElementById("messages_cont");
+	console.log(conv.value.messages);
+	console.log(msgs!.scrollHeight);
+	if (msgs!.scrollHeight > msgs!.clientHeight || msgs!.scrollWidth > msgs!.clientWidth) {
+		msgs!.style.setProperty("justify-content", "flex-end");
+		// msgs!.style.setProperty("overflow-y", "scroll");
+		console.log("scroll");
+	}
+}, {flush:'post'});
+// });
+
 onMounted(() => {
+	// scroll = ref(document.getElementById("messages_cont")!.scrollHeight);
 	const box = document.getElementById('privateTabText');
 	if (box != null) {
 		box.style.setProperty('border-bottom', '2px solid #16638D');
@@ -172,9 +185,11 @@ onBeforeUnmount(() => {
   to { opacity: 1; }
 }
 .messages {
-
 	overflow-y: auto;
 	height: calc(100vh - 340px);
+	display: flex;
+  flex-direction: column;
+	justify-content: flex-start;
 }
 
 .sendbox_cont {

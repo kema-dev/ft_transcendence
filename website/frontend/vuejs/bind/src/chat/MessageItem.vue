@@ -33,7 +33,6 @@ const props = defineProps({
 function getDateMsg () : string {
   let ret = props.message!.date.getHours() + ":" + props.message!.date.getMinutes();
   ret += "\n" + props.message!.date.toLocaleDateString("fr");
-  console.log(ret);
   return ret;
 }
 
