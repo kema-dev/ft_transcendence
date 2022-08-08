@@ -297,8 +297,7 @@ export class AuthenticationService {
 	}
 
 	public async verify_totp(request: TotpDto) {
-		console.log('verify_totp: starting');
-		console.log(request.email);
+		console.log('verify_totp: startingfor ' + request.email);
 		if (!request.email) {
 			console.error('verify_totp: ' + 'no email provided, returning ✘');
 			throw new HttpException('No email provided', HttpStatus.BAD_REQUEST);

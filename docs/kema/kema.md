@@ -2,11 +2,11 @@
 
 ## ongoing
 
-* TODO add frontend for 2FA
-* TODO add 2 FA for 42
+* TODO add messages to be displayed in vue .data
+* TODO tidy my code, dont use message comparison
+* TODO add another page for 2FA
+* TODO don't create a Jwt on auth, but on security / 2fa page
 * TODO add possibility to change 2FA settings, verifying identity of the user before changing, and checking that user had the correct code before saving
-* TODO tidy my code
-
 * TODO set cookie on ALL authentication methods, with 2FA verification, and verify that cookie is not set w/e result the log gets
 
 ## later
