@@ -5,10 +5,12 @@
 </template>
 
 <script setup lang="ts">
+/* eslint @typescript-eslint/no-var-requires: "off" */
 import { provide, ref } from "vue";
+import User from "@/chat/User";
 
 provide("playing", false);
-provide("me", "Totolosa");
+provide("me", new User("Totolosa", require("@/assets/avatars/(1).jpg")));
 provide("colors", {
 	color0: "#fff",
 	color1: "#000",

@@ -45,7 +45,7 @@ const routes: Array<RouteRecordRaw> = [
 				name: 'chat',
 				path: '/home/chat',
 				components: {menu: Chat},
-				redirect: '/home/chat/in-game',
+				redirect: '/home/chat/private',
 				children: [
 					{
 						name: 'in-game',

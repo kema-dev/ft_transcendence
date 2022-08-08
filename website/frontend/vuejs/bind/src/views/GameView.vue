@@ -4,7 +4,7 @@
 		<h1>PONG.IO</h1>
 		<input />
 		<input />
-		<router-link to="/home/chat/in-game">Login</router-link>
+		<router-link to="/home/chat/">Login</router-link>
 	</div>
 </template>
 

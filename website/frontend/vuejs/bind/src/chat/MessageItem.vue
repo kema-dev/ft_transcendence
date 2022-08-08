@@ -1,17 +1,18 @@
 <template>
   <div class="msg_cont">
-    <span class="date">{{message!.date.toLocaleDateString()}}</span>
-    <div v-if="me == message!.user.name" class="myMsg_cont raw right">
+    <!-- <span class="date">{{getDateMsg()}}</span> -->
+    <div v-if="me.name == message!.user.name" class="myMsg_cont raw right">
+        <span class="date">{{getDateMsg()}}</span>
       <div class="myMsg_text">
         {{message?.msg}}
       </div>
-      <!-- <img :src="message!.user.avatar" alt="Avatar" class="avatar"> -->
     </div>
     <div v-else class="userMsg_cont raw left">
       <img :src="message!.user.avatar" alt="Avatar" class="avatar">
       <div class="userMsg_text">
         {{message?.msg}}
       </div>
+      <span class="date">{{getDateMsg()}}</span>
     </div>
   </div>
 </template>
@@ -24,10 +25,17 @@ import User from "@/chat/User";
 import Message from "@/chat/Message";
 
 let colors = inject("colors");
-let me = inject("me");
+let me: User = inject("me")!;
 const props = defineProps({
   message: Message
 })
+
+function getDateMsg () : string {
+  let ret = props.message!.date.getHours() + ":" + props.message!.date.getMinutes();
+  ret += "\n" + props.message!.date.toLocaleDateString("fr");
+  console.log(ret);
+  return ret;
+}
 
 </script>
 
@@ -35,10 +43,8 @@ const props = defineProps({
 * {
   --height: 35px;
 }
-msg_cont {
-  width: 100%;
-}
 .myMsg_cont {
+  width: 100%;
   align-items:center;
 }
 .myMsg_text {
@@ -72,6 +78,9 @@ msg_cont {
   width: var(--height);
   height: var(--height);
   border-radius: 50%;
-
+}
+.date {
+  font-size: 0.8rem;
+  white-space: pre;
 }
 </style>

@@ -1,33 +1,41 @@
 <template>
-	<div class="userTopBar center raw space-between">
-		<div class="avatar_cont center">
-			<img :src="conv.users[0].avatar" class="avatar" alt="avatar">
-			<!-- <img v-else :src="conv!.messages[conv!.messages.length -1].user.avatar" class="avatar" alt="avatar"> -->
+	<transition>
+		<div id="conversation_view" class="stack">
+			<div class="userTopBar center raw space-between">
+				<div class="avatar_cont center">
+					<img :src="conv.users[0].avatar" class="avatar" alt="avatar">
+				</div>
+				<button @click="toProfile" class="login">{{route.params.conv_name}}</button>
+				<div class="option_buttons center raw stack">
+					<button @click="inviteGame" class="button_cont infoButton center">
+						<span class="infoButtonText">Invite in room</span>
+						<img src="~@/assets/play_button.png" alt="Invite game button" class="logo_img">
+					</button>
+					<button @click="blockUser" class="button_cont infoButton center">
+						<span class="infoButtonText">Block</span>
+						<img src="~@/assets/ban_button.png" alt="Invite game button" class="logo_img">
+					</button>
+					<button onclick="history.back();" class="button_cont infoButton center">
+						<span class="infoButtonText">Close</span>
+						<img src="~@/assets/close_button.png" alt="Invite game button" class="logo_img">
+					</button>
+				</div>
+			</div>
+			<div class="messages">
+					<MessageItem v-for="(message, i) in conv.messages" :key="i" :message="message"/>
+			</div>
+			<div class="sendbox_cont">
+				<input
+					type="text"
+					placeholder="Aa..."
+					id="sendbox"
+					v-model="myMsg"
+					class="sendbox"
+				/>
+			</div>
 		</div>
-		<button @click="toProfile" class="login">{{route.params.conv_name}}</button>
-		<div class="option_buttons center raw stack">
-			<button @click="inviteGame" class="button_cont infoButton center">
-				<span class="infoButtonText">Invite in room</span>
-				<img src="~@/assets/play_button.png" alt="Invite game button" class="logo_img">
-			</button>
-			<button @click="blockUser" class="button_cont infoButton center">
-				<span class="infoButtonText">Block</span>
-				<img src="~@/assets/ban_button.png" alt="Invite game button" class="logo_img">
-			</button>
-			<button @click="closeConv" class="button_cont infoButton center">
-				<span class="infoButtonText">Close</span>
-				<img src="~@/assets/close_button.png" alt="Invite game button" class="logo_img">
-			</button>
-		</div>
-	</div>
-	<div class="messages">
-		<div v-for="(message, i) in conv.messages" :key="i">
-			<MessageItem :message="message"/>
-		</div>
-	</div>
-	<div class="sendBox_cont">
-		
-	</div>
+
+	</transition>
 </template>
 
 <script setup lang="ts">
@@ -38,12 +46,12 @@ import MessageItem from "@/chat/MessageItem.vue";
 import Conversation from '@/chat/Conversation';
 import User from "@/chat/User";
 import Message from "@/chat/Message";
+import VueToastificationPlugin from "vue-toastification";
 
 const route = useRoute();
 let define = inject("colors");
-// const props = defineProps({
-//   conv: Conversation
-// })
+let me: User = inject("me")!;
+let myMsg = ref("");
 
 let user1 = new User("Totolosa", require("@/assets/avatars/(1).jpg"));
 let user2 = new User("Ocean", require("@/assets/avatars/(2).jpg"));
@@ -56,11 +64,9 @@ let msg4 = new Message(user3, "Non je dois finir de faire le front, et wallah c'
 let msg5 = new Message(user1, "dsaibciauwncopneejvnjn fcoamsdomvcafosnvonsvonoans", new Date());
 let msg6 = new Message(user2, "Mais tu sais pas parler en fait", new Date());
 
-let conv = new Conversation(false, [user2], [msg1, msg2, msg3, msg5, msg6]);
+let conv = ref(new Conversation(false, [user2], [msg1, msg2, msg3, msg5, msg6]));
 // let conv2 = new Conversation(false, [user1, user2, user3], [msg1, msg2]);
 
-console.log(route.query.page);
-console.log(window.location.href);
 
 onMounted(() => {
 	const box = document.getElementById('privateTabText');
@@ -69,6 +75,15 @@ onMounted(() => {
 		box.style.setProperty('color', '#16638D');
 		box.style.setProperty('font-weight', '500');
 	}
+	let input = document.getElementById("sendbox");
+	input!.addEventListener("keydown", function(e) {
+		if (e.key === "Enter") {
+			e.preventDefault();
+			let newMsg = new Message(me, myMsg.value, new Date());
+			conv.value.messages.push(newMsg);
+			myMsg.value = "";
+		}
+	});
 });
 
 onBeforeUnmount(() => {
@@ -86,11 +101,14 @@ onBeforeUnmount(() => {
 * {
   --height: 70px;
 }
+#conversation_view {
+	height: calc(100vh - 180px);
+}
 .userTopBar {
 	width: 100%;
 	height: var(--height);
 	background-color: white;
-	margin-top: 1rem;
+	/* margin-top: 5px; */
 	margin-bottom: 20px;
 	box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.1), 0px -4px 4px rgba(0, 0, 0, 0.1);
 }
@@ -152,6 +170,30 @@ onBeforeUnmount(() => {
 @keyframes displayButtonInfo {
 	from { opacity: 0; }
   to { opacity: 1; }
+}
+.messages {
+
+	overflow-y: auto;
+	height: calc(100vh - 340px);
+}
+
+.sendbox_cont {
+	position: absolute;
+	bottom: 1rem;
+}
+
+.sendbox {
+	width: 40%;
+	height: 2.2rem;
+	padding: 10px 15px;
+	font-size: 0.9rem;
+	border-radius: calc(2.2rem / 2);
+	outline: none;
+	transition: width 0.3s ease-in-out;
+}
+.sendbox:focus {
+	transition: width 0.3s ease-in-out;
+	width: 80%;
 }
 
 </style>
