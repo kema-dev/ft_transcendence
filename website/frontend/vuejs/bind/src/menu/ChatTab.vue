@@ -27,15 +27,8 @@ let define = inject("colors");
 
 <style>
 
-/* #chat_menu {
-	height: 100%;
-} */
-
 #chat_bar {
-	/* margin-top: 1rem;
-	margin-bottom: 1rem; */
 	height: 60px;
-	/* display: flex; */
 }
 
 
@@ -52,13 +45,5 @@ let define = inject("colors");
 	font-weight: 500;
 }
 
-/* @media screen and (max-width: 1000px) {
-	#chat_menu {
-		width: 100%;
-		padding: 0;
-		height: auto;
-		margin-top: 0;
-	}
-} */
 
 </style>

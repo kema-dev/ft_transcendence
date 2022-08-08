@@ -12,6 +12,7 @@
 import { inject } from "vue";
 
 let define = inject("colors");
+let playing = inject("playing");
 
 function create_room() {
 	console.log("create a new room");
@@ -21,7 +22,6 @@ function join_room() {
 	console.log("Join a room");
 }
 
-let playing = false;
 </script>
 
 <style>

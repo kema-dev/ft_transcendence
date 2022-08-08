@@ -1,16 +1,19 @@
 <template>
-  <div class="msg_cont center raw">
-    <div class="msg_text">
-      {{message?.msg}}
+  <div class="msg_cont">
+    <span class="date">{{message!.date.toLocaleDateString()}}</span>
+    <div v-if="me == message!.user.name" class="myMsg_cont raw right">
+      <div class="myMsg_text">
+        {{message?.msg}}
+      </div>
+      <!-- <img :src="message!.user.avatar" alt="Avatar" class="avatar"> -->
     </div>
-    <div class="avatar_cont">
+    <div v-else class="userMsg_cont raw left">
       <img :src="message!.user.avatar" alt="Avatar" class="avatar">
+      <div class="userMsg_text">
+        {{message?.msg}}
+      </div>
     </div>
   </div>
-  <!-- <div class="msg_cont">
-    <p class="msg_text">{{message?.msg}}</p>
-  </div> -->
-
 </template>
 
 <script setup lang="ts">
@@ -20,7 +23,8 @@ import { inject, defineProps, onMounted, ref } from "vue";
 import User from "@/chat/User";
 import Message from "@/chat/Message";
 
-let define = inject("colors");
+let colors = inject("colors");
+let me = inject("me");
 const props = defineProps({
   message: Message
 })
@@ -29,28 +33,45 @@ const props = defineProps({
 
 <style scoped>
 * {
-  --height: 50px;
+  --height: 35px;
 }
-.msg_text {
-  width: 70%;
+msg_cont {
+  width: 100%;
+}
+.myMsg_cont {
+  align-items:center;
+}
+.myMsg_text {
+  width: auto;
+  max-width: 65%;
   color: white;
-  padding: 5px;
+  padding: 8px;
   border-radius: 10px;
   margin: 10px;
-  background-color: v-bind(define.color2);
+  background-color: v-bind("colors.color2");
 }
-.avatar_cont {
+.userMsg_cont {
+  align-items:center;
+  padding-left: 7px;
+}
+.userMsg_text {
+  width: auto;
+  max-width: 65%;
+  color: black;
+  padding: 8px;
+  border-radius: 10px;
+  margin: 10px;
+  background-color: white;
+}
+/* .avatar_cont {
   width: var(--height);
   height: var(--height);
-  /* position: absolute; */
-}
+} */
+
 .avatar {
-	height: calc(var(--height) - 10px);
-  width: calc(var(--height) - 10px);
-  /* position: absolute; */
-  /* top: 4px; */
-  /* top: 50%; */
-  /* transform: translate(0, -50%); */
+  width: var(--height);
+  height: var(--height);
   border-radius: 50%;
+
 }
 </style>

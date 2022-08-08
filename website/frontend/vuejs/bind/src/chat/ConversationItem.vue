@@ -4,28 +4,29 @@
 			<img :src="conv.users[0].avatar" class="avatar" alt="avatar">
 			<!-- <img v-else :src="conv!.messages[conv!.messages.length -1].user.avatar" class="avatar" alt="avatar"> -->
 		</div>
-		<h2 class="login">{{route.params.conv_name}}</h2>
-		<div class="option_buttons center raw">
-			<button @click="restet_input" class="button_cont tooltip center">
-				<span class="tooltiptext">Invite in room</span>
+		<button @click="toProfile" class="login">{{route.params.conv_name}}</button>
+		<div class="option_buttons center raw stack">
+			<button @click="inviteGame" class="button_cont infoButton center">
+				<span class="infoButtonText">Invite in room</span>
 				<img src="~@/assets/play_button.png" alt="Invite game button" class="logo_img">
 			</button>
-			<!-- <button @click="restet_input" class="button_cont tooltip center">
-				<span class="tooltiptext">Profile</span>
-				<img src="~@/assets/profile_button.png" alt="Invite game button" class="logo_img">
-			</button> -->
-			<button @click="restet_input" class="button_cont tooltip center">
-				<span class="tooltiptext">Block</span>
+			<button @click="blockUser" class="button_cont infoButton center">
+				<span class="infoButtonText">Block</span>
 				<img src="~@/assets/ban_button.png" alt="Invite game button" class="logo_img">
 			</button>
-			<button @click="restet_input" class="button_cont tooltip center">
-				<span class="tooltiptext">Close</span>
+			<button @click="closeConv" class="button_cont infoButton center">
+				<span class="infoButtonText">Close</span>
 				<img src="~@/assets/close_button.png" alt="Invite game button" class="logo_img">
 			</button>
 		</div>
 	</div>
-	<div v-for="(message, i) in conv.messages" :key="i" class="messages">
-		<MessageItem :message="message"/>
+	<div class="messages">
+		<div v-for="(message, i) in conv.messages" :key="i">
+			<MessageItem :message="message"/>
+		</div>
+	</div>
+	<div class="sendBox_cont">
+		
 	</div>
 </template>
 
@@ -33,10 +34,10 @@
 /* eslint @typescript-eslint/no-var-requires: "off" */
 import { inject, defineProps, onMounted, ref, onBeforeUnmount } from "vue";
 import { useRoute } from 'vue-router';
+import MessageItem from "@/chat/MessageItem.vue";
 import Conversation from '@/chat/Conversation';
 import User from "@/chat/User";
 import Message from "@/chat/Message";
-import MessageItem from "@/chat/MessageItem";
 
 const route = useRoute();
 let define = inject("colors");
@@ -48,14 +49,14 @@ let user1 = new User("Totolosa", require("@/assets/avatars/(1).jpg"));
 let user2 = new User("Ocean", require("@/assets/avatars/(2).jpg"));
 let user3 = new User("Patrick la trick", require("@/assets/avatars/(3).jpg"));
 
-let msg1 = new Message(user1, "Salut frere rwf;jnavionra'mrv'aomf gifsivbdfvndfnvjsdglbjgb;fgklb;s;bg", new Date('July 17, 2022 03:24:00'));
+let msg1 = new Message(user1, "Salut frere ce fait graaaaave longtemps ca fais plaisr! Tu deviens quoi l'ami?", new Date('July 17, 2022 03:24:00'));
 let msg2 = new Message(user2, "Salut poto", new Date('July 22, 2022 03:25:12'));
 let msg3 = new Message(user1, "Game?", new Date('July 18, 2022 12:45:45'));
 let msg4 = new Message(user3, "Non je dois finir de faire le front, et wallah c'est chaud", new Date('July 18, 2022 12:47:55'));
 let msg5 = new Message(user1, "dsaibciauwncopneejvnjn fcoamsdomvcafosnvonsvonoans", new Date());
 let msg6 = new Message(user2, "Mais tu sais pas parler en fait", new Date());
 
-let conv = new Conversation(false, [user2], [msg1, msg2]);
+let conv = new Conversation(false, [user2], [msg1, msg2, msg3, msg5, msg6]);
 // let conv2 = new Conversation(false, [user1, user2, user3], [msg1, msg2]);
 
 console.log(route.query.page);
@@ -96,22 +97,13 @@ onBeforeUnmount(() => {
 .avatar_cont {
   width: var(--height);
   height: var(--height);
-  /* position: absolute; */
 }
 .avatar {
-	height: calc(var(--height) - 10px);
-  width: calc(var(--height) - 10px);
-  /* margin-left: 5px; */
-  /* position: absolute; */
-  /* top: 4px; */
-  /* top: 50%; */
-  /* transform: translate(0, -50%); */
+	height: calc(var(--height) - 15px);
+  width: calc(var(--height) - 15px);
   border-radius: 50%;
 }
 .login {
-  /* width: 100%; */
-  /* margin-left: 10px; */
-  /* text-align: start; */
   font-family: "Orbitron", sans-serif;
 	font-size: 1.2rem;
   font-weight: bold;
@@ -119,47 +111,47 @@ onBeforeUnmount(() => {
   white-space: nowrap;
   text-overflow: ellipsis;
 }
+.login:hover {
+	color: v-bind("define.color2");
+}
 .option_buttons {
 	width: auto;
 }
 .button_cont {
-	margin: 0 2px;
+	margin: 5px;
 }
 .logo_img {
-	width: 25px;
-	height: 25px;
+	width: 30px;
+	height: 30px;
 }
-.tooltip {
-  position: relative;
+.infoButton {
   display: inline-block;
 }
-
-/* Tooltip text */
-.tooltip .tooltiptext {
-  /* visibility: hidden; */
+.infoButton .infoButtonText {
 	opacity:0;
-  /* transition:opacity 1000ms; */
-	transition-:  1000ms;
-	/* transition: 500ms; */
+	font-size: 0.8rem;
   width: 120px;
   background-color: rgba(0,0,0,0.6);
   color: #fff;
   text-align: center;
   padding: 5px 0;
   border-radius: 6px;
- 
-  /* Position the tooltip text - see examples below! */
   position: absolute;
   z-index: 1;
 	width: 120px;
   bottom: 100%;
-  left: 50%;
-  margin-left: -60px;
+	right: 0;
+}
+.infoButton:hover .infoButtonText {
+	opacity: 0;
+	animation: displayButtonInfo 0.3s;
+	animation-delay: 0.3s;
+	animation-fill-mode: forwards;
 }
 
-/* Show the tooltip text when you mouse over the tooltip container */
-.tooltip:hover .tooltiptext {
-  /* visibility: visible; */
-	opacity: 1;
+@keyframes displayButtonInfo {
+	from { opacity: 0; }
+  to { opacity: 1; }
 }
+
 </style>

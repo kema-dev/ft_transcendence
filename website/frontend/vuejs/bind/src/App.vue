@@ -7,8 +7,8 @@
 <script setup lang="ts">
 import { provide, ref } from "vue";
 
-let playing = ref(false);
-provide("playing", playing);
+provide("playing", false);
+provide("me", "Totolosa");
 provide("colors", {
 	color0: "#fff",
 	color1: "#000",
