@@ -1,12 +1,14 @@
 <template>
-	<div id="private_view" class="center column">
-		<SearchItem @searchInput="searchChange"/>
-		<div v-for="(data, i) in convsFiltred" :key="i" class="center">
-			<ConversationTab :conv="data"/>
+	<transition name="myFade" mode="out-in">
+		<div id="private_view" class="center column">
+			<SearchItem @searchInput="searchChange"/>
+			<div v-for="(data, i) in convsFiltred" :key="i" class="center">
+				<ConversationTab :conv="data"/>
+			</div>
+			<h2 v-if="conversations.length == 0" class="no_results">No conversations</h2>
+			<h2 v-else-if="convsFiltred!.length == 0" class="no_results">No results</h2>
 		</div>
-		<h2 v-if="conversations.length == 0" class="no_results">No conversations</h2>
-		<h2 v-else-if="convsFiltred!.length == 0" class="no_results">No results</h2>
-	</div>
+	</transition>
 </template>
 
 <script setup lang="ts">
@@ -70,5 +72,17 @@ function searchChange(value: string) {
 <style>
 .no_results {
 	margin-top: 1rem;
+}
+
+/* TRANSITION ROUTER VIEW */
+
+.myFade-enter-active,
+.myFade-leave-active {
+  transition: opacity 0.5s ease;
+}
+
+.myFade-enter-from,
+.myFade-leave-to {
+  opacity: 0;
 }
 </style>

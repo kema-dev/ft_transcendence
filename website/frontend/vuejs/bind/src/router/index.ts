@@ -56,6 +56,7 @@ const routes: Array<RouteRecordRaw> = [
 						name: 'private',
 						path: '/home/chat/private',
 						components: {chat_menu: Private},
+						meta: { transition: 'myFade' },
 					},
 					{
 						name: 'channels',
@@ -66,7 +67,7 @@ const routes: Array<RouteRecordRaw> = [
 						name: 'conversation',
 						path: '/home/chat/private/:conv_name',
 						components: {chat_menu: Conversation},
-						// meta: { transition: 'slideUp' },
+						meta: { transition: 'mySlide' },
 					}
 				],
 			},

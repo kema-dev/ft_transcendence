@@ -1,5 +1,4 @@
 <template>
-	<transition>
 		<div id="conversation_view" class="stack">
 			<div class="userTopBar center raw space-between">
 				<div class="avatar_cont center">
@@ -34,8 +33,6 @@
 				/>
 			</div>
 		</div>
-
-	</transition>
 </template>
 
 <script setup lang="ts">
@@ -203,5 +200,22 @@ onBeforeUnmount(() => {
 	transition: width 0.3s ease-in-out;
 	width: 80%;
 }
+
+/* TRANSITION ROUTER VIEW */
+
+.mySlide-leave-active,
+.mySlide-enter-active {
+  transition: 2s;
+}
+.mySlide-leave-to,
+.mySlide-enter-from {
+	transform: translateY(100%);
+}
+/* .mySlide-enter-from {
+	transform: translateY(100%);
+}
+.mySlide-leave-to {
+	transform: translateY(-100%);
+} */
 
 </style>

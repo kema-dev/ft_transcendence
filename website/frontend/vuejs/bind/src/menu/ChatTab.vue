@@ -13,12 +13,12 @@
 
 		</div>
 		<div class="content">
-			<!-- <router-view name="chat_menu" v-slot="{ Component }">
-				<transition name="slideUp" mode="out-in">
-					<component :is="Component" />
+			<router-view name="chat_menu" v-slot="{ Component, route }">
+				<transition :name="route.meta.transition" mode="out-in">
+					<component :is="Component" :key="route.path" />
 				</transition>
-			</router-view> -->
-			<router-view name="chat_menu"/>
+			</router-view>
+			<!-- <router-view name="chat_menu"/> -->
 		</div>
 	</div>
 </template>
@@ -48,22 +48,5 @@ let define = inject("colors");
 	color: v-bind("define.color2");
 	font-weight: 500;
 }
-
-/* ROUTER TRANSITION  */
-
-/* .slideUp-enter-from {
-	opacity:0;
-	transform: translateX(100px);
-}
-.slideUp-leave-to {
-	opacity:0;
-	transform: translateX(-100px);
-}
-	.slideUp-enter-active {
-		transition: all 0,5s ease-out;
-} 
-.slideUp-leave-active {
-	transition: all 0,5s ease-in;
-} */
 
 </style>
