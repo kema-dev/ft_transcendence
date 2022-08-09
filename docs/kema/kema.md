@@ -2,10 +2,13 @@
 
 ## ongoing
 
-* TODO add messages to be displayed in vue .data
+* TODO get ocean's page
+* TODO send error codes like "E_NO_MAIL" instead of long messages
+* TODO add messages to be displayed in vue variables
+* TODO change "getbylogin/email" calls to "getuser" that check for both abd returns the same
 * TODO tidy my code, dont use message comparison
-* TODO add another page for 2FA
-* TODO don't create a Jwt on auth, but on security / 2fa page
+* TODO use a component for 2FA, maybe an overlay (thus make a proper "ask_mfa_enabled" function)
+* TODO don't create a Jwt on auth, but on security / 2fa component
 * TODO add possibility to change 2FA settings, verifying identity of the user before changing, and checking that user had the correct code before saving
 * TODO set cookie on ALL authentication methods, with 2FA verification, and verify that cookie is not set w/e result the log gets
 
