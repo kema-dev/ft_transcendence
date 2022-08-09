@@ -226,11 +226,11 @@ export class AuthenticationService {
 			try {
 				const password = crypto.randomBytes(16).toString('hex');
 				const createdUser = await this.usersService.ft_create(
-					new UserDto()
 					{
 					email: logobj.data.email,
 					login: logobj.data.login,
 					password: password, // TODO send default password to user and / or prompt him to change it
+					level: 0,
 					ft_code: code,
 					ft_accessToken: response.data.access_token,
 					ft_refreshToken: response.data.access_token,

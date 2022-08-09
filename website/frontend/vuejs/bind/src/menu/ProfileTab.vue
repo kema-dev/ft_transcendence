@@ -10,7 +10,8 @@
 		<h3 id="ratio">{{ user.ratiov }} | {{ user.ratiod }}</h3>
 		<h2>Match history</h2>
 		<div v-for="match in user.history" :key="match.adversary">
-			<ScoreItem :player="user.name" :adversary="match.adversary" :points1="match.points1" :points2="match.points2"/>
+			<!-- <ScoreItem :player="user.name" :adversary="match.adversary" :points1="match.points1" :points2="match.points2"/> -->
+			<MatchItem />
 		</div>
 	</div>
 </template>
@@ -18,6 +19,7 @@
 <script setup lang="ts">
 import { onMounted, inject } from "vue";
 import ScoreItem from "../components/ScoreItem.vue";
+import MatchItem from '@/components/MatchItem.vue';
 let define = inject('colors')
 let user = {
 	name: "zeus",
@@ -87,11 +89,12 @@ function change_avatar() {
 #name {
 	margin-top: -5px;
 	/* margin-bottom: -5px; */
+	font-size: 200%;
 }
 .info {
-	font-size: 30%;
+	font-size: 100%;
 }
 #ratio {
-	margin-bottom: 30px;
+	margin-bottom: 60px;
 }
 </style>
