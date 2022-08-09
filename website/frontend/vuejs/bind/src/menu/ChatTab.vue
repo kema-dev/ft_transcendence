@@ -13,12 +13,17 @@
 
 		</div>
 		<div class="content">
-			<router-view name="chat_menu" v-slot="{ Component, route }">
-				<transition :name="route.meta.transition" mode="out-in">
-					<component :is="Component" :key="route.path" />
+			<!-- <router-view name="chat_menu" v-slot="{ Component, route }">
+				<transition name="myFade" mode="in-out">
+					<component :is="Component" />
 				</transition>
-			</router-view>
-			<!-- <router-view name="chat_menu"/> -->
+			</router-view> -->
+			<!-- <router-view name="chat_menu" v-slot="{ Component, route }">
+				<transition :name="route.meta.transition" mode="out-in">
+					<component :is="Component" />
+				</transition>
+			</router-view> -->
+			<router-view name="chat_menu"/>
 		</div>
 	</div>
 </template>
@@ -48,5 +53,18 @@ let define = inject("colors");
 	color: v-bind("define.color2");
 	font-weight: 500;
 }
+
+/* ROUTER VUE TRANSITION  */
+
+@import '~@/chat/transitions.css';
+/* .myFade-enter-active,
+.myFade-leave-active {
+  transition: opacity 0.5s ease;
+}
+
+.myFade-enter-from,
+.myFade-leave-to {
+  opacity: 0;
+} */
 
 </style>

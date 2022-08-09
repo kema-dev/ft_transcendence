@@ -68,7 +68,23 @@ function searchChange(value: string) {
 </script>
 
 <style>
+#channels_view {
+	height: calc(100vh - 180px);
+	justify-content: flex-start;
+}
 .no_results {
 	margin-top: 1rem;
 }
+
+/* TRANSITION ROUTER VIEW */
+
+/* .myFade-enter-active,
+.myFade-leave-active {
+  transition: opacity 0.5s ease;
+}
+
+.myFade-enter-from,
+.myFade-leave-to {
+  opacity: 0;
+} */
 </style>

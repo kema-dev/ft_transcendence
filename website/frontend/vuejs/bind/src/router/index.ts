@@ -62,6 +62,7 @@ const routes: Array<RouteRecordRaw> = [
 						name: 'channels',
 						path: '/home/chat/channels',
 						components: {chat_menu: Channels},
+						meta: { transition: 'myFade' },
 					},
 					{
 						name: 'conversation',
@@ -94,6 +95,14 @@ const routes: Array<RouteRecordRaw> = [
 const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
   routes
+})
+
+router.afterEach((to, from) => {
+	const toDepth = to.path.split('/').length;
+  const fromDepth = from.path.split('/').length;
+	const prev = to.path.split('/').pop();
+	console.log(prev);
+  to.meta.transitionName = toDepth < fromDepth ? 'slide-right' : 'slide-left';
 })
 
 export default router

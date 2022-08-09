@@ -20,30 +20,34 @@
 					</button>
 				</div>
 			</div>
-			<div id="messages_cont" class="messages ">
-					<MessageItem v-for="(message, i) in conv.messages" :key="i" :message="message"/>
-			</div>
-			<div class="sendbox_cont">
-				<input
-					type="text"
-					placeholder="Aa..."
-					id="sendbox"
-					v-model="myMsg"
-					class="sendbox"
-				/>
+			<div class="conversation_content stack">
+				<div id="messages_cont" class="messages ">
+						<MessageItem v-for="(message, i) in conv.messages" :key="i" :message="message"/>
+				</div>
+				<div class="sendbox_cont">
+					<input
+						type="text"
+						placeholder="Aa..."
+						id="sendbox"
+						v-model="myMsg"
+						class="sendbox"
+					/>
+				</div>
+				<BlockAdvert/>
 			</div>
 		</div>
 </template>
 
 <script setup lang="ts">
 /* eslint @typescript-eslint/no-var-requires: "off" */
-import { inject, defineProps, onMounted, ref, onBeforeUnmount, watch } from "vue";
+import { inject, onMounted, ref, onBeforeUnmount, watch } from "vue";
 import { useRoute } from 'vue-router';
 import MessageItem from "@/chat/MessageItem.vue";
 import Conversation from '@/chat/Conversation';
 import User from "@/chat/User";
 import Message from "@/chat/Message";
-import VueToastificationPlugin from "vue-toastification";
+import BlockAdvert from "@/components/BlockItem.vue";
+
 
 const route = useRoute();
 let define = inject("colors");
@@ -64,6 +68,12 @@ let msg6 = new Message(user2, "Mais tu sais pas parler en fait", new Date());
 let conv = ref(new Conversation(false, [user2], [msg1, msg2, msg3, msg5, msg6]));
 // let conv2 = new Conversation(false, [user1, user2, user3], [msg1, msg2]);
 
+function blockUser () {
+	let advert = document.getElementById("blockAdvert_view");
+	if (advert != null) {
+		advert.style.setProperty('visibility', 'visible');
+	}
+}
 
 watch(conv.value.messages, (newMsg) => {
 	let msgs = document.getElementById("messages_cont");
@@ -112,7 +122,7 @@ onBeforeUnmount(() => {
 	height: var(--height);
 	background-color: white;
 	/* margin-top: 5px; */
-	margin-bottom: 20px;
+
 	box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.1), 0px -4px 4px rgba(0, 0, 0, 0.1);
 }
 .avatar_cont {
@@ -169,10 +179,15 @@ onBeforeUnmount(() => {
 	animation-delay: 0.3s;
 	animation-fill-mode: forwards;
 }
-
 @keyframes displayButtonInfo {
 	from { opacity: 0; }
   to { opacity: 1; }
+}
+
+.conversation_content {
+	height: calc(100% - 70px);
+	width: 100%;
+	padding-top: 20px;
 }
 .messages {
 	overflow-y: auto;
@@ -203,14 +218,16 @@ onBeforeUnmount(() => {
 
 /* TRANSITION ROUTER VIEW */
 
-.mySlide-leave-active,
+/* .mySlide-leave-active,
 .mySlide-enter-active {
-  transition: 2s;
+  transition: 1s;
 }
 .mySlide-leave-to,
 .mySlide-enter-from {
 	transform: translateY(100%);
-}
+} */
+
+
 /* .mySlide-enter-from {
 	transform: translateY(100%);
 }
