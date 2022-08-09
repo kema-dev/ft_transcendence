@@ -26,10 +26,11 @@
 </template>
 
 <script setup lang="ts">
-import { inject, onMounted, ref } from "vue";
+import { inject, onMounted, provide, ref } from "vue";
 import GameItem from "@/components/GameItem.vue";
 let define = inject("colors");
 let start = ref(false);
+provide("playing", start);
 let reload = ref(0);
 let nbrPlayer = ref(4);
 let nbrBall = ref(1);

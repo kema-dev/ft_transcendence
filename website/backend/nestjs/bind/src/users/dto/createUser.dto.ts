@@ -15,6 +15,7 @@ export class CreateUserDto {
 	}
 	email: string;
 	login: string;
+	level: number;
 	password: string;
 	ft_code: string;
 	ft_accessToken: string;

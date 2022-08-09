@@ -4,9 +4,9 @@
 			<img src="@/assets/avatars/(1).jpg" id="img" />
 		</div>
 		<input id="none" type="file" />
-		<h2>{{ user.rank }}</h2>
+		<h2 class="info">{{ user.rank }}</h2>
 		<h1 id="name">{{ user.name }}</h1>
-		<h2>level {{ user.level }}</h2>
+		<h2 class="info">level {{ user.level }}</h2>
 		<h3 id="ratio">{{ user.ratiov }} | {{ user.ratiod }}</h3>
 		<h2>Match history</h2>
 		<div v-for="match in user.history" :key="match.adversary">
@@ -87,6 +87,9 @@ function change_avatar() {
 #name {
 	margin-top: -5px;
 	/* margin-bottom: -5px; */
+}
+.info {
+	font-size: 30%;
 }
 #ratio {
 	margin-bottom: 30px;

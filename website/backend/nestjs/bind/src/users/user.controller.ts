@@ -7,7 +7,9 @@ import {
 	Post,
 	Get,
 	UseGuards,
+	Param,
 } from '@nestjs/common';
+import UserDto from 'src/users/dto/user.dto';
 
 import { UsersService } from './users.service';
 

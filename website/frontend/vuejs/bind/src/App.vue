@@ -5,7 +5,12 @@
 </template>
 
 <script setup lang="ts">
-import { provide } from "vue";
+/* eslint @typescript-eslint/no-var-requires: "off" */
+import { provide, ref } from "vue";
+import User from "@/chat/User";
+
+provide("playing", false);
+provide("me", new User("Totolosa", require("@/assets/avatars/(1).jpg")));
 provide("colors", {
 	color0: "#fff",
 	color1: "#000",
@@ -85,6 +90,10 @@ a {
 	display: flex;
 	justify-content: space-between !important;
 }
+.space-around {
+	display: flex;
+	justify-content: space-around !important;
+}
 .stack {
 	position: relative;
 }
@@ -93,6 +102,9 @@ a {
 	justify-content: center;
 	align-items: center;
 	flex-direction: row;
+}
+.border {
+	border: 1px solid black
 }
 @media screen and (max-width: 1000px) {
 	.wrap {

@@ -9,8 +9,8 @@
 				<h2 class="nav_menu_text">FRIENDS</h2>
 			</router-link>
 			<h1 class="pipe">|</h1>
-			<router-link to="/home/settings" class="nav_menu_link">
-				<h2 class="nav_menu_text">SETTINGS</h2>
+			<router-link to="/home/profile" class="nav_menu_link">
+				<h2 class="nav_menu_text">PROFILE</h2>
 			</router-link>
 		</div>
 		<!-- <transition name="slide-fade" mode="out-in"> -->
@@ -57,6 +57,10 @@ let define = inject("colors");
 }
 .nav_menu_text {
 	font-size: clamp(0.5rem, 1.5vw, 1.3rem);
+	font-weight: 100;
+}
+.router-link-active > .nav_menu_text {
+	font-weight: 900;
 }
 @media screen and (max-width: 1000px) {
 	#menu {
