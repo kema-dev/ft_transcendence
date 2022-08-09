@@ -1,4 +1,18 @@
 export class CreateUserDto {
+	public constructor(params: Partial<CreateUserDto>) {
+		this.email = '';
+		this.login = '';
+		this.password = '';
+		this.ft_code = '';
+		this.ft_accessToken = '';
+		this.ft_tokenType = '';
+		this.ft_expiresIn = 0;
+		this.ft_refreshToken = '';
+		this.ft_scope = '';
+		this.ft_createdAt = new Date();
+		this.totp_code = '';
+		Object.assign(this, params);
+	}
 	email: string;
 	login: string;
 	password: string;

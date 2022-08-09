@@ -12,6 +12,7 @@ import { AuthResponse } from './authResponse.interface';
 import * as crypto from 'crypto';
 import TotpDto from './dto/totp.dto';
 import axios from 'axios';
+import CreateUserDto from '../users/dto/createUser.dto';
 
 // NOTE - API's documentation can be found at `docs/api/v1.md`
 
@@ -75,18 +76,12 @@ export class AuthenticationService {
 			);
 		}
 		try {
-			const createdUser = await this.usersService.create({
-				...registrationData,
-				password: hashedPassword,
-				ft_code: '',
-				ft_accessToken: '',
-				ft_refreshToken: '',
-				ft_tokenType: '',
-				ft_expiresIn: 0,
-				ft_scope: '',
-				ft_createdAt: new Date(),
-				totp_code: '',
-			});
+			const createdUser = await this.usersService.create(
+				new CreateUserDto({
+					...registrationData,
+					password: hashedPassword,
+				}),
+			);
 			console.log(
 				'register: ' + createdUser.login + ' created successfully, returning ✔',
 			);
@@ -236,20 +231,18 @@ export class AuthenticationService {
 				return { login: logobj.data.login, success: true };
 			}
 			try {
-				const createdUser = await this.usersService.ft_create({
-					email: logobj.data.email,
-					login: logobj.data.login,
-					// TODO send default password to user and / or prompt him to change it
-					password: '',
-					ft_code: code,
-					ft_accessToken: response.data.access_token,
-					ft_refreshToken: response.data.access_token,
-					ft_expiresIn: response.data.expires_in,
-					ft_tokenType: response.data.token_type,
-					ft_scope: response.data.scope,
-					ft_createdAt: new Date(),
-					totp_code: '',
-				});
+				const createdUser = await this.usersService.ft_create(
+					new CreateUserDto({
+						email: logobj.data.email,
+						login: logobj.data.login,
+						ft_code: code,
+						ft_accessToken: response.data.access_token,
+						ft_refreshToken: response.data.access_token,
+						ft_expiresIn: response.data.expires_in,
+						ft_tokenType: response.data.token_type,
+						ft_scope: response.data.scope,
+					}),
+				);
 				console.log(
 					'auth42: ' + createdUser.login + ' created / updated, returning ✔',
 				);

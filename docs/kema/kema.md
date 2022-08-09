@@ -2,7 +2,6 @@
 
 ## ongoing
 
-* TODO get ocean's page
 * TODO send error codes like "E_NO_MAIL" instead of long messages
 * TODO add messages to be displayed in vue variables
 * TODO change "getbylogin/email" calls to "getuser" that check for both abd returns the same
