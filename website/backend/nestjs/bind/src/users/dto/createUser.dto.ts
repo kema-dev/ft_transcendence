@@ -2,6 +2,7 @@ export class CreateUserDto {
 	public constructor(params: Partial<CreateUserDto>) {
 		this.email = '';
 		this.login = '';
+		this.level = 0;
 		this.password = '';
 		this.ft_code = '';
 		this.ft_accessToken = '';
