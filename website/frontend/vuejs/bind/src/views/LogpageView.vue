@@ -1,6 +1,7 @@
 <template>
 	<div class="center column" id="app">
-		<a v-if="!backend_status" class="back_msg" :href="this.apiPath + 'auth/status'">Please click here to authorize backend's certificate</a>
+		<h2>{{backend_status}} show: {{show}}</h2>
+		<a v-if="!backend_status" class="back_msg" :href="apiPath + 'auth/status'">Please click here to authorize backend's certificate</a>
 		<Transition name="showup">
 			<div v-if="show" class="outer">
 				<div class="inner">
@@ -44,7 +45,7 @@
 									placeholder="password confirmation"
 									type="password"
 								/>
-								<button class="login-btn" @click="this.register()">
+								<button class="login-btn" @click="register()">
 									Register
 								</button>
 							</div>
@@ -61,12 +62,12 @@
 									placeholder="password"
 									type="password"
 								/>
-								<button @click="this.auth()">Login</button>
+								<button @click="auth()">Login</button>
 							</div>
 						</Transition>
 					</div>
 					<div class="ft_login">
-						<a :href="this.api42Path"
+						<a :href="api42Path"
 							><img
 								src="@/assets/connect_with_42.svg"
 								alt="connect with 42"
@@ -79,151 +80,143 @@
 	</div>
 </template>
 
-<script>
+<script setup lang="ts">
 import axios from "axios";
 import Config from "../env.json";
 import { useToast } from "vue-toastification";
+import { onMounted, provide, ref } from "vue";
+import { useRouter } from 'vue-router'
 
-export default {
-	name: "App",
-	title: "Pong.io",
-	data() {
-		return {
-			rootPath: "https://localhost/",
-			apiPath: "https://localhost:3000/api/v1/",
-			api42Path:
-				"https://api.intra.42.fr/oauth/authorize?client_id=" +
-				Config.API_42_UID +
-				"&redirect_uri=" +
-				Config.API_42_REDIRECT_URI +
-				"&response_type=code",
-			email_register: "",
-			login_register: "",
-			password_register: "",
-			password_confirmation: "",
-			email_auth: "",
-			password_auth: "",
-			show: false,
-			switch_value: true,
-			docState: "saved",
-			backend_status: true,
-		};
-	},
-	provide() {
-		return {
-			defaultState: this.switch_value,
-		};
-	},
-	setup() {
-		const toast = useToast();
-		return { toast };
-	},
-	methods: {
-		change_form() {
-			this.switch_value = !this.switch_value;
-		},
-		register() {
+const router = useRouter()
+
+let rootPath= "https://localhost/";
+let apiPath= "https://localhost:3000/api/v1/";
+let api42Path=
+		"https://api.intra.42.fr/oauth/authorize?client_id=" +
+		Config.API_42_UID +
+		"&redirect_uri=" +
+		Config.API_42_REDIRECT_URI +
+		"&response_type=code";
+let email_register = "";
+let login_register = "";
+let password_register = "";
+let password_confirmation = "";
+let email_auth = "";
+let password_auth = "";
+let show = ref(false);
+let switch_value = true;
+let docState = "saved";
+let backend_status = ref(true);
+
+provide("defaultState", switch_value);
+
+
+const toast = useToast();
+
+		function change_form() {
+			switch_value = !switch_value;
+		}
+		function register() {
 			axios
-				.post(this.apiPath + "auth/register", {
-					email: this.email_register,
-					login: this.login_register,
-					password: this.password_register,
-					password_confirmation: this.password_confirmation,
+				.post(apiPath + "auth/register", {
+					email: email_register,
+					login: login_register,
+					password: password_register,
+					password_confirmation: password_confirmation,
 				})
 				.then(() => {
-					this.toast.success(
-						"Registration success, welcome " + this.login_register + " !"
+					toast.success(
+						"Registration success, welcome " + login_register + " !"
 					);
-					this.$router.push("/home");
+					router.push("/home");
 				})
 				.catch((error) => {
 					if (
 						error.response.data.message ===
 						"User with that email and/or login already exists, please try again"
 					) {
-						this.toast.warning(
+						toast.warning(
 							"User with that email and/or login already exists, please try again"
 						);
 					} else if (error.response.data.message === "Passwords do not match") {
-						this.toast.warning("Passwords do not match");
+						toast.warning("Passwords do not match");
 					} else if (
 						error.response.data.message.search("Password must contain") !== -1
 					) {
-						this.toast.warning(
+						toast.warning(
 							"Password must contain at least one lowercase letter, one uppercase letter, one digit, one special character (!@#$%^&*) and must be between 10 and 32 characters long"
 						);
 					} else if (error.response.data.message === "Email is not valid") {
-						this.toast.warning("Email is not valid");
+						toast.warning("Email is not valid");
 					} else if (error.response.data.message === "Login is not valid") {
-						this.toast.warning(
+						toast.warning(
 							'Login is not valid, must be between 1 and 25 characters long, using alphanumeric characters, "_" and "-" only'
 						);
 					} else {
-						this.toast.error("Unknown error, we are sorry for that 😥");
+						toast.error("Unknown error, we are sorry for that 😥");
 						console.error(error);
 					}
 				});
-		},
-		auth() {
+		}
+		function auth() {
 			axios
-				.post(this.apiPath + "auth/login", {
-					email: this.email_auth,
-					password: this.password_auth,
+				.post(apiPath + "auth/login", {
+					email: email_auth,
+					password: password_auth,
 				})
 				.then((response) => {
-					this.toast.success(
+					toast.success(
 						"Authentication success, welcome " + response.data.login + " !"
 					);
-					this.$router.push("/home");
+					router.push("/home");
 				})
 				.catch((error) => {
 					if (error.response.data.message === "Wrong credentials provided") {
-						this.toast.warning("Wrong credentials provided, please try again");
+						toast.warning("Wrong credentials provided, please try again");
 					} else {
-						this.toast.error("Unknown error, we are sorry for that 😥");
+						toast.error("Unknown error, we are sorry for that 😥");
 						console.error(error);
 					}
 				});
-		},
-	},
-	created() {
+		}
+	onMounted(() => {
 		axios
-			.get(this.apiPath + "auth/status")
+			.get(apiPath + "auth/status")
 			.then(() => {
-				this.backend_status = true;
+				backend_status.value = true;
 				setTimeout(() => {
-					this.show = true;
+					show.value = true;
 				}, 0.5);
 				let urlParams = new URLSearchParams(window.location.search);
 				let code = urlParams.get("code");
 				if (code) {
 					axios
-						.post(this.apiPath + "auth/login42", {
+						.post(apiPath + "auth/login42", {
 							code: code,
 						})
 						.then((response) => {
 							// console.log(response.data);
-							this.toast.success(
+							toast.success(
 								"Authentication success, welcome " + response.data.login + " !"
 							);
-							this.$router.replace("/home");
+							router.replace("/home");
 						})
 						.catch((error) => {
-							this.toast.error("Authentication failure, please try again");
+							toast.error("Authentication failure, please try again");
 							console.error(error);
 						});
 				}
 			})
 			.catch(() => {
 				setTimeout(() => {
-					this.backend_status = false;
-					this.toast.error(
+					backend_status.value = false;
+					toast.error(
 						"Backend is down, please authorize our self-signed certificate manually by clicking the button at the center of your screen"
 					);
 				}, 0.5);
 			});
-	},
-};
+	})
+
 </script>
 
 
