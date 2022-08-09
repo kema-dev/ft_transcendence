@@ -47,14 +47,14 @@ export class AuthenticationController {
 	@UseGuards(LocalAuthenticationGuard)
 	@Post('login')
 	async logIn(@Res() response: Response) {
-		// TODO add a cookie to the response
+		// TODO add a cookie to the response and ask for mfa code
 		return response.send('You successfully logged in using a password');
 	}
 
 	@HttpCode(200)
 	@Post('login42')
 	public async create(@Body('code') code: string): Promise<AuthResponse> {
-		// TODO add a cookie to the response
+		// TODO add a cookie to the response and ask for mfa code
 		return this.authenticationService.auth42(code);
 	}
 
