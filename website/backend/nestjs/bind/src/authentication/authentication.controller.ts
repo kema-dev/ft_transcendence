@@ -46,27 +46,22 @@ export class AuthenticationController {
 	@HttpCode(200)
 	@UseGuards(LocalAuthenticationGuard)
 	@Post('login')
-	async logIn(@Req() request: RequestWithUser, @Res() response: Response) {
-		const { user } = request;
-		const cookie = await this.authenticationService.getCookieFromJwt(user.id);
-		// FIXME cookie setting is not working
-		response.setHeader('Set-Cookie', cookie);
-		return response.send(user);
+	async logIn(@Res() response: Response) {
+		// TODO add a cookie to the response
+		return response.send('You successfully logged in using a password');
 	}
 
 	@HttpCode(200)
 	@Post('login42')
 	public async create(@Body('code') code: string): Promise<AuthResponse> {
+		// TODO add a cookie to the response
 		return this.authenticationService.auth42(code);
 	}
 
 	@UseGuards(JwtAuthenticationGuard)
 	@Post('logout')
 	async logOut(@Res() response: Response) {
-		response.setHeader(
-			'Set-Cookie',
-			this.authenticationService.getLogOutCookie(),
-		);
+		// TODO add a cookie to the response
 		return response.status(200);
 	}
 }

@@ -123,6 +123,7 @@ let BACKEND_DOWN_MESSAGE =
 let E_NO_CODE_PROVIDED = "42 API authentication: No code provided, please try again";
 let E_CODE_IN_USE = "42 API authentication: Code already in use, please try again";
 let E_USER_IS_FT = "You registered with a 42 account, please login with your 42 account";
+let E_USER_NOT_FOUND = "This email / login does not exist, please try again";
 
 provide("defaultState", switch_value);
 
@@ -183,6 +184,8 @@ function auth() {
 				toast.warning(E_PASS_FAIL);
 			} else if (error.response.data.message === "E_USER_IS_FT") {
 				toast.warning(E_USER_IS_FT);
+			} else if (error.response.data.message === "E_USER_NOT_FOUND") {
+				toast.warning(E_USER_NOT_FOUND);
 			} else {
 				toast.error(E_UNEXPECTED_ERROR);
 				console.error(error);

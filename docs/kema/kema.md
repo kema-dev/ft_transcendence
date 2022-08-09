@@ -2,11 +2,18 @@
 
 ## ongoing
 
-* TODO change "getbylogin/email" calls to "getuser" that check for both abd returns the same
-* TODO tidy my backend code
+gerer E_GOOGLE_API
+gerer E_NO_NAME
+gerer E_TOTP_MISMATCH
+revoir auth42
 
-* TODO use a component for 2FA, maybe an overlay (thus make a proper "ask_mfa_enabled" function)
-* TODO don't create a Jwt on auth, but on security / 2fa component
+* TODO update API's wiki
+* TODO tidy trailing warnings in logs
+* TODO fix anchors
+* TODO review controllers' args
+
+* TODO send login request after getting proper mfa code (by previously calling a 'getMfaStatus' function)
+* TODO make connection persistant for classical / 42 login methods using a jwt and guards / strategies
 * TODO add possibility to change 2FA settings, verifying identity of the user before changing, and checking that user had the correct code before saving
 * TODO set cookie on ALL authentication methods, with 2FA verification, and verify that cookie is not set w/e result the log gets
 
@@ -16,11 +23,7 @@
 * TODO change readme's images using a gif of a live game and some screenshots of the website
 * TODO Setup GitHub Actions for build testing
 
-## known issues
-
-* registering with a login / email further used with 42 connection makes 42 account override the previous account
-
 ## on final server deployment
 
-* http to https redirection
-* save logs every 10 minutes
+* http to https redirection (via certificate)
+* set up elastic search for logs

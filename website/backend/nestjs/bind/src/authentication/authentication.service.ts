@@ -113,10 +113,16 @@ export class AuthenticationService {
 		}
 	}
 
-	public async getAuthenticatedUser(email: string, password: string) {
-		console.log('getAuthenticatedUser: starting for email / login: ' + email);
+	public async getAuthenticatedUser(name: string, password: string) {
+		console.log('getAuthenticatedUser: starting for login / email: ' + name);
 		try {
-			const user = await this.usersService.getByEmail(email);
+			const user = await this.usersService.getByAny(name);
+			if (user.password == '') {
+				console.error(
+					'getAuthenticatedUser: ' + name + ' has no password, returning ✘',
+				);
+				throw new HttpException('E_USER_IS_FT', HttpStatus.BAD_REQUEST);
+			}
 			await this.verifyPassword(password, user.password);
 			console.log(
 				'getAuthenticatedUser: ' +
@@ -125,30 +131,18 @@ export class AuthenticationService {
 			);
 			return { login: user.login, success: true };
 		} catch (error) {
-			try {
-				const user = await this.usersService.getByLogin(email);
-				if (user.password === '') {
-					console.error(
-						'getAuthenticatedUser: ' +
-							user.login +
-							' has no password, returning ✘',
-					);
-					throw new HttpException('E_USER_IS_FT', HttpStatus.BAD_REQUEST);
-				}
-				await this.verifyPassword(password, user.password);
-				console.log(
-					'getAuthenticatedUser: ' +
-						user.login +
-						' authenticated successfully, returning ✔',
+			console.error('getAuthenticatedUser: ' + error + ' returning ✘');
+			if (error.message == 'E_USER_IS_FT') {
+				throw new HttpException('E_USER_IS_FT', HttpStatus.BAD_REQUEST);
+			} else if (error.message == 'E_PASS_FAIL') {
+				throw new HttpException('E_PASS_FAIL', HttpStatus.BAD_REQUEST);
+			} else if (error.message == 'E_USER_NOT_FOUND') {
+				throw new HttpException('E_USER_NOT_FOUND', HttpStatus.BAD_REQUEST);
+			} else {
+				throw new HttpException(
+					'E_UNEXPECTED_ERROR',
+					HttpStatus.INTERNAL_SERVER_ERROR,
 				);
-				return { login: user.login, success: true };
-			} catch (error) {
-				console.error('getAuthenticatedUser: ' + error + ' returning ✘');
-				if (error.message == 'E_USER_IS_FT') {
-					throw new HttpException('E_USER_IS_FT', HttpStatus.BAD_REQUEST);
-				} else {
-					throw new HttpException('E_PASS_FAIL', HttpStatus.BAD_REQUEST);
-				}
 			}
 		}
 	}
@@ -169,28 +163,28 @@ export class AuthenticationService {
 		console.log('verifyPassword: ' + 'match, returning');
 	}
 
-	public async getCookieFromJwt(userId: number) {
-		console.log('getCookieFromJwt: starting for userId: ' + userId);
-		const jwtPayload = { userId };
-		const jwt = await this.jwtService.sign(jwtPayload);
-		console.log('getCookieFromJwt: ' + 'jwt created, returning ✔');
-		return `Authentication=${jwt}; HttpOnly; Path=/; Max-Age=${this.configService.get(
-			'JWT_MAX_AGE',
-		)}`;
-	}
+	// public async getCookieFromJwt(userId: number) {
+	// 	console.log('getCookieFromJwt: starting for userId: ' + userId);
+	// 	const jwtPayload = { userId };
+	// 	const jwt = await this.jwtService.sign(jwtPayload);
+	// 	console.log('getCookieFromJwt: ' + 'jwt created, returning ✔');
+	// 	return `Authentication=${jwt}; HttpOnly; Path=/; Max-Age=${this.configService.get(
+	// 		'JWT_MAX_AGE',
+	// 	)}`;
+	// }
 
-	public getLogOutCookie() {
-		console.log('getLogOutCookie: starting');
-		console.log('getLogOutCookie: success, returning ✔');
-		return `Authentication=; HttpOnly; Path=/; Max-Age=0`;
-	}
+	// public getLogOutCookie() {
+	// 	console.log('getLogOutCookie: starting');
+	// 	console.log('getLogOutCookie: success, returning ✔');
+	// 	return `Authentication=; HttpOnly; Path=/; Max-Age=0`;
+	// }
 
-	public async checkJwt(jwt: string) {
-		console.log('checkJwt: starting');
-		const jwtPayload = await this.jwtService.verify(jwt);
-		console.log('checkJwt: ' + 'jwt verified, returning ✔ or ✘');
-		return jwtPayload;
-	}
+	// public async checkJwt(jwt: string) {
+	// 	console.log('checkJwt: starting');
+	// 	const jwtPayload = await this.jwtService.verify(jwt);
+	// 	console.log('checkJwt: ' + 'jwt verified, returning ✔ or ✘');
+	// 	return jwtPayload;
+	// }
 
 	public async auth42(code: string): Promise<AuthResponse> {
 		console.log('auth42: starting');
@@ -246,7 +240,6 @@ export class AuthenticationService {
 				console.log(
 					'auth42: ' + createdUser.login + ' created / updated, returning ✔',
 				);
-				// TODO set cookie in order to stay logged in
 				return { login: createdUser.login, success: true };
 			} catch (error) {
 				console.error('auth42: unexpected error: ' + error + ' returning ✘');
@@ -259,22 +252,24 @@ export class AuthenticationService {
 		return { login: '', success: false };
 	}
 
-	public async set_totp(email: string) {
+	public async set_totp(name: string) {
 		console.log('set_totp: starting');
-		if (!email) {
-			console.error('set_totp: ' + 'no email provided, returning ✘');
+		if (!name) {
+			console.error('set_totp: ' + 'no email / login provided, returning ✘');
 			throw new HttpException('E_NO_MAIL_PROVIDED', HttpStatus.BAD_REQUEST);
-		} else if ((await this.usersService.checkEmailExistence(email)) === false) {
-			console.error('set_totp: ' + 'email not found, returning ✘');
-			throw new HttpException('E_EMAIL_NOT_FOUND', HttpStatus.BAD_REQUEST);
+		}
+		const user = await this.usersService.getByAny(name);
+		if (!user) {
+			console.error('set_totp: ' + 'email / login not found, returning ✘');
+			throw new HttpException('E_USER_NOT_FOUND', HttpStatus.BAD_REQUEST);
 		}
 		const secret = crypto.randomBytes(16).toString('hex').toUpperCase();
-		this.usersService.change_totp_code(email, secret);
+		this.usersService.change_totp_code(user, secret);
 		let url = '';
 		await axios
 			.post('https://www.authenticatorapi.com/api.asmx/Pair', {
 				appName: 'pong.io',
-				appInfo: email,
+				appInfo: user.email,
 				secretCode: secret,
 			})
 			.then((response) => {
@@ -282,40 +277,53 @@ export class AuthenticationService {
 				url = /chl=(.*?)["']/.exec(elem)[1];
 			})
 			.catch(() => {
-				console.error('compute_totp: ' + 'unexpected error, returning ✘');
-				return 'unexpected error';
+				console.error(
+					'compute_totp: ' + "error with Google's TOTP API, returning ✘",
+				);
+				throw new HttpException(
+					'E_GOOGLE_API',
+					HttpStatus.INTERNAL_SERVER_ERROR,
+				);
 			});
 		console.log('compute_totp: ' + 'code computed, returning ✔');
 		return { url: url };
 	}
 
 	public async verify_totp(request: TotpDto) {
-		console.log('verify_totp: startingfor ' + request.email);
-		if (!request.email) {
-			console.error('verify_totp: ' + 'no email provided, returning ✘');
-			throw new HttpException('E_NO_MAIL_PROVIDED', HttpStatus.BAD_REQUEST);
-		} else if (
-			(await this.usersService.checkEmailExistence(request.email)) === false
-		) {
-			console.error('verify_totp: ' + 'email not found, returning ✘');
-			throw new HttpException('E_EMAIL_NOT_FOUND', HttpStatus.BAD_REQUEST);
-		}
-		if (!request.code) {
+		console.log('verify_totp: starting for ' + request.name);
+		if (!request.name) {
+			console.error('verify_totp: ' + 'no email / login provided, returning ✘');
+			throw new HttpException('E_NO_NAME', HttpStatus.BAD_REQUEST);
+		} else if (!request.code) {
 			console.error('verify_totp: ' + 'no code provided, returning ✘');
 			throw new HttpException('E_NO_TOTP_PROVIDED', HttpStatus.BAD_REQUEST);
 		}
-		if ((await this.check_totp_code(request.email, request.code)) === true) {
-			console.log('verify_totp: ' + 'code match, returning ✔');
-			return { success: true };
-		} else {
-			console.error('verify_totp: ' + 'code mismatch, returning ✘');
-			return { success: false };
+		try {
+			if ((await this.check_totp_code(request.name, request.code)) === true) {
+				console.log('verify_totp: ' + 'code match, returning ✔');
+				return { success: true };
+			}
+		} catch (error) {
+			if (error.message === 'E_GOOGLE_API') {
+				console.error(
+					'compute_totp: ' + "error with Google's TOTP API, returning ✘",
+				);
+				throw new HttpException(
+					'E_GOOGLE_API',
+					HttpStatus.INTERNAL_SERVER_ERROR,
+				);
+			}
 		}
+		console.error('verify_totp: ' + 'code mismatch, returning ✘');
+		throw new HttpException(
+			'E_TOTP_MISMATCH',
+			HttpStatus.INTERNAL_SERVER_ERROR,
+		);
 	}
 
-	private async check_totp_code(email: string, code: string) {
+	private async check_totp_code(name: string, code: string) {
 		console.log('check_totp_code: starting');
-		const usr = await this.usersService.getByEmail(email);
+		const usr = await this.usersService.getByAny(name);
 		let truth;
 		await axios
 			.post('https://www.authenticatorapi.com/api.asmx/ValidatePin', {
@@ -328,7 +336,10 @@ export class AuthenticationService {
 			})
 			.catch(() => {
 				console.error('compute_totp: ' + 'unexpected error, returning ✘');
-				return 'unexpected error';
+				throw new HttpException(
+					'E_GOOGLE_API',
+					HttpStatus.INTERNAL_SERVER_ERROR,
+				);
 			});
 		if (truth === true) {
 			console.log('check_totp_code: ' + 'code match, returning ✔');

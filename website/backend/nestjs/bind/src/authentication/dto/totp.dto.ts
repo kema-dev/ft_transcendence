@@ -1,5 +1,5 @@
 export class TotpDto {
-	email: string;
+	name: string;
 	code: string;
 }
 
