@@ -21,5 +21,6 @@ export class UsersController {
 	@Post('getUser')
 	async getUser(@Body() params: any) {
 		return this.usersService.getByLogin(params.login);
+		
 	}
 }

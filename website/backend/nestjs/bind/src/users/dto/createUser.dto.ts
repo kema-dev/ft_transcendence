@@ -1,8 +1,11 @@
 export class CreateUserDto {
+	constructor() {
+		this.level = 0;
+	}
 	email: string;
 	login: string;
-	password: string;
 	level: number;
+	password: string;
 	ft_code: string;
 	ft_accessToken: string;
 	ft_tokenType: string;

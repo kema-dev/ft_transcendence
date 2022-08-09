@@ -10,6 +10,7 @@ import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { AuthResponse } from './authResponse.interface';
 import * as crypto from 'crypto';
+import UserDto from 'src/users/dto/user.dto';
 
 // NOTE - API's documentation can be found at `docs/api/v1.md`
 
@@ -224,11 +225,12 @@ export class AuthenticationService {
 			}
 			try {
 				const password = crypto.randomBytes(16).toString('hex');
-				const createdUser = await this.usersService.ft_create({
+				const createdUser = await this.usersService.ft_create(
+					new UserDto()
+					{
 					email: logobj.data.email,
 					login: logobj.data.login,
 					password: password, // TODO send default password to user and / or prompt him to change it
-					level: 0,
 					ft_code: code,
 					ft_accessToken: response.data.access_token,
 					ft_refreshToken: response.data.access_token,
