@@ -1,7 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import RegisterDto from './dto/register.dto';
-// import LogInDto from './dto/logIn.dto';
 import * as bcrypt from 'bcrypt';
 import { PostgresErrorCode } from '../database/postgresErrorCodes.enum';
 import { JwtService } from '@nestjs/jwt';
@@ -10,7 +9,9 @@ import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { AuthResponse } from './authResponse.interface';
 import * as crypto from 'crypto';
-import UserDto from 'src/users/dto/user.dto';
+import TotpDto from './dto/totp.dto';
+import axios from 'axios';
+import CreateUserDto from '../users/dto/createUser.dto';
 
 // NOTE - API's documentation can be found at `docs/api/v1.md`
 
@@ -27,7 +28,7 @@ export class AuthenticationService {
 		console.log('register: starting for login: ' + registrationData.login);
 		if (registrationData.password !== registrationData.password_confirmation) {
 			console.error('register: ' + 'passwords do not match, returning ✘');
-			throw new HttpException('Passwords do not match', HttpStatus.BAD_REQUEST);
+			throw new HttpException('E_PASS_DIFFERS', HttpStatus.BAD_REQUEST);
 		}
 		if (
 			registrationData.password.length > 32 ||
@@ -39,7 +40,7 @@ export class AuthenticationService {
 				'register: ' + 'password does not meet requirements, returning ✘',
 			);
 			throw new HttpException(
-				'Password must contain at least one lowercase letter, one uppercase letter, one digit, one special character (!@#$%^&*) and must be between 10 and 32 characters long',
+				'E_PASS_NOT_MEET_REQUIREMENTS',
 				HttpStatus.BAD_REQUEST,
 			);
 		}
@@ -52,7 +53,10 @@ export class AuthenticationService {
 			console.error(
 				'register: ' + 'email does not meet requirements, returning ✘',
 			);
-			throw new HttpException('Email is not valid', HttpStatus.BAD_REQUEST);
+			throw new HttpException(
+				'E_MAIL_NOT_MEET_REQUIREMENTS',
+				HttpStatus.BAD_REQUEST,
+			);
 		}
 		if (
 			registrationData.login.length > 25 ||
@@ -61,7 +65,10 @@ export class AuthenticationService {
 			console.error(
 				'register: ' + 'login does not meet requirements, returning ✘',
 			);
-			throw new HttpException('Login is not valid', HttpStatus.BAD_REQUEST);
+			throw new HttpException(
+				'E_LOGIN_NOT_MEET_REQUIREMENTS',
+				HttpStatus.BAD_REQUEST,
+			);
 		}
 		let hashedPassword = '';
 		try {
@@ -69,23 +76,17 @@ export class AuthenticationService {
 		} catch (error) {
 			console.error('register: ' + 'bcrypt error, returning ✘');
 			throw new HttpException(
-				'Something went wrong',
+				'E_UNEXPECTED_ERROR',
 				HttpStatus.INTERNAL_SERVER_ERROR,
 			);
 		}
 		try {
-			const createdUser = await this.usersService.create({
-				...registrationData,
-				password: hashedPassword,
-				level: 0,
-				ft_code: '',
-				ft_accessToken: '',
-				ft_refreshToken: '',
-				ft_tokenType: '',
-				ft_expiresIn: 0,
-				ft_scope: '',
-				ft_createdAt: new Date(),
-			});
+			const createdUser = await this.usersService.create(
+				new CreateUserDto({
+					...registrationData,
+					password: hashedPassword,
+				}),
+			);
 			console.log(
 				'register: ' + createdUser.login + ' created successfully, returning ✔',
 			);
@@ -100,22 +101,28 @@ export class AuthenticationService {
 						' already exists, returning ✘',
 				);
 				throw new HttpException(
-					'User with that email and/or login already exists, please try again',
+					'E_EMAIL_OR_LOGIN_ALREADY_EXISTS',
 					HttpStatus.BAD_REQUEST,
 				);
 			}
 			console.error('register: unknown error: ' + error + ' returning ✘');
 			throw new HttpException(
-				'Something went wrong',
+				'E_UNEXPECTED_ERROR',
 				HttpStatus.INTERNAL_SERVER_ERROR,
 			);
 		}
 	}
 
-	public async getAuthenticatedUser(email: string, password: string) {
-		console.log('getAuthenticatedUser: starting for email / login: ' + email);
+	public async getAuthenticatedUser(name: string, password: string) {
+		console.log('getAuthenticatedUser: starting for login / email: ' + name);
 		try {
-			const user = await this.usersService.getByEmail(email);
+			const user = await this.usersService.getByAny(name);
+			if (user.password == '') {
+				console.error(
+					'getAuthenticatedUser: ' + name + ' has no password, returning ✘',
+				);
+				throw new HttpException('E_USER_IS_FT', HttpStatus.BAD_REQUEST);
+			}
 			await this.verifyPassword(password, user.password);
 			console.log(
 				'getAuthenticatedUser: ' +
@@ -124,20 +131,17 @@ export class AuthenticationService {
 			);
 			return { login: user.login, success: true };
 		} catch (error) {
-			try {
-				const user = await this.usersService.getByLogin(email);
-				await this.verifyPassword(password, user.password);
-				console.log(
-					'getAuthenticatedUser: ' +
-						user.login +
-						' authenticated successfully, returning ✔',
-				);
-				return { login: user.login, success: true };
-			} catch (error) {
-				console.error('getAuthenticatedUser: ' + error + ' returning ✘');
+			console.error('getAuthenticatedUser: ' + error + ' returning ✘');
+			if (error.message == 'E_USER_IS_FT') {
+				throw new HttpException('E_USER_IS_FT', HttpStatus.BAD_REQUEST);
+			} else if (error.message == 'E_PASS_FAIL') {
+				throw new HttpException('E_PASS_FAIL', HttpStatus.BAD_REQUEST);
+			} else if (error.message == 'E_USER_NOT_FOUND') {
+				throw new HttpException('E_USER_NOT_FOUND', HttpStatus.BAD_REQUEST);
+			} else {
 				throw new HttpException(
-					'Wrong credentials provided',
-					HttpStatus.BAD_REQUEST,
+					'E_UNEXPECTED_ERROR',
+					HttpStatus.INTERNAL_SERVER_ERROR,
 				);
 			}
 		}
@@ -154,45 +158,42 @@ export class AuthenticationService {
 		);
 		if (!isPasswordMatching) {
 			console.error('verifyPassword: ' + 'mismatch');
-			throw new HttpException(
-				'Wrong credentials provided',
-				HttpStatus.BAD_REQUEST,
-			);
+			throw new HttpException('E_PASS_FAIL', HttpStatus.BAD_REQUEST);
 		}
 		console.log('verifyPassword: ' + 'match, returning');
 	}
 
-	public async getCookieFromJwt(userId: number) {
-		console.log('getCookieFromJwt: starting for userId: ' + userId);
-		const jwtPayload = { userId };
-		const jwt = await this.jwtService.sign(jwtPayload);
-		console.log('getCookieFromJwt: ' + 'jwt created, returning ✔');
-		return `Authentication=${jwt}; HttpOnly; Path=/; Max-Age=${this.configService.get(
-			'JWT_MAX_AGE',
-		)}`;
-	}
+	// public async getCookieFromJwt(userId: number) {
+	// 	console.log('getCookieFromJwt: starting for userId: ' + userId);
+	// 	const jwtPayload = { userId };
+	// 	const jwt = await this.jwtService.sign(jwtPayload);
+	// 	console.log('getCookieFromJwt: ' + 'jwt created, returning ✔');
+	// 	return `Authentication=${jwt}; HttpOnly; Path=/; Max-Age=${this.configService.get(
+	// 		'JWT_MAX_AGE',
+	// 	)}`;
+	// }
 
-	public getLogOutCookie() {
-		console.log('getLogOutCookie: starting');
-		console.log('getLogOutCookie: success, returning ✔');
-		return `Authentication=; HttpOnly; Path=/; Max-Age=0`;
-	}
+	// public getLogOutCookie() {
+	// 	console.log('getLogOutCookie: starting');
+	// 	console.log('getLogOutCookie: success, returning ✔');
+	// 	return `Authentication=; HttpOnly; Path=/; Max-Age=0`;
+	// }
 
-	public async checkJwt(jwt: string) {
-		console.log('checkJwt: starting');
-		const jwtPayload = await this.jwtService.verify(jwt);
-		console.log('checkJwt: ' + 'jwt verified, returning ✔ or ✘');
-		return jwtPayload;
-	}
+	// public async checkJwt(jwt: string) {
+	// 	console.log('checkJwt: starting');
+	// 	const jwtPayload = await this.jwtService.verify(jwt);
+	// 	console.log('checkJwt: ' + 'jwt verified, returning ✔ or ✘');
+	// 	return jwtPayload;
+	// }
 
 	public async auth42(code: string): Promise<AuthResponse> {
 		console.log('auth42: starting');
 		if (!code) {
 			console.error('auth42: ' + 'no code provided, returning ✘');
-			throw new HttpException('No code provided', HttpStatus.BAD_REQUEST);
+			throw new HttpException('E_NO_CODE_PROVIDED', HttpStatus.BAD_REQUEST);
 		} else if ((await this.usersService.checkCodeInUse(code)) === true) {
 			console.error('auth42: ' + 'code already in use, returning ✘');
-			throw new HttpException('Code already in use', HttpStatus.BAD_REQUEST);
+			throw new HttpException('E_CODE_IN_USE', HttpStatus.BAD_REQUEST);
 		}
 		try {
 			const response = await firstValueFrom(
@@ -215,7 +216,7 @@ export class AuthenticationService {
 				(await this.usersService.checkEmailExistence(logobj.data.email)) == true
 			) {
 				await this.usersService.ft_update(
-					response.data.email,
+					logobj.data.email,
 					response.data.access_token,
 					response.data.expires_in,
 					new Date(),
@@ -224,34 +225,130 @@ export class AuthenticationService {
 				return { login: logobj.data.login, success: true };
 			}
 			try {
-				const password = crypto.randomBytes(16).toString('hex');
 				const createdUser = await this.usersService.ft_create(
-					new UserDto()
-					{
-					email: logobj.data.email,
-					login: logobj.data.login,
-					password: password, // TODO send default password to user and / or prompt him to change it
-					ft_code: code,
-					ft_accessToken: response.data.access_token,
-					ft_refreshToken: response.data.access_token,
-					ft_expiresIn: response.data.expires_in,
-					ft_tokenType: response.data.token_type,
-					ft_scope: response.data.scope,
-					ft_createdAt: new Date(),
-				});
-				console.log(
-					'auth42: ' + createdUser.login + ' created / updated, returning ✔',
+					new CreateUserDto({
+						email: logobj.data.email,
+						login: logobj.data.login,
+						ft_code: code,
+						ft_accessToken: response.data.access_token,
+						ft_refreshToken: response.data.access_token,
+						ft_expiresIn: response.data.expires_in,
+						ft_tokenType: response.data.token_type,
+						ft_scope: response.data.scope,
+					}),
 				);
-				// TODO set cookie
+				console.log('auth42: ' + createdUser.login + ' created, returning ✔');
 				return { login: createdUser.login, success: true };
 			} catch (error) {
 				console.error('auth42: unexpected error: ' + error + ' returning ✘');
-				return { login: '', success: false };
+				throw new HttpException(
+					'E_UNEXPECTED_ERROR',
+					HttpStatus.INTERNAL_SERVER_ERROR,
+				);
 			}
 		} catch (error) {
 			console.error('auth42: unexpected error' + error);
 		}
-		console.error('auth42: ' + 'unexpected error, returning ✘');
-		return { login: '', success: false };
+		throw new HttpException(
+			'E_UNEXPECTED_ERROR',
+			HttpStatus.INTERNAL_SERVER_ERROR,
+		);
+	}
+
+	public async set_totp(name: string) {
+		console.log('set_totp: starting');
+		if (!name) {
+			console.error('set_totp: ' + 'no email / login provided, returning ✘');
+			throw new HttpException('E_NO_MAIL_PROVIDED', HttpStatus.BAD_REQUEST);
+		}
+		const user = await this.usersService.getByAny(name);
+		if (!user) {
+			console.error('set_totp: ' + 'email / login not found, returning ✘');
+			throw new HttpException('E_USER_NOT_FOUND', HttpStatus.BAD_REQUEST);
+		}
+		const secret = crypto.randomBytes(16).toString('hex').toUpperCase();
+		this.usersService.change_totp_code(user, secret);
+		let url = '';
+		await axios
+			.post('https://www.authenticatorapi.com/api.asmx/Pair', {
+				appName: 'pong.io',
+				appInfo: user.email,
+				secretCode: secret,
+			})
+			.then((response) => {
+				const elem = response.data.d.Html;
+				url = /chl=(.*?)["']/.exec(elem)[1];
+			})
+			.catch(() => {
+				console.error(
+					'compute_totp: ' + "error with Google's TOTP API, returning ✘",
+				);
+				throw new HttpException(
+					'E_GOOGLE_API',
+					HttpStatus.INTERNAL_SERVER_ERROR,
+				);
+			});
+		console.log('compute_totp: ' + 'code computed, returning ✔');
+		return { url: url };
+	}
+
+	public async verify_totp(request: TotpDto) {
+		console.log('verify_totp: starting for ' + request.name);
+		if (!request.name) {
+			console.error('verify_totp: ' + 'no email / login provided, returning ✘');
+			throw new HttpException('E_NO_NAME', HttpStatus.BAD_REQUEST);
+		} else if (!request.code) {
+			console.error('verify_totp: ' + 'no code provided, returning ✘');
+			throw new HttpException('E_NO_TOTP_PROVIDED', HttpStatus.BAD_REQUEST);
+		}
+		try {
+			if ((await this.check_totp_code(request.name, request.code)) === true) {
+				console.log('verify_totp: ' + 'code match, returning ✔');
+				return { success: true };
+			}
+		} catch (error) {
+			if (error.message === 'E_GOOGLE_API') {
+				console.error(
+					'compute_totp: ' + "error with Google's TOTP API, returning ✘",
+				);
+				throw new HttpException(
+					'E_GOOGLE_API',
+					HttpStatus.INTERNAL_SERVER_ERROR,
+				);
+			}
+		}
+		console.error('verify_totp: ' + 'code mismatch, returning ✘');
+		throw new HttpException(
+			'E_TOTP_MISMATCH',
+			HttpStatus.INTERNAL_SERVER_ERROR,
+		);
+	}
+
+	private async check_totp_code(name: string, code: string) {
+		console.log('check_totp_code: starting');
+		const usr = await this.usersService.getByAny(name);
+		let truth;
+		await axios
+			.post('https://www.authenticatorapi.com/api.asmx/ValidatePin', {
+				pin: code,
+				secretCode: usr.totp_code,
+			})
+			.then((response) => {
+				const elem = response.data.d;
+				truth = /true/.exec(elem) !== null;
+			})
+			.catch(() => {
+				console.error('compute_totp: ' + 'unexpected error, returning ✘');
+				throw new HttpException(
+					'E_GOOGLE_API',
+					HttpStatus.INTERNAL_SERVER_ERROR,
+				);
+			});
+		if (truth === true) {
+			console.log('check_totp_code: ' + 'code match, returning ✔');
+			return true;
+		}
+		console.log('check_totp_code: ' + 'code mismatch, returning ✘');
+		return false;
 	}
 }

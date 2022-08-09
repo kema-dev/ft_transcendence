@@ -14,6 +14,7 @@ import RequestWithUser from './requestWithUser.interface';
 import { LocalAuthenticationGuard } from './localAuthentication.guard';
 import { JwtAuthenticationGuard } from './jwtAuthentication.guard';
 import { AuthResponse } from './authResponse.interface';
+import TotpDto from './dto/totp.dto';
 
 import { Response, Request } from 'express';
 import { get } from 'http';
@@ -32,29 +33,35 @@ export class AuthenticationController {
 		return 'Backend is up and running, you can go back to the website';
 	}
 
+	@Post('set_totp')
+	set_totp(@Body('email') email: string) {
+		return this.authenticationService.set_totp(email);
+	}
+
+	@Post('verify_totp')
+	verify_totp(@Body() request: TotpDto) {
+		return this.authenticationService.verify_totp(request);
+	}
+
 	@HttpCode(200)
 	@UseGuards(LocalAuthenticationGuard)
 	@Post('login')
-	async logIn(@Req() request: RequestWithUser, @Res() response: Response) {
-		const { user } = request;
-		const cookie = await this.authenticationService.getCookieFromJwt(user.id);
-		response.setHeader('Set-Cookie', cookie); // FIXME cookie setting is not working
-		return response.send(user);
+	async logIn(@Res() response: Response) {
+		// TODO add a cookie to the response and ask for mfa code
+		return response.send('You successfully logged in using a password');
 	}
 
 	@HttpCode(200)
 	@Post('login42')
 	public async create(@Body('code') code: string): Promise<AuthResponse> {
+		// TODO add a cookie to the response and ask for mfa code
 		return this.authenticationService.auth42(code);
 	}
 
 	@UseGuards(JwtAuthenticationGuard)
 	@Post('logout')
 	async logOut(@Res() response: Response) {
-		response.setHeader(
-			'Set-Cookie',
-			this.authenticationService.getLogOutCookie(),
-		);
+		// TODO add a cookie to the response
 		return response.status(200);
 	}
 }

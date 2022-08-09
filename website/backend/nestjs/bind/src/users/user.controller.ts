@@ -17,10 +17,9 @@ import { UsersService } from './users.service';
 export class UsersController {
 	constructor(private readonly usersService: UsersService) {}
 
-	// @UseGuards(JwtAuthenticationGuard) FIXME
-	@Post('getUser')
-	async getUser(@Body() params: any) {
-		return this.usersService.getByLogin(params.login);
-		
+	// @UseGuards(JwtAuthenticationGuard)
+	@Get('getRank')
+	async getRank(login: string) {
+		return this.usersService.getRank(login);
 	}
 }
