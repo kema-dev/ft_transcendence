@@ -1,7 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import RegisterDto from './dto/register.dto';
-// import LogInDto from './dto/logIn.dto';
 import * as bcrypt from 'bcrypt';
 import { PostgresErrorCode } from '../database/postgresErrorCodes.enum';
 import { JwtService } from '@nestjs/jwt';
@@ -29,7 +28,7 @@ export class AuthenticationService {
 		console.log('register: starting for login: ' + registrationData.login);
 		if (registrationData.password !== registrationData.password_confirmation) {
 			console.error('register: ' + 'passwords do not match, returning ✘');
-			throw new HttpException('Passwords do not match', HttpStatus.BAD_REQUEST);
+			throw new HttpException('E_PASS_DIFFERS', HttpStatus.BAD_REQUEST);
 		}
 		if (
 			registrationData.password.length > 32 ||
@@ -41,7 +40,7 @@ export class AuthenticationService {
 				'register: ' + 'password does not meet requirements, returning ✘',
 			);
 			throw new HttpException(
-				'Password must contain at least one lowercase letter, one uppercase letter, one digit, one special character (!@#$%^&*) and must be between 10 and 32 characters long',
+				'E_PASS_NOT_MEET_REQUIREMENTS',
 				HttpStatus.BAD_REQUEST,
 			);
 		}
@@ -54,7 +53,10 @@ export class AuthenticationService {
 			console.error(
 				'register: ' + 'email does not meet requirements, returning ✘',
 			);
-			throw new HttpException('Email is not valid', HttpStatus.BAD_REQUEST);
+			throw new HttpException(
+				'E_MAIL_NOT_MEET_REQUIREMENTS',
+				HttpStatus.BAD_REQUEST,
+			);
 		}
 		if (
 			registrationData.login.length > 25 ||
@@ -63,7 +65,10 @@ export class AuthenticationService {
 			console.error(
 				'register: ' + 'login does not meet requirements, returning ✘',
 			);
-			throw new HttpException('Login is not valid', HttpStatus.BAD_REQUEST);
+			throw new HttpException(
+				'E_LOGIN_NOT_MEET_REQUIREMENTS',
+				HttpStatus.BAD_REQUEST,
+			);
 		}
 		let hashedPassword = '';
 		try {
@@ -71,7 +76,7 @@ export class AuthenticationService {
 		} catch (error) {
 			console.error('register: ' + 'bcrypt error, returning ✘');
 			throw new HttpException(
-				'Something went wrong',
+				'E_UNEXPECTED_ERROR',
 				HttpStatus.INTERNAL_SERVER_ERROR,
 			);
 		}
@@ -96,13 +101,13 @@ export class AuthenticationService {
 						' already exists, returning ✘',
 				);
 				throw new HttpException(
-					'User with that email and/or login already exists, please try again',
+					'E_EMAIL_OR_LOGIN_ALREADY_EXISTS',
 					HttpStatus.BAD_REQUEST,
 				);
 			}
 			console.error('register: unknown error: ' + error + ' returning ✘');
 			throw new HttpException(
-				'Something went wrong',
+				'E_UNEXPECTED_ERROR',
 				HttpStatus.INTERNAL_SERVER_ERROR,
 			);
 		}
@@ -128,10 +133,7 @@ export class AuthenticationService {
 							user.login +
 							' has no password, returning ✘',
 					);
-					throw new HttpException(
-						'User has no password, please connect using 42 API',
-						HttpStatus.BAD_REQUEST,
-					);
+					throw new HttpException('E_USER_IS_FT', HttpStatus.BAD_REQUEST);
 				}
 				await this.verifyPassword(password, user.password);
 				console.log(
@@ -142,10 +144,7 @@ export class AuthenticationService {
 				return { login: user.login, success: true };
 			} catch (error) {
 				console.error('getAuthenticatedUser: ' + error + ' returning ✘');
-				throw new HttpException(
-					'Wrong credentials provided',
-					HttpStatus.BAD_REQUEST,
-				);
+				throw new HttpException('E_PASS_FAIL', HttpStatus.BAD_REQUEST);
 			}
 		}
 	}
@@ -161,10 +160,7 @@ export class AuthenticationService {
 		);
 		if (!isPasswordMatching) {
 			console.error('verifyPassword: ' + 'mismatch');
-			throw new HttpException(
-				'Wrong credentials provided',
-				HttpStatus.BAD_REQUEST,
-			);
+			throw new HttpException('E_PASS_FAIL', HttpStatus.BAD_REQUEST);
 		}
 		console.log('verifyPassword: ' + 'match, returning');
 	}
@@ -196,10 +192,10 @@ export class AuthenticationService {
 		console.log('auth42: starting');
 		if (!code) {
 			console.error('auth42: ' + 'no code provided, returning ✘');
-			throw new HttpException('No code provided', HttpStatus.BAD_REQUEST);
+			throw new HttpException('E_NO_CODE_PROVIDED', HttpStatus.BAD_REQUEST);
 		} else if ((await this.usersService.checkCodeInUse(code)) === true) {
 			console.error('auth42: ' + 'code already in use, returning ✘');
-			throw new HttpException('Code already in use', HttpStatus.BAD_REQUEST);
+			throw new HttpException('E_CODE_IN_USE', HttpStatus.BAD_REQUEST);
 		}
 		try {
 			const response = await firstValueFrom(
@@ -263,10 +259,10 @@ export class AuthenticationService {
 		console.log('set_totp: starting');
 		if (!email) {
 			console.error('set_totp: ' + 'no email provided, returning ✘');
-			throw new HttpException('No email provided', HttpStatus.BAD_REQUEST);
+			throw new HttpException('E_NO_MAIL_PROVIDED', HttpStatus.BAD_REQUEST);
 		} else if ((await this.usersService.checkEmailExistence(email)) === false) {
 			console.error('set_totp: ' + 'email not found, returning ✘');
-			throw new HttpException('Email not found', HttpStatus.BAD_REQUEST);
+			throw new HttpException('E_EMAIL_NOT_FOUND', HttpStatus.BAD_REQUEST);
 		}
 		const secret = crypto.randomBytes(16).toString('hex').toUpperCase();
 		this.usersService.change_totp_code(email, secret);
@@ -293,16 +289,16 @@ export class AuthenticationService {
 		console.log('verify_totp: startingfor ' + request.email);
 		if (!request.email) {
 			console.error('verify_totp: ' + 'no email provided, returning ✘');
-			throw new HttpException('No email provided', HttpStatus.BAD_REQUEST);
+			throw new HttpException('E_NO_MAIL_PROVIDED', HttpStatus.BAD_REQUEST);
 		} else if (
 			(await this.usersService.checkEmailExistence(request.email)) === false
 		) {
 			console.error('verify_totp: ' + 'email not found, returning ✘');
-			throw new HttpException('Email not found', HttpStatus.BAD_REQUEST);
+			throw new HttpException('E_EMAIL_NOT_FOUND', HttpStatus.BAD_REQUEST);
 		}
 		if (!request.code) {
 			console.error('verify_totp: ' + 'no code provided, returning ✘');
-			throw new HttpException('No code provided', HttpStatus.BAD_REQUEST);
+			throw new HttpException('E_NO_TOTP_PROVIDED', HttpStatus.BAD_REQUEST);
 		}
 		if ((await this.check_totp_code(request.email, request.code)) === true) {
 			console.log('verify_totp: ' + 'code match, returning ✔');

@@ -1,7 +1,10 @@
 <template>
 	<div class="center column" id="app">
-		<a v-if="!backend_status" class="back_msg" :href="apiPath + 'auth/status'"
-			>Please click here to authorize backend's certificate</a
+		<a
+			v-if="!backend_status"
+			class="back_msg"
+			:href="apiPath + 'auth/status'"
+			>{{ BACKEND_DOWN_MESSAGE }}</a
 		>
 		<Transition name="showup">
 			<div v-if="show" class="outer">
@@ -105,6 +108,23 @@ let show = ref(false);
 let switch_value = ref(true);
 let backend_status = ref(true);
 
+let E_PASS_DIFFERS = "Passwords do not match, please try again";
+let E_PASS_NOT_MEET_REQUIREMENTS =
+	"Password must contain at least one lowercase letter, one uppercase letter, one digit, one special character (!@#$%^&*) and must be between 10 and 32 characters long, please try again";
+let E_MAIL_NOT_MEET_REQUIREMENTS = "Email is not valid, please try again";
+let E_LOGIN_NOT_MEET_REQUIREMENTS =
+	"Login is not valid, must be between 1 and 25 characters long, using alphanumeric characters, '_' and '-' only, please try again";
+let E_UNEXPECTED_ERROR = "Unknown error, we are sorry for that 😥";
+let E_EMAIL_OR_LOGIN_ALREADY_EXISTS =
+	"User with that email and/or login already exists, please try again";
+let E_PASS_FAIL = "Wrong credentials provided, please try again";
+let BACKEND_DOWN_MESSAGE =
+	"Backend is down, please authorize our self-signed certificate manually by clicking this text";
+let E_NO_CODE_PROVIDED = "";
+let E_CODE_IN_USE = "";
+let E_USER_IS_FT = "";
+let E_EMAIL_NOT_FOUND = "";
+
 provide("defaultState", switch_value);
 
 const toast = useToast();
@@ -118,33 +138,31 @@ function register() {
 			password_confirmation: password_confirmation.value,
 		})
 		.then(() => {
-			toast.success("Registration success, welcome " + login_register.value + " !");
+			toast.success(
+				"Registration success, welcome " + login_register.value + " !"
+			);
 			router.push("/home");
 		})
 		.catch((error) => {
-			if (
-				error.response.data.message ===
-				"User with that email and/or login already exists, please try again"
-			) {
-				toast.warning(
-					"User with that email and/or login already exists, please try again"
-				);
-			} else if (error.response.data.message === "Passwords do not match") {
-				toast.warning("Passwords do not match");
+			if (error.response.data.message === "E_EMAIL_OR_LOGIN_ALREADY_EXISTS") {
+				toast.warning(E_EMAIL_OR_LOGIN_ALREADY_EXISTS);
+			} else if (error.response.data.message === "E_PASS_DIFFERS") {
+				toast.warning(E_PASS_DIFFERS);
 			} else if (
-				error.response.data.message.search("Password must contain") !== -1
+				error.response.data.message.search("E_PASS_NOT_MEET_REQUIREMENTS") !==
+				-1
 			) {
-				toast.warning(
-					"Password must contain at least one lowercase letter, one uppercase letter, one digit, one special character (!@#$%^&*) and must be between 10 and 32 characters long"
-				);
-			} else if (error.response.data.message === "Email is not valid") {
-				toast.warning("Email is not valid");
-			} else if (error.response.data.message === "Login is not valid") {
-				toast.warning(
-					'Login is not valid, must be between 1 and 25 characters long, using alphanumeric characters, "_" and "-" only'
-				);
+				toast.warning(E_PASS_NOT_MEET_REQUIREMENTS);
+			} else if (
+				error.response.data.message === "E_MAIL_NOT_MEET_REQUIREMENTS"
+			) {
+				toast.warning(E_MAIL_NOT_MEET_REQUIREMENTS);
+			} else if (
+				error.response.data.message === "E_LOGIN_NOT_MEET_REQUIREMENTS"
+			) {
+				toast.warning(E_LOGIN_NOT_MEET_REQUIREMENTS);
 			} else {
-				toast.error("Unknown error, we are sorry for that 😥");
+				toast.error(E_UNEXPECTED_ERROR);
 				console.error(error);
 			}
 		});
@@ -152,8 +170,8 @@ function register() {
 function auth() {
 	axios
 		.post(apiPath + "auth/login", {
-			email: email_auth,
-			password: password_auth,
+			email: email_auth.value,
+			password: password_auth.value,
 		})
 		.then((response) => {
 			toast.success(
@@ -162,10 +180,12 @@ function auth() {
 			router.push("/home");
 		})
 		.catch((error) => {
-			if (error.response.data.message === "Wrong credentials provided") {
-				toast.warning("Wrong credentials provided, please try again");
+			if (error.response.data.message === "E_PASS_FAIL") {
+				toast.warning(E_PASS_FAIL);
+			} else if (error.response.data.message === "E_USER_IS_FT") {
+				toast.warning(E_USER_IS_FT);
 			} else {
-				toast.error("Unknown error, we are sorry for that 😥");
+				toast.error(E_UNEXPECTED_ERROR);
 				console.error(error);
 			}
 		});
@@ -186,24 +206,27 @@ onMounted(() => {
 						code: code,
 					})
 					.then((response) => {
-						// console.log(response.data);
 						toast.success(
 							"Authentication success, welcome " + response.data.login + " !"
 						);
 						router.replace("/home");
 					})
 					.catch((error) => {
-						toast.error("Authentication failure, please try again");
-						console.error(error);
+						if (error.response.data.message === "E_NO_CODE_PROVIDED") {
+							toast.warning(E_NO_CODE_PROVIDED);
+						} else if (error.response.data.message === "E_CODE_IN_USE") {
+							toast.warning(E_CODE_IN_USE);
+						} else {
+							toast.error(E_UNEXPECTED_ERROR);
+							console.error(error);
+						}
 					});
 			}
 		})
 		.catch(() => {
 			setTimeout(() => {
 				backend_status.value = false;
-				toast.error(
-					"Backend is down, please authorize our self-signed certificate manually by clicking the button at the center of your screen"
-				);
+				toast.error(BACKEND_DOWN_MESSAGE);
 			}, 0.5);
 		});
 });
