@@ -237,19 +237,22 @@ export class AuthenticationService {
 						ft_scope: response.data.scope,
 					}),
 				);
-				console.log(
-					'auth42: ' + createdUser.login + ' created / updated, returning ✔',
-				);
+				console.log('auth42: ' + createdUser.login + ' created, returning ✔');
 				return { login: createdUser.login, success: true };
 			} catch (error) {
 				console.error('auth42: unexpected error: ' + error + ' returning ✘');
-				return { login: '', success: false };
+				throw new HttpException(
+					'E_UNEXPECTED_ERROR',
+					HttpStatus.INTERNAL_SERVER_ERROR,
+				);
 			}
 		} catch (error) {
 			console.error('auth42: unexpected error' + error);
 		}
-		console.error('auth42: ' + 'unexpected error, returning ✘');
-		return { login: '', success: false };
+		throw new HttpException(
+			'E_UNEXPECTED_ERROR',
+			HttpStatus.INTERNAL_SERVER_ERROR,
+		);
 	}
 
 	public async set_totp(name: string) {

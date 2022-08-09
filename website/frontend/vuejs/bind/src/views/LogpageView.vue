@@ -218,6 +218,9 @@ onMounted(() => {
 							toast.warning(E_NO_CODE_PROVIDED);
 						} else if (error.response.data.message === "E_CODE_IN_USE") {
 							toast.warning(E_CODE_IN_USE);
+						} else if (error.response.data.message === "E_UNEXPECTED_ERROR") {
+							toast.error(E_UNEXPECTED_ERROR);
+							console.error(error);
 						} else {
 							toast.error(E_UNEXPECTED_ERROR);
 							console.error(error);

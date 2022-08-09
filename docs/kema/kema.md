@@ -2,20 +2,16 @@
 
 ## ongoing
 
-gerer E_GOOGLE_API
-gerer E_NO_NAME
-gerer E_TOTP_MISMATCH
-revoir auth42
+* TODO review controllers' args
+* TODO fix anchors
+* TODO tidy trailing warnings in logs
 
 * TODO update API's wiki
-* TODO tidy trailing warnings in logs
-* TODO fix anchors
-* TODO review controllers' args
-
+* TODO handle E_GOOGLE_API, E_NO_NAME and E_TOTP_MISMATCH in totp related calls in frontend
 * TODO send login request after getting proper mfa code (by previously calling a 'getMfaStatus' function)
-* TODO make connection persistant for classical / 42 login methods using a jwt and guards / strategies
+* TODO make connection persistant for classical / 42 login methods using a jwt and guards / strategies (guard = jwt ok, create jwt on successful login)
+* TODO protect authenticated endpoints with guards
 * TODO add possibility to change 2FA settings, verifying identity of the user before changing, and checking that user had the correct code before saving
-* TODO set cookie on ALL authentication methods, with 2FA verification, and verify that cookie is not set w/e result the log gets
 
 ## later
 
