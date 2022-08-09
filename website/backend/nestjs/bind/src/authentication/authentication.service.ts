@@ -144,7 +144,11 @@ export class AuthenticationService {
 				return { login: user.login, success: true };
 			} catch (error) {
 				console.error('getAuthenticatedUser: ' + error + ' returning ✘');
-				throw new HttpException('E_PASS_FAIL', HttpStatus.BAD_REQUEST);
+				if (error.message == 'E_USER_IS_FT') {
+					throw new HttpException('E_USER_IS_FT', HttpStatus.BAD_REQUEST);
+				} else {
+					throw new HttpException('E_PASS_FAIL', HttpStatus.BAD_REQUEST);
+				}
 			}
 		}
 	}

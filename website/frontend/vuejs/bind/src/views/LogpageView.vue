@@ -120,10 +120,9 @@ let E_EMAIL_OR_LOGIN_ALREADY_EXISTS =
 let E_PASS_FAIL = "Wrong credentials provided, please try again";
 let BACKEND_DOWN_MESSAGE =
 	"Backend is down, please authorize our self-signed certificate manually by clicking this text";
-let E_NO_CODE_PROVIDED = "";
-let E_CODE_IN_USE = "";
-let E_USER_IS_FT = "";
-let E_EMAIL_NOT_FOUND = "";
+let E_NO_CODE_PROVIDED = "42 API authentication: No code provided, please try again";
+let E_CODE_IN_USE = "42 API authentication: Code already in use, please try again";
+let E_USER_IS_FT = "You registered with a 42 account, please login with your 42 account";
 
 provide("defaultState", switch_value);
 

@@ -2,10 +2,9 @@
 
 ## ongoing
 
-* TODO send error codes like "E_NO_MAIL" instead of long messages
-* TODO add messages to be displayed in vue variables
 * TODO change "getbylogin/email" calls to "getuser" that check for both abd returns the same
-* TODO tidy my code, dont use message comparison
+* TODO tidy my backend code
+
 * TODO use a component for 2FA, maybe an overlay (thus make a proper "ask_mfa_enabled" function)
 * TODO don't create a Jwt on auth, but on security / 2fa component
 * TODO add possibility to change 2FA settings, verifying identity of the user before changing, and checking that user had the correct code before saving
