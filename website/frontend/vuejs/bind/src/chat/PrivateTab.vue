@@ -1,7 +1,13 @@
 <template>
 	<div id="private_view" class="center column">
-		<SearchItem @searchInput="searchChange"/>
-		<div v-for="(data, i) in convsFiltred" :key="i" class="center">
+		<div class="option_private center raw">
+			<SearchItem @searchInput="searchChange"/>
+			<button onclick="history.back()" class="button_cont center column">
+				<span class="infoButtonText">New message</span>
+				<img src="~@/assets/new_msg.svg" alt="New message" class="new_msg_img">
+			</button>
+		</div>
+		<div v-if="!newMsg" v-for="(data, i) in convsFiltred" :key="i" class="center">
 			<ConversationTab :conv="data"/>
 		</div>
 		<h2 v-if="conversations.length == 0" class="no_results">No conversations</h2>
@@ -20,13 +26,12 @@ import Message from "@/chat/Message";
 let define = inject("colors");
 
 let search = ref("");
+let newMsg = ref(false);
 
 let user1 = new User("Totolosa", require("@/assets/avatars/(1).jpg"));
 let user2 = new User("Ocean", require("@/assets/avatars/(2).jpg"));
 let user3 = new User("Patrick la trick", require("@/assets/avatars/(3).jpg"));
-// let user1 = new User("Totolosa", "~@/assets/avatars/(1).jpg");
-// let user2 = new User("Ocean", "~@/assets/avatars/(2).jpg");
-// let user3 = new User("Patrick la trick", "~@/assets/avatars/(3).jpg");
+
 
 let msg1 = new Message(user1, "Salut frere rwf;jnavionra'mrv'aomfgifsivbdfvndfnvjsdglbjgb;fgklb;s;bg", new Date('July 17, 2022 03:24:00'));
 let msg2 = new Message(user2, "Salut poto", new Date('July 22, 2022 03:25:12'));
@@ -75,6 +80,48 @@ function searchChange(value: string) {
 .no_results {
 	margin-top: 1rem;
 }
+.button_cont {
+	border-radius: 50%;
+  /* display: inline-block; */
+	padding: 5px;
+	position: relative;
+}
+.button_cont:hover {
+	background-color: white;
+	box-shadow: 0px 0px 4px #aaa;
+}
+.new_msg_img {
+	height: 28px;
+	width: 28px;
+	/* border-radius: 50%; */
+	filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg) brightness(86%) contrast(83%);
+}
+.infoButtonText {
+	opacity:0;
+	font-size: 0.8rem;
+  width: auto;
+  background-color: rgba(0,0,0,0.6);
+  color: #fff;
+  text-align: center;
+  padding: 5px;
+  border-radius: 6px;
+  position: absolute;
+  z-index: 1;
+  bottom: 100%;
+	/* right: 50%; */
+}
+.button_cont:hover .infoButtonText {
+	opacity: 0;
+	animation: displayButtonInfo 0.3s;
+	animation-delay: 0.3s;
+	animation-fill-mode: forwards;
+}
+@keyframes displayButtonInfo {
+	from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+
 
 /* TRANSITION ROUTER VIEW */
 

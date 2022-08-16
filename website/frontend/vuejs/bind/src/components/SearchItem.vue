@@ -31,11 +31,11 @@ function restet_input() {
 <style scoped>
 .search_groupe {
 	margin-top: 5px;
-	width: 90%;
+	width: 70%;
 }
 #search {
 	top: 0px;
-	width: 80%;
+	width: 90%;
 	height: 40px;
     background-image: url('~@/assets/logo_search.png') ;
     background-position: left 10px top 50%;
