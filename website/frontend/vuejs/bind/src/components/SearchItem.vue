@@ -7,24 +7,35 @@
 			v-model="search"
 			@input="$emit('searchInput', search)"
         />
-        <button v-if="search.length > 0" @click="restet_input" class="reset_button center">
+        <!-- <input
+            :value="modelValue"
+            @input="$emit('update:modelValue', $event.target!.value)"
+        /> -->
+        <button v-if="search.length > 0" @click="changeInput('')" class="reset_button center">
             <img src="~@/assets/clear_button.png" alt="clear button" class="reset_button_img">
         </button>
     </form>
 </template>
 
 <script setup lang="ts">
-import { defineEmits, ref } from 'vue';
+import { defineProps, defineEmits, ref } from 'vue';
+// const props = defineProps({
+//   search: String
+// })
 
+// defineProps(['modelValue'])
+// defineEmits(['update:modelValue'])
 
 const emit = defineEmits(['searchInput']);
 
 let search = ref("");
 
-function restet_input() {
-    search.value = '';
+function changeInput(value : string) {
+    search.value = value;
     emit('searchInput', search.value);
 }
+
+
 
 </script>
 
