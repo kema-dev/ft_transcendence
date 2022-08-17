@@ -1,19 +1,18 @@
 <template>
 	<div id="private_view" class="center column">
 		<div class="option_private center raw">
-			<SearchItem @searchInput="searchChange"/>
-			<!-- <SearchItem v-model="search" /> -->
-			<button @click="createNewMsg()" class="button_cont center column">
-				<span v-if="!newMsg" class="infoButtonText">New message</span>
-				<img v-if="!newMsg" src="~@/assets/new_msg.svg" alt="New message" class="new_msg_img">
-				<span v-if="newMsg" class="infoButtonText">Back</span>
-				<img v-if="newMsg" src="~@/assets/undo_logo.svg" alt="New message" class="new_msg_img">
-			</button>
-		</div>
-		<div v-if="!newMsg">
-			<div v-for="(data, i) in convsFiltred" :key="i" class="center">
-				<ConversationTab :conv="data"/>
+			<SearchItem @searchInput="searchChange" :key="searchKey"/>
+			<div class="buttons_cont space-around raw">
+				<button @click="createNewMsg()" class="button_cont center column">
+					<span v-if="!newMsg" class="infoButtonText">New message</span>
+					<img v-if="!newMsg" src="~@/assets/new_msg.svg" alt="New message" class="new_msg_img">
+					<span v-if="newMsg" class="infoButtonText">Back</span>
+					<img v-if="newMsg" src="~@/assets/undo_logo.svg" alt="New message" class="new_msg_img">
+				</button>
 			</div>
+		</div>
+		<div v-if="!newMsg" class="myConversations center column">
+			<ConversationTab v-for="(data, i) in convsFiltred" :key="i" :conv="data" class="center"/>
 			<h2 v-if="conversations.length == 0" class="no_results">No conversations</h2>
 			<h2 v-else-if="convsFiltred!.length == 0" class="no_results">No results</h2>
 		</div>
@@ -33,7 +32,7 @@
 
 <script setup lang="ts">
 /* eslint @typescript-eslint/no-var-requires: "off" */
-import { inject, onMounted, defineEmits, ref } from "vue";
+import { inject, onMounted, defineEmits, ref, nextTick } from "vue";
 import ConversationTab from "@/chat/ConversationTab.vue";
 import BasicProfil from "@/components/BasicProfilItem.vue";
 import SearchItem from "@/components/SearchItem.vue";
@@ -44,8 +43,9 @@ let define = inject("colors");
 let me : User = inject("me")!;
 const emit = defineEmits(['searchInputChild']);
 
-let search = ref("");
-let newMsg = ref(false);
+const search = ref("");
+const newMsg = ref(false);
+const searchKey = ref(0);
 // const searchCompRef = ref<InstanceType<typeof SearchItem>>();
 
 let user1 = new User("Totolosa", require("@/assets/avatars/(1).jpg"));
@@ -117,14 +117,13 @@ function otherPeople() : User[] {
 	});
 }
 
+
 function createNewMsg() {
 	newMsg.value = !newMsg.value;
-	if (newMsg.value) {
+	searchKey.value += 1;
+	nextTick(() => {
 		document.getElementById("search")?.focus();
-	}
-	// searchCompRef.value!.reset_input();
-	emit("searchInputChild", '');
-	console.log("test");
+	})
 }
 
 </script>
@@ -137,9 +136,11 @@ function createNewMsg() {
 .no_results {
 	margin-top: 1rem;
 }
+.buttons_cont{
+	width: 20%;
+}
 .button_cont {
 	border-radius: 50%;
-  /* display: inline-block; */
 	padding: 5px;
 	position: relative;
 }

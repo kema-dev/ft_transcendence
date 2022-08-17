@@ -1,6 +1,6 @@
 Thomas:
 
 Front:
-- Reset input recherche quand nouveau message
-- hover button conversation pas ronde
 - channel pas surligne quand conversation channel 
+- Reset input recherche quand nouveau message --> OK
+- hover button conversation pas ronde --> OK

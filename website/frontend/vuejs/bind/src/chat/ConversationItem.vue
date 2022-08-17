@@ -147,18 +147,18 @@ onBeforeUnmount(() => {
 }
 .option_buttons {
 	width: auto;
+	position: relative;
 }
 .button_cont {
 	margin: 5px;
+	position: static;
 }
 .logo_img {
 	width: 30px;
 	height: 30px;
 }
-.infoButton {
-  display: inline-block;
-}
-.infoButton .infoButtonText {
+
+.infoButtonText {
 	opacity:0;
 	font-size: 0.8rem;
   width: 120px;
@@ -169,19 +169,9 @@ onBeforeUnmount(() => {
   border-radius: 6px;
   position: absolute;
   z-index: 1;
-	width: 120px;
   bottom: 100%;
-	right: 0;
-}
-.infoButton:hover .infoButtonText {
-	opacity: 0;
-	animation: displayButtonInfo 0.3s;
-	animation-delay: 0.3s;
-	animation-fill-mode: forwards;
-}
-@keyframes displayButtonInfo {
-	from { opacity: 0; }
-  to { opacity: 1; }
+	right: 50%;
+	transform: translate(50%);
 }
 
 .conversation_content {

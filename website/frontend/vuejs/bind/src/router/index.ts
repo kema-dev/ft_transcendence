@@ -35,6 +35,7 @@ const routes: Array<RouteRecordRaw> = [
 		name: 'home',
 		path: '/home',
 		components: {default: Home},
+		redirect: '/home/chat/private',
 		children: [
 			{
 				name: 'friends',

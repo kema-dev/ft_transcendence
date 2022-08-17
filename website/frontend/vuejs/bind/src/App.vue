@@ -91,10 +91,12 @@ a {
 .space-between {
 	display: flex;
 	justify-content: space-between !important;
+	align-items: center;
 }
 .space-around {
 	display: flex;
 	justify-content: space-around !important;
+	align-items: center;
 }
 .stack {
 	position: relative;

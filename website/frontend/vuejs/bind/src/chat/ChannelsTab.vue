@@ -1,23 +1,32 @@
 <template>
 	<div id="channel_view" class="center column">
 		<div class="option_private center raw">
-			<SearchItem @searchInput="searchChange"/>
-			<!-- <SearchItem v-model="search" /> -->
-			<button @click="createNewMsg()" class="button_cont center column">
-				<span v-if="!newMsg" class="infoButtonText">New message</span>
-				<img v-if="!newMsg" src="~@/assets/new_msg.svg" alt="New message" class="new_msg_img">
-				<span v-if="newMsg" class="infoButtonText">Back</span>
-				<img v-if="newMsg" src="~@/assets/undo_logo.svg" alt="New message" class="new_msg_img">
-			</button>
-		</div>
-		<div v-if="!newMsg">
-			<div v-for="(data, i) in convsFiltred" :key="i" class="center">
-				<ConversationTab :conv="data"/>
+			<SearchItem v-if="!newChannel" @searchInput="searchChange" :key="searchKey"/>
+			<!-- <div v-if="newChannel" class="newChannelTitle">Create a new Channel</div> -->
+			<div v-if="newChannel" class="newChannelTitle center">
+				<h2 class="newChannelTitleText">Create a new Channel</h2>
 			</div>
+			<div class="buttons_cont space-around raw">
+				<button v-if="!newChannel" @click="findChannelFn()" class="button_cont center column">
+					<span v-if="!findChannel" class="infoButtonText">Search channel</span>
+					<img v-if="!findChannel" src="~@/assets/logo_search.svg" alt="New message" class="new_msg_img">
+					<span v-if="findChannel" class="infoButtonText">Back</span>
+					<img v-if="findChannel" src="~@/assets/undo_logo.svg" alt="New message" class="new_msg_img">
+				</button>
+				<button @click="newChannelFn()" class="button_cont center column">
+					<span v-if="!newChannel" class="infoButtonText">Create channel</span>
+					<img v-if="!newChannel" src="~@/assets/new_channel.svg" alt="New message" class="new_msg_img">
+					<span v-if="newChannel" class="infoButtonText">Back</span>
+					<img v-if="newChannel" src="~@/assets/undo_logo.svg" alt="New message" class="new_msg_img">
+				</button>
+			</div>
+		</div>
+		<div v-if="!findChannel && !newChannel" class="myChannels center column">
+			<ConversationTab v-for="(data, i) in convsFiltred" :key="i" :conv="data" class="center"/>
 			<h2 v-if="conversations.length == 0" class="no_results">No conversations</h2>
 			<h2 v-else-if="convsFiltred!.length == 0" class="no_results">No results</h2>
 		</div>
-		<div v-if="newMsg" class="newMsgResults">
+		<div v-if="findChannel" class="newMsgResults">
 			<div v-if="knownPeople().length > 0" class="knownPeople left column">
 				<h2 class="typeUsers">Friends/conversations</h2>
 				<BasicProfil v-for="(data, i) in knownPeople()" :key="i" :user="data"/>
@@ -33,7 +42,7 @@
 
 <script setup lang="ts">
 /* eslint @typescript-eslint/no-var-requires: "off" */
-import { inject, onMounted, defineEmits, ref } from "vue";
+import { inject, onMounted, defineEmits, ref, nextTick } from "vue";
 import ConversationTab from "@/chat/ConversationTab.vue";
 import BasicProfil from "@/components/BasicProfilItem.vue";
 import SearchItem from "@/components/SearchItem.vue";
@@ -45,7 +54,9 @@ let me : User = inject("me")!;
 const emit = defineEmits(['searchInputChild']);
 
 let search = ref("");
-let newMsg = ref(false);
+let findChannel = ref(false);
+const newChannel = ref(false);
+const searchKey = ref(0);
 // const searchCompRef = ref<InstanceType<typeof SearchItem>>();
 
 let user1 = new User("Totolosa", require("@/assets/avatars/(1).jpg"));
@@ -117,14 +128,19 @@ function otherPeople() : User[] {
 	});
 }
 
-function createNewMsg() {
-	newMsg.value = !newMsg.value;
-	if (newMsg.value) {
+function findChannelFn() {
+	findChannel.value = !findChannel.value;
+	searchKey.value += 1;
+	nextTick(() => {
 		document.getElementById("search")?.focus();
-	}
-	// searchCompRef.value!.reset_input();
-	emit("searchInputChild", '');
-	console.log("test");
+	})
+}
+function newChannelFn() {
+	newChannel.value = !newChannel.value;
+	// searchKey.value += 1;
+	// nextTick(() => {
+	// 	document.getElementById("search")?.focus();
+	// })
 }
 
 </script>
@@ -137,8 +153,12 @@ function createNewMsg() {
 .no_results {
 	margin-top: 1rem;
 }
+.buttons_cont{
+	width: 20%;
+}
 .button_cont {
 	border-radius: 50%;
+	width: 40px;
   /* display: inline-block; */
 	padding: 5px;
 	position: relative;
@@ -154,6 +174,7 @@ function createNewMsg() {
 	filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg) brightness(86%) contrast(83%);
 }
 .infoButtonText {
+	visibility: hidden;
 	opacity:0;
 	font-size: 0.8rem;
   width: auto;
@@ -168,6 +189,7 @@ function createNewMsg() {
 	/* right: 50%; */
 }
 .button_cont:hover .infoButtonText {
+	visibility: visible;
 	opacity: 0;
 	animation: displayButtonInfo 0.3s;
 	animation-delay: 0.3s;
@@ -184,6 +206,12 @@ function createNewMsg() {
 .typeUsers {
 	margin-top: 15px;
 	margin-bottom: 5px;
+}
+.newChannelTitle {
+	height: 75px;
+	width: 70%;
+	align-items: center;
+
 }
 
 
