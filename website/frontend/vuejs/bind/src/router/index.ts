@@ -8,8 +8,8 @@ import Chat from '@/menu/ChatTab.vue'
 import InGame from '@/chat/InGameTab.vue'
 import Private from '@/chat/PrivateTab.vue'
 import Channels from '@/chat/ChannelsTab.vue'
-import Conversation from '@/chat/ConversationItem.vue'
-import ConversationClass from '@/chat/Conversation'
+import PrivateConv from '@/chat/PrivateConvItem.vue'
+import ChannelConv from '@/chat/PrivateConvItem.vue'
 import Settings from '@/menu/SettingsTab.vue'
 import Player from '@/menu/PlayerTab.vue'
 
@@ -66,9 +66,15 @@ const routes: Array<RouteRecordRaw> = [
 						meta: { transition: 'myFade' },
 					},
 					{
-						name: 'conversation',
+						name: 'PrivConv',
 						path: '/home/chat/private/:conv_name',
-						components: {chat_menu: Conversation},
+						components: {chat_menu: PrivateConv},
+						meta: { transition: 'mySlide' },
+					},
+					{
+						name: 'ChannelConv',
+						path: '/home/chat/channel/:conv_name',
+						components: {chat_menu: ChannelConv},
 						meta: { transition: 'mySlide' },
 					}
 				],

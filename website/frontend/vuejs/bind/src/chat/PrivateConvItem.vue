@@ -2,7 +2,7 @@
 		<div id="conversation_view" class="stack">
 			<div class="userTopBar center raw space-between">
 				<div class="avatar_cont center">
-					<img :src="conv.users[0].avatar" class="avatar" alt="avatar">
+					<img :src="conv.user.avatar" class="avatar" alt="avatar">
 				</div>
 				<button @click="toProfile" class="login">{{route.params.conv_name}}</button>
 				<div class="option_buttons center raw stack">
@@ -43,7 +43,7 @@
 import { inject, onMounted, ref, onBeforeUnmount, watch } from "vue";
 import { useRoute } from 'vue-router';
 import MessageItem from "@/chat/MessageItem.vue";
-import Conversation from '@/chat/Conversation';
+import PrivateConv from '@/chat/PrivateConv';
 import User from "@/chat/User";
 import Message from "@/chat/Message";
 import BlockAdvert from "@/components/BlockItem.vue";
@@ -65,7 +65,7 @@ let msg4 = new Message(user3, "Non je dois finir de faire le front, et wallah c'
 let msg5 = new Message(user1, "dsaibciauwncopneejvnjn fcoamsdomvcafosnvonsvonoans", new Date());
 let msg6 = new Message(user2, "Mais tu sais pas parler en fait", new Date());
 
-let conv = ref(new Conversation(false, [user2], [msg1, msg2, msg3, msg5, msg6]));
+let conv = ref(new PrivateConv(user2, [msg1, msg2, msg3, msg5, msg6]));
 // let conv2 = new Conversation(false, [user1, user2, user3], [msg1, msg2]);
 
 function blockUser () {

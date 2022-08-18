@@ -83,6 +83,11 @@ a {
 	justify-content: flex-start;
 	align-items: flex-start;
 }
+.left_center {
+	display: flex;
+	justify-content: flex-start;
+	align-items: center;
+}
 .right {
 	display: flex;
 	justify-content: flex-end;

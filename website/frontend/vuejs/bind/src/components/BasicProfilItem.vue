@@ -1,24 +1,17 @@
 <template>
-	<router-link :to="{name: 'conversation', params: {conv_name: user!.name }}" class="basicProfil_cont center row">
+	<!-- <router-link :to="{name: 'PrivConv', params: {conv_name: user!.name }}" class="basicProfil_cont center row"> -->
+	<div class="basicProfil center row">
 		<div class="avatar_cont center">
 			<img :src="user!.avatar" class="avatar" alt="avatar">
 		</div>
 		<div class="login">{{user?.name}}</div>
-		<!-- <div class="info center column">
-			<div class="top-bar row center stack">
-				<div class="login">{{conv!.name}}</div>
-				<div class="date">{{display_date()}}</div>
-			</div>
-			<div class="message_cont center">
-				<div class="message">{{conv?.messages[conv.messages.length - 1].msg}}</div>
-			</div>
-		</div> -->
-	</router-link>
+	</div>
+	<!-- </router-link> -->
 </template>
 
 <script setup lang="ts">
 import { inject, defineProps, onMounted, ref } from "vue";
-import Conversation from '@/chat/Conversation';
+import Conversation from '@/chat/PrivateConv';
 import User from "@/chat/User";
 
 let define = inject("colors");
@@ -32,7 +25,7 @@ const props = defineProps({
 * {
   --height: 30px;
 }
-.basicProfil_cont {
+.basicProfil {
 	width: auto;
 	height: var(--height);
 	/* padding: 5px 0 5px 20px; */

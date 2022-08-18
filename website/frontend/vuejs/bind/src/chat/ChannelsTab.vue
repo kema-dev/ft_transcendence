@@ -4,7 +4,7 @@
 			<SearchItem v-if="!newChannel" @searchInput="searchChange" :key="searchKey"/>
 			<!-- <div v-if="newChannel" class="newChannelTitle">Create a new Channel</div> -->
 			<div v-if="newChannel" class="newChannelTitle center">
-				<h2 class="newChannelTitleText">Create a new Channel</h2>
+				<span class="newChannelTitleText">Create a new Channel</span>
 			</div>
 			<div class="buttons_cont space-around raw">
 				<button v-if="!newChannel" @click="findChannelFn()" class="button_cont center column">
@@ -22,7 +22,7 @@
 			</div>
 		</div>
 		<div v-if="!findChannel && !newChannel" class="myChannels center column">
-			<ConversationTab v-for="(data, i) in convsFiltred" :key="i" :conv="data" class="center"/>
+			<ConversationTab v-for="(data, i) in convsFiltred" :key="i" :name-conv="data.user.name" :avatar="data.user.avatar" :message="data.messages[data.messages.length - 1]" :date="data.messages[data.messages.length - 1].date" class="center"/>
 			<h2 v-if="conversations.length == 0" class="no_results">No conversations</h2>
 			<h2 v-else-if="convsFiltred!.length == 0" class="no_results">No results</h2>
 		</div>
@@ -37,6 +37,24 @@
 			</div>
 			<h2 v-if="knownPeople().length == 0 && otherPeople().length == 0">No results</h2>
 		</div>
+		<form v-if="newChannel" @submit.prevent="submitChannel" id="channelForm" class="channelForm left column">
+			<div class="elemForm_cont left column">
+				<label for="name" class="labelForm">Channel name</label>
+				<input type="text" name="name" required id="name" class="inputForm">
+			</div>
+			<div class="elemForm_cont left column">
+				<div class="left_center raw">
+					<label for="pswCheckbox" class="labelForm">Password ?</label>
+					<input v-model="pswCheck" type="checkbox" name="pswCheckbox" id="pswCheckbox" value="psw required">
+				</div>
+				<input type="text" name="name" id="pswInput" class="inputForm" :disabled="!pswCheck" :required="pswCheck">
+			</div>
+			<!-- <div class="elemForm_cont left column">
+				<label for="users" class="labelForm">User to invite in channel</label>
+				<input type="text" name="usersChann" id="usersChann" class="inputForm">
+			</div> -->
+			<input type="submit" value="Create" id="submitButton">
+		</form>
 	</div>
 </template>
 
@@ -46,7 +64,7 @@ import { inject, onMounted, defineEmits, ref, nextTick } from "vue";
 import ConversationTab from "@/chat/ConversationTab.vue";
 import BasicProfil from "@/components/BasicProfilItem.vue";
 import SearchItem from "@/components/SearchItem.vue";
-import Conversation from "@/chat/Conversation";
+import Conversation from "@/chat/PrivateConv";
 import User from "@/chat/User";
 import Message from "@/chat/Message";
 let define = inject("colors");
@@ -57,6 +75,7 @@ let search = ref("");
 let findChannel = ref(false);
 const newChannel = ref(false);
 const searchKey = ref(0);
+const pswCheck = ref(false);
 // const searchCompRef = ref<InstanceType<typeof SearchItem>>();
 
 let user1 = new User("Totolosa", require("@/assets/avatars/(1).jpg"));
@@ -137,10 +156,15 @@ function findChannelFn() {
 }
 function newChannelFn() {
 	newChannel.value = !newChannel.value;
-	// searchKey.value += 1;
-	// nextTick(() => {
-	// 	document.getElementById("search")?.focus();
-	// })
+}
+
+function submitChannel() {
+	let form = document.getElementById("channelForm") as HTMLFormElement;
+	const data = new FormData(form);
+	conversations.push(new Conversation(true, [user1], [msg1], data.get('name') as string));
+	convsFiltred.value = conversations;
+	newChannel.value = false;
+	console.log(data.get('name') as string);
 }
 
 </script>
@@ -211,9 +235,48 @@ function newChannelFn() {
 	height: 75px;
 	width: 70%;
 	align-items: center;
-
 }
-
+.newChannelTitleText {
+	font-size: 1.15rem;
+	font-weight: 500;
+	color: v-bind("define.color2");
+	border-bottom: 2px solid v-bind("define.color2");
+	font-family: "Orbitron", sans-serif;
+	padding-bottom: 10px;
+}
+.channelForm {
+	width: 80%;
+}
+.elemForm_cont {
+	padding-bottom: 10px;
+}
+.labelForm {
+	/* font-family: "Orbitron", sans-serif; */
+	font-weight: 400;
+}
+.inputForm {
+	padding: 0 5px;
+	border-radius: 5px;
+	height: 1.5rem;
+	outline: none;
+}
+#pswCheckbox {
+	margin-left: 10px;
+}
+#submitButton {
+	background-color: v-bind("define.color2");
+	color: #fff;
+	border-radius: 5px;
+	margin-top: 10px;
+	padding: 5px;
+	font-family: "Orbitron", sans-serif;
+}
+#submitButton:hover {
+	/* font-weight: 500; */
+	/* box-shadow: 3px 3px 3px rgba(0,0,0,0.2); */
+	box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+	cursor: pointer;
+}
 
 /* TRANSITION ROUTER VIEW */
 
