@@ -22,15 +22,19 @@
 			</div>
 		</div>
 		<div v-if="!findChannel && !newChannel" class="myChannels center column">
-			<ConversationTab v-for="(data, i) in convsFiltred" :key="i" :name-conv="data.user.name" :avatar="data.user.avatar" :message="data.messages[data.messages.length - 1]" :date="data.messages[data.messages.length - 1].date" class="center"/>
+			<div v-for="(data, i) in convsFiltred" :key="i" class="center">
+				<ConversationTab v-if="data.messages" :name-conv="data.name" :avatar="data.avatar" :message="data.messages[data.messages.length - 1]" :date="data.messages[data.messages.length - 1].date" class="center"/>
+				<ConversationTab v-else :name-conv="data.name" :avatar="data.avatar" :date="data.creation" class="center"/>
+			</div>
+			<!-- <ConversationTab v-for="(data, i) in convsFiltred" :key="i" :name-conv="data.name" :avatar="data.avatar" :message="data.messages[data.messages.length - 1]" :date="data.messages[data.messages.length - 1].date" class="center"/> -->
 			<h2 v-if="conversations.length == 0" class="no_results">No conversations</h2>
 			<h2 v-else-if="convsFiltred!.length == 0" class="no_results">No results</h2>
 		</div>
 		<div v-if="findChannel" class="newMsgResults">
-			<div v-if="knownPeople().length > 0" class="knownPeople left column">
+			<!-- <div v-if="knownPeople().length > 0" class="knownPeople left column">
 				<h2 class="typeUsers">Friends/conversations</h2>
 				<BasicProfil v-for="(data, i) in knownPeople()" :key="i" :user="data"/>
-			</div>
+			</div> -->
 			<div v-if="search.length > 0 && otherPeople().length > 0" class="otherPeople left column">
 				<h2 class="typeUsers">More people</h2>
 				<BasicProfil v-for="(data, i) in otherPeople()" :key="i" :user="data"/>
@@ -47,7 +51,7 @@
 					<label for="pswCheckbox" class="labelForm">Password ?</label>
 					<input v-model="pswCheck" type="checkbox" name="pswCheckbox" id="pswCheckbox" value="psw required">
 				</div>
-				<input type="text" name="name" id="pswInput" class="inputForm" :disabled="!pswCheck" :required="pswCheck">
+				<input type="text" name="pswInput" id="pswInput" class="inputForm" :disabled="!pswCheck" :required="pswCheck">
 			</div>
 			<!-- <div class="elemForm_cont left column">
 				<label for="users" class="labelForm">User to invite in channel</label>
@@ -64,12 +68,12 @@ import { inject, onMounted, defineEmits, ref, nextTick } from "vue";
 import ConversationTab from "@/chat/ConversationTab.vue";
 import BasicProfil from "@/components/BasicProfilItem.vue";
 import SearchItem from "@/components/SearchItem.vue";
-import Conversation from "@/chat/PrivateConv";
+import Channel from "@/chat/Channel";
 import User from "@/chat/User";
 import Message from "@/chat/Message";
 let define = inject("colors");
 let me : User = inject("me")!;
-const emit = defineEmits(['searchInputChild']);
+// const emit = defineEmits(['searchInputChild']);
 
 let search = ref("");
 let findChannel = ref(false);
@@ -96,8 +100,8 @@ let msg6 = new Message(user2, "Mais tu sais pas parler en fait", new Date());
 // let conv1 = new Conversation(false, [user2], [msg1, msg2]);
 // let conv2 = new Conversation(false, [user3], [msg3, msg4]);
 // let conv3 = new Conversation(false, [user1], [msg5, msg6]);
-let conv4 = new Conversation(true, [user1, user2, user3], [msg1, msg2, msg3, msg4, msg5, msg6]);
-let conv5 = new Conversation(true, [user1, user2, user3], [msg1, msg2, msg3, msg4], "Test channel");
+let conv4 = new Channel("My channel", [me], undefined, [user1, user2, user3], [msg1, msg2, msg3, msg4, msg5, msg6]);
+let conv5 = new Channel("Other channel, psw toto", [user2],"toto", [user1, user2, user3], [msg1, msg2, msg3, msg4]);
 
 let conversations = [conv4, conv5];
 // let convsFiltred = ref<Conversation[]>();
@@ -107,15 +111,15 @@ let friendsFiltred = ref(me.friends);
 // let knownPeople = [user1, user2, user3];
 // let otherPeople = [user4, user5];
 
-conversations.sort(function(x,y) {
-	if (x.messages[x.messages.length - 1].date < y.messages[y.messages.length - 1].date) {
-		return 1;
-    }
-    if (x.messages[x.messages.length - 1].date > y.messages[y.messages.length - 1].date) {
-        return -1;
-    }
-    return 0;
-});
+// conversations.sort(function(x,y) {
+// 	if (x.messages[x.messages.length - 1].date < y.messages[y.messages.length - 1].date) {
+// 		return 1;
+//     }
+//     if (x.messages[x.messages.length - 1].date > y.messages[y.messages.length - 1].date) {
+//         return -1;
+//     }
+//     return 0;
+// });
 
 function searchChange(value: string) {
 	search.value = value;
@@ -127,15 +131,10 @@ function searchChange(value: string) {
 	});
 }
 
-function knownPeople() : User[] {
-	let res : User[] = [];
+function knownPeople() : Channel[] {
+	let res : Channel[] = [];
 	for (let i = 0; i < convsFiltred.value.length; i++) {
-		res.push(convsFiltred.value[i].users[0]);
-	}
-	for (let i = 0; i < friendsFiltred.value.length; i++) {
-		if (!res.includes(friendsFiltred.value[i])) {
-			res.push(friendsFiltred.value[i]);
-		}
+		res.push(convsFiltred.value[i]);
 	}
 	return res;
 }
@@ -161,7 +160,10 @@ function newChannelFn() {
 function submitChannel() {
 	let form = document.getElementById("channelForm") as HTMLFormElement;
 	const data = new FormData(form);
-	conversations.push(new Conversation(true, [user1], [msg1], data.get('name') as string));
+	if (data.get("pswInput") as string) {
+		conversations.push(new Channel(data.get('name') as string, [me], data.get("pswInput") as string));
+	}
+	conversations.push(new Channel(data.get('name') as string, [me]));
 	convsFiltred.value = conversations;
 	newChannel.value = false;
 	console.log(data.get('name') as string);

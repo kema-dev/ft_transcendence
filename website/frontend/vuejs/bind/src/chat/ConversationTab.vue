@@ -14,7 +14,7 @@
         </div>
         <div class="message_cont center">
           <div v-if="message" class="message">{{message.msg}}</div>
-          <div v-else class="message">No message yet ...</div>
+          <div v-else class="message noMessage">Created the {{date?.toLocaleDateString("fr")}}, {{date?.toLocaleTimeString("fr")}}</div>
         </div>
       </div>
     </router-link>
@@ -124,6 +124,9 @@ function display_date() : string {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+}
+.noMessage {
+  color: grey;
 }
 
 </style>

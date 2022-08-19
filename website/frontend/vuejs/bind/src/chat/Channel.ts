@@ -2,30 +2,38 @@ import User from '@/chat/User';
 import Message from "@/chat/Message"
 
 export default class Channel {
-    
-    // channel: boolean;
-    channel: boolean;
-    users: User[];
-    messages?: Message[];
     name: string;
-    constructor(channel: boolean, users: User[], messages?: Message[], name?: string) {
-        this.channel = channel;
-        this.users = users;
+    admins: User[];
+    users?: User[];
+    messages?: Message[];
+    psw?: string;
+    bans?: User[];
+    avatar: string;
+    creation: Date;
+    constructor(name: string, admins: User[], psw?: string, users?: User[], messages?: Message[]) {
+        this.name = name;
+        this.admins = admins;
+        if (users) {
+            this.users = users;
+        }
         if (messages) {
             this.messages = messages;
         }
-        if (name) {
-            this.name = name;
+        if (psw) {
+            this.psw = psw;
         }
-        else {
-            let namejoin = "";
-            for (let i = 0; i < users.length; i++) {
-                namejoin += users[i].name;
-                if (i != users.length - 1) {
-                    namejoin += ", ";
-                }
-            }
-            this.name = namejoin;
+        this.avatar = require("@/assets/group_logo.svg");
+        this.creation = new Date();
+    }
+    addUser(user: User) {
+        if (!this.users?.includes(user)) {
+            this.users?.push(user);
         }
     }
+    delUser(user: User) {
+        // if (this.users?.includes(user)) {
+        //     this.users?.push(user);
+        // }
+    }
+
 }
