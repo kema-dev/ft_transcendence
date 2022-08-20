@@ -2,9 +2,14 @@ import Vector from '@/game2.0/Vector'
 import Wall from '@/game2.0/Wall'
 import Konva from "konva"
 
+function delay(ms: number) {
+	return new Promise(resolve => setTimeout(resolve, ms));
+}
 export default class Ball {
 	x: number;
 	y: number;
+	startX: number;
+	startY: number;
 	r: number;
 	v: Vector;
 	speed: number;
@@ -12,20 +17,31 @@ export default class Ball {
 	constructor(x: number, y: number) {
 		this.x = x;
 		this.y = y;
+		this.startX = x;
+		this.startY = y;
 		this.r = 10;
+		this.v = new Vector(0, 0);
 		this.speed = 3;
-		let ballX = Math.random() * 5;
-		let ballY = 5 - ballX;
-		if (Math.floor(Math.random() * 2) == 1) ballX = -ballX;
-		if (Math.floor(Math.random() * 2) == 1) ballY = -ballY;
-		this.v = new Vector(ballX, ballY)
-		this.v.normalize();
 		this.konva = new Konva.Circle({
 			x: this.x,
 			y: this.y,
 			radius: this.r,
 			fill: "#16638D",
 		})
+		this.start()
+	}
+	async start() {
+		this.speed = 0;
+		await delay(1000);
+		this.konva.x(this.startX);
+		this.konva.y(this.startY);
+		this.speed = 3;
+		let ballX = Math.random() * 5;
+		let ballY = 5 - ballX;
+		if (Math.floor(Math.random() * 2) == 1) ballX = -ballX;
+		if (Math.floor(Math.random() * 2) == 1) ballY = -ballY;
+		this.v = new Vector(ballX, ballY);
+		this.v.normalize();
 	}
 	getKonva() {
 		return this.konva
@@ -34,12 +50,27 @@ export default class Ball {
 		for (let i = 0; i < objects.children!.length; ++i) {
 			if (objects.children![i] == this.konva) return;
 			const wall = walls.get(objects.children![i].rotation());
+			if (!wall)
+				return;
+			// check collision
 			if (this.v.dotPorduct(wall!.vector) < 0 && detectCollisionRC(objects.children![i], this.konva)) {
-				const v = wall!.vector;
+				const v = wall.vector;
 				if (this.speed < 8)
 					this.speed += 0.1
 				this.v = this.v.add(
 					v.multiplication(v.dotPorduct(this.v.reverse()) * 2));
+				// check if is wall or racket for the score
+				if (objects.children![i].height() == wall.width && wall.side) {
+					if (wall.scoreKonva) {
+						wall.scoreKonva.text((Number(wall.scoreKonva.text()) - 1).toString());
+						// if (Number(wall.scoreKonva.text()) <= 0) {
+						// 	this.
+						// }
+					}
+					wall.racket!.speed = 0;
+					this.start().then(() => {wall.racket!.speed = 1;});
+					// wall.racket!.speed = 1;
+				}
 			}
 		}
 	}
