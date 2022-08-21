@@ -1,10 +1,10 @@
 <template>
-	<div id="stage-parent" class="stack" :key="props.nbrPlayer">
+	<div id="stage-parent" class="stack" :key="nbrPlayer">
 		<div id="container"></div>
 	</div>
 </template>
 <script setup lang="ts">
-import { inject, onMounted, defineProps, onUnmounted } from "vue";
+import { inject, onMounted, defineProps, onUnmounted, ref } from "vue";
 import Konva from "konva";
 import Field from "@/game2.0/Field";
 import Ball from "@/game2.0/Ball";
@@ -12,7 +12,7 @@ import Ball from "@/game2.0/Ball";
 let define = inject("colors");
 let props = defineProps(["nbrPlayer", "nbrBall", "start"]);
 let run = true;
-
+// let nbrPlayer = ref(props.nbrPlayer)
 let players = [
 	"zeus",
 	"Toto",
@@ -186,9 +186,6 @@ onMounted(() => {
 	fitStageIntoParentContainer();
 	window.addEventListener("resize", fitStageIntoParentContainer);
 });
-// function init() {
-
-// }
 onUnmounted(() => {
 	run = false;
 	// window.removeEventListener("resize", () => {});

@@ -32,9 +32,9 @@ export default class Ball {
 	}
 	async start() {
 		this.speed = 0;
-		await delay(1000);
 		this.konva.x(this.startX);
 		this.konva.y(this.startY);
+		await delay(1000);
 		this.speed = 3;
 		let ballX = Math.random() * 5;
 		let ballY = 5 - ballX;
@@ -56,19 +56,31 @@ export default class Ball {
 			if (this.v.dotPorduct(wall!.vector) < 0 && detectCollisionRC(objects.children![i], this.konva)) {
 				const v = wall.vector;
 				if (this.speed < 8)
-					this.speed += 0.1
+					this.speed += 0.1;
 				this.v = this.v.add(
 					v.multiplication(v.dotPorduct(this.v.reverse()) * 2));
 				// check if is wall or racket for the score
 				if (objects.children![i].height() == wall.width && wall.side) {
-					if (wall.scoreKonva) {
-						wall.scoreKonva.text((Number(wall.scoreKonva.text()) - 1).toString());
-						// if (Number(wall.scoreKonva.text()) <= 0) {
-						// 	this.
-						// }
-					}
-					wall.racket!.speed = 0;
-					this.start().then(() => {wall.racket!.speed = 1;});
+					wall.scoreKonva!.text((Number(wall.scoreKonva!.text()) - 1).toString());
+					// if (Number(wall.scoreKonva.text()) <= 0) {
+					// 	this.
+					// }
+					wall.scoreKonva!.fontSize(30);
+					wall.scoreKonva!.fill('#E00D0D');
+					wall.profile!.konvaBackground.stroke('#E00D0D');
+					wall.profile!.konvaRound.stroke('#E00D0D');
+					wall.profile!.konvaRound.strokeWidth(5);
+					wall.profile!.konvaBackground.strokeWidth(5);
+					this.start()
+						.then(() => {
+							wall.profile!.konvaBackground.stroke('#16638D');
+							wall.profile!.konvaBackground.strokeWidth(3);
+							wall.profile!.konvaRound.stroke('#16638D');
+							wall.profile!.konvaRound.strokeWidth(3);
+							wall.scoreKonva!.fontSize(25);
+							wall.scoreKonva!.fill('#16638D');
+						})
+					// .then(() => {wall.racket!.speed = 1;});
 					// wall.racket!.speed = 1;
 				}
 			}

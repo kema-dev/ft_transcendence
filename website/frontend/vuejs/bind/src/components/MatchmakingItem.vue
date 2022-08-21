@@ -51,7 +51,7 @@ function decr() {
 	}
 }
 function incrBall() {
-	// if (nbrBall.value + 1 <= 3)
+	if (nbrBall.value + 1 <= 3)
 	{
 		nbrBall.value++;
 		reload.value++;
