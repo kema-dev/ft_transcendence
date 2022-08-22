@@ -130,6 +130,10 @@ provide("defaultState", switch_value);
 const toast = useToast();
 
 function register() {
+	if ((email_register.value === "") || (login_register.value === "") || (password_register.value === "") || (password_confirmation.value === "")) {
+		toast.warning("📝 At least one field is empty, please fill all of them");
+		return;
+	}
 	axios
 		.post(apiPath + "auth/register", {
 			email: email_register.value,
@@ -168,6 +172,10 @@ function register() {
 		});
 }
 function auth() {
+	if ((email_auth.value === "") || (password_auth.value === "")) {
+		toast.warning("📝 At least one field is empty, please fill all of them");
+		return;
+	}
 	axios
 		.post(apiPath + "auth/login", {
 			email: email_auth.value,
