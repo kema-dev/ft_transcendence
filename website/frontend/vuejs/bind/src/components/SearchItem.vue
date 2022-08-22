@@ -65,7 +65,7 @@ onMounted( () => {
 }
 .reset_button {
     position: absolute;
-    right: 14%;
+    right: 10%;
 }
 .reset_button_img {
     height: 15x;

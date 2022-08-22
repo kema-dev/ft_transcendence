@@ -6,10 +6,10 @@ import GameView from '@/views/GameView.vue'
 import Friends from '@/menu/FriendsTab.vue'
 import Chat from '@/menu/ChatTab.vue'
 import InGame from '@/chat/InGameTab.vue'
-import Private from '@/chat/PrivateTab.vue'
-import Channels from '@/chat/ChannelsTab.vue'
+import Private from '@/chat/PrivateView.vue'
+import Channels from '@/chat/ChannelView.vue'
 import PrivateConv from '@/chat/PrivateConvItem.vue'
-import ChannelConv from '@/chat/PrivateConvItem.vue'
+import ChannelConv from '@/chat/ChannelConvItem.vue'
 import Settings from '@/menu/SettingsTab.vue'
 import Player from '@/menu/PlayerTab.vue'
 
@@ -108,7 +108,7 @@ router.afterEach((to, from) => {
 	const toDepth = to.path.split('/').length;
   const fromDepth = from.path.split('/').length;
 	const prev = to.path.split('/').pop();
-	console.log(prev);
+	// console.log(prev);
   to.meta.transitionName = toDepth < fromDepth ? 'slide-right' : 'slide-left';
 })
 

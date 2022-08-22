@@ -1,6 +1,4 @@
 Thomas:
 
 Front:
-- channel pas surligne quand conversation channel 
-- Reset input recherche quand nouveau message --> OK
-- hover button conversation pas ronde --> OK
+- error si nom  de channel existe deja en creation de nouvelle channel

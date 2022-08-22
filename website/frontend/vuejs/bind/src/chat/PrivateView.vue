@@ -40,7 +40,7 @@ import { inject, onMounted, defineEmits, ref, nextTick } from "vue";
 import ConversationTab from "@/chat/ConversationTab.vue";
 import BasicProfil from "@/components/BasicProfilItem.vue";
 import SearchItem from "@/components/SearchItem.vue";
-import PrivateConv from "@/chat/PrivateConv";
+import Private from "@/chat/Private";
 import User from "@/chat/User";
 import Message from "@/chat/Message";
 let define = inject("colors");
@@ -66,9 +66,9 @@ let msg4 = new Message(user1, "Non je dois finir de faire le front, et wallah c'
 let msg5 = new Message(user1, "dsaibciauwncopneejvnjnfcoamsdomvcafosnvonsvonoans", new Date());
 let msg6 = new Message(user2, "Mais tu sais pas parler en fait", new Date());
 
-let conv1 = new PrivateConv(user2, [msg1, msg2]);
-let conv2 = new PrivateConv(user3, [msg3, msg4]);
-let conv3 = new PrivateConv(user1, [msg5, msg6]);
+let conv1 = new Private(user2, [msg1, msg2]);
+let conv2 = new Private(user3, [msg3, msg4]);
+let conv3 = new Private(user1, [msg5, msg6]);
 // let conv4 = new Conversation([user1, user2, user3], [msg1, msg2, msg3, msg4, msg5, msg6]);
 // let conv5 = new Conversation([user1, user2, user3], [msg1, msg2, msg3, msg4], "Test channel");
 

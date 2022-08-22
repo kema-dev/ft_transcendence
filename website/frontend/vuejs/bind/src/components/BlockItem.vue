@@ -1,37 +1,34 @@
 <template>
 	<div id="blockAdvert_view" class="center">
 		<div class="blockAdvert center column">
-			<img src="~@/assets/warning_logo.png" alt="Warning" class="warning_img">
-			<span class="blockAdvertText">
-				<b>Are you sure to block this User?</b><br>You will not receive message from him/her anymore
-			</span>
-			<div class="blockAdvertButtons center raw">
-				<button>Yes</button>
-				<button @click="hideAdvert">No</button>
-			</div>
+			<img :src="img" alt="Warning" class="warning_img">
+			<span class="blockAdvertText">{{msg}}</span>
+			<slot name="buttons"></slot>
 		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { inject } from "vue";
+import { anyTypeAnnotation } from "@babel/types";
+import { inject, defineProps } from "vue";
 let define = inject("colors");
-function hideAdvert () {
-	let advert = document.getElementById("blockAdvert_view");
-	if (advert != null) {
-		advert.style.setProperty('visibility', 'hidden');
-	}
-}
+let props = defineProps({
+	img: String,
+	msg: String,
+})
+
 </script>
 
-<style scoped>
+<style>
 #blockAdvert_view {
-	visibility: hidden;
 	width: 100%;
 	height: 100%;
+	top: 0;
+	left: 0;
 	background-color: rgba(0, 0, 0, 0.3);
 	position: absolute;
 	top: 0;
+	z-index: 2;
 }
 .blockAdvert {
 	width : 80%;

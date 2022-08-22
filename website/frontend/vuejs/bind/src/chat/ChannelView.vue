@@ -1,5 +1,5 @@
 <template>
-	<div id="channel_view" class="center column">
+	<div id="channel_view" class="center column stack">
 		<div class="option_private center raw">
 			<SearchItem v-if="!newChannel" @searchInput="searchChange" :key="searchKey"/>
 			<!-- <div v-if="newChannel" class="newChannelTitle">Create a new Channel</div> -->
@@ -8,12 +8,12 @@
 			</div>
 			<div class="buttons_cont space-around raw">
 				<button v-if="!newChannel" @click="findChannelFn()" class="button_cont center column">
-					<span v-if="!findChannel" class="infoButtonText">Search channel</span>
+					<span v-if="!findChannel" class="infoButtonText">Join channel</span>
 					<img v-if="!findChannel" src="~@/assets/logo_search.svg" alt="New message" class="new_msg_img">
 					<span v-if="findChannel" class="infoButtonText">Back</span>
 					<img v-if="findChannel" src="~@/assets/undo_logo.svg" alt="New message" class="new_msg_img">
 				</button>
-				<button @click="newChannelFn()" class="button_cont center column">
+				<button v-if="!findChannel" @click="newChannelFn()" class="button_cont center column">
 					<span v-if="!newChannel" class="infoButtonText">Create channel</span>
 					<img v-if="!newChannel" src="~@/assets/new_channel.svg" alt="New message" class="new_msg_img">
 					<span v-if="newChannel" class="infoButtonText">Back</span>
@@ -23,24 +23,18 @@
 		</div>
 		<div v-if="!findChannel && !newChannel" class="myChannels center column">
 			<div v-for="(data, i) in convsFiltred" :key="i" class="center">
-				<ConversationTab v-if="data.messages" :name-conv="data.name" :avatar="data.avatar" :message="data.messages[data.messages.length - 1]" :date="data.messages[data.messages.length - 1].date" class="center"/>
-				<ConversationTab v-else :name-conv="data.name" :avatar="data.avatar" :date="data.creation" class="center"/>
+				<ConversationTab v-if="data.messages.length > 0" :name-conv="data.name" :avatar="data.avatar" :message="data.messages[data.messages.length - 1]" :date="data.messages[data.messages.length - 1].date" :chan="true" class="center"/>
+				<ConversationTab v-else :name-conv="data.name" :avatar="data.avatar" :date="data.creation" :chan="true" class="center"/>
 			</div>
-			<!-- <ConversationTab v-for="(data, i) in convsFiltred" :key="i" :name-conv="data.name" :avatar="data.avatar" :message="data.messages[data.messages.length - 1]" :date="data.messages[data.messages.length - 1].date" class="center"/> -->
 			<h2 v-if="conversations.length == 0" class="no_results">No conversations</h2>
 			<h2 v-else-if="convsFiltred!.length == 0" class="no_results">No results</h2>
 		</div>
-		<div v-if="findChannel" class="newMsgResults">
-			<!-- <div v-if="knownPeople().length > 0" class="knownPeople left column">
-				<h2 class="typeUsers">Friends/conversations</h2>
-				<BasicProfil v-for="(data, i) in knownPeople()" :key="i" :user="data"/>
-			</div> -->
-			<div v-if="search.length > 0 && otherPeople().length > 0" class="otherPeople left column">
-				<h2 class="typeUsers">More people</h2>
-				<BasicProfil v-for="(data, i) in otherPeople()" :key="i" :user="data"/>
-			</div>
-			<h2 v-if="knownPeople().length == 0 && otherPeople().length == 0">No results</h2>
+		<div v-if="findChannel && othersChans.length > 0" class="findChannelResults left column">
+			<!-- <div v-if="search.length > 0 && othersChans.length > 0" class="left column"> -->
+				<ChannelTab v-for="(data, i) in othersChans" :key="i" :channel="data"/>
 		</div>
+		<h2 v-else-if="findChannel && othersChans.length == 0">No results</h2>
+		<!-- </div> -->
 		<form v-if="newChannel" @submit.prevent="submitChannel" id="channelForm" class="channelForm left column">
 			<div class="elemForm_cont left column">
 				<label for="name" class="labelForm">Channel name</label>
@@ -66,7 +60,7 @@
 /* eslint @typescript-eslint/no-var-requires: "off" */
 import { inject, onMounted, defineEmits, ref, nextTick } from "vue";
 import ConversationTab from "@/chat/ConversationTab.vue";
-import BasicProfil from "@/components/BasicProfilItem.vue";
+import ChannelTab from "@/chat/ChannelTab.vue";
 import SearchItem from "@/components/SearchItem.vue";
 import Channel from "@/chat/Channel";
 import User from "@/chat/User";
@@ -75,8 +69,8 @@ let define = inject("colors");
 let me : User = inject("me")!;
 // const emit = defineEmits(['searchInputChild']);
 
-let search = ref("");
-let findChannel = ref(false);
+const search = ref("");
+const findChannel = ref(false);
 const newChannel = ref(false);
 const searchKey = ref(0);
 const pswCheck = ref(false);
@@ -103,13 +97,16 @@ let msg6 = new Message(user2, "Mais tu sais pas parler en fait", new Date());
 let conv4 = new Channel("My channel", [me], undefined, [user1, user2, user3], [msg1, msg2, msg3, msg4, msg5, msg6]);
 let conv5 = new Channel("Other channel, psw toto", [user2],"toto", [user1, user2, user3], [msg1, msg2, msg3, msg4]);
 
-let conversations = [conv4, conv5];
-// let convsFiltred = ref<Conversation[]>();
-// convsFiltred.value = conversations;
-let convsFiltred = ref(conversations);
-let friendsFiltred = ref(me.friends);
-// let knownPeople = [user1, user2, user3];
-// let otherPeople = [user4, user5];
+const conversations = [conv4, conv5];
+const convsFiltred = ref(conversations);
+
+let chanServ4 = new Channel("First!", [user2], undefined, [user3, user3, user4]);
+let chanServ1 = new Channel("DEBILES de 42", [user3], "psw");
+chanServ1.addBan(me, user3);
+let chanServ2 = new Channel("Cracks de 42", [user2], undefined, [user3, user3, user4]);
+let chanServ3 = new Channel("Sportifs de 42", [user4], "psw", [user1, user2]);
+let chansServ = [chanServ4, chanServ1, chanServ2, chanServ3]
+const othersChans = ref(chansServ);
 
 // conversations.sort(function(x,y) {
 // 	if (x.messages[x.messages.length - 1].date < y.messages[y.messages.length - 1].date) {
@@ -126,25 +123,26 @@ function searchChange(value: string) {
 	convsFiltred.value = conversations.filter(function(value) {
 		return value.name.toUpperCase().startsWith(search.value.toUpperCase());
 	});
-	friendsFiltred.value = me.friends.filter(function(value) {
+	// FAIRE APPEL BACK POUR CHANNELS DISPO
+	othersChans.value = chansServ.filter(function(value) {
 		return value.name.toUpperCase().startsWith(search.value.toUpperCase());
 	});
 }
 
-function knownPeople() : Channel[] {
-	let res : Channel[] = [];
-	for (let i = 0; i < convsFiltred.value.length; i++) {
-		res.push(convsFiltred.value[i]);
-	}
-	return res;
-}
+// function knownPeople() : Channel[] {
+// 	let res : Channel[] = [];
+// 	for (let i = 0; i < convsFiltred.value.length; i++) {
+// 		res.push(convsFiltred.value[i]);
+// 	}
+// 	return res;
+// }
 
-function otherPeople() : User[] {
-	let others = [user4, user5];
-	return others.filter(function(value) {
-		return value.name.toUpperCase().startsWith(search.value.toUpperCase());
-	});
-}
+// function otherPeople() : User[] {
+// 	let others = [user4, user5];
+// 	return others.filter(function(value) {
+// 		return value.name.toUpperCase().startsWith(search.value.toUpperCase());
+// 	});
+// }
 
 function findChannelFn() {
 	findChannel.value = !findChannel.value;
@@ -163,7 +161,9 @@ function submitChannel() {
 	if (data.get("pswInput") as string) {
 		conversations.push(new Channel(data.get('name') as string, [me], data.get("pswInput") as string));
 	}
-	conversations.push(new Channel(data.get('name') as string, [me]));
+	else {
+		conversations.push(new Channel(data.get('name') as string, [me]));
+	}
 	convsFiltred.value = conversations;
 	newChannel.value = false;
 	console.log(data.get('name') as string);
@@ -172,7 +172,7 @@ function submitChannel() {
 </script>
 
 <style>
-#private_view {
+#channel_view {
 	height: calc(100vh - 180px);
 	justify-content: flex-start;
 }
@@ -226,7 +226,8 @@ function submitChannel() {
   to { opacity: 1; }
 }
 
-.newMsgResults {
+.findChannelResults {
+	margin-top: 10px;
 	width: 90%;
 }
 .typeUsers {

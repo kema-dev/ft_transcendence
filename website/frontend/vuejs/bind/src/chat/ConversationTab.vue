@@ -1,10 +1,7 @@
 <template>
-    <router-link :to="{name: 'PrivConv', params: {conv_name: nameConv }}" class="conv_container left row stack">
+    <router-link :to="{name: chan == true ? 'ChannelConv' : 'PrivConv', params: {conv_name: nameConv }}" class="conv_container left row stack">
       <div class="avatar_cont">
-        <!-- <img v-if="!conv!.channel" :src="conv!.users[0].avatar" class="avatar" alt="avatar">
-        <img v-else-if="conv!.messages" :src="conv!.messages[conv!.messages.length -1].user.avatar" class="avatar" alt="avatar"> -->
         <img v-if="avatar" :src="avatar" class="avatar" alt="avatar">
-        <!-- <img v-if="avatar" src="~@/assets/logo_search.svg" class="avatar" alt="avatar"> -->
         <img v-else src="~@/assets/group_logo.svg" class="avatar" alt="avatar">
       </div>
       <div class="info center column">
@@ -22,7 +19,7 @@
 
 <script setup lang="ts">
 import { inject, defineProps, onMounted, ref } from "vue";
-import PrivateConv from '@/chat/PrivateConv';
+import Private from '@/chat/Private';
 import User from "./User";
 import Message from "./Message";
 
@@ -32,7 +29,8 @@ const props = defineProps({
   nameConv: String,
   avatar: String,
   message: Message,
-  date: Date
+  date: Date,
+  chan: Boolean
 })
 
 function convertDate(date : Date) : string {

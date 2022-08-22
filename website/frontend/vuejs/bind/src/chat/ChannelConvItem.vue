@@ -1,18 +1,18 @@
 <template>
-		<div id="conversation_view" class="stack">
+		<div id="channel_view" class="stack">
 			<div class="userTopBar center raw space-between">
 				<div class="avatar_cont center">
 					<img :src="conv.user.avatar" class="avatar" alt="avatar">
 				</div>
 				<button @click="toProfile" class="login">{{route.params.conv_name}}</button>
 				<div class="option_buttons center raw stack">
-					<button @click="inviteGame" class="button_cont infoButton center">
+					<!-- <button @click="inviteGame" class="button_cont infoButton center">
 						<span class="infoButtonText">Invite in room</span>
-						<img src="~@/assets/ball_logo.svg" alt="Invite game button" class="logo_img">
-					</button>
-					<button @click="blockWarn = true" class="button_cont infoButton center">
-						<span class="infoButtonText">Block</span>
-						<img src="~@/assets/block_logo.svg" alt="Invite game button" class="logo_img">
+						<img src="~@/assets/play_button.png" alt="Invite game button" class="logo_img">
+					</button> -->
+					<button @click="infoChannel()" class="button_cont infoButton center">
+						<span class="infoButtonText">Info</span>
+						<img src="~@/assets/info_logo.svg" alt="Info button" class="logo_img">
 					</button>
 					<button onclick="history.back();" class="button_cont infoButton center">
 						<span class="infoButtonText">Close</span>
@@ -20,7 +20,7 @@
 					</button>
 				</div>
 			</div>
-			<div class="conversation_content ">
+			<div class="conversation_content stack">
 				<div id="messages_cont" class="messages ">
 						<MessageItem v-for="(message, i) in conv.messages" :key="i" :message="message"/>
 				</div>
@@ -28,15 +28,6 @@
 					<input type="text" placeholder="Aa..." id="sendbox" v-model="myMsg" class="sendbox"/>
 				</div>
 			</div>
-			<BlockAdvert v-if="blockWarn" msg="Are you sure to block this User? You will not receive message from him/her anymore"
-				:img="require('@/assets/warning_logo.png')">
-				<template #buttons>
-					<div class="blockAdvertButtons center raw">
-						<button @click="banUser()" >Yes</button>
-						<button @click="blockWarn = false">No</button>
-					</div>
-				</template>
-			</BlockAdvert>
 		</div>
 </template>
 
@@ -55,7 +46,6 @@ const route = useRoute();
 let define = inject("colors");
 let me: User = inject("me")!;
 let myMsg = ref("");
-let blockWarn = ref(false);
 
 let user1 = new User("Totolosa", require("@/assets/avatars/(1).jpg"));
 let user2 = new User("Ocean", require("@/assets/avatars/(2).jpg"));
@@ -69,9 +59,13 @@ let msg5 = new Message(user1, "dsaibciauwncopneejvnjn fcoamsdomvcafosnvonsvonoan
 let msg6 = new Message(user2, "Mais tu sais pas parler en fait", new Date());
 
 let conv = ref(new Private(user2, [msg1, msg2, msg3, msg5, msg6]));
+// let conv2 = new Conversation(false, [user1, user2, user3], [msg1, msg2]);
 
-function banUser() {
-	// DEMMANDER DE BAN LE USER AU BACK <==================================
+function blockUser () {
+	let advert = document.getElementById("blockAdvert_view");
+	if (advert != null) {
+		advert.style.setProperty('visibility', 'visible');
+	}
 }
 
 watch(conv.value.messages, (newMsg) => {
@@ -113,7 +107,7 @@ onBeforeUnmount(() => {
 * {
   --height: 70px;
 }
-#conversation_view {
+#channel_view {
 	height: calc(100vh - 180px);
 }
 .userTopBar {
@@ -147,7 +141,7 @@ onBeforeUnmount(() => {
 .option_buttons {
 	width: auto;
 	position: relative;
-
+	margin-right: 10px;
 }
 .button_cont {
 	margin: 5px;
@@ -175,11 +169,11 @@ onBeforeUnmount(() => {
 	transform: translate(50%);
 }
 
-/* .conversation_content {
+.conversation_content {
 	height: calc(100% - 70px);
 	width: 100%;
 	padding-top: 20px;
-} */
+}
 .messages {
 	overflow-y: auto;
 	height: calc(100vh - 340px);
@@ -191,9 +185,11 @@ onBeforeUnmount(() => {
 .sendbox_cont {
 	position: absolute;
 	bottom: 1rem;
-}
+	}
 
 .sendbox {
+	/* position: absolute;
+	bottom: 1rem; */
 	width: 40%;
 	height: 2.2rem;
 	padding: 10px 15px;
