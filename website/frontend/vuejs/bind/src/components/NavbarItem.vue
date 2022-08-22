@@ -1,8 +1,14 @@
 <template>
 	<nav>
+		<div class="center space-between">
 		<div class="nav-icon">
 			<img src="@/assets/logo_white.png" alt="pong.io logo" class="logo" />
 			<h1 class="text_logo">PONG.IO</h1>
+		</div>
+		<div>
+			<!-- <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+<lottie-player src="/Users/odroz-ba/GitHub/cursus/ft_transcendence/website/frontend/vuejs/bind/src/assets/json/home.json" background="#ffffff"  speed="1"  style="width: 300px; height: 300px;" hover loop controls autoplay></lottie-player> -->
+		</div>
 		</div>
 		<!-- <span class="material-symbols-outlined"> menu </span> -->
 	</nav>

@@ -9,6 +9,7 @@ import {
 	UseGuards,
 	Param,
 } from '@nestjs/common';
+import { get } from 'http';
 import UserDto from 'src/users/dto/user.dto';
 
 import { UsersService } from './users.service';
@@ -17,9 +18,13 @@ import { UsersService } from './users.service';
 export class UsersController {
 	constructor(private readonly usersService: UsersService) {}
 
-	// @UseGuards(JwtAuthenticationGuard)
-	@Get('getRank')
-	async getRank(login: string) {
-		return this.usersService.getRank(login);
+	// @UseGuards(JwtAuthenticationGuard) FIXME
+	@Post('getUser')
+	async getUser(@Body() params: any) {
+		return this.usersService.getByLogin(params.login);
+	}
+	@Get('avatar')
+	async getAvatar() {
+		return require("@/users/avatars/(6).jpg");
 	}
 }

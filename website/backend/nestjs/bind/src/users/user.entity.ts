@@ -19,8 +19,8 @@ export class User extends TimestampEntites{
 	@Column()
 	public level: number;
 
-	// @Column()
-	// public avatar: string;
+	@Column()
+	public avatar: string;
 
 	// @Column()
 	// public friends: [User];
