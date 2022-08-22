@@ -1,7 +1,11 @@
 <template>
 	<div class="center column" id="app">
-		<h2>{{backend_status}} show: {{show}}</h2>
-		<a v-if="!backend_status" class="back_msg" :href="apiPath + 'auth/status'">Please click here to authorize backend's certificate</a>
+		<a
+			v-if="!backend_status"
+			class="back_msg"
+			:href="apiPath + 'auth/status'"
+			>{{ BACKEND_DOWN_MESSAGE }}</a
+		>
 		<Transition name="showup">
 			<div v-if="show" class="outer">
 				<div class="inner">
@@ -45,9 +49,7 @@
 									placeholder="password confirmation"
 									type="password"
 								/>
-								<button class="login-btn" @click="register()">
-									Register
-								</button>
+								<button class="login-btn" @click="register()">Register</button>
 							</div>
 							<div v-else class="form_login">
 								<input
@@ -85,138 +87,154 @@ import axios from "axios";
 import Config from "../env.json";
 import { useToast } from "vue-toastification";
 import { onMounted, provide, ref } from "vue";
-import { useRouter } from 'vue-router'
+import { useRouter } from "vue-router";
 
-const router = useRouter()
+const router = useRouter();
 
-let rootPath= "https://localhost/";
-let apiPath= "https://localhost:3000/api/v1/";
-let api42Path=
-		"https://api.intra.42.fr/oauth/authorize?client_id=" +
-		Config.API_42_UID +
-		"&redirect_uri=" +
-		Config.API_42_REDIRECT_URI +
-		"&response_type=code";
-let email_register = "";
-let login_register = "";
-let password_register = "";
-let password_confirmation = "";
-let email_auth = "";
-let password_auth = "";
+let apiPath = "https://localhost:3000/api/v1/";
+let api42Path =
+	"https://api.intra.42.fr/oauth/authorize?client_id=" +
+	Config.API_42_UID +
+	"&redirect_uri=" +
+	Config.API_42_REDIRECT_URI +
+	"&response_type=code";
+let email_register = ref("");
+let login_register = ref("");
+let password_register = ref("");
+let password_confirmation = ref("");
+let email_auth = ref("");
+let password_auth = ref("");
 let show = ref(false);
-let switch_value = true;
-let docState = "saved";
+let switch_value = ref(true);
 let backend_status = ref(true);
+
+let E_PASS_DIFFERS = "Passwords do not match, please try again";
+let E_PASS_NOT_MEET_REQUIREMENTS =
+	"Password must contain at least one lowercase letter, one uppercase letter, one digit, one special character (!@#$%^&*) and must be between 10 and 32 characters long, please try again";
+let E_MAIL_NOT_MEET_REQUIREMENTS = "Email is not valid, please try again";
+let E_LOGIN_NOT_MEET_REQUIREMENTS =
+	"Login is not valid, must be between 1 and 25 characters long, using alphanumeric characters, '_' and '-' only, please try again";
+let E_UNEXPECTED_ERROR = "Unknown error, we are sorry for that 😥";
+let E_EMAIL_OR_LOGIN_ALREADY_EXISTS =
+	"User with that email and/or login already exists, please try again";
+let E_PASS_FAIL = "Wrong credentials provided, please try again";
+let BACKEND_DOWN_MESSAGE =
+	"Backend is down, please authorize our self-signed certificate manually by clicking this text";
+let E_NO_CODE_PROVIDED = "42 API authentication: No code provided, please try again";
+let E_CODE_IN_USE = "42 API authentication: Code already in use, please try again";
+let E_USER_IS_FT = "You registered with a 42 account, please login with your 42 account";
+let E_USER_NOT_FOUND = "This email / login does not exist, please try again";
 
 provide("defaultState", switch_value);
 
-
 const toast = useToast();
 
-		function change_form() {
-			switch_value = !switch_value;
-		}
-		function register() {
-			axios
-				.post(apiPath + "auth/register", {
-					email: email_register,
-					login: login_register,
-					password: password_register,
-					password_confirmation: password_confirmation,
-				})
-				.then(() => {
-					toast.success(
-						"Registration success, welcome " + login_register + " !"
-					);
-					router.push("/home");
-				})
-				.catch((error) => {
-					if (
-						error.response.data.message ===
-						"User with that email and/or login already exists, please try again"
-					) {
-						toast.warning(
-							"User with that email and/or login already exists, please try again"
+function register() {
+	axios
+		.post(apiPath + "auth/register", {
+			email: email_register.value,
+			login: login_register.value,
+			password: password_register.value,
+			password_confirmation: password_confirmation.value,
+		})
+		.then(() => {
+			toast.success(
+				"Registration success, welcome " + login_register.value + " !"
+			);
+			router.push("/home");
+		})
+		.catch((error) => {
+			if (error.response.data.message === "E_EMAIL_OR_LOGIN_ALREADY_EXISTS") {
+				toast.warning(E_EMAIL_OR_LOGIN_ALREADY_EXISTS);
+			} else if (error.response.data.message === "E_PASS_DIFFERS") {
+				toast.warning(E_PASS_DIFFERS);
+			} else if (
+				error.response.data.message.search("E_PASS_NOT_MEET_REQUIREMENTS") !==
+				-1
+			) {
+				toast.warning(E_PASS_NOT_MEET_REQUIREMENTS);
+			} else if (
+				error.response.data.message === "E_MAIL_NOT_MEET_REQUIREMENTS"
+			) {
+				toast.warning(E_MAIL_NOT_MEET_REQUIREMENTS);
+			} else if (
+				error.response.data.message === "E_LOGIN_NOT_MEET_REQUIREMENTS"
+			) {
+				toast.warning(E_LOGIN_NOT_MEET_REQUIREMENTS);
+			} else {
+				toast.error(E_UNEXPECTED_ERROR);
+				console.error(error);
+			}
+		});
+}
+function auth() {
+	axios
+		.post(apiPath + "auth/login", {
+			email: email_auth.value,
+			password: password_auth.value,
+		})
+		.then((response) => {
+			toast.success(
+				"Authentication success, welcome " + response.data.login + " !"
+			);
+			router.push("/home");
+		})
+		.catch((error) => {
+			if (error.response.data.message === "E_PASS_FAIL") {
+				toast.warning(E_PASS_FAIL);
+			} else if (error.response.data.message === "E_USER_IS_FT") {
+				toast.warning(E_USER_IS_FT);
+			} else if (error.response.data.message === "E_USER_NOT_FOUND") {
+				toast.warning(E_USER_NOT_FOUND);
+			} else {
+				toast.error(E_UNEXPECTED_ERROR);
+				console.error(error);
+			}
+		});
+}
+onMounted(() => {
+	axios
+		.get(apiPath + "auth/status")
+		.then(() => {
+			backend_status.value = true;
+			setTimeout(() => {
+				show.value = true;
+			}, 0.5);
+			let urlParams = new URLSearchParams(window.location.search);
+			let code = urlParams.get("code");
+			if (code) {
+				axios
+					.post(apiPath + "auth/login42", {
+						code: code,
+					})
+					.then((response) => {
+						toast.success(
+							"Authentication success, welcome " + response.data.login + " !"
 						);
-					} else if (error.response.data.message === "Passwords do not match") {
-						toast.warning("Passwords do not match");
-					} else if (
-						error.response.data.message.search("Password must contain") !== -1
-					) {
-						toast.warning(
-							"Password must contain at least one lowercase letter, one uppercase letter, one digit, one special character (!@#$%^&*) and must be between 10 and 32 characters long"
-						);
-					} else if (error.response.data.message === "Email is not valid") {
-						toast.warning("Email is not valid");
-					} else if (error.response.data.message === "Login is not valid") {
-						toast.warning(
-							'Login is not valid, must be between 1 and 25 characters long, using alphanumeric characters, "_" and "-" only'
-						);
-					} else {
-						toast.error("Unknown error, we are sorry for that 😥");
-						console.error(error);
-					}
-				});
-		}
-		function auth() {
-			axios
-				.post(apiPath + "auth/login", {
-					email: email_auth,
-					password: password_auth,
-				})
-				.then((response) => {
-					toast.success(
-						"Authentication success, welcome " + response.data.login + " !"
-					);
-					router.push("/home");
-				})
-				.catch((error) => {
-					if (error.response.data.message === "Wrong credentials provided") {
-						toast.warning("Wrong credentials provided, please try again");
-					} else {
-						toast.error("Unknown error, we are sorry for that 😥");
-						console.error(error);
-					}
-				});
-		}
-	onMounted(() => {
-		axios
-			.get(apiPath + "auth/status")
-			.then(() => {
-				backend_status.value = true;
-				setTimeout(() => {
-					show.value = true;
-				}, 0.5);
-				let urlParams = new URLSearchParams(window.location.search);
-				let code = urlParams.get("code");
-				if (code) {
-					axios
-						.post(apiPath + "auth/login42", {
-							code: code,
-						})
-						.then((response) => {
-							// console.log(response.data);
-							toast.success(
-								"Authentication success, welcome " + response.data.login + " !"
-							);
-							router.replace("/home");
-						})
-						.catch((error) => {
-							toast.error("Authentication failure, please try again");
+						router.replace("/home");
+					})
+					.catch((error) => {
+						if (error.response.data.message === "E_NO_CODE_PROVIDED") {
+							toast.warning(E_NO_CODE_PROVIDED);
+						} else if (error.response.data.message === "E_CODE_IN_USE") {
+							toast.warning(E_CODE_IN_USE);
+						} else if (error.response.data.message === "E_UNEXPECTED_ERROR") {
+							toast.error(E_UNEXPECTED_ERROR);
 							console.error(error);
-						});
-				}
-			})
-			.catch(() => {
-				setTimeout(() => {
-					backend_status.value = false;
-					toast.error(
-						"Backend is down, please authorize our self-signed certificate manually by clicking the button at the center of your screen"
-					);
-				}, 0.5);
-			});
-	})
-
+						} else {
+							toast.error(E_UNEXPECTED_ERROR);
+							console.error(error);
+						}
+					});
+			}
+		})
+		.catch(() => {
+			setTimeout(() => {
+				backend_status.value = false;
+				toast.error(BACKEND_DOWN_MESSAGE);
+			}, 0.5);
+		});
+});
 </script>
 
 

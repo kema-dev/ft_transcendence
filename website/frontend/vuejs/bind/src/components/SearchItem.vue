@@ -7,35 +7,48 @@
 			v-model="search"
 			@input="$emit('searchInput', search)"
         />
-        <button v-if="search.length > 0" @click="restet_input" class="reset_button center">
+        <!-- <input
+            :value="modelValue"
+            @input="$emit('update:modelValue', $event.target!.value)"
+        /> -->
+        <button v-if="search.length > 0" @click="changeInput('')" class="reset_button center">
             <img src="~@/assets/clear_button.png" alt="clear button" class="reset_button_img">
         </button>
     </form>
 </template>
 
 <script setup lang="ts">
-import { defineEmits, ref } from 'vue';
+import { defineProps, defineEmits, ref, onMounted } from 'vue';
+// const props = defineProps({
+//   search: String
+// })
 
+// defineProps(['modelValue'])
+// defineEmits(['update:modelValue'])
 
 const emit = defineEmits(['searchInput']);
 
 let search = ref("");
 
-function restet_input() {
-    search.value = '';
+function changeInput(value : string) {
+    search.value = value;
     emit('searchInput', search.value);
 }
+
+onMounted( () => {
+    emit('searchInput', search.value);
+})
 
 </script>
 
 <style scoped>
 .search_groupe {
 	margin-top: 5px;
-	width: 90%;
+	width: 70%;
 }
 #search {
 	top: 0px;
-	width: 80%;
+	width: 90%;
 	height: 40px;
     background-image: url('~@/assets/logo_search.png') ;
     background-position: left 10px top 50%;
@@ -52,7 +65,7 @@ function restet_input() {
 }
 .reset_button {
     position: absolute;
-    right: 14%;
+    right: 10%;
 }
 .reset_button_img {
     height: 15x;

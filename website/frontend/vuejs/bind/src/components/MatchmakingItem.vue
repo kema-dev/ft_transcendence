@@ -39,7 +39,7 @@ function launch() {
 	reload.value++;
 }
 function incr() {
-	if (nbrPlayer.value + 1 <= 8) {
+	if (nbrPlayer.value + 1 <= 7) {
 		nbrPlayer.value++;
 		reload.value++;
 	}

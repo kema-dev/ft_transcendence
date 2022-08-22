@@ -1,16 +1,17 @@
 <template>
-    <router-link :to="{name: 'conversation', params: {conv_name: conv!.name }}" class="conv_container left row stack">
+    <router-link :to="{name: chan == true ? 'ChannelConv' : 'PrivConv', params: {conv_name: nameConv }}" class="conv_container left row stack">
       <div class="avatar_cont">
-        <img v-if="!conv!.channel" :src="conv!.users[0].avatar" class="avatar" alt="avatar">
-        <img v-else :src="conv!.messages[conv!.messages.length -1].user.avatar" class="avatar" alt="avatar">
+        <img v-if="avatar" :src="avatar" class="avatar" alt="avatar">
+        <img v-else src="~@/assets/group_logo.svg" class="avatar" alt="avatar">
       </div>
       <div class="info center column">
         <div class="top-bar row center stack">
-          <div class="login">{{conv!.name}}</div>
-          <div class="date">{{display_date()}}</div>
+          <div class="login">{{nameConv}}</div>
+          <div v-if="message" class="date">{{display_date()}}</div>
         </div>
         <div class="message_cont center">
-          <div class="message">{{conv?.messages[conv.messages.length - 1].msg}}</div>
+          <div v-if="message" class="message">{{message.msg}}</div>
+          <div v-else class="message noMessage">Created the {{date?.toLocaleDateString("fr")}}, {{date?.toLocaleTimeString("fr")}}</div>
         </div>
       </div>
     </router-link>
@@ -18,11 +19,18 @@
 
 <script setup lang="ts">
 import { inject, defineProps, onMounted, ref } from "vue";
-import Conversation from '@/chat/Conversation';
+import Private from '@/chat/Private';
+import User from "./User";
+import Message from "./Message";
 
 let define = inject("colors");
 const props = defineProps({
-  conv: Conversation
+  // conv: PrivateConv
+  nameConv: String,
+  avatar: String,
+  message: Message,
+  date: Date,
+  chan: Boolean
 })
 
 function convertDate(date : Date) : string {
@@ -32,12 +40,12 @@ function convertDate(date : Date) : string {
 
 function display_date() : string {
   const now = new Date();
-  let diff = now.getTime() - props.conv!.messages[props.conv!.messages.length - 1].date.getTime();
+  let diff = now.getTime() - props.message!.date.getTime();
   let days = (diff / (1000 * 3600 * 24));
   let hours = days * 24;
   let mins = hours * 60;
   if (days >= 7) {
-    return convertDate(props.conv!.messages[props.conv!.messages.length - 1].date);
+    return convertDate(props.message!.date);
   }
   else if (days >= 1){
     return Math.floor(days) + "d";
@@ -62,7 +70,7 @@ function display_date() : string {
   margin-top: 5px;
   margin-bottom: 5px;
   border: solid 2px;
-  border-color: v-bind(define.color2);
+  border-color: v-bind("define.color2");
   border-radius: calc(var(--height) / 2);
 }
 .avatar_cont {
@@ -114,6 +122,9 @@ function display_date() : string {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+}
+.noMessage {
+  color: grey;
 }
 
 </style>
