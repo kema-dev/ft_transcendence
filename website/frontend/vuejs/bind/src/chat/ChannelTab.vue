@@ -41,7 +41,7 @@
 <script setup lang="ts">
 import { inject, defineProps, ref, nextTick, onMounted } from "vue";
 import { useRouter} from "vue-router";
-import WarningMsg from "@/components/BlockItem.vue";
+import WarningMsg from "@/components/WarningMsg.vue";
 import Channel from "@/chat/Channel";
 import User from "@/chat/User";
 

@@ -28,7 +28,7 @@
 					<input type="text" placeholder="Aa..." id="sendbox" v-model="myMsg" class="sendbox"/>
 				</div>
 			</div>
-			<BlockAdvert v-if="blockWarn" msg="Are you sure to block this User? You will not receive message from him/her anymore"
+			<WarningMsg v-if="blockWarn" msg="Are you sure to block this User? You will not receive message from him/her anymore"
 				:img="require('@/assets/warning_logo.png')">
 				<template #buttons>
 					<div class="blockAdvertButtons center raw">
@@ -36,7 +36,7 @@
 						<button @click="blockWarn = false">No</button>
 					</div>
 				</template>
-			</BlockAdvert>
+			</WarningMsg>
 		</div>
 </template>
 
@@ -48,7 +48,7 @@ import MessageItem from "@/chat/MessageItem.vue";
 import Private from '@/chat/Private';
 import User from "@/chat/User";
 import Message from "@/chat/Message";
-import BlockAdvert from "@/components/BlockItem.vue";
+import WarningMsg from "@/components/WarningMsg.vue";
 
 
 const route = useRoute();

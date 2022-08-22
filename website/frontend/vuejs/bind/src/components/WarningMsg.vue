@@ -52,5 +52,6 @@ let props = defineProps({
 	color: #fff;
 	background-color: v-bind("define.color2");
 	border-radius: 10px;
+	z-index: 3;
 }
 </style>
