@@ -113,7 +113,11 @@ export class AuthenticationService {
 		}
 	}
 
-	public async getAuthenticatedUser(name: string, password: string) {
+	public async getAuthenticatedUser(
+		name: string,
+		password: string,
+		mfa: string,
+	) {
 		console.log('getAuthenticatedUser: starting for login / email: ' + name);
 		try {
 			const user = await this.usersService.getByAny(name);
@@ -122,6 +126,23 @@ export class AuthenticationService {
 					'getAuthenticatedUser: ' + name + ' has no password, returning ✘',
 				);
 				throw new HttpException('E_USER_IS_FT', HttpStatus.BAD_REQUEST);
+			}
+			console.log('getAuthenticatedUser: ' + name + ' totp: ' + mfa);
+			if (user.totp_code !== '' && mfa === '') {
+				console.error(
+					'getAuthenticatedUser: ' + name + ' has totp code, returning ✘',
+				);
+				throw new HttpException('E_USER_HAS_TOTP', HttpStatus.BAD_REQUEST);
+			} else if (user.totp_code !== '' && mfa !== '') {
+				// const mfa_check = await this.check_totp_code(user.login, mfa);
+				// if (mfa_check == false) {
+				// 	console.error(
+				// 		'getAuthenticatedUser: ' +
+				// 			name +
+				// 			' totp code check failed, returning ✘',
+				// 	);
+				// 	throw new HttpException('E_TOTP_FAIL', HttpStatus.BAD_REQUEST);
+				// }
 			}
 			await this.verifyPassword(password, user.password);
 			console.log(

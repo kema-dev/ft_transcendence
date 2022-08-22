@@ -64,6 +64,12 @@
 									placeholder="password"
 									type="password"
 								/>
+								<input v-if="totp_enabled"
+									class="input_box"
+									v-model="totp_val"
+									placeholder="mfa code"
+									type="text"
+								/>
 								<button @click="auth()">Login</button>
 							</div>
 						</Transition>
@@ -107,6 +113,8 @@ let password_auth = ref("");
 let show = ref(false);
 let switch_value = ref(true);
 let backend_status = ref(true);
+let totp_enabled = ref(false);
+let totp_val = ref("");
 
 let E_PASS_DIFFERS = "Passwords do not match, please try again";
 let E_PASS_NOT_MEET_REQUIREMENTS =
@@ -120,17 +128,27 @@ let E_EMAIL_OR_LOGIN_ALREADY_EXISTS =
 let E_PASS_FAIL = "Wrong credentials provided, please try again";
 let BACKEND_DOWN_MESSAGE =
 	"Backend is down, please authorize our self-signed certificate manually by clicking this text";
-let E_NO_CODE_PROVIDED = "42 API authentication: No code provided, please try again";
-let E_CODE_IN_USE = "42 API authentication: Code already in use, please try again";
-let E_USER_IS_FT = "You registered with a 42 account, please login with your 42 account";
+let E_NO_CODE_PROVIDED =
+	"42 API authentication: No code provided, please try again";
+let E_CODE_IN_USE =
+	"42 API authentication: Code already in use, please try again";
+let E_USER_IS_FT =
+	"You registered with a 42 account, please login with your 42 account";
 let E_USER_NOT_FOUND = "This email / login does not exist, please try again";
+let E_USER_HAS_TOTP = "You have enabled 2FA, please login with your 2FA code";
+let E_TOTP_FAIL = "2FA code is not valid, please try again";
 
 provide("defaultState", switch_value);
 
 const toast = useToast();
 
 function register() {
-	if ((email_register.value === "") || (login_register.value === "") || (password_register.value === "") || (password_confirmation.value === "")) {
+	if (
+		email_register.value === "" ||
+		login_register.value === "" ||
+		password_register.value === "" ||
+		password_confirmation.value === ""
+	) {
 		toast.warning("📝 At least one field is empty, please fill all of them");
 		return;
 	}
@@ -153,8 +171,7 @@ function register() {
 			} else if (error.response.data.message === "E_PASS_DIFFERS") {
 				toast.warning(E_PASS_DIFFERS);
 			} else if (
-				error.response.data.message.search("E_PASS_NOT_MEET_REQUIREMENTS") !==
-				-1
+				error.response.data.message === "E_PASS_NOT_MEET_REQUIREMENTS"
 			) {
 				toast.warning(E_PASS_NOT_MEET_REQUIREMENTS);
 			} else if (
@@ -172,14 +189,18 @@ function register() {
 		});
 }
 function auth() {
-	if ((email_auth.value === "") || (password_auth.value === "")) {
+	if (email_auth.value === "" || password_auth.value === "") {
 		toast.warning("📝 At least one field is empty, please fill all of them");
 		return;
+	}
+	if (totp_val.value === "") {
+		console.log('totp:' + totp_val.value + ':');
 	}
 	axios
 		.post(apiPath + "auth/login", {
 			email: email_auth.value,
 			password: password_auth.value,
+			mfa: totp_val.value,
 		})
 		.then((response) => {
 			toast.success(
@@ -188,7 +209,12 @@ function auth() {
 			router.push("/home");
 		})
 		.catch((error) => {
-			if (error.response.data.message === "E_PASS_FAIL") {
+			if (error.response.data.message === "E_USER_HAS_TOTP") {
+				toast.warning(E_USER_HAS_TOTP);
+				totp_enabled.value = true;
+			} else if (error.response.data.message === "E_TOTP_FAIL") {
+				toast.warning(E_TOTP_FAIL);
+			} else if (error.response.data.message === "E_PASS_FAIL") {
 				toast.warning(E_PASS_FAIL);
 			} else if (error.response.data.message === "E_USER_IS_FT") {
 				toast.warning(E_USER_IS_FT);

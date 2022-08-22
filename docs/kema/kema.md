@@ -2,6 +2,7 @@
 
 ## ongoing
 
+* TODO check why mfa code is not valid in backend
 * TODO review controllers' args
 * TODO fix E_NO_NAME error in verify_totp
 * TODO handle E_GOOGLE_API, E_NO_NAME and E_TOTP_MISMATCH in totp related calls in frontend
