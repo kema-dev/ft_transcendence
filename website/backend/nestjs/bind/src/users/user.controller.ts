@@ -23,8 +23,8 @@ export class UsersController {
 	async getUser(@Body() params: any) {
 		return this.usersService.getByLogin(params.login);
 	}
-	@Get('avatar')
-	async getAvatar() {
-		return require("@/users/avatars/(6).jpg");
+	@Post('getAnyByLogin')
+	async getAnyByLogin(@Body() params: any) {
+		return this.usersService.getAnyByLogin(params.login, params.infos);
 	}
 }

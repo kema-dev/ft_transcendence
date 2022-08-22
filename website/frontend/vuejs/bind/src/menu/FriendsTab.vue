@@ -84,6 +84,7 @@ let user = {
 };
 function post(url: string, args: any) {
 	let data;
+	try {
 	axios
 		.post("https://localhost:3000/api/v1/" + url, args)
 		.then((response) => {
@@ -93,10 +94,15 @@ function post(url: string, args: any) {
 		.catch((error) => {
 			console.log(url + ": failed request.\nargs: " + args);
 			console.log(error);
-		});
+		});}
+		catch (stdrr){
+			console.log(stdrr.message)
+
+		}
 	return data;
 }
-let userr = post("user/getUser", {login: user.name});
+// let userr = post("user/getUser", {login: user.name});
+let avatar = post("user/getAnyByLogin", {login: user.name, infos: ["avatar"]});
 let users = [
 	{
 		name: "John",
