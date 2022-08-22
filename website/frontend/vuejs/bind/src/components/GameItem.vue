@@ -17,7 +17,7 @@ let players = [
 	"zeus",
 	"Toto",
 	"Jj"
-]
+];
 
 onMounted(() => {
 	var sceneWidth = 1000;
