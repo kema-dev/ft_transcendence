@@ -11,6 +11,7 @@ import Channels from '@/chat/ChannelView.vue'
 import PrivateConv from '@/chat/PrivateConvItem.vue'
 import ChannelConv from '@/chat/ChannelConvItem.vue'
 import Settings from '@/menu/SettingsTab.vue'
+import Profile from '@/menu/ProfileTab.vue'
 import Player from '@/menu/PlayerTab.vue'
 
 document.title = "pong.io"
@@ -40,12 +41,12 @@ const routes: Array<RouteRecordRaw> = [
 			{
 				name: 'friends',
 				path: '/home/friends',
-				components: {menu: Friends}
+				components: { menu: Friends }
 			},
 			{
 				name: 'chat',
 				path: '/home/chat',
-				components: {menu: Chat},
+				components: { menu: Chat },
 				redirect: '/home/chat/private',
 				children: [
 					// {
@@ -85,23 +86,23 @@ const routes: Array<RouteRecordRaw> = [
 			// 	component: {menu: inGame}
 			// },
 			{
-				name: 'settings',
-				path: '/home/settings',
-				components: {menu: Settings}
+				name: 'profile',
+				path: '/home/profile',
+				components: { menu: Profile }
 			},
 			{
 				name: 'player',
 				// path: '/home/player',
 				path: '/home/player/:name',
-				components: {menu: Player},
+				components: { menu: Player },
 			},
 		]
 	},
 ]
 
 const router = createRouter({
-  history: createWebHistory(process.env.BASE_URL),
-  routes
+	history: createWebHistory(process.env.BASE_URL),
+	routes
 })
 
 router.afterEach((to, from) => {

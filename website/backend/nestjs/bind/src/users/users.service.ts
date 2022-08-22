@@ -23,10 +23,7 @@ export class UsersService {
 			return user;
 		}
 		console.error('getByEmail: ' + mail + ' not found, returning ✘');
-		throw new HttpException(
-			'User with this email does not exist',
-			HttpStatus.NOT_FOUND,
-		);
+		throw new HttpException('E_USER_NOT_FOUND', HttpStatus.NOT_FOUND);
 	}
 
 	async getByLogin(logname: string) {
@@ -39,10 +36,27 @@ export class UsersService {
 			return user;
 		}
 		console.error('getByLogin: ' + logname + ' not found, returning ✘');
-		throw new HttpException(
-			'User with this login does not exist',
-			HttpStatus.NOT_FOUND,
-		);
+		throw new HttpException('E_USER_NOT_FOUND', HttpStatus.NOT_FOUND);
+	}
+
+	async getByAny(name: string) {
+		console.log('getByAny: starting for ' + name);
+		let user = await this.usersRepository.findOne({
+			where: { login: name },
+		});
+		if (user) {
+			console.log('getByAny: found ' + name + ' as login, returning ✔');
+			return user;
+		}
+		user = await this.usersRepository.findOne({
+			where: { email: name },
+		});
+		if (user) {
+			console.log('getByAny: found ' + name + ' as email, returning ✔');
+			return user;
+		}
+		console.error('getByAny: ' + name + ' not found, returning ✘');
+		throw new HttpException('E_USER_NOT_FOUND', HttpStatus.NOT_FOUND);
 	}
 
 	async checkLoginExistence(login: string) {
@@ -68,7 +82,7 @@ export class UsersService {
 			return user.login;
 		}
 		console.error('getRank: ' + login + ' not found, returning ✘');
-		// FIXME this return is unsafe
+		// FIXME this return is unsafe, use a proper exception instead
 		return 'Not found';
 	}
 
@@ -108,10 +122,7 @@ export class UsersService {
 			return user;
 		}
 		console.error('getById: ' + id + 'not found, returning ✘');
-		throw new HttpException(
-			'User with this id does not exist',
-			HttpStatus.NOT_FOUND,
-		);
+		throw new HttpException('E_USER_NOT_FOUND', HttpStatus.NOT_FOUND);
 	}
 
 	async create(userData: CreateUserDto) {
@@ -146,7 +157,17 @@ export class UsersService {
 			user.ft_expiresIn = ft_expiresIn;
 			user.ft_createdAt = ft_createdAt;
 			await this.usersRepository.save(user);
+		} else {
+			console.error('ft_update: ' + email + ' not found, updating aborted ✘');
 		}
-		console.error('ft_update: ' + email + ' not found, updating aborted ✘');
+	}
+
+	async change_totp_code(user: User, totp_code: string) {
+		console.log('change_totp_code: starting for ' + user.email);
+		console.log(
+			'change_totp_code: ' + user.email + ', updating and returning ✔',
+		);
+		user.totp_code = totp_code;
+		await this.usersRepository.save(user);
 	}
 }

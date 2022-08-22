@@ -7,7 +7,9 @@ import {
 	Post,
 	Get,
 	UseGuards,
+	Param,
 } from '@nestjs/common';
+import UserDto from 'src/users/dto/user.dto';
 
 import { UsersService } from './users.service';
 
@@ -15,7 +17,7 @@ import { UsersService } from './users.service';
 export class UsersController {
 	constructor(private readonly usersService: UsersService) {}
 
-	// @UseGuards(JwtAuthenticationGuard) FIXME
+	// @UseGuards(JwtAuthenticationGuard)
 	@Get('getRank')
 	async getRank(login: string) {
 		return this.usersService.getRank(login);

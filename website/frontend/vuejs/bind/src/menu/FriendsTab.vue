@@ -82,17 +82,21 @@ let user = {
 	avatar: require("@/assets/avatars/(2).jpg"),
 	friends: ["Jane", "John", "Jacksdfgtertwdsfadfsafdertert"],
 };
-let rank = "";
-axios
-	.get("http://localhost:3000/api/v1/user/getRank", { login: user.name })
-	.then((response) => {
-		rank = response.data;
-		console.log("rank:", rank);
-	})
-	.catch((error) => {
-		console.log(error);
-		console.log("rank: failed request");
-	});
+function post(url: string, args: any) {
+	let data;
+	axios
+		.post("https://localhost:3000/api/v1/" + url, args)
+		.then((response) => {
+			data = response.data;
+			console.log(url + ": ", data);
+		})
+		.catch((error) => {
+			console.log(url + ": failed request.\nargs: " + args);
+			console.log(error);
+		});
+	return data;
+}
+let userr = post("user/getUser", {login: user.name});
 let users = [
 	{
 		name: "John",

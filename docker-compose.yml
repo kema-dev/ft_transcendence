@@ -59,7 +59,7 @@ services:
               chown 1000:1000 /secrets/key.pem && \
               chown 1000:1000 /secrets/cert.pem && \
               npm config set fund false && \
-              npm install --force && \
+              npm install && \
               npm run ${NEST_PHASE} \
               '"
     restart: unless-stopped

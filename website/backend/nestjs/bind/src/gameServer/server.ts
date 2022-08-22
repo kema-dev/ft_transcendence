@@ -1,5 +1,3 @@
-// FIXME - this is a hack to get the server to work, maybe socket.io is not in package.json
-
 // var app = require('express')();
 // var http = require('http').Server(app);
 // var io = require('socker.io')(http);

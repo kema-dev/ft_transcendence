@@ -112,6 +112,9 @@ a {
 	align-items: center;
 	flex-direction: row;
 }
+.border {
+	border: 1px solid black
+}
 @media screen and (max-width: 1000px) {
 	.wrap {
 		flex-direction: column;

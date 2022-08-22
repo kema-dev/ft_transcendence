@@ -15,6 +15,15 @@ class User {
 	public password: string;
 
 	@Column()
+	public level: number;
+
+	// @Column()
+	// public avatar: string;
+
+	// @Column()
+	// public friends: [User];
+
+	@Column()
 	public ft_code: string;
 
 	@Column()
@@ -34,6 +43,9 @@ class User {
 
 	@Column()
 	public ft_createdAt: Date;
+
+	@Column()
+	public totp_code: string;
 }
 
 export default User;
