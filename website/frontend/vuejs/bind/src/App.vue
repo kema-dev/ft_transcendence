@@ -9,10 +9,12 @@
 import { provide, ref } from "vue";
 import User from "@/chat/User";
 
-provide("playing", false);
+
+
 let me = new User("Totolosa", require("@/assets/avatars/(1).jpg"));
 me.friends.push(new User("Myfriend", require("@/assets/avatars/(6).jpg")));
 provide("me", me);
+provide("playing", false);
 provide("colors", {
 	color0: "#fff",
 	color1: "#000",

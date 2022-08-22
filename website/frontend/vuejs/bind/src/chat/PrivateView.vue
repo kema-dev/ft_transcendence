@@ -51,6 +51,9 @@ const newMsg = ref(false);
 const searchKey = ref(0);
 // const searchCompRef = ref<InstanceType<typeof SearchItem>>();
 
+
+
+
 let user1 = new User("Totolosa", require("@/assets/avatars/(1).jpg"));
 let user2 = new User("Ocean", require("@/assets/avatars/(2).jpg"));
 let user3 = new User("Patrick la trick", require("@/assets/avatars/(3).jpg"));
