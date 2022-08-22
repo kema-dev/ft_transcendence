@@ -33,7 +33,6 @@ const props = defineProps({
 function getDateMsg () : string {
   let ret = props.message!.date.getHours() + ":" + props.message!.date.getMinutes();
   ret += "\n" + props.message!.date.toLocaleDateString("fr");
-  console.log(ret);
   return ret;
 }
 
@@ -55,6 +54,8 @@ function getDateMsg () : string {
   border-radius: 10px;
   margin: 10px;
   background-color: v-bind("colors.color2");
+  white-space: pre-line;
+  overflow-wrap: break-word;
 }
 .userMsg_cont {
   align-items:center;
@@ -68,11 +69,9 @@ function getDateMsg () : string {
   border-radius: 10px;
   margin: 10px;
   background-color: white;
+  white-space: pre-line;
+  overflow-wrap: break-word;
 }
-/* .avatar_cont {
-  width: var(--height);
-  height: var(--height);
-} */
 
 .avatar {
   width: var(--height);

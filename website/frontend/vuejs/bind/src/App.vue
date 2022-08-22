@@ -10,7 +10,9 @@ import { provide, ref } from "vue";
 import User from "@/chat/User";
 
 provide("playing", false);
-provide("me", new User("Totolosa", require("@/assets/avatars/(1).jpg")));
+let me = new User("Totolosa", require("@/assets/avatars/(1).jpg"));
+me.friends.push(new User("Myfriend", require("@/assets/avatars/(6).jpg")));
+provide("me", me);
 provide("colors", {
 	color0: "#fff",
 	color1: "#000",
@@ -81,6 +83,11 @@ a {
 	justify-content: flex-start;
 	align-items: flex-start;
 }
+.left_center {
+	display: flex;
+	justify-content: flex-start;
+	align-items: center;
+}
 .right {
 	display: flex;
 	justify-content: flex-end;
@@ -89,10 +96,12 @@ a {
 .space-between {
 	display: flex;
 	justify-content: space-between !important;
+	align-items: center;
 }
 .space-around {
 	display: flex;
 	justify-content: space-around !important;
+	align-items: center;
 }
 .stack {
 	position: relative;

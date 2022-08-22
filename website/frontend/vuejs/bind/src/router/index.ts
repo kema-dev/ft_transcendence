@@ -6,10 +6,11 @@ import GameView from '@/views/GameView.vue'
 import Friends from '@/menu/FriendsTab.vue'
 import Chat from '@/menu/ChatTab.vue'
 import InGame from '@/chat/InGameTab.vue'
-import Private from '@/chat/PrivateTab.vue'
-import Channels from '@/chat/ChannelsTab.vue'
-import Conversation from '@/chat/ConversationItem.vue'
-import ConversationClass from '@/chat/Conversation'
+import Private from '@/chat/PrivateView.vue'
+import Channels from '@/chat/ChannelView.vue'
+import PrivateConv from '@/chat/PrivateConvItem.vue'
+import ChannelConv from '@/chat/ChannelConvItem.vue'
+import Settings from '@/menu/SettingsTab.vue'
 import Profile from '@/menu/ProfileTab.vue'
 import Player from '@/menu/PlayerTab.vue'
 
@@ -34,7 +35,8 @@ const routes: Array<RouteRecordRaw> = [
 	{
 		name: 'home',
 		path: '/home',
-		components: { default: Home },
+		components: {default: Home},
+		redirect: '/home/chat/private',
 		children: [
 			{
 				name: 'friends',
@@ -47,26 +49,34 @@ const routes: Array<RouteRecordRaw> = [
 				components: { menu: Chat },
 				redirect: '/home/chat/private',
 				children: [
-					{
-						name: 'in-game',
-						path: '/home/chat/in-game',
-						components: { chat_menu: InGame },
-					},
+					// {
+					// 	name: 'in-game',
+					// 	path: '/home/chat/in-game',
+					// 	components: {chat_menu: InGame},
+					// },
 					{
 						name: 'private',
 						path: '/home/chat/private',
-						components: { chat_menu: Private },
+						components: {chat_menu: Private},
+						meta: { transition: 'myFade' },
 					},
 					{
 						name: 'channels',
 						path: '/home/chat/channels',
-						components: { chat_menu: Channels },
+						components: {chat_menu: Channels},
+						meta: { transition: 'myFade' },
 					},
 					{
-						name: 'conversation',
+						name: 'PrivConv',
 						path: '/home/chat/private/:conv_name',
-						components: { chat_menu: Conversation },
-						// props: ConversationClass
+						components: {chat_menu: PrivateConv},
+						meta: { transition: 'mySlide' },
+					},
+					{
+						name: 'ChannelConv',
+						path: '/home/chat/channel/:conv_name',
+						components: {chat_menu: ChannelConv},
+						meta: { transition: 'mySlide' },
 					}
 				],
 			},
@@ -93,6 +103,14 @@ const routes: Array<RouteRecordRaw> = [
 const router = createRouter({
 	history: createWebHistory(process.env.BASE_URL),
 	routes
+})
+
+router.afterEach((to, from) => {
+	const toDepth = to.path.split('/').length;
+  const fromDepth = from.path.split('/').length;
+	const prev = to.path.split('/').pop();
+	// console.log(prev);
+  to.meta.transitionName = toDepth < fromDepth ? 'slide-right' : 'slide-left';
 })
 
 export default router
