@@ -42,6 +42,7 @@
 
 <script setup lang="ts">
 /* eslint @typescript-eslint/no-var-requires: "off" */
+import axios from "axios";
 import { inject, onMounted, ref, onBeforeUnmount, watch } from "vue";
 import { useRoute } from 'vue-router';
 import MessageItem from "@/chat/MessageItem.vue";
@@ -51,11 +52,19 @@ import Message from "@/chat/Message";
 import WarningMsg from "@/components/WarningMsg.vue";
 
 
+let apiPath: string = inject("apiPath")!;
 const route = useRoute();
 let define = inject("colors");
 let me: User = inject("me")!;
 let myMsg = ref("");
 let blockWarn = ref(false);
+
+
+axios.get(apiPath + "chat/message")
+	.then(res => {console.log("backMsg = ", res.data)})
+	.catch(e => {console.log(e)});
+// let backMsg = await axios.get(apiPath + "chat/message");
+// console.log("backMsg = ", (await backMsg).data);
 
 let user1 = new User("Totolosa", require("@/assets/avatars/(1).jpg"));
 let user2 = new User("Ocean", require("@/assets/avatars/(2).jpg"));
