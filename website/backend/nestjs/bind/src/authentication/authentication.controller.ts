@@ -43,15 +43,14 @@ export class AuthenticationController {
 	@HttpCode(200)
 	@Post('login')
 	async logIn(@Body() body: LogInDto, @Res() response: Response) {
+		let usr;
 		try {
 			if (
-				(
-					await this.authenticationService.getAuthenticatedUser(
-						body.email,
-						body.password,
-						body.mfa,
-					)
-				).success !== true
+				(usr = await this.authenticationService.getAuthenticatedUser(
+					body.email,
+					body.password,
+					body.mfa,
+				)).success !== true
 			) {
 				return response.status(401);
 			}
@@ -59,7 +58,7 @@ export class AuthenticationController {
 			throw error;
 		}
 		// TODO add a cookie to the response
-		return response.send('You successfully logged in using a password');
+		return response.send({ login: usr.login, success: true });
 	}
 
 	@HttpCode(200)

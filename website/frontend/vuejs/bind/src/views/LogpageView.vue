@@ -201,6 +201,7 @@ function auth() {
 			mfa: totp_val.value,
 		})
 		.then((response) => {
+			console.log(response);
 			toast.success(
 				"Authentication success, welcome " + response.data.login + " !"
 			);
