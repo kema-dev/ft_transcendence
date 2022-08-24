@@ -1,7 +1,6 @@
 <template>
 	<div>
 		<div class="center column">
-			<!-- <div class="stack"> -->
 			<div class="search_groupe center row">
 				<input
 					type="text"
@@ -72,7 +71,26 @@ onMounted(() => {
 		search.value = input.value;
 	});
 });
-
+let options: {
+	minimizable: false;
+	playerSize: "standard";
+	backgroundColor: "#fff";
+	backgroundStyle: "color";
+	theme: {
+		controlsView: "standard";
+		active: "light";
+		light: {
+			color: "#3D4852";
+			backgroundColor: "#fff";
+			opacity: "0.7";
+		};
+		dark: {
+			color: "#fff";
+			backgroundColor: "#202020";
+			opacity: "0.7";
+		};
+	};
+};
 function search_user(str: string) {
 	users.forEach((u) => u.name == str);
 }
@@ -84,7 +102,6 @@ let user = {
 };
 function post(url: string, args: any) {
 	let data;
-	try {
 	axios
 		.post("https://localhost:3000/api/v1/" + url, args)
 		.then((response) => {
@@ -94,15 +111,15 @@ function post(url: string, args: any) {
 		.catch((error) => {
 			console.log(url + ": failed request.\nargs: " + args);
 			console.log(error);
-		});}
-		catch (stdrr){
-			console.log(stdrr.message)
-
-		}
+		});
 	return data;
 }
+
 // let userr = post("user/getUser", {login: user.name});
-let avatar = post("user/getAnyByLogin", {login: user.name, infos: ["avatar"]});
+let avatar = post("user/getAnyByLogin", {
+	login: user.name,
+	infos: ["avatar"],
+});
 let users = [
 	{
 		name: "John",

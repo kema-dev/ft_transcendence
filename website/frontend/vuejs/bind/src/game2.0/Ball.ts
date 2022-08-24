@@ -14,6 +14,8 @@ export default class Ball {
 	v: Vector;
 	speed: number;
 	konva: Konva.Circle;
+	initSpeed: number;
+	touch: number;
 	constructor(x: number, y: number) {
 		this.x = x;
 		this.y = y;
@@ -21,7 +23,9 @@ export default class Ball {
 		this.startY = y;
 		this.r = 10;
 		this.v = new Vector(0, 0);
-		this.speed = 3;
+		this.touch = 0;
+		this.initSpeed = 0.5;
+		this.speed = this.initSpeed;
 		this.konva = new Konva.Circle({
 			x: this.x,
 			y: this.y,
@@ -35,7 +39,7 @@ export default class Ball {
 		this.konva.x(this.startX);
 		this.konva.y(this.startY);
 		await delay(1000);
-		this.speed = 3;
+		this.speed = this.initSpeed;
 		let ballX = Math.random() * 5;
 		let ballY = 5 - ballX;
 		if (Math.floor(Math.random() * 2) == 1) ballX = -ballX;
@@ -55,8 +59,11 @@ export default class Ball {
 			// check collision
 			if (this.v.dotPorduct(wall!.vector) < 0 && detectCollisionRC(objects.children![i], this.konva)) {
 				const v = wall.vector;
-				if (this.speed < 8)
-					this.speed += 0.1;
+				this.touch++;
+				if (this.touch >= 30)
+					this.start();
+				if (this.speed < 1.5)
+					this.speed += 0.05;
 				this.v = this.v.add(
 					v.multiplication(v.dotPorduct(this.v.reverse()) * 2));
 				// check if is wall or racket for the score

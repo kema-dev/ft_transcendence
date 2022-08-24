@@ -18,7 +18,7 @@
 					</div>
 				</div>
 			</div>
-			<div class="more" :style="{height: size * 50 + 60 + 'px'}"></div>
+			<div class="more"></div>
 		</div>
 	</div>
 </template>
@@ -69,10 +69,11 @@ function witch_rank(login: string, match: any) {
 <style scoped>
 .groupe {
 	margin: 10px 0;
-	width: clamp(150px, 80%, 1000px);
+	width: clamp(18rem, 80%, 1000px);
 }
 .match {
 	height: 60px;
+	width: 100%;
 	border-radius: 100px;
 	border: 3px v-bind("define.color2") solid;
 	border-left: 0;
@@ -80,7 +81,7 @@ function witch_rank(login: string, match: any) {
 	z-index: 10;
 	margin-bottom: v-bind("size * 50 + 'px'");
 	cursor: pointer;
-	transition: all linear 0.2s;
+	transition: all ease-in-out 0.2s;
 }
 .avatar {
 	/* width: ; */
@@ -97,12 +98,11 @@ function witch_rank(login: string, match: any) {
 	position: absolute;
 	z-index: 1;
 	top: 0;
-	/* height: v-bind("match.nbrPlayer * 50 + 60 + 'px'"); */
-	height: 60px;
+	height: v-bind("size * 50 + 60 + 'px'");
 	border: 3px v-bind("define.color2") solid;
 	border-radius: 30px;
-	background-color: v-bind("define.color3");
-	transition: all linear 0.2s;
+	background-color: v-bind("define.color2");
+	transition: all ease-in-out 0.2s;
 }
 .number {
 	font-size: clamp(1px, 150%, 10rem);
@@ -116,11 +116,4 @@ function witch_rank(login: string, match: any) {
 .podium {
 	height: 50px !important;
 }
-/* .more {
-  animation: slide 0.4s ease-in-out;
-}
-@keyframes slide {
-	0% {transform: max-height 0px;}
-	100% {transform: max-height 400px;}
-} */
 </style>

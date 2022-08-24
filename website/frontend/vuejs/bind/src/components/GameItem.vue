@@ -1,6 +1,6 @@
 <template>
 	<div id="stage-parent" class="stack" :key="nbrPlayer">
-		<div id="container"></div>
+		<div id="container" v-on:click="focus()"></div>
 	</div>
 </template>
 <script setup lang="ts">
@@ -13,16 +13,12 @@ let define = inject("colors");
 let props = defineProps(["nbrPlayer", "nbrBall", "start"]);
 let run = true;
 // let nbrPlayer = ref(props.nbrPlayer)
-let players = [
-	"zeus",
-	"Toto",
-	"Jj"
-];
+let players = ["zeus", "Toto", "Jj"];
 
 onMounted(() => {
 	var sceneWidth = 1000;
 	var sceneHeight = 1000;
-	let radius = 410
+	let radius = 410;
 	var stage = new Konva.Stage({
 		container: "container",
 		width: sceneWidth,
@@ -32,9 +28,8 @@ onMounted(() => {
 	let balls: Array<Ball> = [];
 	for (let i = 0; i < props.nbrBall; ++i) {
 		if (i % 2 == 1)
-			balls.push(new Ball(radius, radius + -i / 2 * 30 - 7.5));
-		else
-			balls.push(new Ball(radius, radius + i / 2 * 30 + 7.5));
+			balls.push(new Ball(radius, radius + (-i / 2) * 30 - 7.5));
+		else balls.push(new Ball(radius, radius + (i / 2) * 30 + 7.5));
 	}
 	var game = new Konva.Group({
 		x: 500,
@@ -49,14 +44,14 @@ onMounted(() => {
 	let fieldPoints: Array<number> = [];
 	walls.forEach((wall) => {
 		fieldPoints.push(wall.x);
-			// x: this.x,
-			// y: this.y,
+		// x: this.x,
+		// y: this.y,
 		fieldPoints.push(wall.y);
 	});
 	let background = new Konva.Line({
 		points: fieldPoints,
-			// x: this.x,
-			// y: this.y,
+		// x: this.x,
+		// y: this.y,
 		closed: true,
 		fill: "#E5F4FB",
 		shadowColor: "black",
@@ -74,10 +69,8 @@ onMounted(() => {
 			let tmp = wall.getKonvaRacket();
 			objects.add(tmp);
 			if (wall.angle == 0) rack = tmp;
-			if (!players[i])
-				game.add(wall.getKonvaProfile("search..."));
-			else
-				game.add(wall.getKonvaProfile(players[i]));
+			if (!players[i]) game.add(wall.getKonvaProfile("search..."));
+			else game.add(wall.getKonvaProfile(players[i]));
 			i++;
 		}
 	});
@@ -88,6 +81,9 @@ onMounted(() => {
 	var container = stage.container();
 	container.tabIndex = 1;
 	container.focus();
+	function focus() {
+		container.focus();
+	}
 	// var text = new Konva.Text({
 	// 	x: 5,
 	// 	y: 5,
@@ -111,41 +107,45 @@ onMounted(() => {
 	// var ballY = 5 - ballX;
 	let deltaTime = 1;
 	async function loop() {
-		// let start = 1000000 * performance.now();
+		// let start = 1000000 * await performance.now();
+		let start = await performance.now();
 		while (run) {
-			for (let i = 0; i < props.nbrBall; ++i) {
-				balls[i].detectCollision(objects, walls);
-				balls[i].konva.x(
-					balls[i].konva.x() + balls[i].v.x * balls[i].speed * deltaTime
-				);
-				balls[i].konva.y(
-					balls[i].konva.y() + balls[i].v.y * balls[i].speed * deltaTime
-				);
-			}
+			if (props.start)
+				for (let i = 0; i < props.nbrBall; ++i) {
+					balls[i].detectCollision(objects, walls);
+					balls[i].konva.x(
+						balls[i].konva.x() + balls[i].v.x * balls[i].speed * deltaTime
+					);
+					balls[i].konva.y(
+						balls[i].konva.y() + balls[i].v.y * balls[i].speed * deltaTime
+					);
+				}
 			if (
-				rack.y() + mov > walls.get(0)!.y &&
-				rack.y() + mov < walls.get(0)!.y + (walls.get(0)!.width / 4) * 3
+				rack.y() + mov * deltaTime > walls.get(0)!.y &&
+				rack.y() + mov * deltaTime <
+					walls.get(0)!.y + (walls.get(0)!.width / 4) * 3
 			)
-				rack.y(rack.y() + mov);
-			// let end = 1000000 * performance.now();
+				rack.y(rack.y() + mov * deltaTime);
+			// let end = 1000000 * await performance.now();
+			let end = await performance.now();
 			// deltaTime = (end - start) * 0.000001;
+			deltaTime = end - start;
 			// console.log("start: " + start);
 			// console.log("end: " + end);
 			// console.log("deltatime: " + deltaTime);
-			// start = end;
-			//deltaTime = deltaTime * 0.000001
+			start = end;
+			// deltaTime = deltaTime * 0.000001
+			// deltaTime = deltaTime * 0.1
 			await delay(1); // TODO delta
 		}
 	}
-	if (props.start)
-		loop();
-	let delta = (walls.get(0)!.width / 100) * deltaTime;
-	// let delta = 5
+	loop();
+	let scale = walls.get(0)!.width / 100;
 	container.addEventListener("keydown", function (e) {
 		if (e.key == "ArrowLeft") {
-			mov = -delta * walls.get(0)!.racket!.speed;
+			mov = -scale * walls.get(0)!.racket!.speed;
 		} else if (e.key == "ArrowRight") {
-			mov = delta * walls.get(0)!.racket!.speed;
+			mov = scale * walls.get(0)!.racket!.speed;
 			// if (e.key == "ArrowUp") {
 			// 	ball.y(ball.y() - delta);
 			// } else if (e.key == "ArrowDown") {
@@ -161,9 +161,9 @@ onMounted(() => {
 	});
 	container.addEventListener("keyup", function (e) {
 		if (e.key == "ArrowLeft") {
-			if (mov == -delta) mov = 0;
+			if (mov <= 0) mov = 0;
 		} else if (e.key == "ArrowRight") {
-			if (mov == delta) mov = 0;
+			if (mov >= 0) mov = 0;
 		} else {
 			return;
 		}

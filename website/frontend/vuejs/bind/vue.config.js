@@ -16,5 +16,14 @@ module.exports = defineConfig({
 			}
 		}
 	},
+	plugins: [
+    vue({
+      template: {
+        compilerOptions: {
+          isCustomElement: (tag) => ['lottie-player'].includes(tag),
+        }
+      }
+    })
+  ],
   transpileDependencies: true
 })

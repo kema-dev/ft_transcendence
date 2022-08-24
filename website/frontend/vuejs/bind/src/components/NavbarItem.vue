@@ -1,23 +1,42 @@
 <template>
 	<nav>
-		<div class="center space-between">
-		<div class="nav-icon">
-			<img src="@/assets/logo_white.png" alt="pong.io logo" class="logo" />
-			<h1 class="text_logo">PONG.IO</h1>
+		<div class="center space-between" style="height: 100%">
+			<div class="nav-icon">
+				<img
+					src="@/assets/logo_white.png"
+					alt="pong.io logo"
+					class="logo"
+				/>
+				<h1 class="text_logo">PONG.IO</h1>
+			</div>
+			<div style="height: 100%" class="center row right">
+				<!-- <lottie-player
+					:src="require('@/assets/json/settings.json')"
+					speed="2"
+					hover
+					class="icon"
+				/> -->
+				<lottie-player
+					:src="require('@/assets/json/logout.json')"
+					speed="2"
+					hover
+					class="icon"
+				/> <!-- TODO jjourdan logout -->
+				<!-- <lottie-player
+					:src="require('@/assets/json/home.json')"
+					speed="2"
+					hover
+					class="icon"
+				/> -->
+			</div>
 		</div>
-		<div>
-			<!-- <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
-<lottie-player src="/Users/odroz-ba/GitHub/cursus/ft_transcendence/website/frontend/vuejs/bind/src/assets/json/home.json" background="#ffffff"  speed="1"  style="width: 300px; height: 300px;" hover loop controls autoplay></lottie-player> -->
-		</div>
-		</div>
-		<!-- <span class="material-symbols-outlined"> menu </span> -->
 	</nav>
 </template>
 
 <script setup lang="ts">
-import { inject } from 'vue'
+import { inject } from "vue";
 
-let define = inject('colors');
+let define = inject("colors");
 </script>
 
 <style>
@@ -29,7 +48,7 @@ nav {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	padding: 20px 20px;
+	padding: 5px 10px 5px 20px;
 	width: 100%;
 	background-color: v-bind("define.color2");
 	transition: all 0.3s;
@@ -57,5 +76,10 @@ nav {
 .material-symbols-outlined {
 	font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 48;
 	font-size: 50px;
+}
+.icon {
+	height: 100%;
+	width: 50px;
+	cursor: pointer;
 }
 </style>
