@@ -116,27 +116,28 @@ let backend_status = ref(true);
 let totp_enabled = ref(false);
 let totp_val = ref("");
 
-let E_PASS_DIFFERS = "Passwords do not match, please try again";
+let E_PASS_DIFFERS = "📝 Passwords do not match, please try again";
 let E_PASS_NOT_MEET_REQUIREMENTS =
-	"Password must contain at least one lowercase letter, one uppercase letter, one digit, one special character (!@#$%^&*) and must be between 10 and 32 characters long, please try again";
-let E_MAIL_NOT_MEET_REQUIREMENTS = "Email is not valid, please try again";
+	"📝 Password must contain at least one lowercase letter, one uppercase letter, one digit, one special character (!@#$%^&*) and must be between 10 and 32 characters long, please try again";
+let E_MAIL_NOT_MEET_REQUIREMENTS = "📝 Email is not valid, please try again";
 let E_LOGIN_NOT_MEET_REQUIREMENTS =
-	"Login is not valid, must be between 1 and 25 characters long, using alphanumeric characters, '_' and '-' only, please try again";
-let E_UNEXPECTED_ERROR = "Unknown error, we are sorry for that 😥";
+	"📝 Login is not valid, must be between 1 and 25 characters long, using alphanumeric characters, '_' and '-' only, please try again";
+let E_UNEXPECTED_ERROR = "😥 Unknown error, we are sorry for that";
 let E_EMAIL_OR_LOGIN_ALREADY_EXISTS =
-	"User with that email and/or login already exists, please try again";
-let E_PASS_FAIL = "Wrong credentials provided, please try again";
+	"📝 User with that email and/or login already exists, please try again";
+let E_PASS_FAIL = "📝 Wrong credentials provided, please try again";
 let BACKEND_DOWN_MESSAGE =
-	"Backend is down, please authorize our self-signed certificate manually by clicking this text";
+	"🖱️ Backend is down, please authorize our self-signed certificate manually by clicking this text 🖱️";
 let E_NO_CODE_PROVIDED =
-	"42 API authentication: No code provided, please try again";
+	"❌ 42 API authentication: No code provided, please try again";
 let E_CODE_IN_USE =
-	"42 API authentication: Code already in use, please try again";
+	"❌ 42 API authentication: Code already in use, please try again";
 let E_USER_IS_FT =
-	"You registered with a 42 account, please login with your 42 account";
-let E_USER_NOT_FOUND = "This email / login does not exist, please try again";
-let E_USER_HAS_TOTP = "You have enabled 2FA, please login with your 2FA code";
-let E_TOTP_FAIL = "2FA code is not valid, please try again";
+	"📝 You registered with a 42 account, please login with your 42 account";
+let E_USER_NOT_FOUND = "📝 This email / login does not exist, please try again";
+let E_USER_HAS_TOTP = "📝 You have enabled 2FA, please login with your 2FA code";
+let E_TOTP_FAIL = "📝 2FA code is not valid, please try again";
+let E_EMPTY_FIELD = "📝 At least one field is empty, please fill all of them";
 
 provide("defaultState", switch_value);
 
@@ -149,7 +150,7 @@ function register() {
 		password_register.value === "" ||
 		password_confirmation.value === ""
 	) {
-		toast.warning("📝 At least one field is empty, please fill all of them");
+		toast.warning(E_EMPTY_FIELD);
 		return;
 	}
 	axios

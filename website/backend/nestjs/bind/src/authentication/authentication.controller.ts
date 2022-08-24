@@ -58,14 +58,14 @@ export class AuthenticationController {
 		} catch (error) {
 			throw error;
 		}
-		// TODO add a cookie to the response and ask for mfa code
+		// TODO add a cookie to the response
 		return response.send('You successfully logged in using a password');
 	}
 
 	@HttpCode(200)
 	@Post('login42')
 	public async create(@Body('code') code: string): Promise<AuthResponse> {
-		// TODO add a cookie to the response and ask for mfa code
+		// TODO add a cookie to the response
 		return this.authenticationService.auth42(code);
 	}
 
