@@ -207,11 +207,19 @@ export class AuthenticationService {
 		console.log('verifyPassword: ' + 'match, returning');
 	}
 
-	public createCookie(login: string) {
+	public async createCookie(login: string) {
 		console.log('createCookie: starting for login: ' + login);
 		const token = this.jwtService.sign({ login: login });
+		await this.usersService.update_session(login, token);
 		console.log('createCookie: ' + 'cookie created successfully, returning ✔');
 		return { key: 'session', value: token };
+	}
+
+	public async deleteCookie(login: string) {
+		console.log('deleteCookie: starting for login: ' + login);
+		await this.usersService.update_session(login, '');
+		console.log('deleteCookie: ' + 'cookie deleted successfully, returning ✔');
+		return true;
 	}
 
 	// public async getCookieFromJwt(userId: number) {

@@ -128,7 +128,7 @@ let E_EMAIL_OR_LOGIN_ALREADY_EXISTS =
 	"📝 User with that email and/or login already exists, please try again";
 let E_PASS_FAIL = "📝 Wrong credentials provided, please try again";
 let BACKEND_DOWN_MESSAGE =
-	"🖱️ Backend is down, please authorize our self-signed certificate manually by clicking this text 🖱️";
+	"🖱️ Backend is down, please authorize our self-signed certificate manually by clicking this text";
 let E_NO_CODE_PROVIDED =
 	"❌ 42 API authentication: No code provided, please try again";
 let E_CODE_IN_USE =
@@ -165,6 +165,7 @@ function register() {
 		.then((response) => {
 			console.log(response);
 			$cookies.set(response.data.key, response.data.value);
+			$cookies.set('login', response.data.login);
 			toast.success(
 				"Registration success, welcome " + response.data.login + " !"
 			);
@@ -207,6 +208,7 @@ function auth() {
 		.then((response) => {
 			console.log(response);
 			$cookies.set(response.data.key, response.data.value);
+			$cookies.set('login', response.data.login);
 			toast.success(
 				"Authentication success, welcome " + response.data.login + " !"
 			);
@@ -249,6 +251,7 @@ onMounted(() => {
 					.then((response) => {
 						console.log(response);
 						$cookies.set(response.data.key, response.data.value);
+			$cookies.set('login', response.data.login);
 						toast.success(
 							"Authentication success, welcome " + response.data.login + " !"
 						);
