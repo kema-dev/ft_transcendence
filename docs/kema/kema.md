@@ -3,6 +3,9 @@
 ## ongoing
 
 * TODO fix jwt signing, always returning the same token
+* TODO store cookies in database
+* TODO make backend + frontend functions to return login from cookie
+* TODO make backend + frontend functions to delete cookie for logout (and delete token from database)
 * TODO add possibility to change 2FA settings, verifying identity of the user before changing, and checking that user had the correct code before saving
 * TODO protect authenticated endpoints with jwt guard
 * TODO make a refresh token function in backend and frontend (for frontend, ask for a refresh each \<x> time)

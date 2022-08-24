@@ -13,8 +13,6 @@ import TotpDto from './dto/totp.dto';
 import axios from 'axios';
 import CreateUserDto from '../users/dto/createUser.dto';
 
-// NOTE - API's documentation can be found at `docs/api/v1.md`
-
 @Injectable()
 export class AuthenticationService {
 	constructor(
@@ -213,9 +211,6 @@ export class AuthenticationService {
 		console.log('createCookie: starting for login: ' + login);
 		const token = this.jwtService.sign({ login: login });
 		console.log('createCookie: ' + 'cookie created successfully, returning ✔');
-		// TODO store token in database
-		// TODO make a function to return it from login
-		// TODO make a function to delete it for logout
 		return { key: 'session', value: token };
 	}
 
