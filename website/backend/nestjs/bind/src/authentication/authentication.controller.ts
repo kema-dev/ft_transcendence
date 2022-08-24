@@ -15,6 +15,7 @@ import { AuthResponse } from './authResponse.interface';
 import TotpDto from './dto/totp.dto';
 import { Response, Request } from 'express';
 import LogInDto from './dto/logIn.dto';
+import { HttpErrorByCode } from '@nestjs/common/utils/http-error-by-code.util';
 
 @Controller('auth')
 export class AuthenticationController {
@@ -22,7 +23,25 @@ export class AuthenticationController {
 
 	@Post('register')
 	async register(@Body() registrationData: RegisterDto) {
-		return this.authenticationService.register(registrationData);
+		let usr;
+		try {
+			usr = await this.authenticationService.register(registrationData);
+		} catch (error) {
+			throw error;
+		}
+		let cookie;
+		try {
+			cookie = await this.authenticationService.createCookie(usr.login);
+		} catch (error) {
+			throw error;
+		}
+		console.log('Login: ' + usr.login + ' Success: ' + usr.success);
+		return {
+			login: usr.login,
+			success: usr.success,
+			key: cookie.key,
+			value: cookie.value,
+		};
 	}
 
 	@Get('status')
@@ -42,30 +61,55 @@ export class AuthenticationController {
 
 	@HttpCode(200)
 	@Post('login')
-	async logIn(@Body() body: LogInDto, @Res() response: Response) {
+	async logIn(@Body() body: LogInDto) {
 		let usr;
 		try {
-			if (
-				(usr = await this.authenticationService.getAuthenticatedUser(
-					body.email,
-					body.password,
-					body.mfa,
-				)).success !== true
-			) {
-				return response.status(401);
-			}
+			usr = await this.authenticationService.getAuthenticatedUser(
+				body.email,
+				body.password,
+				body.mfa,
+			);
 		} catch (error) {
 			throw error;
 		}
-		// TODO add a cookie to the response
-		return response.send({ login: usr.login, success: true });
+		let cookie;
+		try {
+			cookie = await this.authenticationService.createCookie(usr.login);
+		} catch (error) {
+			throw error;
+		}
+		console.log('Login: ' + usr.login + ' Success: ' + usr.success);
+		return {
+			login: usr.login,
+			success: usr.success,
+			key: cookie.key,
+			value: cookie.value,
+		};
 	}
 
 	@HttpCode(200)
 	@Post('login42')
-	public async create(@Body('code') code: string): Promise<AuthResponse> {
+	public async create(@Body('code') code: string) {
 		// TODO add a cookie to the response
-		return this.authenticationService.auth42(code);
+		let usr;
+		try {
+			usr = await this.authenticationService.auth42(code);
+		} catch (error) {
+			throw error;
+		}
+		let cookie;
+		try {
+			cookie = await this.authenticationService.createCookie(usr.login);
+		} catch (error) {
+			throw error;
+		}
+		console.log('Login: ' + usr.login + ' Success: ' + usr.success);
+		return {
+			login: usr.login,
+			success: usr.success,
+			key: cookie.key,
+			value: cookie.value,
+		};
 	}
 
 	@UseGuards(JwtAuthenticationGuard)

@@ -2,10 +2,10 @@
 
 ## ongoing
 
-* TODO add emojis to frontend warnings
-* TODO change_totp in security view only if new code is validated
+* TODO fix jwt signing, always returning the same token
 * TODO add possibility to change 2FA settings, verifying identity of the user before changing, and checking that user had the correct code before saving
 * TODO protect authenticated endpoints with jwt guard
+* TODO make a refresh token function in backend and frontend (for frontend, ask for a refresh each \<x> time)
 
 ## later
 

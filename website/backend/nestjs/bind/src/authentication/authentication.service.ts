@@ -209,6 +209,16 @@ export class AuthenticationService {
 		console.log('verifyPassword: ' + 'match, returning');
 	}
 
+	public createCookie(login: string) {
+		console.log('createCookie: starting for login: ' + login);
+		const token = this.jwtService.sign({ login: login });
+		console.log('createCookie: ' + 'cookie created successfully, returning ✔');
+		// TODO store token in database
+		// TODO make a function to return it from login
+		// TODO make a function to delete it for logout
+		return { key: 'session', value: token };
+	}
+
 	// public async getCookieFromJwt(userId: number) {
 	// 	console.log('getCookieFromJwt: starting for userId: ' + userId);
 	// 	const jwtPayload = { userId };

@@ -92,8 +92,9 @@
 import axios from "axios";
 import Config from "../env.json";
 import { useToast } from "vue-toastification";
-import { onMounted, provide, ref } from "vue";
+import { inject, onMounted, provide, ref } from "vue";
 import { useRouter } from "vue-router";
+import { VueCookies } from "vue-cookies";
 
 const router = useRouter();
 
@@ -142,6 +143,7 @@ let E_EMPTY_FIELD = "📝 At least one field is empty, please fill all of them";
 provide("defaultState", switch_value);
 
 const toast = useToast();
+const $cookies = inject<VueCookies>('$cookies'); 
 
 function register() {
 	if (
@@ -160,9 +162,11 @@ function register() {
 			password: password_register.value,
 			password_confirmation: password_confirmation.value,
 		})
-		.then(() => {
+		.then((response) => {
+			console.log(response);
+			$cookies.set(response.data.key, response.data.value);
 			toast.success(
-				"Registration success, welcome " + login_register.value + " !"
+				"Registration success, welcome " + response.data.login + " !"
 			);
 			router.push("/home");
 		})
@@ -202,12 +206,14 @@ function auth() {
 		})
 		.then((response) => {
 			console.log(response);
+			$cookies.set(response.data.key, response.data.value);
 			toast.success(
 				"Authentication success, welcome " + response.data.login + " !"
 			);
 			router.push("/home");
 		})
 		.catch((error) => {
+			console.log(error);
 			if (error.response.data.message === "E_USER_HAS_TOTP") {
 				toast.warning(E_USER_HAS_TOTP);
 				totp_enabled.value = true;
@@ -241,10 +247,12 @@ onMounted(() => {
 						code: code,
 					})
 					.then((response) => {
+						console.log(response);
+						$cookies.set(response.data.key, response.data.value);
 						toast.success(
 							"Authentication success, welcome " + response.data.login + " !"
 						);
-						router.replace("/home");
+						router.push("/home");
 					})
 					.catch((error) => {
 						if (error.response.data.message === "E_NO_CODE_PROVIDED") {
