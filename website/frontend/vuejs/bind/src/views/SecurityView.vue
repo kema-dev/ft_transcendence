@@ -32,12 +32,11 @@ export default {
 		get_totp_url() {
 			axios
 				.post(this.apiPath + "auth/set_totp", {
-					email: this.test_mail,
+					email: this.test_mail, // TODO get email from jwt
 				})
 				.then((response) => {
 					this.totp_url = response.data.url;
 					this.totp_code = response.data.url.match(/secret%3D(.*)%26/)[1];
-					console.log(response);
 				})
 				.catch((error) => {
 					console.error(error);

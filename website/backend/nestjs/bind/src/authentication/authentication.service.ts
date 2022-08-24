@@ -117,8 +117,14 @@ export class AuthenticationService {
 		name: string,
 		password: string,
 		mfa: string,
-	) {
+	): Promise<AuthResponse> {
 		console.log('getAuthenticatedUser: starting for login / email: ' + name);
+		if (name == undefined || password == undefined) {
+			console.error(
+				'getAuthenticatedUser: name or password is undefined, returning ✘',
+			);
+			throw new HttpException('E_UNEXPECTED_ERROR', HttpStatus.BAD_REQUEST);
+		}
 		try {
 			const user = await this.usersService.getByAny(name);
 			if (user.password == '') {
@@ -127,22 +133,25 @@ export class AuthenticationService {
 				);
 				throw new HttpException('E_USER_IS_FT', HttpStatus.BAD_REQUEST);
 			}
-			console.log('getAuthenticatedUser: ' + name + ' totp: ' + mfa);
 			if (user.totp_code !== '' && mfa === '') {
 				console.error(
 					'getAuthenticatedUser: ' + name + ' has totp code, returning ✘',
 				);
 				throw new HttpException('E_USER_HAS_TOTP', HttpStatus.BAD_REQUEST);
 			} else if (user.totp_code !== '' && mfa !== '') {
-				// const mfa_check = await this.check_totp_code(user.login, mfa);
-				// if (mfa_check == false) {
-				// 	console.error(
-				// 		'getAuthenticatedUser: ' +
-				// 			name +
-				// 			' totp code check failed, returning ✘',
-				// 	);
-				// 	throw new HttpException('E_TOTP_FAIL', HttpStatus.BAD_REQUEST);
-				// }
+				const mfa_check = await this.check_totp_code(user.login, mfa);
+				if (mfa_check == false) {
+					console.error(
+						'getAuthenticatedUser: ' +
+							name +
+							' totp code check failed, returning ✘',
+					);
+					throw new HttpException('E_TOTP_FAIL', HttpStatus.BAD_REQUEST);
+				}
+			} else {
+				console.log(
+					'getAuthenticatedUser: ' + name + ' has no totp code, passing',
+				);
 			}
 			await this.verifyPassword(password, user.password);
 			console.log(
@@ -159,6 +168,22 @@ export class AuthenticationService {
 				throw new HttpException('E_PASS_FAIL', HttpStatus.BAD_REQUEST);
 			} else if (error.message == 'E_USER_NOT_FOUND') {
 				throw new HttpException('E_USER_NOT_FOUND', HttpStatus.BAD_REQUEST);
+			} else if (error.message == 'E_USER_HAS_TOTP') {
+				throw new HttpException('E_USER_HAS_TOTP', HttpStatus.BAD_REQUEST);
+			} else if (error.message == 'E_TOTP_FAIL') {
+				throw new HttpException('E_TOTP_FAIL', HttpStatus.BAD_REQUEST);
+			} else if (error.message == 'E_NO_NAME') {
+				throw new HttpException('E_NO_NAME', HttpStatus.INTERNAL_SERVER_ERROR);
+			} else if (error.message == 'E_NO_TOTP_PROVIDED') {
+				throw new HttpException(
+					'E_UNEXPECTED_ERROR',
+					HttpStatus.INTERNAL_SERVER_ERROR,
+				);
+			} else if (error.message == 'E_GOOGLE_API') {
+				throw new HttpException(
+					'E_UNEXPECTED_ERROR',
+					HttpStatus.INTERNAL_SERVER_ERROR,
+				);
 			} else {
 				throw new HttpException(
 					'E_UNEXPECTED_ERROR',
@@ -302,14 +327,14 @@ export class AuthenticationService {
 			})
 			.catch(() => {
 				console.error(
-					'compute_totp: ' + "error with Google's TOTP API, returning ✘",
+					'set_totp: ' + "error with Google's TOTP API, returning ✘",
 				);
 				throw new HttpException(
 					'E_GOOGLE_API',
 					HttpStatus.INTERNAL_SERVER_ERROR,
 				);
 			});
-		console.log('compute_totp: ' + 'code computed, returning ✔');
+		console.log('set_totp: ' + 'code computed, returning ✔');
 		return { url: url };
 	}
 
@@ -330,7 +355,7 @@ export class AuthenticationService {
 		} catch (error) {
 			if (error.message === 'E_GOOGLE_API') {
 				console.error(
-					'compute_totp: ' + "error with Google's TOTP API, returning ✘",
+					'verify_totp: ' + "error with Google's TOTP API, returning ✘",
 				);
 				throw new HttpException(
 					'E_GOOGLE_API',
@@ -358,8 +383,10 @@ export class AuthenticationService {
 				const elem = response.data.d;
 				truth = /true/.exec(elem) !== null;
 			})
-			.catch(() => {
-				console.error('compute_totp: ' + 'unexpected error, returning ✘');
+			.catch((error) => {
+				console.error(
+					'check_totp_code: ' + 'unexpected error : ' + error + ', returning ✘',
+				);
 				throw new HttpException(
 					'E_GOOGLE_API',
 					HttpStatus.INTERNAL_SERVER_ERROR,

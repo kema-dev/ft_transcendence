@@ -10,14 +10,11 @@ import {
 } from '@nestjs/common';
 import { AuthenticationService } from './authentication.service';
 import RegisterDto from './dto/register.dto';
-import RequestWithUser from './requestWithUser.interface';
-import { LocalAuthenticationGuard } from './localAuthentication.guard';
 import { JwtAuthenticationGuard } from './jwtAuthentication.guard';
 import { AuthResponse } from './authResponse.interface';
 import TotpDto from './dto/totp.dto';
-
 import { Response, Request } from 'express';
-import { get } from 'http';
+import LogInDto from './dto/logIn.dto';
 
 @Controller('auth')
 export class AuthenticationController {
@@ -44,9 +41,23 @@ export class AuthenticationController {
 	}
 
 	@HttpCode(200)
-	@UseGuards(LocalAuthenticationGuard)
 	@Post('login')
-	async logIn(@Res() response: Response) {
+	async logIn(@Body() body: LogInDto, @Res() response: Response) {
+		try {
+			if (
+				(
+					await this.authenticationService.getAuthenticatedUser(
+						body.email,
+						body.password,
+						body.mfa,
+					)
+				).success !== true
+			) {
+				return response.status(401);
+			}
+		} catch (error) {
+			throw error;
+		}
 		// TODO add a cookie to the response and ask for mfa code
 		return response.send('You successfully logged in using a password');
 	}

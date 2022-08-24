@@ -193,9 +193,6 @@ function auth() {
 		toast.warning("📝 At least one field is empty, please fill all of them");
 		return;
 	}
-	if (totp_val.value === "") {
-		console.log('totp:' + totp_val.value + ':');
-	}
 	axios
 		.post(apiPath + "auth/login", {
 			email: email_auth.value,
