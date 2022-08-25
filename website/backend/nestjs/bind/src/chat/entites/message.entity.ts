@@ -19,8 +19,5 @@ export class MessageEntity extends TimestampEntites{
 	})
 	user: User;
 
-	@Column()
-	test: string;
-
 }
 

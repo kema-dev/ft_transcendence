@@ -94,6 +94,11 @@ a {
 	justify-content: flex-end;
 	align-items: flex-end;
 }
+.right_center {
+	display: flex;
+	justify-content: flex-end;
+	align-items: center;
+}
 .space-between {
 	display: flex;
 	justify-content: space-between !important;
