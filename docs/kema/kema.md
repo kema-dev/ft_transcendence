@@ -2,6 +2,7 @@
 
 ## ongoing
 
+* TODO make an authorize backend certificate warning for each page
 * TODO learn more about jwt construction
 * TODO make a guard, checking the stored cookie against the jwt, and add this guard to the routes. Maybe find a way to send the cookie by default in every request.
 * TODO make frontend function to delete cookie for logout (call deletecookie on backend)
