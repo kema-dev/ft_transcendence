@@ -1,13 +1,29 @@
-import { Body, Controller, HttpCode, Post, Get } from '@nestjs/common';
+import {
+	Body,
+	Controller,
+	HttpCode,
+	Post,
+	Get,
+	Headers,
+	UseGuards,
+} from '@nestjs/common';
 import { AuthenticationService } from './authentication.service';
 import RegisterDto from './dto/register.dto';
 import TotpDto from './dto/totp.dto';
 import LogInDto from './dto/logIn.dto';
 import CheckDto from './dto/check.dto';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('auth')
 export class AuthenticationController {
 	constructor(private readonly authenticationService: AuthenticationService) {}
+
+	@UseGuards(AuthGuard('jwt'))
+	@Post('debug')
+	async debug(@Headers() headers: any) {
+		console.log('Debug');
+		// console.log(headers);
+	}
 
 	@Post('register')
 	async register(@Body() registrationData: RegisterDto) {

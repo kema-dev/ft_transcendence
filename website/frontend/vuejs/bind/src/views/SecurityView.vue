@@ -11,6 +11,9 @@
 			<input type="text" v-model="test_code" placeholder="TOTP Code"/>
 			<button @click="verify">VERIFY TOTP</button>
 		</div>
+		<div class="debug">
+			<button @click="debug">DEBUG</button>
+		</div>
 	</div>
 </template>
 
@@ -19,6 +22,7 @@
 	import axios from "axios";
 	import QrcodeVue from "qrcode.vue";
 	import { ref } from "vue";
+	import HTTP from "../components/axios";
 
 	let apiPath = "https://localhost:3000/api/v1/";
 	let totp_url = ref ("");
@@ -41,6 +45,19 @@
 			.catch((error) => {
 				console.error(error);
 			});
+	}
+
+	function debug() {
+		HTTP
+			.post(apiPath + "auth/debug", {
+				email: test_mail.value,
+			})
+			.then((response) => {
+				console.log(response);
+			}).catch((error) => {
+				console.error(error);
+			}
+		);
 	}
 
 	function verify() {
@@ -88,6 +105,10 @@
 	justify-content: center;
 	align-items: center;
 	flex-direction: column;
+}
+
+.debug {
+	z-index: 1;
 }
 
 </style>

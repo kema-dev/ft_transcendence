@@ -89,6 +89,7 @@ import { useToast } from "vue-toastification";
 import { inject, onMounted, provide, ref } from "vue";
 import { useRouter } from "vue-router";
 import { VueCookies } from "vue-cookies";
+import HTTP from "../components/axios";
 
 const router = useRouter();
 
@@ -135,12 +136,6 @@ provide("defaultState", switch_value);
 
 const toast = useToast();
 const $cookies = inject<VueCookies>('$cookies'); 
-const axios_config = {
-  headers:{
-    login: $cookies.get('login'),
-    token: $cookies.get('session'),
-  }
-};
 
 function register() {
 	if (

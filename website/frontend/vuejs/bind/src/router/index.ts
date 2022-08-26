@@ -122,6 +122,7 @@ router.beforeEach(async (to, from) => {
 	if (cookies.get('session') == null) {
 		// no token: redirecting to logpage
 		if (to.path !== '/') {
+			toast.info('📝 You are not logged in, please log in');
 			router.replace('/')
 		}
 	} else {
@@ -152,6 +153,7 @@ router.beforeEach(async (to, from) => {
 				toast.error('😥 Unknown error, we are sorry for that')
 			}
 			if (to.path !== '/') {
+				toast.info('📝 You are not logged in, please log in');
 				router.replace('/')
 			}
 			return false;
