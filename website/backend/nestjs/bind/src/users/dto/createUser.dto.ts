@@ -13,6 +13,7 @@ export class CreateUserDto {
 		this.ft_createdAt = new Date();
 		this.totp_code = '';
 		this.session_token = '';
+		this.session_expiration = new Date();
 		Object.assign(this, params);
 	}
 	email: string;
@@ -28,6 +29,7 @@ export class CreateUserDto {
 	ft_createdAt: Date;
 	totp_code: string;
 	session_token: string;
+	session_expiration: Date;
 }
 
 export default CreateUserDto;

@@ -168,6 +168,7 @@ export class UsersService {
 		if (user) {
 			console.log('update_session: found ' + login + ', updating ✔');
 			user.session_token = cookie;
+			user.session_expiration = new Date(new Date().getTime() + 3600000 * 24);
 			await this.usersRepository.save(user);
 		} else {
 			console.error(

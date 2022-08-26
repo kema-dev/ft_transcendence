@@ -132,16 +132,22 @@ router.beforeEach(async (to, from) => {
 			token: cookies.get('session'),
 		})
 		.then(() => {
-			console.log('token is valid')
-			// token is valid
 			return true;
 		}).catch((error) => {
 			if (error.response.data.message == 'E_NO_SESSION') {
 				toast.warning('📝 Your session token has been lost. Please log in again.')
 			} else if (error.response.data.message == 'E_SESSION_MISMATCH') {
+				cookies.remove('login');
+				cookies.remove('session');
 				toast.warning('📝 Your session is invalid. Please log in again.')
+			} else if (error.response.data.message == 'E_USER_NOT_FOUND') {
+				toast.warning('📝 Your session is invalid. Please log in again.')
+				cookies.remove('login');
+				cookies.remove('session');
 			} else if (error.response.data.message == 'E_SESSION_EXPIRED') {
 				toast.warning('📝 Your session is expired. Please log in again.')
+				cookies.remove('login');
+				cookies.remove('session');
 			} else {
 				toast.error('😥 Unknown error, we are sorry for that')
 			}
