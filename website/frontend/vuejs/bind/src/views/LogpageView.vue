@@ -1,11 +1,5 @@
 <template>
 	<div class="center column" id="app">
-		<a
-			v-if="!backend_status"
-			class="back_msg"
-			:href="apiPath + 'auth/status'"
-			>{{ BACKEND_DOWN_MESSAGE }}</a
-		>
 		<Transition name="showup">
 			<div v-if="show" class="outer">
 				<div class="inner">
@@ -113,7 +107,6 @@ let email_auth = ref("");
 let password_auth = ref("");
 let show = ref(false);
 let switch_value = ref(true);
-let backend_status = ref(true);
 let totp_enabled = ref(false);
 let totp_val = ref("");
 
@@ -127,8 +120,6 @@ let E_UNEXPECTED_ERROR = "😥 Unknown error, we are sorry for that";
 let E_EMAIL_OR_LOGIN_ALREADY_EXISTS =
 	"📝 User with that email and/or login already exists, please try again";
 let E_PASS_FAIL = "📝 Wrong credentials provided, please try again";
-let BACKEND_DOWN_MESSAGE =
-	"🖱️ Backend is down, please authorize our self-signed certificate manually by clicking this text";
 let E_NO_CODE_PROVIDED =
 	"❌ 42 API authentication: No code provided, please try again";
 let E_CODE_IN_USE =
@@ -234,51 +225,40 @@ function auth() {
 		});
 }
 onMounted(() => {
-	axios
-		.get(apiPath + "auth/status")
-		.then(() => {
-			backend_status.value = true;
-			setTimeout(() => {
-				show.value = true;
-			}, 0.5);
-			let urlParams = new URLSearchParams(window.location.search);
-			let code = urlParams.get("code");
-			if (code) {
-				axios
-					.post(apiPath + "auth/login42", {
-						code: code,
-					})
-					.then((response) => {
-						console.log(response);
-						$cookies.set(response.data.key, response.data.value);
-			$cookies.set('login', response.data.login);
-						toast.success(
-							"Authentication success, welcome " + response.data.login + " !"
-						);
-						router.push("/home");
-					})
-					.catch((error) => {
-						if (error.response.data.message === "E_NO_CODE_PROVIDED") {
-							toast.warning(E_NO_CODE_PROVIDED);
-						} else if (error.response.data.message === "E_CODE_IN_USE") {
-							toast.warning(E_CODE_IN_USE);
-						} else if (error.response.data.message === "E_UNEXPECTED_ERROR") {
-							toast.error(E_UNEXPECTED_ERROR);
-							console.error(error);
-						} else {
-							toast.error(E_UNEXPECTED_ERROR);
-							console.error(error);
-						}
-					});
-			}
-		})
-		.catch(() => {
-			setTimeout(() => {
-				backend_status.value = false;
-				toast.error(BACKEND_DOWN_MESSAGE);
-			}, 0.5);
-		});
-});
+	setTimeout(() => {
+		show.value = true;
+	}, 0.5);
+	let urlParams = new URLSearchParams(window.location.search);
+	let code = urlParams.get("code");
+	if (code) {
+		axios
+			.post(apiPath + "auth/login42", {
+				code: code,
+			})
+			.then((response) => {
+				console.log(response);
+				$cookies.set(response.data.key, response.data.value);
+	$cookies.set('login', response.data.login);
+				toast.success(
+					"Authentication success, welcome " + response.data.login + " !"
+				);
+				router.push("/home");
+			})
+			.catch((error) => {
+				if (error.response.data.message === "E_NO_CODE_PROVIDED") {
+					toast.warning(E_NO_CODE_PROVIDED);
+				} else if (error.response.data.message === "E_CODE_IN_USE") {
+					toast.warning(E_CODE_IN_USE);
+				} else if (error.response.data.message === "E_UNEXPECTED_ERROR") {
+					toast.error(E_UNEXPECTED_ERROR);
+					console.error(error);
+				} else {
+					toast.error(E_UNEXPECTED_ERROR);
+					console.error(error);
+				}
+			});
+		}
+	});
 </script>
 
 

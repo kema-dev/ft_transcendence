@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import Home from "@/views/HomeView.vue"
 import LogpageView from '@/views/LogpageView.vue'
+import BackendDownView from '@/views/BackendDownView.vue'
 import SecurityView from '@/views/SecurityView.vue'
 import GameView from '@/views/GameView.vue'
 import Friends from '@/menu/FriendsTab.vue'
@@ -12,6 +13,7 @@ import Conversation from '@/chat/ConversationItem.vue'
 import ConversationClass from '@/chat/Conversation'
 import Profile from '@/menu/ProfileTab.vue'
 import Player from '@/menu/PlayerTab.vue'
+import axios from 'axios'
 
 document.title = "pong.io"
 
@@ -20,6 +22,11 @@ const routes: Array<RouteRecordRaw> = [
 		name: 'logpage',
 		path: '/',
 		component: LogpageView
+	},
+	{
+		name: 'backend_down',
+		path: '/backend_down',
+		component: BackendDownView
 	},
 	{
 		name: 'security',
@@ -93,6 +100,17 @@ const routes: Array<RouteRecordRaw> = [
 const router = createRouter({
 	history: createWebHistory(process.env.BASE_URL),
 	routes
+})
+
+router.beforeEach(async (to, from) => {
+	axios.get('https://localhost:3000/api/v1/auth/status')
+	.then(() => {
+		// backend is up
+	}
+	).catch(() => {
+		console.log('backend is down, redirecting to authorization page')
+		router.push('/backend_down')
+	})
 })
 
 export default router
