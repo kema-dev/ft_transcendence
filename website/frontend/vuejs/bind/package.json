@@ -25,6 +25,7 @@
     "vue-router": "^4.0.3",
     "vue-switches": "^2.0.1",
     "vue-toastification": "^2.0.0-rc.5",
+    "vue3-cookies": "^1.0.6",
     "vuejs-overlay": "^0.0.28",
     "vuelidate": "^0.7.7"
   },

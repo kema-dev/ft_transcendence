@@ -12,6 +12,7 @@ import * as crypto from 'crypto';
 import TotpDto from './dto/totp.dto';
 import axios from 'axios';
 import CreateUserDto from '../users/dto/createUser.dto';
+import CheckDto from './dto/check.dto';
 
 @Injectable()
 export class AuthenticationService {
@@ -219,6 +220,21 @@ export class AuthenticationService {
 		console.log('deleteCookie: starting for login: ' + login);
 		await this.usersService.update_session(login, '');
 		console.log('deleteCookie: ' + 'cookie deleted successfully, returning ✔');
+		return true;
+	}
+
+	public async validate_token(request: CheckDto) {
+		console.log('validate_token: starting for login: ' + request.login);
+		const user = await this.usersService.getByAny(request.login);
+		if (user.session_token == '') {
+			console.error('validate_token: ' + 'no session, returning ✘');
+			throw new HttpException('E_NO_SESSION', HttpStatus.BAD_REQUEST);
+		}
+		if (user.session_token != request.token) {
+			console.error('validate_token: ' + 'session mismatch, returning ✘');
+			throw new HttpException('E_SESSION_MISMATCH', HttpStatus.BAD_REQUEST);
+		}
+		console.log('validate_token: ' + 'session valid, returning ✔');
 		return true;
 	}
 

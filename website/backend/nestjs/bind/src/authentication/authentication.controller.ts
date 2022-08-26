@@ -3,6 +3,7 @@ import { AuthenticationService } from './authentication.service';
 import RegisterDto from './dto/register.dto';
 import TotpDto from './dto/totp.dto';
 import LogInDto from './dto/logIn.dto';
+import CheckDto from './dto/check.dto';
 
 @Controller('auth')
 export class AuthenticationController {
@@ -34,6 +35,11 @@ export class AuthenticationController {
 	@Get('status')
 	check() {
 		return 'Backend is up and running, you can go back to the website';
+	}
+
+	@Post('validate_token')
+	validate_token(@Body() request: CheckDto) {
+		return this.authenticationService.validate_token(request);
 	}
 
 	@Post('set_totp')
