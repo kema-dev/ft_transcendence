@@ -2,9 +2,8 @@
 
 ## ongoing
 
-* TODO add an expiration check for sessions
-* TODO learn more about jwt construction
-* TODO make frontend function to delete cookie for logout (call deletecookie on backend)
+* TODO make login and JWT sent with every requests (axios config)
+* TODO add JWT guards on backend endpoints
 * TODO improve 2FA page
 * TODO make a refresh token function in backend and frontend (for frontend, ask for a refresh if $date + x > expiration\\_date$)
 

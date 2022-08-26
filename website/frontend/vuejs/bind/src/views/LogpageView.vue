@@ -135,6 +135,12 @@ provide("defaultState", switch_value);
 
 const toast = useToast();
 const $cookies = inject<VueCookies>('$cookies'); 
+const axios_config = {
+  headers:{
+    login: $cookies.get('login'),
+    token: $cookies.get('session'),
+  }
+};
 
 function register() {
 	if (
