@@ -14,8 +14,11 @@ import ConversationClass from '@/chat/Conversation'
 import Profile from '@/menu/ProfileTab.vue'
 import Player from '@/menu/PlayerTab.vue'
 import axios from 'axios'
+import { VueCookies } from "vue-cookies";
+import { inject } from 'vue'
 
 document.title = "pong.io"
+const $cookies = inject<VueCookies>('$cookies');
 
 const routes: Array<RouteRecordRaw> = [
 	{
@@ -106,10 +109,16 @@ router.beforeEach(async (to, from) => {
 	axios.get('https://localhost:3000/api/v1/auth/status')
 	.then(() => {
 		// backend is up
+		if ($cookies?.get('token') == null) {
+			// no token: redirecting to logpage
+			router.replace('/')
+		} else {
+			// token: check validity
+		}
 	}
 	).catch(() => {
-		console.log('backend is down, redirecting to authorization page')
-		router.push('/backend_down')
+		// backend is down
+		router.replace('/backend_down')
 	})
 })
 
