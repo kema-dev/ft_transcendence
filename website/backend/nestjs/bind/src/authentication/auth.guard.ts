@@ -15,10 +15,11 @@ export class AuthGuard implements CanActivate {
 		console.log('AuthGuard: Starting');
 		const request = context.switchToHttp().getRequest();
 		console.log(
-			'AuthGuard: decoded: ', this.jwtService.decode(request.headers.token),
+			'AuthGuard: decoded:',
+			this.jwtService.decode(request.headers.token),
 		);
 		const check = this.jwtService.verify(request.headers.token);
-		console.log('AuthGuard: Returning: ', check);
+		console.log('AuthGuard: Returning:', check);
 		return check;
 	}
 }

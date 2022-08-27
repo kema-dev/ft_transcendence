@@ -224,19 +224,14 @@ export class AuthenticationService {
 	}
 
 	public async validate_token(request: CheckDto) {
-		console.log('validate_token: starting for login: ' + request.login);
-		const user = await this.usersService.getByAny(request.login);
-		if (user.session_token == '') {
-			console.error('validate_token: ' + 'no session, returning ✘');
-			throw new HttpException('E_NO_SESSION', HttpStatus.BAD_REQUEST);
-		}
+		console.log('validate_token: starting ');
 		try {
 			console.log(
 				'validate_token: ',
 				'decoded: ',
-				await this.jwtService.decode(user.session_token),
+				await this.jwtService.decode(request.token),
 			);
-			await this.jwtService.verify(user.session_token);
+			await this.jwtService.verify(request.token);
 		} catch (error) {
 			console.error('validate_token: ' + 'session mismatch, returning ✘');
 			throw new HttpException('E_SESSION_MISMATCH', HttpStatus.BAD_REQUEST);
