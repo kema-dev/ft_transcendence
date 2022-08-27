@@ -24,7 +24,7 @@ export default class Ball {
 		this.r = 10;
 		this.v = new Vector(0, 0);
 		this.touch = 0;
-		this.initSpeed = 0.5;
+		this.initSpeed = 8;
 		this.speed = this.initSpeed;
 		this.konva = new Konva.Circle({
 			x: this.x,
@@ -32,12 +32,14 @@ export default class Ball {
 			radius: this.r,
 			fill: "#16638D",
 		})
-		this.start()
+		this.start();
 	}
 	async start() {
 		this.speed = 0;
 		this.konva.x(this.startX);
 		this.konva.y(this.startY);
+		this.x = this.startX;
+		this.y = this.startY;
 		await delay(1000);
 		this.speed = this.initSpeed;
 		let ballX = Math.random() * 5;
@@ -48,7 +50,7 @@ export default class Ball {
 		this.v.normalize();
 	}
 	getKonva() {
-		return this.konva
+		return this.konva;
 	}
 	detectCollision(objects: Konva.Group, walls: Map<number, Wall>) {
 		for (let i = 0; i < objects.children!.length; ++i) {
@@ -62,8 +64,8 @@ export default class Ball {
 				this.touch++;
 				if (this.touch >= 30)
 					this.start();
-				if (this.speed < 1.5)
-					this.speed += 0.05;
+				if (this.speed < this.initSpeed * 3)
+					this.speed += this.initSpeed / 10;
 				this.v = this.v.add(
 					v.multiplication(v.dotPorduct(this.v.reverse()) * 2));
 				// check if is wall or racket for the score
@@ -86,7 +88,7 @@ export default class Ball {
 							wall.profile!.konvaRound.strokeWidth(3);
 							wall.scoreKonva!.fontSize(25);
 							wall.scoreKonva!.fill('#16638D');
-						})
+						});
 					// .then(() => {wall.racket!.speed = 1;});
 					// wall.racket!.speed = 1;
 				}

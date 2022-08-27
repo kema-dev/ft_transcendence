@@ -51,7 +51,7 @@ let match = {
 let size = ref(0);
 function open() {
 	if (size.value)
-		size.value = 0
+		size.value = 0;
 	else
 		size.value = match.nbrPlayer;
 }

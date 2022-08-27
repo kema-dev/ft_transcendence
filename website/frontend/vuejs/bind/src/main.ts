@@ -17,5 +17,4 @@ const toast_options: PluginOptions = {
   icon: "fas fa-rocket",
   rtl: false
 };
-
 createApp(App).use(router).use(Toast, toast_options).mount('#app')

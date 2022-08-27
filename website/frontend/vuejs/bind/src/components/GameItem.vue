@@ -8,14 +8,21 @@ import { inject, onMounted, defineProps, onUnmounted, ref } from "vue";
 import Konva from "konva";
 import Field from "@/game2.0/Field";
 import Ball from "@/game2.0/Ball";
+import Socket from "@/utils/Socket";
 
 let define = inject("colors");
+let socket: Socket = inject("socket");
 let props = defineProps(["nbrPlayer", "nbrBall", "start"]);
 let run = true;
 // let nbrPlayer = ref(props.nbrPlayer)
 let players = ["zeus", "Toto", "Jj"];
 
 onMounted(() => {
+	socket.send("msgToServer", "coucou");
+	socket.send("racketMov", "coucou");
+	socket.on("racketMov", (props: any) => {
+		console.log(props);
+	})
 	var sceneWidth = 1000;
 	var sceneHeight = 1000;
 	let radius = 410;
@@ -130,6 +137,8 @@ onMounted(() => {
 			let end = await performance.now();
 			// deltaTime = (end - start) * 0.000001;
 			deltaTime = end - start;
+			deltaTime /= 1000;
+			deltaTime *= 60;
 			// console.log("start: " + start);
 			// console.log("end: " + end);
 			// console.log("deltatime: " + deltaTime);
@@ -157,6 +166,7 @@ onMounted(() => {
 		} else {
 			return;
 		}
+		socket.send("racketMov", mov);
 		e.preventDefault();
 	});
 	container.addEventListener("keyup", function (e) {
@@ -167,6 +177,7 @@ onMounted(() => {
 		} else {
 			return;
 		}
+		socket.send("racketMov", mov);
 		e.preventDefault();
 	});
 	function fitStageIntoParentContainer() {

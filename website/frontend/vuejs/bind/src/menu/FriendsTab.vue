@@ -91,9 +91,9 @@ let options: {
 		};
 	};
 };
-function search_user(str: string) {
-	users.forEach((u) => u.name == str);
-}
+// function search_user(str: string) {
+// 	users.forEach((u) => u.name == str);
+// }
 let user = {
 	name: "zeus",
 	level: "1000",
@@ -116,10 +116,10 @@ function post(url: string, args: any) {
 }
 
 // let userr = post("user/getUser", {login: user.name});
-let avatar = post("user/getAnyByLogin", {
-	login: user.name,
-	infos: ["avatar"],
-});
+// let avatar = post("user/getAnyByLogin", {
+// 	login: user.name,
+// 	infos: ["avatar"],
+// });
 let users = [
 	{
 		name: "John",
