@@ -16,7 +16,6 @@ import CheckDto from './dto/check.dto';
 
 @Injectable()
 export class AuthenticationService {
-
 	constructor(
 		private readonly usersService: UsersService,
 		private readonly configService: ConfigService,
@@ -231,13 +230,16 @@ export class AuthenticationService {
 			console.error('validate_token: ' + 'no session, returning ✘');
 			throw new HttpException('E_NO_SESSION', HttpStatus.BAD_REQUEST);
 		}
-		if (user.session_token != request.token) {
+		try {
+			console.log(
+				'validate_token: ',
+				'decoded: ',
+				await this.jwtService.decode(user.session_token),
+			);
+			await this.jwtService.verify(user.session_token);
+		} catch (error) {
 			console.error('validate_token: ' + 'session mismatch, returning ✘');
 			throw new HttpException('E_SESSION_MISMATCH', HttpStatus.BAD_REQUEST);
-		}
-		if (user.session_expiration < new Date()) {
-			console.error('validate_token: ' + 'session expired, returning ✘');
-			throw new HttpException('E_SESSION_EXPIRED', HttpStatus.BAD_REQUEST);
 		}
 		console.log('validate_token: ' + 'session valid, returning ✔');
 		return true;

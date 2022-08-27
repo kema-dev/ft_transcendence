@@ -24,7 +24,6 @@ if (session && ((session.substring(0, 1) === '{' && session.substring(session.le
 export const HTTP = axios.create({
   baseURL: `https://localhost/`,
 	headers:{
-    login: login,
     token: session,
   }
 })
