@@ -1,4 +1,3 @@
-/* eslint-disable no-useless-escape */
 import axios from 'axios';
 
 let login = decodeURIComponent(document.cookie.replace(new RegExp('(?:(?:^|.*;)\\s*' + encodeURIComponent('login').replace(/[-.+*]/g, '\\$&') + '\\s*\\=\\s*([^;]*).*$)|^.*$'), '$1')) || "";
