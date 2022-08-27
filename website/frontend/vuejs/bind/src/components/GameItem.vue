@@ -1,10 +1,10 @@
 <template>
-	<div id="stage-parent" class="stack">
+	<div id="stage-parent" class="stack" :key="nbrPlayer">
 		<div id="container"></div>
 	</div>
 </template>
 <script setup lang="ts">
-import { inject, onMounted, defineProps, onUnmounted } from "vue";
+import { inject, onMounted, defineProps, onUnmounted, ref } from "vue";
 import Konva from "konva";
 import Field from "@/game2.0/Field";
 import Ball from "@/game2.0/Ball";
@@ -12,6 +12,12 @@ import Ball from "@/game2.0/Ball";
 let define = inject("colors");
 let props = defineProps(["nbrPlayer", "nbrBall", "start"]);
 let run = true;
+// let nbrPlayer = ref(props.nbrPlayer)
+let players = [
+	"zeus",
+	"Toto",
+	"Jj"
+];
 
 onMounted(() => {
 	var sceneWidth = 1000;
@@ -43,10 +49,14 @@ onMounted(() => {
 	let fieldPoints: Array<number> = [];
 	walls.forEach((wall) => {
 		fieldPoints.push(wall.x);
+			// x: this.x,
+			// y: this.y,
 		fieldPoints.push(wall.y);
 	});
 	let background = new Konva.Line({
 		points: fieldPoints,
+			// x: this.x,
+			// y: this.y,
 		closed: true,
 		fill: "#E5F4FB",
 		shadowColor: "black",
@@ -57,12 +67,18 @@ onMounted(() => {
 	stage.add(layer);
 	game.add(background);
 	let rack: Konva.Rect;
+	let i = 0;
 	walls.forEach((wall) => {
 		objects.add(wall.getKonva());
 		if (wall.side) {
 			let tmp = wall.getKonvaRacket();
 			objects.add(tmp);
 			if (wall.angle == 0) rack = tmp;
+			if (!players[i])
+				game.add(wall.getKonvaProfile("search..."));
+			else
+				game.add(wall.getKonvaProfile(players[i]));
+			i++;
 		}
 	});
 	// let ball.konva = ball.getKonva()
@@ -127,9 +143,9 @@ onMounted(() => {
 	// let delta = 5
 	container.addEventListener("keydown", function (e) {
 		if (e.key == "ArrowLeft") {
-			mov = -delta;
+			mov = -delta * walls.get(0)!.racket!.speed;
 		} else if (e.key == "ArrowRight") {
-			mov = delta;
+			mov = delta * walls.get(0)!.racket!.speed;
 			// if (e.key == "ArrowUp") {
 			// 	ball.y(ball.y() - delta);
 			// } else if (e.key == "ArrowDown") {

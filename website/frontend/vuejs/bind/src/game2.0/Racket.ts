@@ -7,6 +7,7 @@ export default class Racket {
 	x: number;
 	y: number;
 	angle: number;
+	speed: number;
 
 	constructor(wall: Wall) {
 		this.width = wall.width / 4
@@ -15,6 +16,7 @@ export default class Racket {
 		this.x += wall.vector.x * 10
 		this.y += wall.vector.y * 10
 		this.angle = wall.angle
+		this.speed = 1;
 	}
 	getKonva() {
 		return new Konva.Rect({

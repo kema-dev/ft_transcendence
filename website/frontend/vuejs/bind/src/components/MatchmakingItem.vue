@@ -39,7 +39,7 @@ function launch() {
 	reload.value++;
 }
 function incr() {
-	if (nbrPlayer.value + 1 <= 8) {
+	if (nbrPlayer.value + 1 <= 7) {
 		nbrPlayer.value++;
 		reload.value++;
 	}
@@ -51,7 +51,7 @@ function decr() {
 	}
 }
 function incrBall() {
-	// if (nbrBall.value + 1 <= 3)
+	if (nbrBall.value + 1 <= 3)
 	{
 		nbrBall.value++;
 		reload.value++;

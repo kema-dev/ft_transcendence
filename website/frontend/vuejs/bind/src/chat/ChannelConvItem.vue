@@ -1,52 +1,46 @@
 <template>
-	<transition>
-		<div id="conversation_view" class="stack">
+		<div id="channel_view" class="stack">
 			<div class="userTopBar center raw space-between">
 				<div class="avatar_cont center">
-					<img :src="conv.users[0].avatar" class="avatar" alt="avatar">
+					<img :src="conv.user.avatar" class="avatar" alt="avatar">
 				</div>
 				<button @click="toProfile" class="login">{{route.params.conv_name}}</button>
 				<div class="option_buttons center raw stack">
-					<button @click="inviteGame" class="button_cont infoButton center">
+					<!-- <button @click="inviteGame" class="button_cont infoButton center">
 						<span class="infoButtonText">Invite in room</span>
 						<img src="~@/assets/play_button.png" alt="Invite game button" class="logo_img">
-					</button>
-					<button @click="blockUser" class="button_cont infoButton center">
-						<span class="infoButtonText">Block</span>
-						<img src="~@/assets/ban_button.png" alt="Invite game button" class="logo_img">
+					</button> -->
+					<button @click="infoChannel()" class="button_cont infoButton center">
+						<span class="infoButtonText">Info</span>
+						<img src="~@/assets/info_logo.svg" alt="Info button" class="logo_img">
 					</button>
 					<button onclick="history.back();" class="button_cont infoButton center">
 						<span class="infoButtonText">Close</span>
-						<img src="~@/assets/close_button.png" alt="Invite game button" class="logo_img">
+						<img src="~@/assets/close_logo.svg" alt="Invite game button" class="logo_img">
 					</button>
 				</div>
 			</div>
-			<div class="messages">
-					<MessageItem v-for="(message, i) in conv.messages" :key="i" :message="message"/>
-			</div>
-			<div class="sendbox_cont">
-				<input
-					type="text"
-					placeholder="Aa..."
-					id="sendbox"
-					v-model="myMsg"
-					class="sendbox"
-				/>
+			<div class="conversation_content stack">
+				<div id="messages_cont" class="messages ">
+						<MessageItem v-for="(message, i) in conv.messages" :key="i" :message="message"/>
+				</div>
+				<div class="sendbox_cont">
+					<input type="text" placeholder="Aa..." id="sendbox" v-model="myMsg" class="sendbox"/>
+				</div>
 			</div>
 		</div>
-
-	</transition>
 </template>
 
 <script setup lang="ts">
 /* eslint @typescript-eslint/no-var-requires: "off" */
-import { inject, defineProps, onMounted, ref, onBeforeUnmount } from "vue";
+import { inject, onMounted, ref, onBeforeUnmount, watch } from "vue";
 import { useRoute } from 'vue-router';
 import MessageItem from "@/chat/MessageItem.vue";
-import Conversation from '@/chat/Conversation';
+import Private from '@/chat/Private';
 import User from "@/chat/User";
 import Message from "@/chat/Message";
-import VueToastificationPlugin from "vue-toastification";
+import BlockAdvert from "@/components/BlockItem.vue";
+
 
 const route = useRoute();
 let define = inject("colors");
@@ -64,8 +58,20 @@ let msg4 = new Message(user3, "Non je dois finir de faire le front, et wallah c'
 let msg5 = new Message(user1, "dsaibciauwncopneejvnjn fcoamsdomvcafosnvonsvonoans", new Date());
 let msg6 = new Message(user2, "Mais tu sais pas parler en fait", new Date());
 
-let conv = ref(new Conversation(false, [user2], [msg1, msg2, msg3, msg5, msg6]));
+let conv = ref(new Private(user2, [msg1, msg2, msg3, msg5, msg6]));
 // let conv2 = new Conversation(false, [user1, user2, user3], [msg1, msg2]);
+
+function blockUser () {
+	let advert = document.getElementById("blockAdvert_view");
+	if (advert != null) {
+		advert.style.setProperty('visibility', 'visible');
+	}
+}
+
+watch(conv.value.messages, (newMsg) => {
+	let msgs = document.getElementById("messages_cont");
+	msgs!.scrollTop = msgs!.scrollHeight;
+}, {flush:'post'});
 
 
 onMounted(() => {
@@ -101,7 +107,7 @@ onBeforeUnmount(() => {
 * {
   --height: 70px;
 }
-#conversation_view {
+#channel_view {
 	height: calc(100vh - 180px);
 }
 .userTopBar {
@@ -109,7 +115,7 @@ onBeforeUnmount(() => {
 	height: var(--height);
 	background-color: white;
 	/* margin-top: 5px; */
-	margin-bottom: 20px;
+
 	box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.1), 0px -4px 4px rgba(0, 0, 0, 0.1);
 }
 .avatar_cont {
@@ -134,18 +140,20 @@ onBeforeUnmount(() => {
 }
 .option_buttons {
 	width: auto;
+	position: relative;
+	margin-right: 10px;
 }
 .button_cont {
 	margin: 5px;
+	position: static;
 }
 .logo_img {
 	width: 30px;
 	height: 30px;
+	filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg) brightness(86%) contrast(83%);
 }
-.infoButton {
-  display: inline-block;
-}
-.infoButton .infoButtonText {
+
+.infoButtonText {
 	opacity:0;
 	font-size: 0.8rem;
   width: 120px;
@@ -156,33 +164,32 @@ onBeforeUnmount(() => {
   border-radius: 6px;
   position: absolute;
   z-index: 1;
-	width: 120px;
   bottom: 100%;
-	right: 0;
-}
-.infoButton:hover .infoButtonText {
-	opacity: 0;
-	animation: displayButtonInfo 0.3s;
-	animation-delay: 0.3s;
-	animation-fill-mode: forwards;
+	right: 50%;
+	transform: translate(50%);
 }
 
-@keyframes displayButtonInfo {
-	from { opacity: 0; }
-  to { opacity: 1; }
+.conversation_content {
+	height: calc(100% - 70px);
+	width: 100%;
+	padding-top: 20px;
 }
 .messages {
-
 	overflow-y: auto;
 	height: calc(100vh - 340px);
+	display: flex;
+  flex-direction: column;
+	justify-content: flex-start;
 }
 
 .sendbox_cont {
 	position: absolute;
 	bottom: 1rem;
-}
+	}
 
 .sendbox {
+	/* position: absolute;
+	bottom: 1rem; */
 	width: 40%;
 	height: 2.2rem;
 	padding: 10px 15px;
@@ -195,5 +202,24 @@ onBeforeUnmount(() => {
 	transition: width 0.3s ease-in-out;
 	width: 80%;
 }
+
+/* TRANSITION ROUTER VIEW */
+
+/* .mySlide-leave-active,
+.mySlide-enter-active {
+  transition: 1s;
+}
+.mySlide-leave-to,
+.mySlide-enter-from {
+	transform: translateY(100%);
+} */
+
+
+/* .mySlide-enter-from {
+	transform: translateY(100%);
+}
+.mySlide-leave-to {
+	transform: translateY(-100%);
+} */
 
 </style>
