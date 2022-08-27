@@ -12,13 +12,13 @@ import RegisterDto from './dto/register.dto';
 import TotpDto from './dto/totp.dto';
 import LogInDto from './dto/logIn.dto';
 import CheckDto from './dto/check.dto';
-import { AuthGuard } from '@nestjs/passport';
+import { AuthGuard } from './auth.guard';
 
 @Controller('auth')
 export class AuthenticationController {
 	constructor(private readonly authenticationService: AuthenticationService) {}
 
-	@UseGuards(AuthGuard('jwt'))
+	@UseGuards(AuthGuard)
 	@Post('debug')
 	async debug(@Headers() headers: any) {
 		console.log('Debug');
