@@ -1,36 +1,61 @@
 import {
 	Body,
-	Req,
-	Res,
 	Controller,
 	HttpCode,
 	Post,
 	Get,
+	Headers,
 	UseGuards,
 } from '@nestjs/common';
 import { AuthenticationService } from './authentication.service';
 import RegisterDto from './dto/register.dto';
-import RequestWithUser from './requestWithUser.interface';
-import { LocalAuthenticationGuard } from './localAuthentication.guard';
-import { JwtAuthenticationGuard } from './jwtAuthentication.guard';
-import { AuthResponse } from './authResponse.interface';
 import TotpDto from './dto/totp.dto';
-
-import { Response, Request } from 'express';
-import { get } from 'http';
+import LogInDto from './dto/logIn.dto';
+import CheckDto from './dto/check.dto';
+import { AuthGuard } from './auth.guard';
 
 @Controller('auth')
 export class AuthenticationController {
 	constructor(private readonly authenticationService: AuthenticationService) {}
 
+	@UseGuards(AuthGuard)
+	@Post('debug')
+	async debug(@Headers() headers: any) {
+		console.log('Debug');
+		// console.log(headers);
+	}
+
 	@Post('register')
 	async register(@Body() registrationData: RegisterDto) {
-		return this.authenticationService.register(registrationData);
+		let usr;
+		try {
+			usr = await this.authenticationService.register(registrationData);
+		} catch (error) {
+			throw error;
+		}
+		let cookie;
+		try {
+			cookie = await this.authenticationService.createCookie(usr.login);
+		} catch (error) {
+			throw error;
+		}
+		console.log('Login: ' + usr.login + ' Success: ' + usr.success);
+		return {
+			login: usr.login,
+			success: usr.success,
+			key: cookie.key,
+			value: cookie.value,
+		};
 	}
 
 	@Get('status')
 	check() {
 		return 'Backend is up and running, you can go back to the website';
+	}
+
+	@Post('validate_token')
+	validate_token(@Body() request: CheckDto) {
+		return this.authenticationService.validate_token(request);
 	}
 
 	@Post('set_totp')
@@ -44,24 +69,54 @@ export class AuthenticationController {
 	}
 
 	@HttpCode(200)
-	@UseGuards(LocalAuthenticationGuard)
 	@Post('login')
-	async logIn(@Res() response: Response) {
-		// TODO add a cookie to the response and ask for mfa code
-		return response.send('You successfully logged in using a password');
+	async logIn(@Body() body: LogInDto) {
+		let usr;
+		try {
+			usr = await this.authenticationService.getAuthenticatedUser(
+				body.email,
+				body.password,
+				body.mfa,
+			);
+		} catch (error) {
+			throw error;
+		}
+		let cookie;
+		try {
+			cookie = await this.authenticationService.createCookie(usr.login);
+		} catch (error) {
+			throw error;
+		}
+		console.log('Login: ' + usr.login + ' Success: ' + usr.success);
+		return {
+			login: usr.login,
+			success: usr.success,
+			key: cookie.key,
+			value: cookie.value,
+		};
 	}
 
 	@HttpCode(200)
 	@Post('login42')
-	public async create(@Body('code') code: string): Promise<AuthResponse> {
-		// TODO add a cookie to the response and ask for mfa code
-		return this.authenticationService.auth42(code);
-	}
-
-	@UseGuards(JwtAuthenticationGuard)
-	@Post('logout')
-	async logOut(@Res() response: Response) {
-		// TODO add a cookie to the response
-		return response.status(200);
+	public async create(@Body('code') code: string) {
+		let usr;
+		try {
+			usr = await this.authenticationService.auth42(code);
+		} catch (error) {
+			throw error;
+		}
+		let cookie;
+		try {
+			cookie = await this.authenticationService.createCookie(usr.login);
+		} catch (error) {
+			throw error;
+		}
+		console.log('Login: ' + usr.login + ' Success: ' + usr.success);
+		return {
+			login: usr.login,
+			success: usr.success,
+			key: cookie.key,
+			value: cookie.value,
+		};
 	}
 }

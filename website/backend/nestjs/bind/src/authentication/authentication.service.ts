@@ -12,8 +12,7 @@ import * as crypto from 'crypto';
 import TotpDto from './dto/totp.dto';
 import axios from 'axios';
 import CreateUserDto from '../users/dto/createUser.dto';
-
-// NOTE - API's documentation can be found at `docs/api/v1.md`
+import CheckDto from './dto/check.dto';
 
 @Injectable()
 export class AuthenticationService {
@@ -113,8 +112,18 @@ export class AuthenticationService {
 		}
 	}
 
-	public async getAuthenticatedUser(name: string, password: string) {
+	public async getAuthenticatedUser(
+		name: string,
+		password: string,
+		mfa: string,
+	): Promise<AuthResponse> {
 		console.log('getAuthenticatedUser: starting for login / email: ' + name);
+		if (name == undefined || password == undefined) {
+			console.error(
+				'getAuthenticatedUser: name or password is undefined, returning ✘',
+			);
+			throw new HttpException('E_UNEXPECTED_ERROR', HttpStatus.BAD_REQUEST);
+		}
 		try {
 			const user = await this.usersService.getByAny(name);
 			if (user.password == '') {
@@ -122,6 +131,26 @@ export class AuthenticationService {
 					'getAuthenticatedUser: ' + name + ' has no password, returning ✘',
 				);
 				throw new HttpException('E_USER_IS_FT', HttpStatus.BAD_REQUEST);
+			}
+			if (user.totp_code !== '' && mfa === '') {
+				console.error(
+					'getAuthenticatedUser: ' + name + ' has totp code, returning ✘',
+				);
+				throw new HttpException('E_USER_HAS_TOTP', HttpStatus.BAD_REQUEST);
+			} else if (user.totp_code !== '' && mfa !== '') {
+				const mfa_check = await this.check_totp_code(user.login, mfa);
+				if (mfa_check == false) {
+					console.error(
+						'getAuthenticatedUser: ' +
+							name +
+							' totp code check failed, returning ✘',
+					);
+					throw new HttpException('E_TOTP_FAIL', HttpStatus.BAD_REQUEST);
+				}
+			} else {
+				console.log(
+					'getAuthenticatedUser: ' + name + ' has no totp code, passing',
+				);
 			}
 			await this.verifyPassword(password, user.password);
 			console.log(
@@ -138,6 +167,22 @@ export class AuthenticationService {
 				throw new HttpException('E_PASS_FAIL', HttpStatus.BAD_REQUEST);
 			} else if (error.message == 'E_USER_NOT_FOUND') {
 				throw new HttpException('E_USER_NOT_FOUND', HttpStatus.BAD_REQUEST);
+			} else if (error.message == 'E_USER_HAS_TOTP') {
+				throw new HttpException('E_USER_HAS_TOTP', HttpStatus.BAD_REQUEST);
+			} else if (error.message == 'E_TOTP_FAIL') {
+				throw new HttpException('E_TOTP_FAIL', HttpStatus.BAD_REQUEST);
+			} else if (error.message == 'E_NO_NAME') {
+				throw new HttpException('E_NO_NAME', HttpStatus.INTERNAL_SERVER_ERROR);
+			} else if (error.message == 'E_NO_TOTP_PROVIDED') {
+				throw new HttpException(
+					'E_UNEXPECTED_ERROR',
+					HttpStatus.INTERNAL_SERVER_ERROR,
+				);
+			} else if (error.message == 'E_GOOGLE_API') {
+				throw new HttpException(
+					'E_UNEXPECTED_ERROR',
+					HttpStatus.INTERNAL_SERVER_ERROR,
+				);
 			} else {
 				throw new HttpException(
 					'E_UNEXPECTED_ERROR',
@@ -161,6 +206,38 @@ export class AuthenticationService {
 			throw new HttpException('E_PASS_FAIL', HttpStatus.BAD_REQUEST);
 		}
 		console.log('verifyPassword: ' + 'match, returning');
+	}
+
+	public async createCookie(login: string) {
+		console.log('createCookie: starting for login: ' + login);
+		const token = this.jwtService.sign({ login: login });
+		await this.usersService.update_session(login, token);
+		console.log('createCookie: ' + 'cookie created successfully, returning ✔');
+		return { key: 'session', value: token };
+	}
+
+	public async deleteCookie(login: string) {
+		console.log('deleteCookie: starting for login: ' + login);
+		await this.usersService.update_session(login, '');
+		console.log('deleteCookie: ' + 'cookie deleted successfully, returning ✔');
+		return true;
+	}
+
+	public async validate_token(request: CheckDto) {
+		console.log('validate_token: starting ');
+		try {
+			console.log(
+				'validate_token: ',
+				'decoded: ',
+				await this.jwtService.decode(request.token),
+			);
+			await this.jwtService.verify(request.token);
+		} catch (error) {
+			console.error('validate_token: ' + 'session mismatch, returning ✘');
+			throw new HttpException('E_SESSION_MISMATCH', HttpStatus.BAD_REQUEST);
+		}
+		console.log('validate_token: ' + 'session valid, returning ✔');
+		return true;
 	}
 
 	// public async getCookieFromJwt(userId: number) {
@@ -281,14 +358,14 @@ export class AuthenticationService {
 			})
 			.catch(() => {
 				console.error(
-					'compute_totp: ' + "error with Google's TOTP API, returning ✘",
+					'set_totp: ' + "error with Google's TOTP API, returning ✘",
 				);
 				throw new HttpException(
 					'E_GOOGLE_API',
 					HttpStatus.INTERNAL_SERVER_ERROR,
 				);
 			});
-		console.log('compute_totp: ' + 'code computed, returning ✔');
+		console.log('set_totp: ' + 'code computed, returning ✔');
 		return { url: url };
 	}
 
@@ -309,7 +386,7 @@ export class AuthenticationService {
 		} catch (error) {
 			if (error.message === 'E_GOOGLE_API') {
 				console.error(
-					'compute_totp: ' + "error with Google's TOTP API, returning ✘",
+					'verify_totp: ' + "error with Google's TOTP API, returning ✘",
 				);
 				throw new HttpException(
 					'E_GOOGLE_API',
@@ -337,8 +414,10 @@ export class AuthenticationService {
 				const elem = response.data.d;
 				truth = /true/.exec(elem) !== null;
 			})
-			.catch(() => {
-				console.error('compute_totp: ' + 'unexpected error, returning ✘');
+			.catch((error) => {
+				console.error(
+					'check_totp_code: ' + 'unexpected error : ' + error + ', returning ✘',
+				);
 				throw new HttpException(
 					'E_GOOGLE_API',
 					HttpStatus.INTERNAL_SERVER_ERROR,
