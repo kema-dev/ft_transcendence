@@ -2,6 +2,7 @@
 
 ## ongoing
 
+* TODO make backend is up endpoint redirect to frontend
 * TODO add JWT guards on backend endpoints
 * TODO make everyone use custom HTTP headers
 * TODO improve 2FA page
