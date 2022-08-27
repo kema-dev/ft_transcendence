@@ -61,9 +61,10 @@
 	}
 
 	function verify() {
+		console.log(test_mail.value, test_code.value);
 		axios
 			.post(apiPath + "auth/verify_totp", {
-				email: test_mail.value,
+				name: test_mail.value,
 				code: test_code.value,
 			})
 			.then((response) => {
