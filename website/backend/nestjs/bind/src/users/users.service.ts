@@ -39,17 +39,17 @@ export class UsersService {
 		throw new HttpException('E_USER_NOT_FOUND', HttpStatus.NOT_FOUND);
 	}
 
-	async getAnyByLogin(name: string, infos: [string]) {
-		console.log('getAnyByLogin: starting for ' + name);
-		for (let i = 0; i < infos.length; ++i)
-			infos[i] = ("user." + infos[i]);
-		return await this.usersRepository
-			.createQueryBuilder()
-			.select(infos)
-			.from(User, "user")
-			.where("user.login = :login", { login: name })
-			.getOne();
-	}
+	// async getAnyByLogin(name: string, infos: [string]) {
+	// 	console.log('getAnyByLogin: starting for ' + name);
+	// 	for (let i = 0; i < infos.length; ++i)
+	// 		infos[i] = ("user." + infos[i]);
+	// 	return await this.usersRepository
+	// 		.createQueryBuilder()
+	// 		.select(infos)
+	// 		.from(User, "user")
+	// 		.where("user.login = :login", { login: name })
+	// 		.getOne();
+	// }
 
 	async getByAny(name: string) {
 		console.log('getByAny: starting for ' + name);

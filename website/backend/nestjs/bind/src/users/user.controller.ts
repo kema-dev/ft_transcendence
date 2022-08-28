@@ -23,8 +23,8 @@ export class UsersController {
 	async getUser(@Body() params: any) {
 		return this.usersService.getByLogin(params.login);
 	}
-	@Post('getAnyByLogin')
-	async getAnyByLogin(@Body() params: any) {
-		return this.usersService.getAnyByLogin(params.login, params.infos);
-	}
+	// @Post('getAnyByLogin')
+	// async getAnyByLogin(@Body() params: any) {
+	// 	return this.usersService.getAnyByLogin(params.login, params.infos);
+	// }
 }

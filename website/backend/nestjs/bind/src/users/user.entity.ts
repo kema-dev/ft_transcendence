@@ -17,11 +17,11 @@ class User {
 	@Column()
 	public level: number;
 
-	@Column()
-	public avatar: string;
+	// @Column()
+	// public avatar: string;
 
-	@Column()
-	public friends: [User];
+	// @Column()
+	// public friends: [User];
 
 	@Column()
 	public ft_code: string;
