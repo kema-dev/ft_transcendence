@@ -1,4 +1,4 @@
-import { RacketDto } from 'src/game2.0/dto/RacketDto';
+import { RacketDto } from '@/dto/RacketDto';
 import {BallDto} from './BallDto';
 import {WallDto} from './WallDto';
 

@@ -28,9 +28,11 @@
 <script setup lang="ts">
 import { inject, onMounted, provide, ref } from "vue";
 import GameItem from "@/components/GameItem.vue";
+import Socket from '@/utils/Socket';
 let define = inject("colors");
 let start = ref(false);
 provide("playing", start);
+let socket: Socket = inject('socket');
 let reload = ref(0);
 let nbrPlayer = ref(4);
 let nbrBall = ref(1);

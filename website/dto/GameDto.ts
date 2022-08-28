@@ -1,4 +1,3 @@
-import { RacketDto } from 'src/game2.0/dto/RacketDto';
 import {BallDto} from './BallDto';
 import {WallDto} from './WallDto';
 
@@ -8,20 +7,12 @@ export class GameDto {
 	start: boolean;
 	balls: Array<BallDto>;
 	walls: Array<WallDto>;
-	rackets: RacketDto[];
+	// rackets: Array<RacketsDto
 	constructor(nbrPlayer: number, nbrBall: number) {
 		this.start = false;
 		this.nbrBall = nbrBall;
 		this.nbrPlayer = nbrPlayer;
 		this.balls = [];
 		this.walls = [];
-		this.rackets = [];
-	}
-	clone(): GameDto {
-		let rs = new GameDto(this.nbrPlayer, this.nbrBall);
-		rs.start = this.start;
-		rs.balls = this.balls.map(x => Object.assign({}, x));
-		rs.walls = this.walls.map(x => Object.assign({}, x));
-		return rs;
 	}
 }
