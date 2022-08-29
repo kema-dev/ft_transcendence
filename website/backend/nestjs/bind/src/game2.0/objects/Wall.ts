@@ -15,15 +15,14 @@ export default class Wall {
 	profile?: Profile;
 	constructor(width: number, vector: Vector, side: boolean, coordonate: Vector, index: number, nbrWall: number) {
 		this.vector = vector;
-		this.width = width;
-		this.height = 7;
+		this.width = 7;
+		this.height = width;
 		this.side = side;
 		this.index = index;
 		this.x = coordonate.x;
 		this.y = coordonate.y;
 		this.angle = index * (360 / nbrWall);
 		if (this.side) {
-			this.profile = new Profile(this, nbrWall / 2);
 			this.racket = new Racket(this)
 		}
 	}

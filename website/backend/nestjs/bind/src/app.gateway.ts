@@ -40,15 +40,24 @@ export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGateway
     return this.game.balls;
   }
   @SubscribeMessage('setMov')
-  setMov(client: Socket, payload: any): void {
-    this.game.setMov(payload);
+  setMov(client: Socket, args: any): void {
+    this.game.setMov(args.mov, args.login);
   }
   @SubscribeMessage('newRoom')
   newRoom(client: Socket, payload: any): void {
     // this.gameService.games.push(
     // var game = new Game(payload.nbrPlayer, payload.nbrBall, this.server)
     // );
-    this.game = new Game(4, 1, this.server);
+    if (!this.game)
+      this.game = new Game(4, 3, this.server, ['Totolosa', 'oc8', 'zeus', 'Jj']);
+  }
+  @SubscribeMessage('start')
+  start(client: Socket, payload: any): void {
+    // this.gameService.games.push(
+    // var game = new Game(payload.nbrPlayer, payload.nbrBall, this.server)
+    // );
+    if (this.game)
+      this.game.start = true;
   }
   afterInit(server: Server) {
     this.logger.log('Init');
@@ -56,7 +65,7 @@ export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGateway
   handleDisconnect(client: Socket) {
     this.logger.log(`Client disconnected: ${client.id}`);
     if (this.game)
-      this?.game.stop()
+      this.game.stop()
     delete this.game
   }
 

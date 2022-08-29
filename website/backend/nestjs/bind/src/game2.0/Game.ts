@@ -8,6 +8,8 @@ import { GameDto } from './dto/GameDto';
 import { BallDto } from './dto/BallDto';
 import { WallDto } from './dto/WallDto';
 import { RacketDto } from 'src/game2.0/dto/RacketDto';
+import ProfileDto from 'src/game2.0/dto/ProfileDto';
+import Profile from 'src/game2.0/objects/Profile';
 
 export default class Game {
 	nbrPlayer: number;
@@ -15,29 +17,32 @@ export default class Game {
 	start: boolean;
 	run: boolean;
 	balls: Array<Ball>;
-	walls: Map<number, Wall>;
+	walls: Wall[];
 	objects: Array<any>
 	deltaTime: number;
 	logger: Logger;
 	dto: GameDto;
-	mov: number;
 	rackets: Racket[];
-	constructor(nbrPlayer: number, nbrBall: number, private server: any) {
-		this.start = true;
+	profiles: Profile[];
+	players: string[];
+	constructor(nbrPlayer: number, nbrBall: number, private server: any, players: string[]) {
+		this.start = false;
 		this.run = true;
 		this.nbrBall = nbrBall;
 		this.nbrPlayer = nbrPlayer;
 		this.balls = [];
 		this.objects = [];
 		this.deltaTime = 1;
-		this.mov = 0;
 		this.rackets = [];
+		this.profiles = [];
+		this.players = players;
 		this.logger = new Logger();
 		this.dto = new GameDto(nbrPlayer, nbrBall);
 		this.init();
+		this.setDto();
+		this.loop();
 	}
 	init() {
-		let players = ["zeus", "Toto", "Jj"];
 		let radius = 410;
 		let field = new Field(this.nbrPlayer);
 		for (let i = 0; i < this.nbrBall; ++i) {
@@ -45,7 +50,7 @@ export default class Game {
 				this.balls.push(new Ball(radius, radius + (-i / 2) * 30 - 7.5));
 			else this.balls.push(new Ball(radius, radius + (i / 2) * 30 + 7.5));
 		}
-		this.walls = field.getWalls();
+		this.walls = field.walls;
 		let fieldPoints: Array<number> = [];
 		this.walls.forEach((wall) => {
 			fieldPoints.push(wall.x);
@@ -55,13 +60,15 @@ export default class Game {
 		this.walls.forEach((wall) => {
 			this.objects.push(wall);
 			if (wall.side) {
-				let tmp = wall.getRacket();
-				this.objects.push(tmp);
-				if (wall.angle == 0) this.rackets.push(tmp);
+				let tmp = new Profile(this.players[i], 10 - this.nbrPlayer, wall);
+				this.profiles.push(tmp);
+				wall.profile = tmp;
+				let tmp2 = wall.getRacket();
+				this.objects.push(tmp2);
+				this.rackets.push(tmp2);
 				i++;
 			}
 		});
-		this.loop();
 	}
 	setDto() {
 		let i = 0;
@@ -88,40 +95,72 @@ export default class Game {
 				this.dto.rackets[i] = new RacketDto();
 			this.dto.rackets[i].x = this.rackets[i].x;
 			this.dto.rackets[i].y = this.rackets[i].y;
+			this.dto.rackets[i].rotation = this.rackets[i].angle;
 			this.dto.rackets[i].h = this.rackets[i].height;
 			this.dto.rackets[i].w = this.rackets[i].width;
 		}
+		this.dto.profiles = this.profiles;
 	}
 	setMinimumDto() {
-
+		this.dto.start = this.start;
+		for (let i = 0; i < this.balls.length; ++i) {
+			this.dto.balls[i].x = this.balls[i].x;
+			this.dto.balls[i].y = this.balls[i].y;
+		}
+		for (let i in this.rackets) {
+			this.dto.rackets[i].x = this.rackets[i].x;
+			this.dto.rackets[i].y = this.rackets[i].y;
+		}
+		this.dto.profiles = this.profiles;
 	}
-	setMov(value: number) {
-		this.mov = value * this.walls.get(0)!.width / 100 * this.walls.get(0)!.racket!.speed;
+	setMov(value: number, login: string) {
+		for (let p of this.profiles)
+			if (p.login == login) {
+				p.mov = value * this.walls[0].height / 100 * this.rackets[0].speed;
+				return;
+			}
 	}
 	stop() {
 		this.run = false;
 	}
 	async loop() {
 		let start = await performance.now();
-		for (let o in this.objects) {
-			this.logger.log(this.objects[Number(o)].angle)
-		}
 		while (this.run) {
 			if (this.start)
 				for (let ball of this.balls) {
-					ball.detectCollision(this.objects);
-					// this.logger.log(this.objects);
+					if (ball.detectCollision(this.objects)) {
+						this.run = false;
+					};
 					ball.x = ball.x + ball.v.x * ball.speed * this.deltaTime;
 					ball.y = ball.y + ball.v.y * ball.speed * this.deltaTime;
 				}
-			for (let rack of this.rackets)
-			if (
-				this.rackets[0].y + this.mov * this.deltaTime > this.walls.get(0)!.y &&
-				this.rackets[0].y + this.mov * this.deltaTime <
-				this.walls.get(0)!.y + (this.walls.get(0)!.width / 4) * 3
-			)
-				this.rackets[0].y = this.rackets[0].y + this.mov * this.deltaTime;
-			await this.setDto();
+			for (let i in this.profiles) {
+				let mov = this.profiles[i].mov;
+				if (mov == 0)
+					continue;
+				let rack = this.rackets[i];
+				let x = rack.x + -rack.vector.y * this.deltaTime * mov;
+				let y = rack.y + rack.vector.x * this.deltaTime * mov;
+				this.logger.log(rack.vector.y)
+				this.logger.log(rack.angle)
+				rack.x = x;
+				rack.y = y;
+				// if (mov < 0) {
+				// 	this.logger.log(y + " " + rack.max.x)
+				// 	if (x >= rack.max.x) {
+				// 		rack.x = x;
+				// 		rack.y = y;
+				// 	}
+				// }
+				// else {
+				// 	this.logger.log(y + " " + rack.max.y)
+				// 	if (x <= rack.max.y) {
+				// 		rack.x = x;
+				// 		rack.y = y;
+				// 	}
+				// }
+			}
+			await this.setMinimumDto();
 			this.server.emit('game', JSON.stringify(this.dto));
 			let end = await performance.now();
 			this.deltaTime = end - start;
@@ -132,25 +171,6 @@ export default class Game {
 		}
 	}
 }
-// let scale = walls.get(0)!.width / 100;
-// container.addEventListener("keydown", function (e) {
-// 	if (e.key == "ArrowLeft") {
-// 		mov = -scale * walls.get(0)!.racket!.speed;
-// 	} else if (e.key == "ArrowRight") {
-// 		mov = scale * walls.get(0)!.racket!.speed;
-// 		// if (e.key == "ArrowUp") {
-// 		// 	ball.y(ball.y() - delta);
-// 		// } else if (e.key == "ArrowDown") {
-// 		// 	ball.y(ball.y() + delta);
-// 		// } else if (e.key == "ArrowLeft") {
-// 		// 	ball.x(ball.x() - delta);
-// 		// } else if (e.key == "ArrowRight") {
-// 		// 	ball.x(ball.x() + delta);
-// 	} else {
-// 		return;
-// 	}
-// 	e.preventDefault();
-// });
 
 const delay = (time: number) =>
 	new Promise((resolve) => setTimeout(resolve, time));

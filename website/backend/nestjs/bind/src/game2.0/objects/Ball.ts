@@ -1,4 +1,5 @@
 import { Logger } from '@nestjs/common';
+import { GameDto } from 'src/game2.0/dto/GameDto';
 import Racket from 'src/game2.0/objects/Racket';
 import Vector from './Vector'
 import Wall from './Wall'
@@ -43,10 +44,10 @@ export default class Ball {
 		this.v = new Vector(ballX, ballY);
 		this.v.normalize();
 	}
-	detectCollision(objects: Array<any>) {
+	detectCollision(objects: Array<any>): boolean {
 		for (let i = 0; i < objects.length; ++i) {
 			let object = objects[i];
-			if (!object || object == this) return;
+			if (!object || object == this) return false;
 			// const wall = walls.get(object.rotation);
 			// this.logger.log(object.angle)
 			// if (!wall)
@@ -57,30 +58,21 @@ export default class Ball {
 				this.touch++;
 				if (this.touch >= 30)
 					this.start();
-				// this.logger.log(object.angle)
 				if (this.speed < this.initSpeed * 3)
 					this.speed += this.initSpeed / 10;
 				this.v = this.v.add(
 					v.multiplication(v.dotPorduct(this.v.reverse()) * 2));
 				// check if is wall or racket for the score
-				if (object === Wall && object.side) {
-				// 	wall.scoreKonva!.text((Number(wall.scoreKonva!.text()) - 1).toString());
-
-					// wall.scoreKonva!.fontSize(30);
-					// wall.scoreKonva!.fill('#E00D0D');
-					// wall.profile!.konvaBackground.stroke('#E00D0D');
-					// wall.profile!.konvaRound.stroke('#E00D0D');
-					// wall.profile!.konvaRound.strokeWidth(5);
-					// wall.profile!.konvaBackground.strokeWidth(5);
+				if (object.side) {
+					object.profile.red = true;
+					object.profile.score -= 1;
 					this.start()
 						.then(() => {
-							// wall.profile!.konvaBackground.stroke('#16638D');
-							// wall.profile!.konvaBackground.strokeWidth(3);
-							// wall.profile!.konvaRound.stroke('#16638D');
-							// wall.profile!.konvaRound.strokeWidth(3);
-							// wall.scoreKonva!.fontSize(25);
-							// wall.scoreKonva!.fill('#16638D');
+							object.profile.red = false;
 						});
+					if (object.profile.score <= 0) {
+						return true;
+					}
 				}
 			}
 		}
@@ -92,8 +84,8 @@ function detectCollisionRC(
 ) {
 	let cx, cy;
 	const angleOfRad = degToRad(-rect.angle);
-	// const rectCenterX = rect.x + rect.w / 2;
-	// const rectCenterY = rect.y + rect.h / 2;
+	// const rectCenterX = rect.x + rect.height / 2;
+	// const rectCenterY = rect.y + rect.width / 2;
 	const rectCenterX = rect.x;
 	const rectCenterY = rect.y;
 

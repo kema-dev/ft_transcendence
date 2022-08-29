@@ -1,6 +1,7 @@
-import { RacketDto } from 'src/game2.0/dto/RacketDto';
-import {BallDto} from './BallDto';
-import {WallDto} from './WallDto';
+import ProfileDto from './ProfileDto';
+import { RacketDto } from './RacketDto';
+import { BallDto } from './BallDto';
+import { WallDto } from './WallDto';
 
 export class GameDto {
 	nbrPlayer: number;
@@ -9,6 +10,7 @@ export class GameDto {
 	balls: Array<BallDto>;
 	walls: Array<WallDto>;
 	rackets: RacketDto[];
+	profiles: ProfileDto[];
 	constructor(nbrPlayer: number, nbrBall: number) {
 		this.start = false;
 		this.nbrBall = nbrBall;
@@ -16,6 +18,7 @@ export class GameDto {
 		this.balls = [];
 		this.walls = [];
 		this.rackets = [];
+		this.profiles = [];
 	}
 	clone(): GameDto {
 		let rs = new GameDto(this.nbrPlayer, this.nbrBall);

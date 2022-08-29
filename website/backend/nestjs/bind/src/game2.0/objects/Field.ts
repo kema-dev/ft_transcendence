@@ -36,13 +36,6 @@ export default class Field {
 			// TODO 90deg rotation
 		}
 	}
-	getWalls() {
-		const map = new Map<number, Wall>();
-		this.walls.forEach((wall) => {
-			map.set(wall.angle, wall)
-		})
-		return map
-	}
 	// getLayer() {
 	// 	const layer = new Konva.Layer();
 	// 	this.walls.forEach((wall) => {

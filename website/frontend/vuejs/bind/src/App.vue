@@ -11,7 +11,7 @@ import User from "@/chat/User";
 import Socket from '@/utils/Socket';
 
 provide("playing", false);
-let me = new User("Totolosa", require("@/assets/avatars/(1).jpg"));
+let me = new User("Jj", require("@/assets/avatars/(1).jpg"));
 me.friends.push(new User("Myfriend", require("@/assets/avatars/(6).jpg")));
 provide('socket', new Socket('http://localhost:3000'))
 provide("me", me);
