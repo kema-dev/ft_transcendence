@@ -1,51 +1,17 @@
 <div id="top"></div>
-<p align=center>
-  <img alt="GitHub issues" src="https://img.shields.io/github/issues/kema-dev/ft_transcendence">
-  <img alt="GitHub top language" src="https://img.shields.io/github/languages/top/kema-dev/ft_transcendence">
-</p>
 
 <!-- PROJECT LOGO -->
 <br />
 <div align="center" style="height:200px; margin-bottom:10%">
-  <a>
-    <img src="assets/docker_moby.png" alt="Docker logo">
-  </a>
+  <img src="assets/docker_moby.png" alt="Docker logo" style="height:30vh">
 </div>
-
-<!-- TABLE OF CONTENTS -->
-<summary>Table of Contents</summary>
-<ol>
-<li>
-	<a href="#about-the-project">About The Project</a>
-	<ul>
-	<li><a href="#built-with">Built With</a></li>
-	</ul>
-</li>
-<li>
-	<a href="#getting-started">Getting Started</a>
-	<ul>
-	<li><a href="#prerequisites">Prerequisites</a></li>
-	<li><a href="#installation">Installation</a></li>
-	</ul>
-</li>
-<li><a href="#usage">Usage</a></li>
-<li><a href="#roadmap">Roadmap</a></li>
-<li><a href="#contact">Contact</a></li>
-<li><a href="#acknowledgments">Acknowledgments</a></li>
-</ol>
-</details>
 
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-<div align="center" style="height:200px; margin-bottom:10%">
-  <a>
-    <img src="assets/docker_moby.png" alt="Docker logo">
-  </a>
-</div>
 <!-- TODO Put images / gifs from the project here -->
 
-ft_transcendence is a 42 project, aiming to create a pong like game using NestJS as backend framework, any TypeScript framework for frontend, and get this altogether using docker compose.
+ft_transcendence is a 42 project, aiming to create a pong-like game using NestJS as backend framework, any TypeScript framework for frontend, and get this altogether using docker compose.
 
 You can find complete subject <a href="docs/subject">here</a>.
 
