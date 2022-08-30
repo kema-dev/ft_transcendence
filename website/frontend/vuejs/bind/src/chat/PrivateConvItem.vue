@@ -25,7 +25,7 @@
 						<MessageItem v-for="(message, i) in conv.messages" :key="i" :message="message"/>
 				</div>
 				<div class="sendbox_cont">
-					<input type="text" placeholder="Aa..." id="sendbox" v-model="myMsg" class="sendbox"/>
+					<input v-model="myMsg" @keydown.enter="sendMsg()" type="text" placeholder="Aa..." id="sendbox" class="sendbox"/>
 				</div>
 			</div>
 			<WarningMsg v-if="blockWarn" msg="Are you sure to block this User? You will not receive message from him/her anymore"
@@ -50,6 +50,8 @@ import Private from '@/chat/Private';
 import User from "@/chat/User";
 import Message from "@/chat/Message";
 import WarningMsg from "@/components/WarningMsg.vue";
+import { Socket } from "socket.io-client";
+import { ClientToServerEvents, ServerToClientEvents} from '@/chat/class/SocketInterfaces'
 
 
 let apiPath: string = inject("apiPath")!;
@@ -58,6 +60,9 @@ let define = inject("colors");
 let me: User = inject("me")!;
 let myMsg = ref("");
 let blockWarn = ref(false);
+
+let mySocket: Socket = inject("socket")!;
+// let mySocket: Socket<DefaultEventsMap, DefaultEventsMap> = inject("socket")!;
 
 
 axios.get(apiPath + "chat/message")
@@ -83,6 +88,27 @@ function banUser() {
 	// DEMMANDER DE BAN LE USER AU BACK <==================================
 }
 
+function sendMsg(e: Event) {
+	// e.preventDefault();
+	// ENVOI MSG AU BACK <=================================================
+
+	// // POST REQUEST
+	// axios.post(apiPath + "chat/message", myMsg)
+	// 		.then(res => {
+	// 			console.log("Send msg to back OK");
+	// 			let newMsg = new Message(me, myMsg.value, new Date());
+	// 			conv.value.messages.push(newMsg);
+				// myMsg.value = "";
+				// 		}).catch(e => {console.log(e)});
+				
+	// // SOCKET
+	mySocket.emit('message', myMsg.value);
+	myMsg.value = "";
+// 	mySocket.on("withAck", (d, callback) => {
+// });
+
+}
+
 watch(conv.value.messages, (newMsg) => {
 	let msgs = document.getElementById("messages_cont");
 	msgs!.scrollTop = msgs!.scrollHeight;
@@ -96,15 +122,20 @@ onMounted(() => {
 		box.style.setProperty('color', '#16638D');
 		box.style.setProperty('font-weight', '500');
 	}
-	let input = document.getElementById("sendbox");
-	input!.addEventListener("keydown", function(e) {
-		if (e.key === "Enter") {
-			e.preventDefault();
-			let newMsg = new Message(me, myMsg.value, new Date());
-			conv.value.messages.push(newMsg);
-			myMsg.value = "";
-		}
-	});
+	// let input = document.getElementById("sendbox");
+	// input!.addEventListener("keydown", function(e) {
+	// 	if (e.key === "Enter") {
+	// 		e.preventDefault();
+	// 		// ENVOI MSG AU BACK <===================================
+	// 		axios.post(apiPath + "chat/message", myMsg)
+	// 		.then(res => {
+	// 			console.log("Send msg to back OK");
+	// 			let newMsg = new Message(me, myMsg.value, new Date());
+	// 			conv.value.messages.push(newMsg);
+	// 			myMsg.value = "";
+	// 		}).catch(e => {console.log(e)});
+	// 	}
+	// });
 });
 
 onBeforeUnmount(() => {

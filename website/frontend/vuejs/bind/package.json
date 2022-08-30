@@ -17,6 +17,7 @@
     "core-js": "^3.24.1",
     "konva": "^8.3.2",
     "qrcode.vue": "^3.3.3",
+    "socket.io-client": "^4.5.1",
     "vue": "^3.2.13",
     "vue-class-component": "^8.0.0-0",
     "vue-rocker-switch": "^1.2.4",

@@ -1,10 +1,10 @@
 import { Column, Entity, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
 import TimestampEntites from '../../generics/timestamp.enties';
-import { User } from 'src/users/user.entity';
+import { User } from '../../users/user.entity';
 
 
-@Entity("message")
-export class MessageEntity extends TimestampEntites{
+@Entity("private")
+export class PrivateEntity extends TimestampEntites{
 	@PrimaryGeneratedColumn()
 	public id?: number;
 
@@ -20,4 +20,3 @@ export class MessageEntity extends TimestampEntites{
 	// user: User;
 
 }
-
