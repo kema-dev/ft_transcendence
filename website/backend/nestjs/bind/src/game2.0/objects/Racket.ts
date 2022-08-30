@@ -7,6 +7,8 @@ export default class Racket {
 	height: number;
 	x: number;
 	y: number;
+	startX: number;
+	startY: number;
 	vector: Vector;
 	angle: number;
 	speed: number;
@@ -21,16 +23,18 @@ export default class Racket {
 		this.y = wall.y
 		this.x += wall.vector.x * 10
 		this.y += wall.vector.y * 10
+		this.startX = this.x
+		this.startY = this.y
 		this.angle = wall.angle
 		this.speed = 2.56;
 		this.wall = wall;
 		if (this.angle < 90)
-			this.max = new Vector(this.x, this.x + -this.vector.y * wall.height);
+			this.max = new Vector(this.y, this.y + this.vector.x * this.height * 3);
 		else if (this.angle < 180)
-			this.max = new Vector(this.y + this.vector.x * wall.height, this.y);
+			this.max = new Vector(this.x, this.x + -this.vector.y * this.height * 3);
 		else if (this.angle < 270)
-			this.max = new Vector(this.x + -this.vector.y * wall.height, this.x);
+			this.max = new Vector(this.y + this.vector.x * this.height * 3, this.y);
 		else
-			this.max = new Vector(this.y, this.y + this.vector.x * wall.height);
+			this.max = new Vector(this.x + -this.vector.y * this.height * 3, this.x);
 	}
 }

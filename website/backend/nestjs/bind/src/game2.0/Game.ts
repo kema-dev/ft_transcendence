@@ -139,22 +139,31 @@ export default class Game {
 				if (mov == 0)
 					continue;
 				let rack = this.rackets[i];
-				let x = rack.x + -rack.vector.y * this.deltaTime * mov;
-				let y = rack.y + rack.vector.x * this.deltaTime * mov;
-				this.logger.log(rack.vector.y)
-				this.logger.log(rack.angle)
+				let x = rack.x + -rack.vector.y * (this.deltaTime * mov);
+				let y = rack.y + rack.vector.x * (this.deltaTime * mov);
+				// this.logger.log(rack.vector.y)
+				// this.logger.log(rack.angle)
+				// this.logger.log("x: " + x)
+				// this.logger.log("y: " + y)
+				// this.logger.log("vx: " + rack.vector.x)
+				// this.logger.log("vy: " + rack.vector.y)
+				// this.logger.log("res: " + rack.vector.y * rack.startX)
+				// this.logger.log("res2: " + (rack.vector.y * rack.startX + rack.vector.y * rack.height * 3))
+				// this.logger.log("res3: " + rack.vector.x * rack.startY)
+				// this.logger.log("res4: " + (rack.vector.x * rack.startY + rack.vector.x * rack.height * 3))
+				// if (x >= rack.vector.y * rack.startX && x <= rack.vector.y * rack.startX + rack.vector.y * rack.height * 3 &&
+				// 	y >= rack.vector.x * rack.startY && y <= rack.vector.x * rack.startY + rack.vector.x * rack.height * 3) {
 				rack.x = x;
 				rack.y = y;
-				// if (mov < 0) {
-				// 	this.logger.log(y + " " + rack.max.x)
-				// 	if (x >= rack.max.x) {
+				// }
+				// if (rack.angle < 90) {
+				// 	if (y >= rack.max.x) {
 				// 		rack.x = x;
 				// 		rack.y = y;
 				// 	}
 				// }
-				// else {
-				// 	this.logger.log(y + " " + rack.max.y)
-				// 	if (x <= rack.max.y) {
+				// else if (rack.angle < 180) {
+				// 	if (x >= rack.max.y && x <= rack.max.x) {
 				// 		rack.x = x;
 				// 		rack.y = y;
 				// 	}
