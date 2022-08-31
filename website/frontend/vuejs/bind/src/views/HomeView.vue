@@ -38,6 +38,10 @@ socket.on('connect', () => {
 socket.on('message', function(id, data) {
 	console.log(`Server message : ${id}: ${data}`, );
 })
+socket.on('getMsgs', (data) => {
+	
+	console.log(data);
+})
 
 
 

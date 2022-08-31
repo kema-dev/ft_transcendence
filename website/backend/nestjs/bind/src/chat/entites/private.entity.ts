@@ -8,11 +8,10 @@ export class PrivateEntity extends TimestampEntites{
 	@PrimaryGeneratedColumn()
 	public id?: number;
 
-	@Column({ 
-		unique: true,
-		update: false
-	})
-	message: string;
+	// @Column({ 
+	// 	update: false
+	// })
+	// user1: User;
 
 	// @ManyToOne( type => User, (user) => user.messages, {
 	// 	onDelete: 'CASCADE'

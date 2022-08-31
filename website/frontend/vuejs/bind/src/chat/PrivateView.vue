@@ -1,4 +1,4 @@
-<template>
+login<template>
 	<div id="private_view" class="center column">
 		<div class="option_private center raw">
 			<SearchItem @searchInput="searchChange" :key="searchKey"/>
@@ -12,24 +12,24 @@
 			</div>
 		</div>
 		<div v-if="!newMsg" class="myConversations center column">
-			<ConversationTab v-for="(data, i) in convsFiltred" :key="i" :name-conv="data.user.name" :avatar="data.user.avatar" :message="data.messages[data.messages.length - 1]" :date="data.messages[data.messages.length - 1].date" class="center"/>
+			<ConversationTab v-for="(data, i) in convsFiltred" :key="i" :name-conv="data.user.login" :avatar="data.user.avatar" :message="data.messages[data.messages.length - 1]" :date="data.messages[data.messages.length - 1].date" class="center"/>
 			<h2 v-if="conversations.length == 0" class="no_results">No conversations</h2>
 			<h2 v-else-if="convsFiltred!.length == 0" class="no_results">No results</h2>
 		</div>
 		<div v-if="newMsg" class="newMsgResults">
 			<div v-if="knownPeople().length > 0" class="knownPeople left column">
 				<h2 class="typeUsers">Friends/conversations</h2>
-				<router-link v-for="(data, i) in knownPeople()" :key="i" :to="{name: 'PrivConv', params: {conv_name: data.name }}">
-					<BasicProfil :user="data"/>
+				<router-link v-for="(data, i) in knownPeople()" :key="i" :to="{name: 'PrivConv', params: {conv_name: data.login }}">
+					<BasicProfil :avatar="data.avatar" :login="data.login"/>
 				</router-link>
 			</div>
-			<div v-if="search.length > 0 && otherPeople().length > 0" class="otherPeople left column">
+			<div v-if="search.length > 0 && serverUsers" class="otherPeople left column">
 				<h2 class="typeUsers">More people</h2>
-				<router-link v-for="(data, i) in otherPeople()" :key="i" :to="{name: 'PrivConv', params: {conv_name: data.name }}">
-					<BasicProfil :user="data"/>
+				<router-link v-for="(data, i) in serverUsers!" :key="i" :to="{name: 'PrivConv', params: {conv_name: data.login }}">
+					<BasicProfil :avatar="data.avatar" :login="data.login"/>
 				</router-link>
 			</div>
-			<h2 v-if="knownPeople().length == 0 && otherPeople().length == 0">No results</h2>
+			<h2 v-if="knownPeople().length == 0 && !serverUsers!">No results</h2>
 		</div>
 	</div>
 </template>
@@ -43,8 +43,21 @@ import SearchItem from "@/components/SearchItem.vue";
 import Private from "@/chat/Private";
 import User from "@/chat/User";
 import Message from "@/chat/Message";
+import BasicUser from "@/chat/dto/BasicUser"
+import { Socket } from "socket.io-client";
 let define = inject("colors");
 let me : User = inject("me")!;
+
+let mySocket: Socket = inject("socket")!;
+let serverUsers = ref<BasicUser[]>();
+mySocket.on("getUsersByLoginFiltred", (data : [{login: string}]) => {
+	let tmp : BasicUser[] = [];
+	for(let i = 0; i < data.length; i++) {
+		tmp.push(new BasicUser(data[i].login));
+	}
+	serverUsers.value = tmp;
+	console.log("serverUsers = ", serverUsers.value);
+});
 
 const search = ref("");
 const newMsg = ref(false);
@@ -82,6 +95,7 @@ let convsFiltred = ref(conversations);
 let friendsFiltred = ref(me.friends);
 // let knownPeople = [user1, user2, user3];
 // let otherPeople = [user4, user5];
+// let otherPeople = ref([]);
 
 conversations.sort(function(x,y) {
 	if (x.messages[x.messages.length - 1].date < y.messages[y.messages.length - 1].date) {
@@ -96,11 +110,18 @@ conversations.sort(function(x,y) {
 function searchChange(value: string) {
 	search.value = value;
 	convsFiltred.value = conversations.filter(function(value) {
-		return value.user.name.toUpperCase().startsWith(search.value.toUpperCase());
+		return value.user.login.toUpperCase().startsWith(search.value.toUpperCase());
 	});
-	friendsFiltred.value = me.friends.filter(function(value) {
-		return value.name.toUpperCase().startsWith(search.value.toUpperCase());
-	});
+	if (newMsg.value) {
+		friendsFiltred.value = me.friends.filter(function(value) {
+			return value.login.toUpperCase().startsWith(search.value.toUpperCase());
+		});
+	}
+	if (search.value != "") {
+		mySocket.emit('getUsersByLoginFiltred', search.value);
+	}
+
+
 }
 
 function knownPeople() : User[] {
@@ -119,7 +140,7 @@ function knownPeople() : User[] {
 function otherPeople() : User[] {
 	let others = [user4, user5];
 	return others.filter(function(value) {
-		return value.name.toUpperCase().startsWith(search.value.toUpperCase());
+		return value.login.toUpperCase().startsWith(search.value.toUpperCase());
 	});
 }
 

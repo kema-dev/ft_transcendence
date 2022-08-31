@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Like } from 'typeorm';
 import {User} from './user.entity';
 import CreateUserDto from './dto/createUser.dto';
 
@@ -37,6 +37,15 @@ export class UsersService {
 		}
 		console.error('getByLogin: ' + logname + ' not found, returning ✘');
 		throw new HttpException('E_USER_NOT_FOUND', HttpStatus.NOT_FOUND);
+	}
+	
+	async getByLoginFiltred(filter: string) {
+		console.log('getByLoginFiltred: starting for ' + filter);
+		const users = await this.usersRepository.findBy({
+				login: Like(filter + "%")
+			})
+		// console.log(users);
+		return users;
 	}
 
 	async getByAny(name: string) {

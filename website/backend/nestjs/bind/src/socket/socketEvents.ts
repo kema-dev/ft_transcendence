@@ -1,5 +1,9 @@
 import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
-import {Server, Socket } from 'socket.io';
+import { ChatService } from "../chat/chat.service";
+import { Server, Socket } from 'socket.io';
+import { NewPrivMsg } from "../chat/dto/NewPrivMsg";
+import { UsersService } from "../users/users.service";
+import { Body } from "@nestjs/common";
 
 @WebSocketGateway({
   cors: {
@@ -8,6 +12,10 @@ import {Server, Socket } from 'socket.io';
 }
 )
 export class SocketEvents {
+  constructor(
+    private readonly chatService: ChatService,
+    private readonly userService: UsersService,
+    ) {}
 
   @WebSocketServer()
   server: Server;
@@ -22,13 +30,40 @@ export class SocketEvents {
     console.log(`Client disconnected : ${client.id}`, )
   }
   
-  // recevoir un event (s'aboner a un message)
   @SubscribeMessage('message')
-  handleEvent(@MessageBody() data:string, @ConnectedSocket() client: Socket) {
+  handleMessage(@MessageBody() data:string, @ConnectedSocket() client: Socket) {
     console.log(`Client message : ${data}`, )
-    // envoyer un event
     this.server.emit('message', client.id, data);
   }
 
+  @SubscribeMessage("getMsgs")
+  getMsgs(client: Socket)  {
+    this.chatService.getMessages().then(res => {
+      console.log(res);
+      client.emit("getMsgs", res);
+    })
+  }
   
+  @SubscribeMessage('newPrivMsg')
+  NewPrivMsg(@MessageBody() data: NewPrivMsg, client : Socket) {
+    this.chatService.addMessage(data);
+    // this.getMsgs(client);
+    // this.test(client);
+    // this.chatService.getMessages().then(res => {
+    //   console.log(res);
+    //   console.log(client);
+    //   client.emit("getMsgs", res);
+    // })
+  }
+
+  @SubscribeMessage("getUsersByLoginFiltred")
+  async getUserFiltred(@MessageBody() data : string, @ConnectedSocket() client: Socket) {
+    const users = await this.userService.getByLoginFiltred(data);
+    let basicInfos : { login: string }[] = [];
+    for(let i = 0; i < users.length; i++) {
+      basicInfos.push({login: users[i].login});
+    }
+    console.log(basicInfos);
+    client.emit("getUsersByLoginFiltred", basicInfos);
+  }
 }

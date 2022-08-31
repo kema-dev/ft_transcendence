@@ -1,7 +1,7 @@
 <template>
   <div class="msg_cont">
     <!-- <span class="date">{{getDateMsg()}}</span> -->
-    <div v-if="me.name == message!.user.name" class="myMsg_cont raw right">
+    <div v-if="me.login == message!.user.login" class="myMsg_cont raw right">
         <span class="date">{{getDateMsg()}}</span>
       <div class="myMsg_text">
         {{message?.msg}}

@@ -1,5 +1,5 @@
 import { Column, Entity, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
-import { MessageEntity } from 'src/chat/entites/message.entity';
+import { MessageEntity } from '../chat/entites/message.entity';
 import TimestampEntites from '../generics/timestamp.enties';
 
 @Entity("user")
@@ -49,12 +49,9 @@ export class User extends TimestampEntites{
 	@Column()
 	public totp_code: string;
 
-	// @OneToMany(type => MessageEntity, (message) => message.user ,{
-	// 	cascade: true,
-	// 	nullable: true
-	// })
-	// messages: MessageEntity[];
-
-	// @Column()
-	// public test:string;
+	@OneToMany(type => MessageEntity, (message) => message.user ,{
+		cascade: true,
+		nullable: true
+	})
+	messages: MessageEntity[];
 }

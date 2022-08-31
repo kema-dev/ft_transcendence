@@ -1,9 +1,10 @@
 import { Module } from "@nestjs/common";
-// import { ChatController } from "./socket.controller";
+import { UsersModule } from "../users/users.module";
+import { ChatModule } from "../chat/chat.module";
 import { SocketEvents } from "./socketEvents";
 
 @Module({
-	imports: [],
+	imports: [ChatModule, UsersModule],
 	exports:[],
 	controllers:[],
 	providers:[SocketEvents]

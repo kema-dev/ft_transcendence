@@ -10,7 +10,7 @@ export class ChatController {
 	getMessage() {
 		console.log("Get message list");
 		// return "Get Message";
-		return this.chatService.getMessage();
+		return this.chatService.getMessages();
 	}
 
 	@Post('message')

@@ -4,7 +4,7 @@
 				<div class="avatar_cont center">
 					<img :src="conv.user.avatar" class="avatar" alt="avatar">
 				</div>
-				<button @click="toProfile" class="login">{{route.params.conv_name}}</button>
+				<button @click="toProfile" class="login">{{userName}}</button>
 				<div class="option_buttons center raw stack">
 					<button @click="inviteGame" class="button_cont infoButton center">
 						<span class="infoButtonText">Invite in room</span>
@@ -51,11 +51,10 @@ import User from "@/chat/User";
 import Message from "@/chat/Message";
 import WarningMsg from "@/components/WarningMsg.vue";
 import { Socket } from "socket.io-client";
-import { ClientToServerEvents, ServerToClientEvents} from '@/chat/class/SocketInterfaces'
-
+import { NewPrivMsg } from "@/chat/dto/NewPrivMsg";
 
 let apiPath: string = inject("apiPath")!;
-const route = useRoute();
+const userName = useRoute().params.conv_name as string ;
 let define = inject("colors");
 let me: User = inject("me")!;
 let myMsg = ref("");
@@ -65,9 +64,9 @@ let mySocket: Socket = inject("socket")!;
 // let mySocket: Socket<DefaultEventsMap, DefaultEventsMap> = inject("socket")!;
 
 
-axios.get(apiPath + "chat/message")
-	.then(res => {console.log("backMsg = ", res.data)})
-	.catch(e => {console.log(e)});
+// axios.get(apiPath + "chat/message")
+// 	.then(res => {console.log("backMsg = ", res.data)})
+// 	.catch(e => {console.log(e)});
 // let backMsg = await axios.get(apiPath + "chat/message");
 // console.log("backMsg = ", (await backMsg).data);
 
@@ -102,10 +101,10 @@ function sendMsg(e: Event) {
 				// 		}).catch(e => {console.log(e)});
 				
 	// // SOCKET
-	mySocket.emit('message', myMsg.value);
+	// mySocket.emit('message', myMsg.value);
+	mySocket.emit('newPrivMsg', new NewPrivMsg(me.login, userName, myMsg.value));
+	mySocket.emit('getMsgs');
 	myMsg.value = "";
-// 	mySocket.on("withAck", (d, callback) => {
-// });
 
 }
 
