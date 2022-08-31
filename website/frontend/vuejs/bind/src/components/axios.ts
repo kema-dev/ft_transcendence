@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-let login = decodeURIComponent(document.cookie.replace(new RegExp('(?:(?:^|.*;)\\s*' + encodeURIComponent('login').replace(/[\\-.+*]/g, '\\$&') + '\\s*\\=\\s*([^;]*).*$)|^.*$'), '$1')) || "";
+let login = decodeURIComponent(document.cookie.replace(new RegExp('(?:(?:^|.*;)\\s*' + encodeURIComponent('login').replace(/[-.+*\\]/g, '\\$&') + '\\s*\\=\\s*([^;]*).*$)|^.*$'), '$1')) || "";
 
 if (login && ((login.substring(0, 1) === '{' && login.substring(login.length - 1, login.length) === '}') || (login.substring(0, 1) === '[' && login.substring(login.length - 1, login.length) === ']'))) {
   try {
@@ -10,7 +10,7 @@ if (login && ((login.substring(0, 1) === '{' && login.substring(login.length - 1
   }
 }
 
-let session = decodeURIComponent(document.cookie.replace(new RegExp('(?:(?:^|.*;)\\s*' + encodeURIComponent('session').replace(/[\\-.+*]/g, '\\$&') + '\\s*\\=\\s*([^;]*).*$)|^.*$'), '$1')) || "";
+let session = decodeURIComponent(document.cookie.replace(new RegExp('(?:(?:^|.*;)\\s*' + encodeURIComponent('session').replace(/[-.+*\\]/g, '\\$&') + '\\s*\\=\\s*([^;]*).*$)|^.*$'), '$1')) || "";
 
 if (session && ((session.substring(0, 1) === '{' && session.substring(session.length - 1, session.length) === '}') || (session.substring(0, 1) === '[' && session.substring(session.length - 1, session.length) === ']'))) {
   try {
