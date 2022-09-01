@@ -1,11 +1,5 @@
 <template>
 	<div class="center column" id="app">
-		<a
-			v-if="!backend_status"
-			class="back_msg"
-			:href="apiPath + 'auth/status'"
-			>{{ BACKEND_DOWN_MESSAGE }}</a
-		>
 		<Transition name="showup">
 			<div v-if="show" class="outer">
 				<div class="inner">
@@ -64,6 +58,12 @@
 									placeholder="password"
 									type="password"
 								/>
+								<input v-if="totp_enabled"
+									class="input_box"
+									v-model="totp_val"
+									placeholder="mfa code"
+									type="text"
+								/>
 								<button @click="auth()">Login</button>
 							</div>
 						</Transition>
@@ -86,8 +86,10 @@
 import axios from "axios";
 import Config from "../env.json";
 import { useToast } from "vue-toastification";
-import { onMounted, provide, ref } from "vue";
+import { inject, onMounted, provide, ref } from "vue";
 import { useRouter } from "vue-router";
+import { VueCookies } from "vue-cookies";
+import HTTP from "../components/axios";
 
 const router = useRouter();
 
@@ -106,30 +108,45 @@ let email_auth = ref("");
 let password_auth = ref("");
 let show = ref(false);
 let switch_value = ref(true);
-let backend_status = ref(true);
+let totp_enabled = ref(false);
+let totp_val = ref("");
 
-let E_PASS_DIFFERS = "Passwords do not match, please try again";
+let E_PASS_DIFFERS = "📝 Passwords do not match, please try again";
 let E_PASS_NOT_MEET_REQUIREMENTS =
-	"Password must contain at least one lowercase letter, one uppercase letter, one digit, one special character (!@#$%^&*) and must be between 10 and 32 characters long, please try again";
-let E_MAIL_NOT_MEET_REQUIREMENTS = "Email is not valid, please try again";
+	"📝 Password must contain at least one lowercase letter, one uppercase letter, one digit, one special character (!@#$%^&*) and must be between 10 and 32 characters long, please try again";
+let E_MAIL_NOT_MEET_REQUIREMENTS = "📝 Email is not valid, please try again";
 let E_LOGIN_NOT_MEET_REQUIREMENTS =
-	"Login is not valid, must be between 1 and 25 characters long, using alphanumeric characters, '_' and '-' only, please try again";
-let E_UNEXPECTED_ERROR = "Unknown error, we are sorry for that 😥";
+	"📝 Login is not valid, must be between 1 and 25 characters long, using alphanumeric characters, '_' and '-' only, please try again";
+let E_UNEXPECTED_ERROR = "😥 Unknown error, we are sorry for that";
 let E_EMAIL_OR_LOGIN_ALREADY_EXISTS =
-	"User with that email and/or login already exists, please try again";
-let E_PASS_FAIL = "Wrong credentials provided, please try again";
-let BACKEND_DOWN_MESSAGE =
-	"Backend is down, please authorize our self-signed certificate manually by clicking this text";
-let E_NO_CODE_PROVIDED = "42 API authentication: No code provided, please try again";
-let E_CODE_IN_USE = "42 API authentication: Code already in use, please try again";
-let E_USER_IS_FT = "You registered with a 42 account, please login with your 42 account";
-let E_USER_NOT_FOUND = "This email / login does not exist, please try again";
+	"📝 User with that email and/or login already exists, please try again";
+let E_PASS_FAIL = "📝 Wrong credentials provided, please try again";
+let E_NO_CODE_PROVIDED =
+	"❌ 42 API authentication: No code provided, please try again";
+let E_CODE_IN_USE =
+	"❌ 42 API authentication: Code already in use, please try again";
+let E_USER_IS_FT =
+	"📝 You registered with a 42 account, please login with your 42 account";
+let E_USER_NOT_FOUND = "📝 This email / login does not exist, please try again";
+let E_USER_HAS_TOTP = "📝 You have enabled 2FA, please login with your 2FA code";
+let E_TOTP_FAIL = "📝 2FA code is not valid, please try again";
+let E_EMPTY_FIELD = "📝 At least one field is empty, please fill all of them";
 
 provide("defaultState", switch_value);
 
 const toast = useToast();
+const $cookies = inject<VueCookies>('$cookies'); 
 
 function register() {
+	if (
+		email_register.value === "" ||
+		login_register.value === "" ||
+		password_register.value === "" ||
+		password_confirmation.value === ""
+	) {
+		toast.warning(E_EMPTY_FIELD);
+		return;
+	}
 	axios
 		.post(apiPath + "auth/register", {
 			email: email_register.value,
@@ -137,9 +154,12 @@ function register() {
 			password: password_register.value,
 			password_confirmation: password_confirmation.value,
 		})
-		.then(() => {
+		.then((response) => {
+			console.log(response);
+			$cookies.set(response.data.key, response.data.value);
+			$cookies.set('login', response.data.login);
 			toast.success(
-				"Registration success, welcome " + login_register.value + " !"
+				"Registration success, welcome " + response.data.login + " !"
 			);
 			router.push("/home");
 		})
@@ -149,8 +169,7 @@ function register() {
 			} else if (error.response.data.message === "E_PASS_DIFFERS") {
 				toast.warning(E_PASS_DIFFERS);
 			} else if (
-				error.response.data.message.search("E_PASS_NOT_MEET_REQUIREMENTS") !==
-				-1
+				error.response.data.message === "E_PASS_NOT_MEET_REQUIREMENTS"
 			) {
 				toast.warning(E_PASS_NOT_MEET_REQUIREMENTS);
 			} else if (
@@ -168,19 +187,33 @@ function register() {
 		});
 }
 function auth() {
+	if (email_auth.value === "" || password_auth.value === "") {
+		toast.warning("📝 At least one field is empty, please fill all of them");
+		return;
+	}
 	axios
 		.post(apiPath + "auth/login", {
 			email: email_auth.value,
 			password: password_auth.value,
+			mfa: totp_val.value,
 		})
 		.then((response) => {
+			console.log(response);
+			$cookies.set(response.data.key, response.data.value);
+			$cookies.set('login', response.data.login);
 			toast.success(
 				"Authentication success, welcome " + response.data.login + " !"
 			);
 			router.push("/home");
 		})
 		.catch((error) => {
-			if (error.response.data.message === "E_PASS_FAIL") {
+			console.log(error);
+			if (error.response.data.message === "E_USER_HAS_TOTP") {
+				toast.warning(E_USER_HAS_TOTP);
+				totp_enabled.value = true;
+			} else if (error.response.data.message === "E_TOTP_FAIL") {
+				toast.warning(E_TOTP_FAIL);
+			} else if (error.response.data.message === "E_PASS_FAIL") {
 				toast.warning(E_PASS_FAIL);
 			} else if (error.response.data.message === "E_USER_IS_FT") {
 				toast.warning(E_USER_IS_FT);
@@ -193,48 +226,40 @@ function auth() {
 		});
 }
 onMounted(() => {
-	axios
-		.get(apiPath + "auth/status")
-		.then(() => {
-			backend_status.value = true;
-			setTimeout(() => {
-				show.value = true;
-			}, 0.5);
-			let urlParams = new URLSearchParams(window.location.search);
-			let code = urlParams.get("code");
-			if (code) {
-				axios
-					.post(apiPath + "auth/login42", {
-						code: code,
-					})
-					.then((response) => {
-						toast.success(
-							"Authentication success, welcome " + response.data.login + " !"
-						);
-						router.replace("/home");
-					})
-					.catch((error) => {
-						if (error.response.data.message === "E_NO_CODE_PROVIDED") {
-							toast.warning(E_NO_CODE_PROVIDED);
-						} else if (error.response.data.message === "E_CODE_IN_USE") {
-							toast.warning(E_CODE_IN_USE);
-						} else if (error.response.data.message === "E_UNEXPECTED_ERROR") {
-							toast.error(E_UNEXPECTED_ERROR);
-							console.error(error);
-						} else {
-							toast.error(E_UNEXPECTED_ERROR);
-							console.error(error);
-						}
-					});
-			}
-		})
-		.catch(() => {
-			setTimeout(() => {
-				backend_status.value = false;
-				toast.error(BACKEND_DOWN_MESSAGE);
-			}, 0.5);
-		});
-});
+	setTimeout(() => {
+		show.value = true;
+	}, 0.5);
+	let urlParams = new URLSearchParams(window.location.search);
+	let code = urlParams.get("code");
+	if (code) {
+		axios
+			.post(apiPath + "auth/login42", {
+				code: code,
+			})
+			.then((response) => {
+				console.log(response);
+				$cookies.set(response.data.key, response.data.value);
+	$cookies.set('login', response.data.login);
+				toast.success(
+					"Authentication success, welcome " + response.data.login + " !"
+				);
+				router.push("/home");
+			})
+			.catch((error) => {
+				if (error.response.data.message === "E_NO_CODE_PROVIDED") {
+					toast.warning(E_NO_CODE_PROVIDED);
+				} else if (error.response.data.message === "E_CODE_IN_USE") {
+					toast.warning(E_CODE_IN_USE);
+				} else if (error.response.data.message === "E_UNEXPECTED_ERROR") {
+					toast.error(E_UNEXPECTED_ERROR);
+					console.error(error);
+				} else {
+					toast.error(E_UNEXPECTED_ERROR);
+					console.error(error);
+				}
+			});
+		}
+	});
 </script>
 
 

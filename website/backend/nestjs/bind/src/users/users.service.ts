@@ -171,6 +171,22 @@ export class UsersService {
 		}
 	}
 
+	async update_session(login: string, cookie: string) {
+		console.log('update_session: starting for ' + login);
+		const user = await this.getByAny(login);
+		if (user) {
+			console.log('update_session: found ' + login + ', updating ✔');
+			user.session_token = cookie;
+			user.session_expiration = new Date(new Date().getTime() + 3600000 * 24);
+			await this.usersRepository.save(user);
+		} else {
+			console.error(
+				'update_session: ' + login + ' not found, updating aborted ✘',
+			);
+			throw new HttpException('E_USER_NOT_FOUND', HttpStatus.NOT_FOUND);
+		}
+	}
+
 	async change_totp_code(user: User, totp_code: string) {
 		console.log('change_totp_code: starting for ' + user.email);
 		console.log(

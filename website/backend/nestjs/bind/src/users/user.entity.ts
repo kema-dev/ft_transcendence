@@ -1,5 +1,6 @@
-import { Column, Entity, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn, OneToMany, ManyToMany } from 'typeorm';
 import { MessageEntity } from '../chat/entites/message.entity';
+import { PrivateEntity } from '../chat/entites/private.entity';
 import TimestampEntites from '../generics/timestamp.enties';
 
 @Entity("user")
@@ -19,8 +20,8 @@ export class User extends TimestampEntites{
 	@Column()
 	public level: number;
 
-	// @Column()
-	// public avatar: string;
+	@Column({nullable: true})
+	public avatar: string;
 
 	// @Column()
 	// public friends: [User];
@@ -49,9 +50,21 @@ export class User extends TimestampEntites{
 	@Column()
 	public totp_code: string;
 
+	@Column({nullable: true})
+	public session_token: string;
+
+	@Column({nullable: true})
+	public session_expiration: Date;
+
 	@OneToMany(type => MessageEntity, (message) => message.user ,{
 		cascade: true,
 		nullable: true
 	})
 	messages: MessageEntity[];
+	
+	@ManyToMany(type => PrivateEntity, (priv) => priv.users ,{
+		cascade: true,
+		nullable: true
+	})
+	privates: PrivateEntity[];
 }
