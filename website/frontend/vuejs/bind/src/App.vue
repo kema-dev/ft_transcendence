@@ -13,7 +13,7 @@ import Socket from '@/utils/Socket';
 provide("playing", false);
 let me = new User("oc8", require("@/assets/avatars/(1).jpg"));
 me.friends.push(new User("Myfriend", require("@/assets/avatars/(6).jpg")));
-provide('socket', new Socket('http://localhost:3000'))
+provide('socket', new Socket('https://localhost:3000'))
 provide("me", me);
 provide("colors", {
 	color0: "#fff",
