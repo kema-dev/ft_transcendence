@@ -227,8 +227,8 @@ export class AuthenticationService {
 		console.log('validate_token: starting ');
 		try {
 			console.log(
-				'validate_token: ',
-				'decoded: ',
+				'validate_token:',
+				'decoded:',
 				await this.jwtService.decode(request.token),
 			);
 			await this.jwtService.verify(request.token);
