@@ -29,7 +29,7 @@ var container: any;
 onMounted(async () => {
 	socket.emit("newRoom", {
 		nbrBall: 1,
-		nbrPlayer: 4, 
+		nbrPlayer: 4,
 	});
 	socket.on("game", (game: string) => {
 		// console.log(game)
@@ -150,7 +150,7 @@ onMounted(async () => {
 	});
 	container.addEventListener("keyup", function (e: any) {
 		if (e.key == "ArrowLeft") {
-			if (mov <= 0) mov = 0;
+			if (mov <= 0) mov = 0;  
 		} else if (e.key == "ArrowRight") {
 			if (mov >= 0) mov = 0;
 		} else {
@@ -165,7 +165,6 @@ async function loop() {
 		await delay(100);
 	}
 	while (run) {
-	container.focus();
 		if (gameDto.start)
 			for (let i = 0; i < gameDto.nbrBall; ++i) {
 				balls[i].x(gameDto.balls[i].x);
