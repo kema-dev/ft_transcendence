@@ -5,7 +5,7 @@ export default class User {
     friends: User[];
     status: boolean;
     rank: number
-    constructor(name : string, avatar: any) {
+    constructor(name: string, avatar: any) {
         this.login = name;
         this.avatar = avatar;
         this.level = 0;

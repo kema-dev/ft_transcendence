@@ -14,12 +14,14 @@ export class CreateUserDto {
 		this.totp_code = '';
 		this.session_token = '';
 		this.session_expiration = new Date();
+		// this.avatar = '';
 		Object.assign(this, params);
 	}
 	email: string;
 	login: string;
 	level: number;
 	password: string;
+	// avatar: string;
 	ft_code: string;
 	ft_accessToken: string;
 	ft_tokenType: string;

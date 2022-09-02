@@ -6,12 +6,14 @@
 
 <script setup lang="ts">
 /* eslint @typescript-eslint/no-var-requires: "off" */
-import { provide, ref } from "vue";
+import { onMounted, provide, ref } from "vue";
 import User from "@/chat/User";
+import Socket from '@/utils/Socket';
 
-provide("apiPath", "https://localhost:3000/api/v1/");
+// provide("apiPath", "https://localhost:3000/api/v1/");
 let me = new User("tdayde", require("@/assets/avatars/(1).jpg"));
 me.friends.push(new User("Myfriend", require("@/assets/avatars/(6).jpg")));
+// provide('socket', new Socket('https://localhost:3000'))
 provide("me", me);
 provide("playing", false);
 provide("colors", {
@@ -20,6 +22,7 @@ provide("colors", {
 	color2: "#16638D",
 	color3: "#E5F4FB",
 });
+
 </script>
 
 <style>
@@ -119,7 +122,7 @@ a {
 	flex-direction: row;
 }
 .border {
-	border: 1px solid black
+	border: 1px solid black;
 }
 @media screen and (max-width: 1000px) {
 	.wrap {

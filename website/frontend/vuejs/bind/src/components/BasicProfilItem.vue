@@ -9,7 +9,7 @@
 
 <script setup lang="ts">
 import { inject, defineProps, onMounted, ref } from "vue";
-import Conversation from '@/chat/Private';
+import Conversation from "@/chat/Private";
 import User from "@/chat/User";
 import { stringifyQuery } from "vue-router";
 
@@ -29,29 +29,28 @@ const props = defineProps({
 
 <style scoped>
 * {
-  --height: 30px;
+	--height: 30px;
 }
 .basicProfil {
 	width: auto;
 	height: var(--height);
 	margin: 3px 0;
-
 }
 .avatar_cont {
-  width: var(--height);
-  height: var(--height);
+	width: var(--height);
+	height: var(--height);
 }
 .avatar {
 	height: var(--height);
-  width: var(--height);
-  border-radius: 50%;
+	width: var(--height);
+	border-radius: 50%;
 }
 .login {
 	padding-left: 10px;
-  font-family: "Orbitron", sans-serif;
+	font-family: "Orbitron", sans-serif;
 	font-size: 0.9rem;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
 }
 </style>

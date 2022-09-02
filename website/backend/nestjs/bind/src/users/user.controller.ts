@@ -10,7 +10,7 @@ import {
 	Param,
 } from '@nestjs/common';
 import { get } from 'http';
-import UserDto from 'src/users/dto/user.dto';
+import UserDto from './dto/user.dto';
 
 import { UsersService } from './users.service';
 
@@ -23,8 +23,8 @@ export class UsersController {
 	async getUser(@Body() params: any) {
 		return this.usersService.getByLogin(params.login);
 	}
-	@Get('avatar')
-	async getAvatar() {
-		return require("@/users/avatars/(6).jpg");
-	}
+	// @Post('getAnyByLogin')
+	// async getAnyByLogin(@Body() params: any) {
+	// 	return this.usersService.getAnyByLogin(params.login, params.infos);
+	// }
 }

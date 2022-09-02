@@ -11,7 +11,7 @@
 		<h2>Match history</h2>
 		<div v-for="match in user.history" :key="match.adversary">
 			<!-- <ScoreItem :player="user.name" :adversary="match.adversary" :points1="match.points1" :points2="match.points2"/> -->
-			<MatchItem />
+			<MatchItem index=""/>
 		</div>
 	</div>
 </template>

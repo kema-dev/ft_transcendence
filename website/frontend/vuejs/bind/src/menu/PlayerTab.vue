@@ -12,7 +12,7 @@ let define = inject('colors');
 const route = useRoute()
 let user;
 axios
-.get("http://localhost:3000/api/v1/auth/getInfo", {login: "hey"})
+.get("https://localhost:3000/api/v1/auth/getInfo", {login: "hey"})
 .then((response) => {
 	user = response.data;
 })

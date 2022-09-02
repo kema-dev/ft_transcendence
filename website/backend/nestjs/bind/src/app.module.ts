@@ -5,7 +5,8 @@ import { DatabaseModule } from './database/database.module';
 import { AuthenticationModule } from './authentication/authentication.module';
 import { UsersModule } from './users/users.module';
 import { ChatModule } from './chat/chat.module';
-import { SocketModule } from './socket/socket.module';
+import { AppGateway } from './app.gateway';
+// import { SocketModule } from './socket/socket.module';
 
 @Module({
 	imports: [
@@ -28,9 +29,9 @@ import { SocketModule } from './socket/socket.module';
 		AuthenticationModule,
 		UsersModule,
 		ChatModule,
-		SocketModule
+		// SocketModule
 	],
 	controllers: [],
-	providers: [],
+	providers: [AppGateway],
 })
 export class AppModule {}

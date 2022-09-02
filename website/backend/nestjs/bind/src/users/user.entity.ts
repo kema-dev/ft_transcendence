@@ -1,7 +1,7 @@
 import { Column, Entity, PrimaryGeneratedColumn, OneToMany, ManyToMany, JoinTable } from 'typeorm';
 import { MessageEntity } from '../chat/entites/message.entity';
 import { PrivateEntity } from '../chat/entites/private.entity';
-import TimestampEntites from '../generics/timestamp.enties';
+import TimestampEntites from '../utils/timestamp.enties';
 
 @Entity("user")
 export class UserEntity extends TimestampEntites{
@@ -22,6 +22,8 @@ export class UserEntity extends TimestampEntites{
 
 	@Column({nullable: true})
 	public avatar: string;
+	// @Column()
+	// public avatar: string;
 
 	// @Column()
 	// public friends: [User];

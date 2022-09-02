@@ -1,5 +1,5 @@
 import { Column, Entity, PrimaryGeneratedColumn, OneToMany, ManyToMany, JoinColumn } from 'typeorm';
-import TimestampEntites from '../../generics/timestamp.enties';
+import TimestampEntites from '../../utils/timestamp.enties';
 import { MessageEntity } from './message.entity';
 import { UserEntity } from '../../users/user.entity';
 

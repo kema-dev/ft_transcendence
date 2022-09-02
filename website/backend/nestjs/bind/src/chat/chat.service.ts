@@ -5,7 +5,7 @@ import { MessageEntity } from './entites/message.entity';
 import { PrivateEntity } from './entites/private.entity';
 import { UserEntity } from '../users/user.entity';
 import { UsersService } from '../users/users.service';
-import { NewPrivMsg } from './dto/NewPrivMsgDto';
+import { NewPrivMsgDto } from './dto/NewPrivMsgDto';
 
 @Injectable()
 export class ChatService {
@@ -36,7 +36,7 @@ export class ChatService {
 	// 	return await this.msgRepository.save(data);
 	// }
 	
-	async addPrivMsg(data : NewPrivMsg) {
+	async addPrivMsg(data : NewPrivMsgDto) {
 		console.log("addPrivMsg Chat");
 		// Find and add UsersId to Msg + PrivConv
 		const userSend = await this.userService.getByLogin(data.userSend);
