@@ -1,0 +1,9 @@
+{
+  "name": "dto",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.ts",
+  "type": "module",
+  "author": "oc8",
+  "license": "ISC"
+}

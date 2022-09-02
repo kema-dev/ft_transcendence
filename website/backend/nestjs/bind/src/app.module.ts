@@ -4,6 +4,8 @@ import * as Joi from 'joi';
 import { DatabaseModule } from './database/database.module';
 import { AuthenticationModule } from './authentication/authentication.module';
 import { UsersModule } from './users/users.module';
+import { AppGateway } from './app.gateway';
+import { GameService } from 'src/game2.0/game.service';
 
 @Module({
 	imports: [
@@ -27,6 +29,8 @@ import { UsersModule } from './users/users.module';
 		UsersModule,
 	],
 	controllers: [],
-	providers: [],
+	providers: [AppGateway,
+		GameService,
+	],
 })
-export class AppModule {}
+export class AppModule { }

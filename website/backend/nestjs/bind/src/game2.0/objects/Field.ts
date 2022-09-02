@@ -1,5 +1,5 @@
-import Vector from '@/game2.0/Vector';
-import Wall from "@/game2.0/Wall"
+import Vector from './Vector';
+import Wall from "./Wall"
 
 export default class Field {
 	nbrPlayer: number;
@@ -35,13 +35,6 @@ export default class Field {
 			pos.rotate(this.angleBase)
 			// TODO 90deg rotation
 		}
-	}
-	getWalls() {
-		const map = new Map<number, Wall>();
-		this.walls.forEach((wall) => {
-			map.set(wall.angle, wall)
-		})
-		return map
 	}
 	// getLayer() {
 	// 	const layer = new Konva.Layer();

@@ -1,62 +1,130 @@
 <template>
 	<div id="stage-parent" class="stack" :key="nbrPlayer">
-		<div id="container"></div>
+		<div id="container" v-on:click="focus()"></div>
 	</div>
 </template>
 <script setup lang="ts">
-import { inject, onMounted, defineProps, onUnmounted, ref } from "vue";
+import { inject, onMounted, defineProps, onUnmounted, ref, h } from "vue";
 import Konva from "konva";
-import Field from "@/game2.0/Field";
-import Ball from "@/game2.0/Ball";
-
+import Socket from "@/utils/Socket";
+import { GameDto } from "@/dto/GameDto";
+import Profile from "@/game2.0/Profile";
 let define = inject("colors");
+let socket: Socket = inject("socket");
 let props = defineProps(["nbrPlayer", "nbrBall", "start"]);
 let run = true;
 // let nbrPlayer = ref(props.nbrPlayer)
-let players = [
-	"zeus",
-	"Toto",
-	"Jj"
-];
+let me = inject("me");
+let rotation = 0;
+let gameDto: GameDto | undefined = undefined;
 
-onMounted(() => {
+// let balls: Array<Ball> = [];
+var mov = 0;
+let rackets: Konva.Rect[] = [];
+let walls: Konva.Rect[] = [];
+let balls: Konva.Circle[] = [];
+let profiles: Profile[] = [];
+var container: any;
+onMounted(async () => {
+	socket.send("newRoom", {
+		nbrBall: 1,
+		nbrPlayer: 4,
+	});
+	socket.on("game", (game: string) => {
+		// console.log(game)
+		gameDto = JSON.parse(game);
+		// console.log(gameDto);
+		// if (bool) {
+		// 	bool = false;
+		// 	loop();
+		// }
+	});
 	var sceneWidth = 1000;
 	var sceneHeight = 1000;
-	let radius = 410
+	let radius = 410;
 	var stage = new Konva.Stage({
 		container: "container",
 		width: sceneWidth,
 		height: sceneHeight,
 	});
-	let field = new Field(props.nbrPlayer);
-	let balls: Array<Ball> = [];
-	for (let i = 0; i < props.nbrBall; ++i) {
-		if (i % 2 == 1)
-			balls.push(new Ball(radius, radius + -i / 2 * 30 - 7.5));
-		else
-			balls.push(new Ball(radius, radius + i / 2 * 30 + 7.5));
-	}
 	var game = new Konva.Group({
 		x: 500,
 		y: 500,
-		rotation: -90,
 		offsetX: radius,
 		offsetY: radius,
 	});
-	var objects = new Konva.Group();
 	const layer = new Konva.Layer();
-	let walls = field.getWalls();
 	let fieldPoints: Array<number> = [];
-	walls.forEach((wall) => {
+	stage.add(layer);
+	container = stage.container();
+	container.tabIndex = 1;
+	container.focus();
+	function fitStageIntoParentContainer() {
+		var container = document.getElementById("stage-parent");
+		// now we need to fit stage into parent container
+		var containerWidth = container!.offsetWidth;
+		// but we also make the full scene visible
+		// so we need to scale all objects on canvas
+		var scale = containerWidth / sceneWidth;
+		stage.width(sceneWidth * scale);
+		stage.height(sceneHeight * scale);
+		stage.scale({ x: scale, y: scale });
+	}
+	fitStageIntoParentContainer();
+	window.addEventListener("resize", fitStageIntoParentContainer);
+
+	while (gameDto === undefined) {
+		await delay(100);
+	}
+	for (let player of gameDto.profiles) {
+		if (me.login == player.login) break;
+		rotation -= 360 / gameDto.nbrPlayer;
+	}
+	game.rotation(rotation - 90);
+	var objects = new Konva.Group();
+	for (let wall of gameDto.walls) {
 		fieldPoints.push(wall.x);
-			// x: this.x,
-			// y: this.y,
 		fieldPoints.push(wall.y);
-	});
+		let tmp = new Konva.Rect({
+			width: wall.w,
+			height: wall.h,
+			fill: "#16638D",
+			rotation: wall.rotation,
+			x: wall.x,
+			y: wall.y,
+		});
+		objects.add(tmp);
+		walls.push(tmp);
+	}
+	for (let rack of gameDto.rackets) {
+		let tmp = new Konva.Rect({
+			width: rack.w,
+			height: rack.h,
+			fill: "#16638D",
+			rotation: rack.rotation,
+			x: rack.x,
+			y: rack.y,
+		});
+		objects.add(tmp);
+		rackets.push(tmp);
+	}
+	for (let ball of gameDto.balls) {
+		let tmp = new Konva.Circle({
+			fill: "#16638D",
+			x: ball.x,
+			y: ball.y,
+			radius: 10,
+		});
+		objects.add(tmp);
+		balls.push(tmp);
+	}
+	for (let profile of gameDto.profiles) {
+		let tmp = new Profile(profile, rotation);
+		game.add(tmp.konva);
+		profiles.push(tmp);
+	}
 	let background = new Konva.Line({
 		points: fieldPoints,
-			// x: this.x,
-			// y: this.y,
 		closed: true,
 		fill: "#E5F4FB",
 		shadowColor: "black",
@@ -64,130 +132,82 @@ onMounted(() => {
 		shadowOffset: { x: 5, y: 5 },
 		shadowOpacity: 0.3,
 	});
-	stage.add(layer);
 	game.add(background);
-	let rack: Konva.Rect;
-	let i = 0;
-	walls.forEach((wall) => {
-		objects.add(wall.getKonva());
-		if (wall.side) {
-			let tmp = wall.getKonvaRacket();
-			objects.add(tmp);
-			if (wall.angle == 0) rack = tmp;
-			if (!players[i])
-				game.add(wall.getKonvaProfile("search..."));
-			else
-				game.add(wall.getKonvaProfile(players[i]));
-			i++;
-		}
-	});
-	// let ball.konva = ball.getKonva()
-	for (let i = 0; i < props.nbrBall; ++i) game.add(balls[i].konva);
 	game.add(objects);
 	layer.add(game);
-	var container = stage.container();
-	container.tabIndex = 1;
-	container.focus();
-	// var text = new Konva.Text({
-	// 	x: 5,
-	// 	y: 5,
-	// 	fontFamily: "Calibri",
-	// 	fontSize: 24,
-	// 	text: "",
-	// 	fill: "black",
-	// });
-	// function writeMessage(message: string) {
-	// 	text.text(message);
-	// }
-	// stage.on("pointermove", function () {
-	// 	var pointerPos = stage.getPointerPosition();
-	// 	var x = pointerPos!.x;
-	// 	var y = pointerPos!.y;
-	// 	writeMessage("x: " + x + ", y: " + y);
-	// });
-	// layer.add(text);
-	var mov = 0;
-	// var ballX = Math.random() * 5;
-	// var ballY = 5 - ballX;
-	let deltaTime = 1;
-	async function loop() {
-		// let start = 1000000 * performance.now();
-		while (run) {
-			for (let i = 0; i < props.nbrBall; ++i) {
-				balls[i].detectCollision(objects, walls);
-				balls[i].konva.x(
-					balls[i].konva.x() + balls[i].v.x * balls[i].speed * deltaTime
-				);
-				balls[i].konva.y(
-					balls[i].konva.y() + balls[i].v.y * balls[i].speed * deltaTime
-				);
-			}
-			if (
-				rack.y() + mov > walls.get(0)!.y &&
-				rack.y() + mov < walls.get(0)!.y + (walls.get(0)!.width / 4) * 3
-			)
-				rack.y(rack.y() + mov);
-			// let end = 1000000 * performance.now();
-			// deltaTime = (end - start) * 0.000001;
-			// console.log("start: " + start);
-			// console.log("end: " + end);
-			// console.log("deltatime: " + deltaTime);
-			// start = end;
-			//deltaTime = deltaTime * 0.000001
-			await delay(1); // TODO delta
-		}
-	}
-	if (props.start)
-		loop();
-	let delta = (walls.get(0)!.width / 100) * deltaTime;
-	// let delta = 5
-	container.addEventListener("keydown", function (e) {
+	loop();
+	container.addEventListener("keydown", function (e: any) {
 		if (e.key == "ArrowLeft") {
-			mov = -delta * walls.get(0)!.racket!.speed;
+			mov = -1;
 		} else if (e.key == "ArrowRight") {
-			mov = delta * walls.get(0)!.racket!.speed;
-			// if (e.key == "ArrowUp") {
-			// 	ball.y(ball.y() - delta);
-			// } else if (e.key == "ArrowDown") {
-			// 	ball.y(ball.y() + delta);
-			// } else if (e.key == "ArrowLeft") {
-			// 	ball.x(ball.x() - delta);
-			// } else if (e.key == "ArrowRight") {
-			// 	ball.x(ball.x() + delta);
+			mov = 1;
 		} else {
 			return;
 		}
+		socket.socket.emit("setMov", {mov: mov, login: me.login});
 		e.preventDefault();
 	});
-	container.addEventListener("keyup", function (e) {
+	container.addEventListener("keyup", function (e: any) {
 		if (e.key == "ArrowLeft") {
-			if (mov == -delta) mov = 0;
+			if (mov <= 0) mov = 0;
 		} else if (e.key == "ArrowRight") {
-			if (mov == delta) mov = 0;
+			if (mov >= 0) mov = 0;
 		} else {
 			return;
 		}
+		socket.socket.emit("setMov", {mov: mov, login: me.login});
 		e.preventDefault();
 	});
-	function fitStageIntoParentContainer() {
-		var container = document.getElementById("stage-parent");
-
-		// now we need to fit stage into parent container
-		var containerWidth = container!.offsetWidth;
-
-		// but we also make the full scene visible
-		// so we need to scale all objects on canvas
-		var scale = containerWidth / sceneWidth;
-
-		stage.width(sceneWidth * scale);
-		stage.height(sceneHeight * scale);
-		stage.scale({ x: scale, y: scale });
-	}
-	fitStageIntoParentContainer();
-	window.addEventListener("resize", fitStageIntoParentContainer);
 });
+async function loop() {
+	while (gameDto === undefined) {
+		await delay(100);
+	}
+	while (run) {
+	container.focus();
+		if (gameDto.start)
+			for (let i = 0; i < gameDto.nbrBall; ++i) {
+				balls[i].x(gameDto.balls[i].x);
+				balls[i].y(gameDto.balls[i].y);
+			}
+		for (let i in gameDto.rackets) {
+			rackets[i].x(gameDto.rackets[i].x);
+			rackets[i].y(gameDto.rackets[i].y);
+		}
+		for (let i in gameDto.profiles) {
+			let p = profiles[i];
+			p.konvaScore.text(gameDto.profiles[i].score.toString());
+			if (gameDto.profiles[i].red) {
+				p.konvaScore.fontSize(30);
+				p.konvaScore.fill("#E00D0D");
+				p.konvaBackground.stroke("#E00D0D");
+				p.konvaRound.stroke("#E00D0D");
+				p.konvaRound.strokeWidth(5);
+				p.konvaBackground.strokeWidth(5);
+			} else {
+				p.konvaBackground.stroke("#16638D");
+				p.konvaBackground.strokeWidth(3);
+				p.konvaRound.stroke("#16638D");
+				p.konvaRound.strokeWidth(3);
+				p.konvaScore.fontSize(25);
+				p.konvaScore.fill("#16638D");
+			}
+		}
+		// if (
+		// 	rack.y() + mov * deltaTime > walls.get(0)!.y &&
+		// 	rack.y() + mov * deltaTime <
+		// 		walls.get(0)!.y + (walls.get(0)!.width / 4) * 3
+		// )
+		// 	rack.y(rack.y() + mov * deltaTime);
+		await delay(1); // TODO delta
+	}
+}
+function focus() {
+	container.focus();
+}
 onUnmounted(() => {
 	run = false;
+	socket.off("game");
 	// window.removeEventListener("resize", () => {});
 });
 const delay = (time: number) =>

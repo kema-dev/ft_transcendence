@@ -9,6 +9,9 @@
   },
   "dependencies": {
     "@babel/core": "^7.0.0",
+    "@lottiefiles/vue-lottie-player": "^1.0.9",
+    "@nestjs/platform-socket.io": "^9.0.11",
+    "@nestjs/websockets": "^9.0.11",
     "@types/node": "^18.0.6",
     "@types/vuelidate": "^0.7.15",
     "@vuelidate/core": "^2.0.0-alpha.41",
@@ -17,6 +20,7 @@
     "core-js": "^3.8.3",
     "konva": "^8.3.2",
     "qrcode.vue": "^3.3.3",
+    "socket.io-client": "^4.5.1",
     "three": "^0.141.0",
     "three-csg-ts": "^3.1.10",
     "vue": "^3.2.13",

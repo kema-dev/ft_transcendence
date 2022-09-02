@@ -5,7 +5,6 @@
 				:nbrPlayer="nbrPlayer"
 				:nbrBall="nbrBall"
 				:start="start"
-				:key="reload"
 			/>
 		</div>
 		<div class="center column" id="settings">
@@ -28,39 +27,35 @@
 <script setup lang="ts">
 import { inject, onMounted, provide, ref } from "vue";
 import GameItem from "@/components/GameItem.vue";
+import Socket from "@/utils/Socket";
 let define = inject("colors");
 let start = ref(false);
 provide("playing", start);
-let reload = ref(0);
-let nbrPlayer = ref(4);
-let nbrBall = ref(1);
+let socket: Socket = inject("socket");
+let nbrPlayer = 4;
+let nbrBall = 1;
 function launch() {
 	start.value = !start.value;
-	reload.value++;
+	socket.send('start');
 }
 function incr() {
-	if (nbrPlayer.value + 1 <= 7) {
-		nbrPlayer.value++;
-		reload.value++;
+	if (nbrPlayer + 1 <= 7) {
+		nbrPlayer++;
 	}
 }
 function decr() {
-	if (nbrPlayer.value - 1 >= 2) {
-		nbrPlayer.value--;
-		reload.value++;
+	if (nbrPlayer - 1 >= 2) {
+		nbrPlayer--;
 	}
 }
 function incrBall() {
-	if (nbrBall.value + 1 <= 3)
-	{
-		nbrBall.value++;
-		reload.value++;
+	if (nbrBall + 1 <= 3) {
+		nbrBall++;
 	}
 }
 function decrBall() {
-	if (nbrBall.value - 1 >= 1) {
-		nbrBall.value--;
-		reload.value++;
+	if (nbrBall - 1 >= 1) {
+		nbrBall--;
 	}
 }
 onMounted(() => {
@@ -68,7 +63,7 @@ onMounted(() => {
 	let settings = document.getElementById("settings");
 	if (game && settings) settings.style.height = game.offsetHeight + "px";
 	// window.addEventListener("resize", () => {
-	// 	reload.value++;
+	// 	reload++;
 	// })
 });
 </script>
