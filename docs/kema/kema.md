@@ -2,13 +2,11 @@
 
 ## ongoing
 
-* TODO review controllers' args
-* TODO fix E_NO_NAME error in verify_totp
-* TODO handle E_GOOGLE_API, E_NO_NAME and E_TOTP_MISMATCH in totp related calls in frontend
-* TODO send login request after getting proper mfa code (by previously calling a 'getMfaStatus' function)
-* TODO make connection persistant for classical / 42 login methods using a jwt and guards / strategies (guard1 = password / 42logprocess ok, guard2 = jwt ok, create jwt on successful login)
-* TODO add possibility to change 2FA settings, verifying identity of the user before changing, and checking that user had the correct code before saving
-* TODO protect authenticated endpoints with guards
+* TODO make backend is up endpoint redirect to frontend
+* TODO add JWT guards on backend endpoints
+* TODO make everyone use custom HTTP headers
+* TODO improve 2FA page
+* TODO make a refresh token function in backend and frontend (for frontend, ask for a refresh if $date + x > expiration\\_date$)
 
 ## later
 

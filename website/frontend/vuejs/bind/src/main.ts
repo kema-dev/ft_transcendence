@@ -3,6 +3,7 @@ import App from './App.vue'
 import router from './router'
 import Toast, { PluginOptions } from "vue-toastification";
 import "vue-toastification/dist/index.css";
+import VueCookies from 'vue-cookies';
 
 const toast_options: PluginOptions = {
   timeout: 5000,
@@ -17,4 +18,5 @@ const toast_options: PluginOptions = {
   icon: "fas fa-rocket",
   rtl: false
 };
-createApp(App).use(router).use(Toast, toast_options).mount('#app')
+
+createApp(App).use(router).use(Toast, toast_options).use(VueCookies, { expires: '1d', path: '/', domain: '', secure: '', sameSite: 'Lax' }).mount('#app')

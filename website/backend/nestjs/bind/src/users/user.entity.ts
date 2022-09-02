@@ -46,6 +46,12 @@ class User {
 
 	@Column()
 	public totp_code: string;
+
+	@Column()
+	public session_token: string;
+
+	@Column()
+	public session_expiration: Date;
 }
 
 export default User;
