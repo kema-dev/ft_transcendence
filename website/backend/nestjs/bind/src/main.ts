@@ -10,9 +10,6 @@ async function bootstrap() {
 		key: fs.readFileSync('/secrets/key.pem'),
 		cert: fs.readFileSync('/secrets/cert.pem'),
 	};
-	// const app = await NestFactory.create(AppModule, {
-	// 	httpsOptions,
-	// });
 	const app = await NestFactory.create<NestExpressApplication>(AppModule, {httpsOptions});
 	app.useStaticAssets(join(__dirname, '..', 'static'));
 	app.setGlobalPrefix('api/v1');

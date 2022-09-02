@@ -29,7 +29,7 @@ var container: any;
 onMounted(async () => {
 	socket.emit("newRoom", {
 		nbrBall: 1,
-		nbrPlayer: 4, 
+		nbrPlayer: 4,
 	});
 	socket.on("game", (game: string) => {
 		// console.log(game)
@@ -165,7 +165,6 @@ async function loop() {
 		await delay(100);
 	}
 	while (run) {
-	container.focus();
 		if (gameDto.start)
 			for (let i = 0; i < gameDto.nbrBall; ++i) {
 				balls[i].x(gameDto.balls[i].x);
