@@ -1,6 +1,6 @@
 import { Column, Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
 import TimestampEntites from '../../generics/timestamp.enties';
-import { User } from '../../users/user.entity';
+import { UserEntity } from '../../users/user.entity';
 import { PrivateEntity } from './private.entity';
 
 
@@ -9,17 +9,15 @@ export class MessageEntity extends TimestampEntites{
 	@PrimaryGeneratedColumn()
 	id: number;
 
-	@Column({ update: false })
+	@Column()
 	message: string;
 
-	@ManyToOne( type => User, (user) => user.messages)
+	@ManyToOne( type => UserEntity, (user) => user.messages)
 	@JoinColumn()
-	user: User;
+	user: UserEntity;
 	
 	@ManyToOne( type => PrivateEntity, (privateEntity) => privateEntity.messages)
 	@JoinColumn()
 	convers: PrivateEntity;
-
-
 }
 

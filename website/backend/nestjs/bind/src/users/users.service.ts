@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like } from 'typeorm';
-import {User} from './user.entity';
+import {UserEntity} from './user.entity';
 import CreateUserDto from './dto/createUser.dto';
 
 // NOTE - API's documentation can be found at `docs/api/v1.md`
@@ -9,8 +9,8 @@ import CreateUserDto from './dto/createUser.dto';
 @Injectable()
 export class UsersService {
 	constructor(
-		@InjectRepository(User)
-		private usersRepository: Repository<User>,
+		@InjectRepository(UserEntity)
+		private usersRepository: Repository<UserEntity>,
 	) {}
 
 	async getByEmail(mail: string) {
@@ -40,11 +40,12 @@ export class UsersService {
 	}
 	
 	async getByLoginFiltred(filter: string) {
+		let maxUsers = 15;
 		console.log('getByLoginFiltred: starting for ' + filter);
-		const users = await this.usersRepository.findBy({
-				login: Like(filter + "%")
-			})
-		// console.log(users);
+		const users = await this.usersRepository.find({
+			where: {login: Like(filter + "%")},
+			take: maxUsers
+		})
 		return users;
 	}
 
@@ -187,7 +188,7 @@ export class UsersService {
 		}
 	}
 
-	async change_totp_code(user: User, totp_code: string) {
+	async change_totp_code(user: UserEntity, totp_code: string) {
 		console.log('change_totp_code: starting for ' + user.email);
 		console.log(
 			'change_totp_code: ' + user.email + ', updating and returning ✔',

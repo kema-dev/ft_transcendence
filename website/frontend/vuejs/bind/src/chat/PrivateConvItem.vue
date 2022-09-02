@@ -51,7 +51,7 @@ import User from "@/chat/User";
 import Message from "@/chat/Message";
 import WarningMsg from "@/components/WarningMsg.vue";
 import { Socket } from "socket.io-client";
-import { NewPrivMsg } from "@/chat/dto/NewPrivMsg";
+import { NewPrivMsgDto } from "@/chat/dto/NewPrivMsgDto";
 
 let apiPath: string = inject("apiPath")!;
 const userName = useRoute().params.conv_name as string ;
@@ -102,8 +102,8 @@ function sendMsg(e: Event) {
 				
 	// // SOCKET
 	// mySocket.emit('message', myMsg.value);
-	mySocket.emit('newPrivMsg', new NewPrivMsg(me.login, userName, myMsg.value));
-	mySocket.emit('getMsgs');
+	mySocket.emit('newPrivMsg', new NewPrivMsgDto(me.login, userName, myMsg.value));
+	// mySocket.emit('getMsgs');
 	myMsg.value = "";
 
 }

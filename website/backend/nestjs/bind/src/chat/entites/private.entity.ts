@@ -1,7 +1,7 @@
-import { Column, Entity, PrimaryGeneratedColumn, OneToMany, ManyToOne, JoinColumn } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn, OneToMany, ManyToMany, JoinColumn } from 'typeorm';
 import TimestampEntites from '../../generics/timestamp.enties';
 import { MessageEntity } from './message.entity';
-import { User } from '../../users/user.entity';
+import { UserEntity } from '../../users/user.entity';
 
 
 @Entity("private")
@@ -9,16 +9,10 @@ export class PrivateEntity extends TimestampEntites{
 	@PrimaryGeneratedColumn()
 	id: number;
 
-	// @Column({ update: false })
-	// user1: User;
-	@ManyToOne( type => User, (user) => user.privates, {
+	@ManyToMany( type => UserEntity, (user) => user.privates, {
 		onDelete: 'CASCADE'
 	})
-	@JoinColumn()
-	users: [User, User];
-
-	// @Column({ update: false })
-	// user2: User;
+	users: [UserEntity, UserEntity];
 
 	@OneToMany( type => MessageEntity, (message) => message.convers)
 	messages: MessageEntity[];

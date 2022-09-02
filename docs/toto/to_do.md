@@ -16,3 +16,6 @@
 - Avatar Database lors la de creation User: Recuperer Avatar 42 + mettre avatar par default quand on register sans 42
 
 
+## GLOBAL
+
+- Faire un volume partage pour les Classes/DTO en commun entre front et back

@@ -1,10 +1,10 @@
-import { Column, Entity, PrimaryGeneratedColumn, OneToMany, ManyToMany } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn, OneToMany, ManyToMany, JoinTable } from 'typeorm';
 import { MessageEntity } from '../chat/entites/message.entity';
 import { PrivateEntity } from '../chat/entites/private.entity';
 import TimestampEntites from '../generics/timestamp.enties';
 
 @Entity("user")
-export class User extends TimestampEntites{
+export class UserEntity extends TimestampEntites{
 	@PrimaryGeneratedColumn()
 	public id?: number;
 
@@ -66,5 +66,6 @@ export class User extends TimestampEntites{
 		cascade: true,
 		nullable: true
 	})
+	@JoinTable()
 	privates: PrivateEntity[];
 }

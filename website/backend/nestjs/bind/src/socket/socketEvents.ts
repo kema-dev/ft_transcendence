@@ -1,7 +1,7 @@
 import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
 import { ChatService } from "../chat/chat.service";
 import { Server, Socket } from 'socket.io';
-import { NewPrivMsg } from "../chat/dto/NewPrivMsg";
+import { NewPrivMsg as NewPrivMsgDto } from "../chat/dto/NewPrivMsgDto";
 import { UsersService } from "../users/users.service";
 import { Body } from "@nestjs/common";
 
@@ -37,23 +37,25 @@ export class SocketEvents {
   }
 
   @SubscribeMessage("getMsgs")
-  getMsgs(client: Socket)  {
+  async getMsgs(@ConnectedSocket() client: Socket)  {
     this.chatService.getMessages().then(res => {
+      console.log(res);
+      client.emit("getMsgs", res);
+    })
+  }
+
+  @SubscribeMessage("getPrivConvs")
+  async getPrivConvs(@ConnectedSocket() client: Socket)  {
+    this.chatService.getPrivConvs().then(res => {
       console.log(res);
       client.emit("getMsgs", res);
     })
   }
   
   @SubscribeMessage('newPrivMsg')
-  NewPrivMsg(@MessageBody() data: NewPrivMsg, client : Socket) {
-    this.chatService.addMessage(data);
-    // this.getMsgs(client);
-    // this.test(client);
-    // this.chatService.getMessages().then(res => {
-    //   console.log(res);
-    //   console.log(client);
-    //   client.emit("getMsgs", res);
-    // })
+  async NewPrivMsg(@MessageBody() data: NewPrivMsgDto, @ConnectedSocket() client : Socket) {
+    await this.chatService.addPrivMsg(data);
+    // await this.getMsgs(client);
   }
 
   @SubscribeMessage("getUsersByLoginFiltred")
