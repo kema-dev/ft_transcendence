@@ -6,15 +6,16 @@
 <script setup lang="ts">
 import { inject, onMounted, defineProps, onUnmounted, ref, h } from "vue";
 import Konva from "konva";
-import Socket from "@/utils/Socket";
+import { Socket } from "socket.io-client";
 import { GameDto } from "@/dto/GameDto";
 import Profile from "@/game2.0/Profile";
+import User from "@/chat/User";
 let define = inject("colors");
-let socket: Socket = inject("socket");
+let socket: Socket = inject("socket")!;
 let props = defineProps(["nbrPlayer", "nbrBall", "start"]);
 let run = true;
 // let nbrPlayer = ref(props.nbrPlayer)
-let me = inject("me");
+let me : User = inject("me")!;
 let rotation = 0;
 let gameDto: GameDto | undefined = undefined;
 
@@ -26,9 +27,9 @@ let balls: Konva.Circle[] = [];
 let profiles: Profile[] = [];
 var container: any;
 onMounted(async () => {
-	socket.send("newRoom", {
+	socket.emit("newRoom", {
 		nbrBall: 1,
-		nbrPlayer: 4,
+		nbrPlayer: 4, 
 	});
 	socket.on("game", (game: string) => {
 		// console.log(game)
@@ -144,7 +145,7 @@ onMounted(async () => {
 		} else {
 			return;
 		}
-		socket.socket.emit("setMov", {mov: mov, login: me.login});
+		socket.emit("setMov", {mov: mov, login: me.login});
 		e.preventDefault();
 	});
 	container.addEventListener("keyup", function (e: any) {
@@ -155,7 +156,7 @@ onMounted(async () => {
 		} else {
 			return;
 		}
-		socket.socket.emit("setMov", {mov: mov, login: me.login});
+		socket.emit("setMov", {mov: mov, login: me.login});
 		e.preventDefault();
 	});
 });

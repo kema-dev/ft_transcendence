@@ -4,7 +4,7 @@
 				<div class="avatar_cont center">
 					<img :src="conv.user.avatar" class="avatar" alt="avatar">
 				</div>
-				<button @click="toProfile" class="login">{{route.params.conv_name}}</button>
+				<button @click="toProfile" class="login">{{userName}}</button>
 				<div class="option_buttons center raw stack">
 					<button @click="inviteGame" class="button_cont infoButton center">
 						<span class="infoButtonText">Invite in room</span>
@@ -25,7 +25,7 @@
 						<MessageItem v-for="(message, i) in conv.messages" :key="i" :message="message"/>
 				</div>
 				<div class="sendbox_cont">
-					<input type="text" placeholder="Aa..." id="sendbox" v-model="myMsg" class="sendbox"/>
+					<input v-model="myMsg" @keydown.enter="sendMsg()" type="text" placeholder="Aa..." id="sendbox" class="sendbox"/>
 				</div>
 			</div>
 			<WarningMsg v-if="blockWarn" msg="Are you sure to block this User? You will not receive message from him/her anymore"
@@ -42,6 +42,7 @@
 
 <script setup lang="ts">
 /* eslint @typescript-eslint/no-var-requires: "off" */
+import axios from "axios";
 import { inject, onMounted, ref, onBeforeUnmount, watch } from "vue";
 import { useRoute } from 'vue-router';
 import MessageItem from "@/chat/MessageItem.vue";
@@ -49,13 +50,25 @@ import Private from '@/chat/Private';
 import User from "@/chat/User";
 import Message from "@/chat/Message";
 import WarningMsg from "@/components/WarningMsg.vue";
+import { Socket } from "socket.io-client";
+import { NewPrivMsgDto } from "@/chat/dto/NewPrivMsgDto";
 
-
-const route = useRoute();
+let apiPath: string = inject("apiPath")!;
+const userName = useRoute().params.conv_name as string ;
 let define = inject("colors");
 let me: User = inject("me")!;
 let myMsg = ref("");
 let blockWarn = ref(false);
+
+let mySocket: Socket = inject("socket")!;
+// let mySocket: Socket<DefaultEventsMap, DefaultEventsMap> = inject("socket")!;
+
+
+// axios.get(apiPath + "chat/message")
+// 	.then(res => {console.log("backMsg = ", res.data)})
+// 	.catch(e => {console.log(e)});
+// let backMsg = await axios.get(apiPath + "chat/message");
+// console.log("backMsg = ", (await backMsg).data);
 
 let user1 = new User("Totolosa", require("@/assets/avatars/(1).jpg"));
 let user2 = new User("Ocean", require("@/assets/avatars/(2).jpg"));
@@ -74,6 +87,27 @@ function banUser() {
 	// DEMMANDER DE BAN LE USER AU BACK <==================================
 }
 
+function sendMsg(e: Event) {
+	// e.preventDefault();
+	// ENVOI MSG AU BACK <=================================================
+
+	// // POST REQUEST
+	// axios.post(apiPath + "chat/message", myMsg)
+	// 		.then(res => {
+	// 			console.log("Send msg to back OK");
+	// 			let newMsg = new Message(me, myMsg.value, new Date());
+	// 			conv.value.messages.push(newMsg);
+				// myMsg.value = "";
+				// 		}).catch(e => {console.log(e)});
+				
+	// // SOCKET
+	// mySocket.emit('message', myMsg.value);
+	mySocket.emit('newPrivMsg', new NewPrivMsgDto(me.login, userName, myMsg.value));
+	// mySocket.emit('getMsgs');
+	myMsg.value = "";
+
+}
+
 watch(conv.value.messages, (newMsg) => {
 	let msgs = document.getElementById("messages_cont");
 	msgs!.scrollTop = msgs!.scrollHeight;
@@ -87,15 +121,20 @@ onMounted(() => {
 		box.style.setProperty('color', '#16638D');
 		box.style.setProperty('font-weight', '500');
 	}
-	let input = document.getElementById("sendbox");
-	input!.addEventListener("keydown", function(e) {
-		if (e.key === "Enter") {
-			e.preventDefault();
-			let newMsg = new Message(me, myMsg.value, new Date());
-			conv.value.messages.push(newMsg);
-			myMsg.value = "";
-		}
-	});
+	// let input = document.getElementById("sendbox");
+	// input!.addEventListener("keydown", function(e) {
+	// 	if (e.key === "Enter") {
+	// 		e.preventDefault();
+	// 		// ENVOI MSG AU BACK <===================================
+	// 		axios.post(apiPath + "chat/message", myMsg)
+	// 		.then(res => {
+	// 			console.log("Send msg to back OK");
+	// 			let newMsg = new Message(me, myMsg.value, new Date());
+	// 			conv.value.messages.push(newMsg);
+	// 			myMsg.value = "";
+	// 		}).catch(e => {console.log(e)});
+	// 	}
+	// });
 });
 
 onBeforeUnmount(() => {

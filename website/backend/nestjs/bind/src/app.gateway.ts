@@ -5,13 +5,17 @@ import {
   WebSocketServer,
   OnGatewayConnection,
   OnGatewayDisconnect,
+  MessageBody,
+  ConnectedSocket,
 } from '@nestjs/websockets';
 import { Logger } from '@nestjs/common';
 import { Socket, Server } from 'socket.io';
-import Vector from 'src/game2.0/objects/Vector';
-import Game from 'src/game2.0/Game';
-import { GameService } from 'src/game2.0/game.service';
-import { BallDto } from 'src/game2.0/dto/BallDto';
+import Vector from './game2.0/objects/Vector';
+import Game from './game2.0/Game';
+import { ChatService } from './chat/chat.service';
+import { UsersService } from './users/users.service';
+import { BallDto } from './game2.0/dto/BallDto';
+import { NewPrivMsgDto } from "./chat/dto/NewPrivMsgDto";
 
 @WebSocketGateway({
   cors: {
@@ -20,19 +24,31 @@ import { BallDto } from 'src/game2.0/dto/BallDto';
 })
 export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
-  game: Game;
+  game: Game; 
   private logger: Logger = new Logger('AppGateway');
-
+  
   constructor(
-    private gameService: GameService
-  ) {
-  }
+    private readonly chatService : ChatService,
+    private readonly userService : UsersService,
+    ) {}
+    
+    // =========================== GENERAL ==================================
 
-  @SubscribeMessage('msgToServer')
-  handleMessage(client: Socket, payload: any): void {
-    this.server.emit('msgToClient', payload);
-    this.logger.log(`Message: ${payload}`);
-  }
+    // Connection
+    handleConnection(client: Socket) {
+      console.log(`Client connected : ${client.id}`, )
+    }
+    // Disconnection
+    handleDisconnect(client: Socket) {
+      this.logger.log(`Client disconnected: ${client.id}`);
+      if (this.game)
+        this.game.stop()
+      delete this.game
+    }
+
+
+  // ============================ GAME =====================================
+  
   @SubscribeMessage('getBallPos')
   getBallsPos(client: Socket, payload: any): any {
     this.server.emit('getBallPos', this.game.balls);
@@ -49,28 +65,61 @@ export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGateway
     // var game = new Game(payload.nbrPlayer, payload.nbrBall, this.server)
     // );
     if (!this.game)
-      this.game = new Game(4, 3, this.server, ['Totolosa', 'oc8', 'zeus', 'Jj']);
+      this.game = new Game(4, 3, this.server, ['tdayde', 'oc8', 'zeus', 'Jj']);
   }
   @SubscribeMessage('start')
   start(client: Socket, payload: any): void {
     // this.gameService.games.push(
     // var game = new Game(payload.nbrPlayer, payload.nbrBall, this.server)
     // );
-    if (this.game)
+    if (this.game) {
+      console.log("startback")
       this.game.start = true;
+    }
   }
   afterInit(server: Server) {
     this.logger.log('Init');
   }
-  handleDisconnect(client: Socket) {
-    this.logger.log(`Client disconnected: ${client.id}`);
-    if (this.game)
-      this.game.stop()
-    delete this.game
+  
+  
+  // ============================ CHAT =====================================
+  
+  @SubscribeMessage('message')
+  handleMessage(@MessageBody() data:string, @ConnectedSocket() client: Socket) {
+    console.log(`Client message : ${data}`, )
+    this.server.emit('message', client.id, data);
+  }
+  
+  @SubscribeMessage("getMsgs")
+  async getMsgs(@ConnectedSocket() client: Socket)  {
+    this.chatService.getMessages().then(res => {
+      console.log(res);
+      client.emit("getMsgs", res);
+    })
   }
 
-  handleConnection(client: Socket, ...args: any[]) {
+  @SubscribeMessage("getPrivConvs")
+  async getPrivConvs(@ConnectedSocket() client: Socket)  {
+    this.chatService.getPrivConvs().then(res => {
+      console.log(res);
+      client.emit("getMsgs", res);
+    })
+  }
 
-    // this.logger.log(`Client connected: ${client.id}`);
+  @SubscribeMessage('newPrivMsg')
+  async NewPrivMsg(@MessageBody() data: NewPrivMsgDto, @ConnectedSocket() client : Socket) {
+    await this.chatService.addPrivMsg(data);
+    // await this.getMsgs(client);
+  }
+
+  @SubscribeMessage("getUsersByLoginFiltred")
+  async getUserFiltred(@MessageBody() data : string, @ConnectedSocket() client: Socket) {
+    const users = await this.userService.getByLoginFiltred(data);
+    let basicInfos : { login: string }[] = [];
+    for(let i = 0; i < users.length; i++) {
+      basicInfos.push({login: users[i].login});
+    }
+    console.log(basicInfos);
+    client.emit("getUsersByLoginFiltred", basicInfos);
   }
 }

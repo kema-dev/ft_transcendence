@@ -2,14 +2,14 @@ import Field from "./objects/Field";
 import Ball from "./objects/Ball";
 import Wall from "./objects/Wall";
 import Racket from "./objects/Racket";
-import Vector from 'src/game2.0/objects/Vector';
+import Vector from './objects/Vector';
 import { Logger } from '@nestjs/common';
 import { GameDto } from './dto/GameDto';
 import { BallDto } from './dto/BallDto';
 import { WallDto } from './dto/WallDto';
-import { RacketDto } from 'src/game2.0/dto/RacketDto';
-import ProfileDto from 'src/game2.0/dto/ProfileDto';
-import Profile from 'src/game2.0/objects/Profile';
+import { RacketDto } from './dto/RacketDto';
+import ProfileDto from './dto/ProfileDto';
+import Profile from './objects/Profile';
 
 export default class Game {
 	nbrPlayer: number;

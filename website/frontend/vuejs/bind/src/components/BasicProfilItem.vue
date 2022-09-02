@@ -1,9 +1,9 @@
 <template>
 	<div class="basicProfil center row">
 		<div class="avatar_cont center">
-			<img :src="user!.avatar" class="avatar" alt="avatar" />
+			<img :src="avatar" class="avatar" alt="avatar">
 		</div>
-		<div class="login">{{ user?.login }}</div>
+		<div class="login">{{login}}</div>
 	</div>
 </template>
 
@@ -11,11 +11,20 @@
 import { inject, defineProps, onMounted, ref } from "vue";
 import Conversation from "@/chat/Private";
 import User from "@/chat/User";
+import { stringifyQuery } from "vue-router";
 
 let define = inject("colors");
 const props = defineProps({
-	user: User,
-});
+  avatar: {
+		type: String,
+		required: true
+	},
+  login: {
+		type: String,
+		required: true
+	}
+})
+
 </script>
 
 <style scoped>

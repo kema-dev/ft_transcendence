@@ -10,11 +10,12 @@ import { onMounted, provide, ref } from "vue";
 import User from "@/chat/User";
 import Socket from '@/utils/Socket';
 
-provide("playing", false);
-let me = new User("oc8", require("@/assets/avatars/(1).jpg"));
+// provide("apiPath", "https://localhost:3000/api/v1/");
+let me = new User("tdayde", require("@/assets/avatars/(1).jpg"));
 me.friends.push(new User("Myfriend", require("@/assets/avatars/(6).jpg")));
-provide('socket', new Socket('https://localhost:3000'))
+// provide('socket', new Socket('https://localhost:3000'))
 provide("me", me);
+provide("playing", false);
 provide("colors", {
 	color0: "#fff",
 	color1: "#000",
@@ -95,6 +96,11 @@ a {
 	display: flex;
 	justify-content: flex-end;
 	align-items: flex-end;
+}
+.right_center {
+	display: flex;
+	justify-content: flex-end;
+	align-items: center;
 }
 .space-between {
 	display: flex;

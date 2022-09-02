@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common';
-import { GameDto } from 'src/game2.0/dto/GameDto';
-import Racket from 'src/game2.0/objects/Racket';
+import { GameDto } from '../dto/GameDto';
+import Racket from '../objects/Racket';
 import Vector from './Vector'
 import Wall from './Wall'
 
