@@ -2,6 +2,9 @@
 
 ## ongoing
 
+* TODO make build phase work and move command from docker-compose to dockerfiles
+* TODO make a multistage build and serv the files from nginx
+
 * TODO make backend is up endpoint redirect to frontend
 * TODO make logpage redirect to /home if already logged in
 * TODO add JWT guards on backend endpoints
