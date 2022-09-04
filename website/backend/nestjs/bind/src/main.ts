@@ -13,7 +13,9 @@ async function bootstrap() {
 	// const app = await NestFactory.create(AppModule, {
 	// 	httpsOptions,
 	// });
-	const app = await NestFactory.create<NestExpressApplication>(AppModule, {httpsOptions});
+	const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+		httpsOptions,
+	});
 	app.useStaticAssets(join(__dirname, '..', 'static'));
 	app.setGlobalPrefix('api/v1');
 	app.use(cookieParser());

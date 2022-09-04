@@ -29,8 +29,6 @@ import { GameService } from 'src/game2.0/game.service';
 		UsersModule,
 	],
 	controllers: [],
-	providers: [AppGateway,
-		GameService,
-	],
+	providers: [AppGateway, GameService],
 })
-export class AppModule { }
+export class AppModule {}

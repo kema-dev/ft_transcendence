@@ -3,6 +3,7 @@
 ## ongoing
 
 * TODO make backend is up endpoint redirect to frontend
+* TODO make logpage redirect to /home if already logged in
 * TODO add JWT guards on backend endpoints
 * TODO make everyone use custom HTTP headers
 * TODO improve 2FA page
