@@ -10,7 +10,7 @@
           <div v-if="message" class="date">{{display_date()}}</div>
         </div>
         <div class="message_cont center">
-          <div v-if="message" class="message">{{message.msg}}</div>
+          <div v-if="message" class="message">{{message}}</div>
           <div v-else class="message noMessage">Created the {{date?.toLocaleDateString("fr")}}, {{date?.toLocaleTimeString("fr")}}</div>
         </div>
       </div>
@@ -19,17 +19,25 @@
 
 <script setup lang="ts">
 import { inject, defineProps, onMounted, ref } from "vue";
-import Private from '@/chat/Private';
-import User from "./User";
-import Message from "./Message";
+import Private from '@/chat/objects/Private';
+import User from "./objects/User";
+import Message from "./objects/Message";
 
 let define = inject("colors");
 const props = defineProps({
-  // conv: PrivateConv
-  nameConv: String,
+  nameConv: {
+    type: String,
+    required: true,
+  },
+  message: {
+    type: String,
+    required: true,
+  },
+  date: {
+    type: Date,
+    required: true,
+  },
   avatar: String,
-  message: Message,
-  date: Date,
   chan: Boolean
 })
 
@@ -40,12 +48,12 @@ function convertDate(date : Date) : string {
 
 function display_date() : string {
   const now = new Date();
-  let diff = now.getTime() - props.message!.date.getTime();
+  let diff = now.getTime() - props.date.getTime();
   let days = (diff / (1000 * 3600 * 24));
   let hours = days * 24;
   let mins = hours * 60;
   if (days >= 7) {
-    return convertDate(props.message!.date);
+    return convertDate(props.date);
   }
   else if (days >= 1){
     return Math.floor(days) + "d";

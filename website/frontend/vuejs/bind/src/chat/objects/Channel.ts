@@ -1,5 +1,5 @@
-import User from '@/chat/User';
-import Message from "@/chat/Message"
+import User from '@/chat/objects/User';
+import Message from "@/chat/objects/Message"
 
 export default class Channel {
     name: string;

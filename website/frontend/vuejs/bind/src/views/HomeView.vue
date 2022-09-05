@@ -19,6 +19,13 @@ import { onMounted, provide } from "vue";
 import { inject, ref } from "vue";
 import MatchmakingItem from '@/components/MatchmakingItem.vue';
 import io from "socket.io-client"
+import { VueCookies } from "vue-cookies";
+
+const $cookies = inject<VueCookies>('$cookies')!;
+const login : string = $cookies.get('login');
+provide("me", login);
+
+console.log(`I am '${login}'`)
 
 let define = inject("colors");
 let reload = ref(0)

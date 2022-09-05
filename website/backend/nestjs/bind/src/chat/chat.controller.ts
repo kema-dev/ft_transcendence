@@ -1,5 +1,7 @@
-import { Controller, Delete, Get, Post, Put } from '@nestjs/common';
+import { Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import { string } from 'joi';
 import { ChatService } from './chat.service';
+import PrivateTabDto from './dto/PrivateTabDto';
 
 
 @Controller('chat')
@@ -12,6 +14,34 @@ export class ChatController {
 		// return "Get Message";
 		return this.chatService.getMessages();
 	}
+
+	@Get('getUserPrivs/:login')
+	async getUserPrivs(@Param() params : {login: string}) {
+		console.log("getUserPrivs for user \'" + params.login + "\'");
+		const privs = await this.chatService.getUserPrivs(params.login);
+		let privsTabDto : PrivateTabDto[] = [];
+		privs.forEach(priv => {
+			let login: string;
+			if (priv.users[0].login == params.login)
+				login = priv.users[1].login;
+			else
+				login = priv.users[0].login;
+			let msg = priv.messages[priv.messages.length - 1].message;
+			// let date = priv.messages[priv.messages.length - 1].createdAt;
+			let date = priv.updatedAt;
+			privsTabDto.push(new PrivateTabDto(login, msg, date));
+		});
+		// console.log(privsTabDto);
+		// privsTabDto.forEach(priv => console.log(`priv = ${priv.date.constructor.name}`));
+		// privs.forEach(priv => console.log(`priv = ${priv.messages}`));
+		return privsTabDto;
+	}
+
+	@Get('getUsersByLoginFiltred/:login/:filter')
+	async getUserFiltred(@Param() params : {login: string, filter: string}) {
+		return await this.chatService.
+			getUsersByLoginFiltred(params.login, params.filter);
+  }
 
 	@Post('message')
 	postMessage() {

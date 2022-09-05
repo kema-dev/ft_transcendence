@@ -16,7 +16,11 @@ export class MessageEntity extends TimestampEntites{
 	@JoinColumn()
 	user: UserEntity;
 	
-	@ManyToOne( type => PrivateEntity, (privateEntity) => privateEntity.messages)
+	@ManyToOne( type => PrivateEntity, (privateEntity) => privateEntity.messages, {
+		// cascade: true,
+		// onUpdate: 'CASCADE',
+		onDelete: 'CASCADE',
+	})
 	@JoinColumn()
 	convers: PrivateEntity;
 }

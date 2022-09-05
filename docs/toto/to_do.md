@@ -8,13 +8,16 @@
 
 - Copier colle logPage password marche pas bien
 
+-logPage : faire que touche 'enter' = bouton login
+
 
 ## BACK
 
-- Recuperer info de qui on est apres log
+- Recuperer info de qui on est apres log ==> OK
 
 - Avatar Database lors la de creation User: Recuperer Avatar 42 + mettre avatar par default quand on register sans 42
 
+- Gerer les friends
 
 ## GLOBAL
 

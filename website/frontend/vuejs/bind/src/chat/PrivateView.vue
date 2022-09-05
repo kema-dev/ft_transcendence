@@ -23,12 +23,12 @@
 		</div>
 		<div v-if="!newMsg" class="myConversations center column">
 			<ConversationTab
-				v-for="(data, i) in convsFiltred"
+				v-for="(data, i) in privsFiltred"
 				:key="i"
-				:name-conv="data.user.login"
-				:avatar="data.user.avatar"
-				:message="data.messages[data.messages.length - 1]"
-				:date="data.messages[data.messages.length - 1].date"
+				:name-conv="data.login"
+				:avatar="data.avatar"
+				:message="data.message"
+				:date="data.date"
 				class="center"
 			/>
 			<h2 v-if="conversations.length == 0" class="no_results">
@@ -71,33 +71,55 @@
 
 <script setup lang="ts">
 /* eslint @typescript-eslint/no-var-requires: "off" */
-import { inject, onMounted, defineEmits, ref, nextTick } from "vue";
+import { inject, onMounted, defineEmits, ref, nextTick, onBeforeMount } from "vue";
 import ConversationTab from "@/chat/ConversationTab.vue";
 import BasicProfil from "@/components/BasicProfilItem.vue";
 import SearchItem from "@/components/SearchItem.vue";
-import Private from "@/chat/Private";
-import User from "@/chat/User";
-import Message from "@/chat/Message";
+import Private from "@/chat/objects/Private";
+import PrivateTabDto from "@/chat/dto/PrivateTabDto"
+import User from "@/chat/objects/User";
+import Message from "@/chat/objects/Message";
 import BasicUser from "@/chat/dto/BasicUser"
 import { Socket } from "socket.io-client";
+import HTTP from "../components/axios";
+
 let define = inject("colors");
-let me: User = inject("me")!;
-
+let me: string = inject("me")!;
 let mySocket: Socket = inject("socket")!;
+let apiPath: string = inject("apiPath")!;
 let serverUsers = ref<BasicUser[]>();
-mySocket.on("getUsersByLoginFiltred", (data : [{login: string}]) => {
-	let tmp : BasicUser[] = [];
-	for(let i = 0; i < data.length; i++) {
-		tmp.push(new BasicUser(data[i].login));
-	}
-	serverUsers.value = tmp;
-	console.log("serverUsers = ", serverUsers.value);
-});
-
+let privs = ref<PrivateTabDto[]>();
+let privsFiltred = ref<PrivateTabDto[]>();
 const search = ref("");
 const newMsg = ref(false);
 const searchKey = ref(0);
-// const searchCompRef = ref<InstanceType<typeof SearchItem>>();
+
+// let test = new PrivateTabDto("test", "c'est un test", new Date());
+// console.log(test);
+
+// mySocket.on("getUsersByLoginFiltred", (data : [{login: string}]) => {
+// 	let tmp : BasicUser[] = [];
+// 	for(let i = 0; i < data.length; i++) {
+// 		tmp.push(new BasicUser(data[i].login));
+// 	}
+// 	serverUsers.value = tmp;
+// 	// console.log("serverUsers = ", serverUsers.value);
+// });
+
+
+
+(async () => {
+	let dto : PrivateTabDto[] = (await HTTP.get(apiPath + "chat/getUserPrivs/" + me)).data;
+	let privsTmp : PrivateTabDto[] = [];
+	dto.forEach(priv => {
+		privsTmp.push(new PrivateTabDto(priv.login, priv.message, new Date(priv.date)));
+	});
+	privs.value = privsTmp;
+	privsFiltred.value = privs.value;
+
+})();
+
+
 
 
 
@@ -131,49 +153,46 @@ let msg6 = new Message(user2, "Mais tu sais pas parler en fait", new Date());
 let conv1 = new Private(user2, [msg1, msg2]);
 let conv2 = new Private(user3, [msg3, msg4]);
 let conv3 = new Private(user1, [msg5, msg6]);
-// let conv4 = new Conversation([user1, user2, user3], [msg1, msg2, msg3, msg4, msg5, msg6]);
-// let conv5 = new Conversation([user1, user2, user3], [msg1, msg2, msg3, msg4], "Test channel");
 
+// let conversations = [conv1, conv2, conv3];
+// let convsFiltred = ref(conversations);
+// let friendsFiltred = ref(me.friends);
 let conversations = [conv1, conv2, conv3];
-// let convsFiltred = ref<Conversation[]>();
-// convsFiltred.value = conversations;
 let convsFiltred = ref(conversations);
-let friendsFiltred = ref(me.friends);
-// let knownPeople = [user1, user2, user3];
-// let otherPeople = [user4, user5];
-// let otherPeople = ref([]);
+// let friendsFiltred = ref(me.friends);
 
-conversations.sort(function (x, y) {
-	if (
-		x.messages[x.messages.length - 1].date <
-		y.messages[y.messages.length - 1].date
-	) {
-		return 1;
-	}
-	if (
-		x.messages[x.messages.length - 1].date >
-		y.messages[y.messages.length - 1].date
-	) {
-		return -1;
-	}
-	return 0;
-});
 
-function searchChange(value: string) {
+
+// conversations.sort(function (x, y) {
+// 	if (
+// 		x.messages[x.messages.length - 1].date <
+// 		y.messages[y.messages.length - 1].date
+// 	) {
+// 		return 1;
+// 	}
+// 	if (
+// 		x.messages[x.messages.length - 1].date >
+// 		y.messages[y.messages.length - 1].date
+// 	) {
+// 		return -1;
+// 	}
+// 	return 0;
+// });
+
+async function searchChange(value: string) {
 	search.value = value;
-	convsFiltred.value = conversations.filter(function(value) {
-		return value.user.login.toUpperCase().startsWith(search.value.toUpperCase());
+	console.log("privs = ", privsFiltred.value);
+	privsFiltred.value = privs.value?.filter(function(value) {
+		return value.login.toUpperCase().startsWith(search.value.toUpperCase());
 	});
-	if (newMsg.value) {
-		friendsFiltred.value = me.friends.filter(function(value) {
-			return value.login.toUpperCase().startsWith(search.value.toUpperCase());
-		});
-	}
-	if (search.value != "") {
-		mySocket.emit('getUsersByLoginFiltred', search.value);
-	}
-
-
+	// if (newMsg.value) {
+	// 	friendsFiltred.value = me.friends.filter(function(value) {
+	// 		return value.login.toUpperCase().startsWith(search.value.toUpperCase());
+	// 	});
+	// }
+	if (search.value != "")
+		serverUsers.value = await HTTP.get(apiPath + "chat/getUsersByLoginFiltred/" + me);
+		// HTTP.get(apiPath + "chat/getUsersByLoginFiltred/" + me).then(res => serverUsers.value = res);
 }
 
 function knownPeople(): User[] {
@@ -181,20 +200,20 @@ function knownPeople(): User[] {
 	for (let i = 0; i < convsFiltred.value.length; i++) {
 		res.push(convsFiltred.value[i].user);
 	}
-	for (let i = 0; i < friendsFiltred.value.length; i++) {
-		if (!res.includes(friendsFiltred.value[i])) {
-			res.push(friendsFiltred.value[i]);
-		}
-	}
+	// for (let i = 0; i < friendsFiltred.value.length; i++) {
+	// 	if (!res.includes(friendsFiltred.value[i])) {
+	// 		res.push(friendsFiltred.value[i]);
+	// 	}
+	// }
 	return res;
 }
 
-function otherPeople(): User[] {
-	let others = [user4, user5];
-	return others.filter(function(value) {
-		return value.login.toUpperCase().startsWith(search.value.toUpperCase());
-	});
-}
+// function otherPeople(): User[] {
+// 	let others = [user4, user5];
+// 	return others.filter(function(value) {
+// 		return value.login.toUpperCase().startsWith(search.value.toUpperCase());
+// 	});
+// }
 
 function createNewMsg() {
 	newMsg.value = !newMsg.value;

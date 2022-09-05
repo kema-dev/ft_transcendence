@@ -9,8 +9,8 @@
 
 <script setup lang="ts">
 import { inject, defineProps, onMounted, ref } from "vue";
-import Conversation from "@/chat/Private";
-import User from "@/chat/User";
+import Conversation from "@/chat/objects/Private";
+import User from "@/chat/objects/User";
 import { stringifyQuery } from "vue-router";
 
 let define = inject("colors");

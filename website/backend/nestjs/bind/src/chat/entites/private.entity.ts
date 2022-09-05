@@ -14,7 +14,9 @@ export class PrivateEntity extends TimestampEntites{
 	})
 	users: [UserEntity, UserEntity];
 
-	@OneToMany( type => MessageEntity, (message) => message.convers)
+	@OneToMany( type => MessageEntity, (message) => message.convers, {
+		cascade: true,
+	})
 	messages: MessageEntity[];
 
 }

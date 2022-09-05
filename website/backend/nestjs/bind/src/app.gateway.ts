@@ -108,18 +108,19 @@ export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGateway
 
   @SubscribeMessage('newPrivMsg')
   async NewPrivMsg(@MessageBody() data: NewPrivMsgDto, @ConnectedSocket() client : Socket) {
+    // console.log(`controller newPrivMsg:  userSend = ${data.userSend}, userReceive = ${data.userReceive}`)
     await this.chatService.addPrivMsg(data);
     // await this.getMsgs(client);
   }
 
   @SubscribeMessage("getUsersByLoginFiltred")
-  async getUserFiltred(@MessageBody() data : string, @ConnectedSocket() client: Socket) {
-    const users = await this.userService.getByLoginFiltred(data);
+  async getUserFiltred(@MessageBody() data : {filter: string, login: string} , @ConnectedSocket() client: Socket) {
+    const users = await this.userService.getByLoginFiltred(data.filter);
     let basicInfos : { login: string }[] = [];
     for(let i = 0; i < users.length; i++) {
-      basicInfos.push({login: users[i].login});
+      if (data.login != users[i].login)
+        basicInfos.push({login: users[i].login});
     }
-    console.log(basicInfos);
     client.emit("getUsersByLoginFiltred", basicInfos);
   }
 }

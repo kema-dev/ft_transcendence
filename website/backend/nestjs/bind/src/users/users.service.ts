@@ -41,7 +41,7 @@ export class UsersService {
 	
 	async getByLoginFiltred(filter: string) {
 		let maxUsers = 15;
-		console.log('getByLoginFiltred: starting for ' + filter);
+		console.log('getByLoginFiltred: starting for \'' + filter + '\'');
 		const users = await this.usersRepository.find({
 			where: {login: Like(filter + "%")},
 			take: maxUsers

@@ -46,22 +46,31 @@ import axios from "axios";
 import { inject, onMounted, ref, onBeforeUnmount, watch } from "vue";
 import { useRoute } from 'vue-router';
 import MessageItem from "@/chat/MessageItem.vue";
-import Private from '@/chat/Private';
-import User from "@/chat/User";
-import Message from "@/chat/Message";
+import Private from '@/chat/objects/Private';
+import User from "@/chat/objects/User";
+import Message from "@/chat/objects/Message";
 import WarningMsg from "@/components/WarningMsg.vue";
 import { Socket } from "socket.io-client";
 import { NewPrivMsgDto } from "@/chat/dto/NewPrivMsgDto";
 
 let apiPath: string = inject("apiPath")!;
-const userName = useRoute().params.conv_name as string ;
+let mySocket: Socket = inject("socket")!;
 let define = inject("colors");
-let me: User = inject("me")!;
+let me: string = inject("me")!;
+const userName = useRoute().params.conv_name as string ;
 let myMsg = ref("");
 let blockWarn = ref(false);
 
-let mySocket: Socket = inject("socket")!;
-// let mySocket: Socket<DefaultEventsMap, DefaultEventsMap> = inject("socket")!;
+// (async () => {
+// 	let dto : PrivateTabDto[] = (await HTTP.get(apiPath + "chat/getUserPrivs/" + me)).data;
+// 	let privsTmp : PrivateTabDto[] = [];
+// 	dto.forEach(priv => {
+// 		privsTmp.push(new PrivateTabDto(priv.login, priv.message, new Date(priv.date)));
+// 	});
+// 	privs.value = privsTmp;
+// 	privsFiltred.value = privs.value;
+
+// })();
 
 
 // axios.get(apiPath + "chat/message")
@@ -102,7 +111,7 @@ function sendMsg(e: Event) {
 				
 	// // SOCKET
 	// mySocket.emit('message', myMsg.value);
-	mySocket.emit('newPrivMsg', new NewPrivMsgDto(me.login, userName, myMsg.value));
+	mySocket.emit('newPrivMsg', new NewPrivMsgDto(me, userName, myMsg.value));
 	// mySocket.emit('getMsgs');
 	myMsg.value = "";
 

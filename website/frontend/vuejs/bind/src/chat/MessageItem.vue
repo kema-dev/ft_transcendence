@@ -21,8 +21,8 @@
 /* eslint @typescript-eslint/no-var-requires: "off" */
 import { inject, defineProps, onMounted, ref } from "vue";
 // import Conversation from '@/chat/Conversation';
-import User from "@/chat/User";
-import Message from "@/chat/Message";
+import User from "@/chat/objects/User";
+import Message from "@/chat/objects/Message";
 
 let colors = inject("colors");
 let me: User = inject("me")!;
