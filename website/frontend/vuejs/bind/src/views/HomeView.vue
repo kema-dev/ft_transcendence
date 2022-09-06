@@ -35,19 +35,23 @@ onMounted(() => {
 	})
 });
 
-let socket = io('https://localhost:3000');
+let socket = io('https://localhost:3000', {query: {login}});
 provide("socket", socket);
 
 socket.on('connect', () => {
 	console.log("client-side connected");
 })
 
-socket.on('message', function(id, data) {
-	console.log(`Server message : ${id}: ${data}`, );
-})
-socket.on('getMsgs', (data) => {
-	console.log(data);
-})
+// socket.on("newPrivMsg", () => {
+
+// })
+
+// socket.on('message', function(id, data) {
+// 	console.log(`Server message : ${id}: ${data}`, );
+// })
+// socket.on('getMsgs', (data) => {
+// 	console.log(data);
+// })
 
 
 

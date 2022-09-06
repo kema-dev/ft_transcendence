@@ -79,7 +79,7 @@ import Private from "@/chat/objects/Private";
 import PrivateTabDto from "@/chat/dto/PrivateTabDto"
 import User from "@/chat/objects/User";
 import Message from "@/chat/objects/Message";
-import BasicUser from "@/chat/dto/BasicUser"
+import BasicUserDto from "@/chat/dto/BasicUserDto"
 import { Socket } from "socket.io-client";
 import HTTP from "../components/axios";
 
@@ -87,7 +87,7 @@ let define = inject("colors");
 let me: string = inject("me")!;
 let mySocket: Socket = inject("socket")!;
 let apiPath: string = inject("apiPath")!;
-let serverUsers = ref<BasicUser[]>();
+let serverUsers = ref<BasicUserDto[]>();
 let privs = ref<PrivateTabDto[]>();
 let privsFiltred = ref<PrivateTabDto[]>();
 const search = ref("");
@@ -109,7 +109,7 @@ const searchKey = ref(0);
 
 
 (async () => {
-	let dto : PrivateTabDto[] = (await HTTP.get(apiPath + "chat/getUserPrivs/" + me)).data;
+	let dto : PrivateTabDto[] = (await HTTP.get(apiPath + "chat/getPrivs/" + me)).data;
 	let privsTmp : PrivateTabDto[] = [];
 	dto.forEach(priv => {
 		privsTmp.push(new PrivateTabDto(priv.login, priv.message, new Date(priv.date)));

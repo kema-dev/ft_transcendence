@@ -7,6 +7,7 @@ import { UserEntity } from '../users/user.entity';
 import { UsersService } from '../users/users.service';
 import { NewPrivMsgDto } from './dto/NewPrivMsgDto';
 import BasicUser from './dto/BasicUserDto';
+import { StringSchema } from 'joi';
 
 @Injectable()
 export class ChatService {
@@ -21,15 +22,25 @@ export class ChatService {
 		private readonly dataSource: DataSource,
 	) {}
 
-	async getMessages() {
-		console.log("getMessages ChatService used")
-		return await this.msgRepository.find();
-		// return 'get msg';
-	}
+	// async getMessages() {
+	// 	console.log("getMessages ChatService used")
+	// 	return await this.msgRepository.find();
+	// 	// return 'get msg';
+	// }
 	
-	async getPrivConvs() {
-		console.log("getPrivConvs Chat");
-		return await this.privateRepository.find({relations: ['users', 'messages']});
+	// async getPrivConvs() {
+	// 	console.log("getPrivConvs Chat");
+	// 	return await this.privateRepository.find({relations: ['users', 'messages']});
+	// }
+
+	async getPrivMsg(login1: string, login2: string) {
+		const userId1 = (await this.userService.getByLogin(login1)).id;
+		const userId2 = (await this.userService.getByLogin(login2)).id;
+		// console.log(`user1  = ${login1}, id= ${userId1}\nuser2  = ${login2}, id= ${userId2}`);
+		return await this.getPrivWithUserIds([userId1, userId2]);
+		// const priv =  await this.getPrivWithUserIds([userId1, userId2]);
+		// console.log(priv);
+		// return priv;
 	}
 
 	async getUsersByLoginFiltred(login: string, filter: string) {
@@ -85,24 +96,18 @@ export class ChatService {
 	}
 	
 	async addPrivMsg(data : NewPrivMsgDto) {
-		console.log("addPrivMsg Chat");
-		// Find and add UsersId to Msg + PrivConv
+		// Find users
 		const userSend = await this.userService.getByLogin(data.userSend);
 		const userReceive = await this.userService.getByLogin(data.userReceive);
-		// console.log(`usersend = ${userSend.login}, userReveive = ${userReceive.login}`);
+		console.log("addPrivMsg Chat");
 		// Create and save Msg
-		// const msg = new MessageEntity()
 		const msg = this.msgRepository.create({user: userSend, message: data.message});
 		await this.msgRepository.save(msg).catch(e => console.log("Save msg error"));
 		// Check if PrivConv exist
-		const privates = await this.privateRepository.find( {relations: ['users', 'messages']});
-		const priv = privates.find((item) => 
-			(item.users[0].id == userSend.id && item.users[1].id == userReceive.id)
-			|| (item.users[1].id == userSend.id && item.users[0].id == userReceive.id)
-		)
+		const priv = await this.getPrivWithUserIds([userSend.id, userReceive.id]);
 		// If PrivateConv exist => add message to the existing one
 		if (priv) {
-			console.log("Add msg in PrivateConv which already exist");
+			// console.log("Add msg in PrivateConv which already exist");
 			// console.log("priv = ", priv);
 			priv.messages.push(msg);
 			priv.updatedAt = msg.createdAt;
@@ -120,6 +125,38 @@ export class ChatService {
 		}
 	}
 
+
+	// ========================= UTILS =========================
 	
-	
+	async getPrivWithUserIds(userIds: [number, number]) {
+		// const userId1 = (await this.userService.getByLogin(userIds[0])).id;
+		// const userId2 = (await this.userService.getByLogin(userIds[1])).id;
+		const privates = await this.privateRepository.find({
+			relations: {
+				users: true,
+				messages: {
+					user: true,
+				}
+			},
+			order: {
+				messages : {
+					createdAt: 'ASC',
+				}
+			}
+		});
+		privates.forEach(priv => {
+			// console.log(`priv = ${priv}`);
+		})
+		const priv = privates.find((item) => {
+			// console.log(`item.users[0].id = ${item.users[0].id}\n
+			// item.users[1].id = ${item.users[1].id}\n
+			// userIds[0] = ${userIds[0]}\n
+			// userIds[1] = ${userIds[1]}\n`);
+			if ((item.users[0].id == userIds[0] && item.users[1].id == userIds[1])
+				|| (item.users[0].id == userIds[1] && item.users[1].id == userIds[0]))
+				return true;
+		});
+		// console.log(`priv fin getPrivWithUserIds = ${priv}`);
+		return priv;
+	}
 }

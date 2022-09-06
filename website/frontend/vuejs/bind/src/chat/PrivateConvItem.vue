@@ -1,76 +1,124 @@
 <template>
-		<div id="conversation_view" class="stack">
-			<div class="userTopBar center raw space-between">
-				<div class="avatar_cont center">
-					<img :src="conv.user.avatar" class="avatar" alt="avatar">
-				</div>
-				<button @click="toProfile" class="login">{{userName}}</button>
-				<div class="option_buttons center raw stack">
-					<button @click="inviteGame" class="button_cont infoButton center">
-						<span class="infoButtonText">Invite in room</span>
-						<img src="~@/assets/ball_logo.svg" alt="Invite game button" class="logo_img">
-					</button>
-					<button @click="blockWarn = true" class="button_cont infoButton center">
-						<span class="infoButtonText">Block</span>
-						<img src="~@/assets/block_logo.svg" alt="Invite game button" class="logo_img">
-					</button>
-					<button onclick="history.back();" class="button_cont infoButton center">
-						<span class="infoButtonText">Close</span>
-						<img src="~@/assets/close_logo.svg" alt="Invite game button" class="logo_img">
-					</button>
-				</div>
+	<div v-if="requestDone" id="conversation_view" class="stack">
+		<div class="userTopBar center raw space-between">
+			<div class="avatar_cont center">
+				<img :src="receiver!.avatar" class="avatar" alt="avatar">
 			</div>
-			<div class="conversation_content ">
-				<div id="messages_cont" class="messages ">
-						<MessageItem v-for="(message, i) in conv.messages" :key="i" :message="message"/>
-				</div>
-				<div class="sendbox_cont">
-					<input v-model="myMsg" @keydown.enter="sendMsg()" type="text" placeholder="Aa..." id="sendbox" class="sendbox"/>
-				</div>
+			<button @click="toProfile" class="login">{{receiver!.login}}</button>
+			<div class="option_buttons center raw stack">
+				<button @click="inviteGame" class="button_cont infoButton center">
+					<span class="infoButtonText">Invite in room</span>
+					<img src="~@/assets/ball_logo.svg" alt="Invite game button" class="logo_img">
+				</button>
+				<button @click="blockWarn = true" class="button_cont infoButton center">
+					<span class="infoButtonText">Block</span>
+					<img src="~@/assets/block_logo.svg" alt="Invite game button" class="logo_img">
+				</button>
+				<button onclick="history.back();" class="button_cont infoButton center">
+					<span class="infoButtonText">Close</span>
+					<img src="~@/assets/close_logo.svg" alt="Invite game button" class="logo_img">
+				</button>
 			</div>
-			<WarningMsg v-if="blockWarn" msg="Are you sure to block this User? You will not receive message from him/her anymore"
-				:img="require('@/assets/warning_logo.png')">
-				<template #buttons>
-					<div class="blockAdvertButtons center raw">
-						<button @click="banUser()" >Yes</button>
-						<button @click="blockWarn = false">No</button>
-					</div>
-				</template>
-			</WarningMsg>
 		</div>
+		<div class="conversation_content ">
+			<div id="messages_cont" class="messages ">
+					<MessageItem v-for="(message, i) in msgs" :key="i" 
+						:userAvatar="receiver!.avatar"
+						:userLogin="message.user"
+						:message="message.msg"
+						:date="message.date"
+					/>
+					<!-- <MessageItem v-for="(message, i) in msgs" :key="i" 
+						:userLogin="message.user"
+						:message="message.msg"
+						:date="message.date"
+					/> -->
+			</div>
+			<div class="sendbox_cont">
+				<input v-model="myMsg" @keydown.enter="sendMsg()" type="text" placeholder="Aa..." id="sendbox" class="sendbox"/>
+			</div>
+		</div>
+		<WarningMsg v-if="blockWarn" msg="Are you sure to block this User? You will not receive message from him/her anymore"
+			:img="require('@/assets/warning_logo.png')">
+			<template #buttons>
+				<div class="blockAdvertButtons center raw">
+					<button @click="banUser()" >Yes</button>
+					<button @click="blockWarn = false">No</button>
+				</div>
+			</template>
+		</WarningMsg>
+	</div>
 </template>
 
 <script setup lang="ts">
 /* eslint @typescript-eslint/no-var-requires: "off" */
 import axios from "axios";
-import { inject, onMounted, ref, onBeforeUnmount, watch } from "vue";
+import { inject, onMounted, ref, onBeforeUnmount, watch, onBeforeMount } from "vue";
 import { useRoute } from 'vue-router';
+import { Socket } from "socket.io-client";
+import HTTP from "../components/axios";
 import MessageItem from "@/chat/MessageItem.vue";
 import Private from '@/chat/objects/Private';
 import User from "@/chat/objects/User";
 import Message from "@/chat/objects/Message";
 import WarningMsg from "@/components/WarningMsg.vue";
-import { Socket } from "socket.io-client";
 import { NewPrivMsgDto } from "@/chat/dto/NewPrivMsgDto";
+import BasicUserDto from "./dto/BasicUserDto";
+import MessageDto from "./dto/MessageDto"
+import {PrivateConvDto} from "./dto/PrivateConvDto"
 
 let apiPath: string = inject("apiPath")!;
 let mySocket: Socket = inject("socket")!;
 let define = inject("colors");
 let me: string = inject("me")!;
 const userName = useRoute().params.conv_name as string ;
+let receiver = ref<BasicUserDto>();
+let msgs = ref<MessageDto[]>();
+// let privConv : PrivateConvDto;
+
 let myMsg = ref("");
 let blockWarn = ref(false);
+let requestDone = ref(false);
 
-// (async () => {
-// 	let dto : PrivateTabDto[] = (await HTTP.get(apiPath + "chat/getUserPrivs/" + me)).data;
-// 	let privsTmp : PrivateTabDto[] = [];
-// 	dto.forEach(priv => {
-// 		privsTmp.push(new PrivateTabDto(priv.login, priv.message, new Date(priv.date)));
+mySocket.on("newPrivMsg", (data: NewPrivMsgDto) => {
+	console.log(`msgs.value = ${msgs.value}`);
+	let tmp = msgs.value!;
+	tmp.push(new MessageDto(data.userSend, data.message, new Date(data.date)))
+	msgs.value = tmp;
+});
+
+
+(async () => {
+	// receiver = (await HTTP.get(apiPath + "user/getBasicUser/:login" + userName)).data;
+	let privConvDto : PrivateConvDto = (await HTTP.get(apiPath
+		+ "chat/getPriv/" + me + "/" + userName)).data;
+	console.log(`privConvDto = ${privConvDto}`);
+	receiver.value = new BasicUserDto(privConvDto.user);
+	console.log(`receiver = ${receiver.value.login}`);
+	let msgsTmp : MessageDto[] = [];
+	privConvDto.msgs.forEach(msg => {
+		msgsTmp.push(new MessageDto(msg.user, msg.msg, new Date(msg.date)))
+	});
+	msgs.value = msgsTmp;
+	msgs.value.forEach(msg => {
+		console.log(msg);
+	});
+	// nbMsgs = msgs.value.length;
+	requestDone.value = true;
+})();
+
+// HTTP.get(apiPath + "chat/getPriv/" + me + "/" + userName)
+// 	.then(res => {
+// 		console.log(`privConvDto = ${res.data}`);
+// 		receiver = new BasicUserDto(res.data.user);
+// 		let msgsTmp : MessageDto[] = [];
+// 		res.data.msgs.forEach(msg => {
+// 			msgsTmp.push(new MessageDto(msg.user, msg.msg, new Date(msg.date)))
+// 		});
+// 		msgs.value = msgsTmp;
 // 	});
-// 	privs.value = privsTmp;
-// 	privsFiltred.value = privs.value;
 
-// })();
+console.log("fin init");
 
 
 // axios.get(apiPath + "chat/message")
@@ -96,7 +144,7 @@ function banUser() {
 	// DEMMANDER DE BAN LE USER AU BACK <==================================
 }
 
-function sendMsg(e: Event) {
+function sendMsg() {
 	// e.preventDefault();
 	// ENVOI MSG AU BACK <=================================================
 
@@ -117,19 +165,27 @@ function sendMsg(e: Event) {
 
 }
 
-watch(conv.value.messages, (newMsg) => {
-	let msgs = document.getElementById("messages_cont");
-	msgs!.scrollTop = msgs!.scrollHeight;
+watch(msgs, () => {
+	let msgsCont = document.getElementById("messages_cont");
+	msgsCont!.scrollTop = msgsCont!.scrollHeight;
 }, {flush:'post'});
 
 
+// onBeforeMount(() => {
+// 	while(requestDone == false) {
+// 		setTimeout(() => {console.log(`request not done`)}, 100)
+// 	}
+// })
+
 onMounted(() => {
+	console.log("debut mounted");
 	const box = document.getElementById('privateTabText');
 	if (box != null) {
 		box.style.setProperty('border-bottom', '2px solid #16638D');
 		box.style.setProperty('color', '#16638D');
 		box.style.setProperty('font-weight', '500');
 	}
+	console.log("fin mounted");
 	// let input = document.getElementById("sendbox");
 	// input!.addEventListener("keydown", function(e) {
 	// 	if (e.key === "Enter") {

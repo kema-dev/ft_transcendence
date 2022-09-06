@@ -30,20 +30,32 @@ export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGateway
   constructor(
     private readonly chatService : ChatService,
     private readonly userService : UsersService,
+    
     ) {}
     
     // =========================== GENERAL ==================================
 
     // Connection
-    handleConnection(client: Socket) {
-      console.log(`Client connected : ${client.id}`, )
+    async handleConnection(@ConnectedSocket() client: Socket) {
+      console.log(`Client connected : ${client.id}`);
+      // console.log("query = ", client.handshake.query.login);
+      let login = client.handshake.query.login as string;
+      await this.userService.saveSocket(login, client.id);
+      // handleConnection(@ConnectedSocket() client: Socket, login: string) {
+      // console.log(`Client connected : ${client.id}, login = ${login}`);
     }
     // Disconnection
     handleDisconnect(client: Socket) {
       this.logger.log(`Client disconnected: ${client.id}`);
+      // console.log("query = ", client.handshake.query.login);
       if (this.game)
-        this.game.stop()
-      delete this.game
+        this.game.stop();
+      delete this.game;
+    }
+
+    @SubscribeMessage('connection')
+    saveSocket(@ConnectedSocket() client: Socket, ...args: any[]) {
+      console.log("debut saveSocket");
     }
 
 
@@ -84,32 +96,39 @@ export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGateway
   
   // ============================ CHAT =====================================
   
-  @SubscribeMessage('message')
-  handleMessage(@MessageBody() data:string, @ConnectedSocket() client: Socket) {
-    console.log(`Client message : ${data}`, )
-    this.server.emit('message', client.id, data);
-  }
+  // @SubscribeMessage('message')
+  // handleMessage(@MessageBody() data:string, @ConnectedSocket() client: Socket) {
+  //   console.log(`Client message : ${data}`, )
+  //   this.server.emit('message', client.id, data);
+  // }
   
-  @SubscribeMessage("getMsgs")
-  async getMsgs(@ConnectedSocket() client: Socket)  {
-    this.chatService.getMessages().then(res => {
-      console.log(res);
-      client.emit("getMsgs", res);
-    })
-  }
+  // @SubscribeMessage("getMsgs")
+  // async getMsgs(@ConnectedSocket() client: Socket)  {
+  //   this.chatService.getMessages().then(res => {
+  //     console.log(res);
+  //     client.emit("getMsgs", res);
+  //   })
+  // }
 
-  @SubscribeMessage("getPrivConvs")
-  async getPrivConvs(@ConnectedSocket() client: Socket)  {
-    this.chatService.getPrivConvs().then(res => {
-      console.log(res);
-      client.emit("getMsgs", res);
-    })
-  }
+  // @SubscribeMessage("getPrivConvs")
+  // async getPrivConvs(@ConnectedSocket() client: Socket)  {
+  //   this.chatService.getPrivConvs().then(res => {
+  //     console.log(res);
+  //     client.emit("getMsgs", res);
+  //   })
+  // }
 
   @SubscribeMessage('newPrivMsg')
   async NewPrivMsg(@MessageBody() data: NewPrivMsgDto, @ConnectedSocket() client : Socket) {
     // console.log(`controller newPrivMsg:  userSend = ${data.userSend}, userReceive = ${data.userReceive}`)
     await this.chatService.addPrivMsg(data);
+    const userSocketId = (await this.userService.getByLogin(data.userReceive)).socketId;
+    // let socketSocket = this.server.sockets.sockets.get(userSocketId);
+    // let socketSocket = this.server.sockets.sockets.get("ok");
+    this.server.to(userSocketId).emit("newPrivMsg", data);
+    // console.log(socketSocket);
+
+    
     // await this.getMsgs(client);
   }
 

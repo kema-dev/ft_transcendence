@@ -1,6 +1,7 @@
 import { Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
 import { string } from 'joi';
 import { ChatService } from './chat.service';
+import { Message, PrivateConvDto } from './dto/PrivateConvDto';
 import PrivateTabDto from './dto/PrivateTabDto';
 
 
@@ -8,14 +9,14 @@ import PrivateTabDto from './dto/PrivateTabDto';
 export class ChatController {
 	constructor(private readonly chatService: ChatService){}
 
-	@Get('message') 
-	getMessage() {
-		console.log("Get message list");
-		// return "Get Message";
-		return this.chatService.getMessages();
-	}
+	// @Get('message') 
+	// getMessage() {
+	// 	console.log("Get message list");
+	// 	// return "Get Message";
+	// 	return this.chatService.getMessages();
+	// }
 
-	@Get('getUserPrivs/:login')
+	@Get('getPrivs/:login')
 	async getUserPrivs(@Param() params : {login: string}) {
 		console.log("getUserPrivs for user \'" + params.login + "\'");
 		const privs = await this.chatService.getUserPrivs(params.login);
@@ -30,7 +31,7 @@ export class ChatController {
 			// let date = priv.messages[priv.messages.length - 1].createdAt;
 			let date = priv.updatedAt;
 			privsTabDto.push(new PrivateTabDto(login, msg, date));
-		});
+		}); 
 		// console.log(privsTabDto);
 		// privsTabDto.forEach(priv => console.log(`priv = ${priv.date.constructor.name}`));
 		// privs.forEach(priv => console.log(`priv = ${priv.messages}`));
@@ -41,6 +42,19 @@ export class ChatController {
 	async getUserFiltred(@Param() params : {login: string, filter: string}) {
 		return await this.chatService.
 			getUsersByLoginFiltred(params.login, params.filter);
+  }
+
+	@Get('getPriv/:user1/:user2')
+	async getPrivMsg(@Param() params : {user1: string, user2: string}) {
+		const priv = await this.chatService.getPrivMsg(params.user1, params.user2);
+		const messages : Message[] = [];
+		priv.messages.forEach(msg => {
+			messages.push(new Message(msg.user.login, msg.message,msg.createdAt));
+		});
+		return new PrivateConvDto(params.user2, messages);
+		// const ret = new PrivateConvDto(params.user2, messages);
+		// console.log("ret = ", ret);
+		// return ret;
   }
 
 	@Post('message')
