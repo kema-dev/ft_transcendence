@@ -91,19 +91,21 @@ services:
       - API_42_REDIRECT_URI=${API_42_REDIRECT_URI}
       - FQDN=${FQDN}
 
-  # s_nginx_frontend:
-  #   build:
-  #     context: ./website/frontend/nginx/
-  #   image: 's_nginx'
-  #   networks:
-  #     - n_frontend
-  #   ports:
-  #     - "${FRONTEND_EXPOSED_HTTP}:${NGINX_PORT_HTTP}"
-  #     - "${FRONTEND_EXPOSED_HTTPS}:${NGINX_PORT_HTTPS}"
-  #   volumes:
-  #     - ./website/frontend/vuejs/bind/dist:/app
-  #     - ./website/frontend/nginx/my_server_block.conf:/opt/bitnami/nginx/conf/server_blocks/my_server_block.conf:ro
-  #   restart: unless-stopped
-  #   depends_on:
-  #     s_vuejs:
-  #       condition: service_completed_successfully
+  s_nginx_frontend:
+    build:
+      context: ./website/frontend/nginx/
+    profiles:
+      - "prod"
+    image: 's_nginx'
+    networks:
+      - n_frontend
+    ports:
+      - "${FRONTEND_EXPOSED_HTTP}:${NGINX_PORT_HTTP}"
+      - "${FRONTEND_EXPOSED_HTTPS}:${NGINX_PORT_HTTPS}"
+    volumes:
+      - ./website/frontend/vuejs/bind/dist:/app
+      - ./website/frontend/nginx/my_server_block.conf:/opt/bitnami/nginx/conf/server_blocks/my_server_block.conf:ro
+    restart: unless-stopped
+    depends_on:
+      s_vuejs:
+        condition: service_completed_successfully
