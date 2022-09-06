@@ -2,8 +2,8 @@
 
 ## ongoing
 
-* TODO make build phase work and move command from docker-compose to dockerfiles
-* TODO make a multistage build and serv the files from nginx
+* TODO make nginx serving work
+* TODO fix "depends_on" directive in docker-compose.yml
 
 * TODO make backend is up endpoint redirect to frontend
 * TODO make logpage redirect to /home if already logged in
