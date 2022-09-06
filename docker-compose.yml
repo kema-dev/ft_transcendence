@@ -63,6 +63,8 @@ services:
               npm run ${NEST_PHASE} \
               '"
     restart: "no"
+    depends_on:
+      - s_postgresql
 
   s_vuejs:
     build:
@@ -90,6 +92,8 @@ services:
       - API_42_UID=${API_42_UID}
       - API_42_REDIRECT_URI=${API_42_REDIRECT_URI}
       - FQDN=${FQDN}
+    depends_on:
+      - s_nestjs
 
   s_nginx_frontend:
     build:

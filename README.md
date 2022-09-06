@@ -54,10 +54,16 @@ cd ft_transcendence
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-1. Build the project and make it available !
+* Dev environment
 
 ```sh
 docker compose up --build
+```
+
+* Prod environment (do not forget to change `VUE_PHASE` to `build` and `NEST_PHASE` to `start:prod` in `.env` file)
+
+```sh
+docker-compose --profile prod up --build
 ```
 
 Below is a list of links to website's pages (assuming you're using default values in `.env` file):
@@ -65,13 +71,6 @@ Below is a list of links to website's pages (assuming you're using default value
 * [website](https://localhost:443) - website served by vue.js
 * [api](https://localhost:3000) - REST api served by nestjs
 * [pgadmin](http://localhost:8081) - PostgreSQL administration tool
-
-<!-- ROADMAP -->
-## Roadmap
-
-* To be decided
-
-See the [open issues](https://github.com/kema-dev/ft_transcendence/issues) for a full list of proposed features (and known issues).
 
 <!-- CONTACT -->
 ## Contact

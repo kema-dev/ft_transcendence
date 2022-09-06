@@ -2,8 +2,8 @@
 
 ## ongoing
 
-* TODO make nginx serving work
-* TODO fix "depends_on" directive in docker-compose.yml
+* TODO fix "depends_on" directive in docker-compose.yml (use healthcheck)
+* TODO make the API **NOT** accessible from the outside (correct backend_status accordingly)
 
 * TODO make backend is up endpoint redirect to frontend
 * TODO make logpage redirect to /home if already logged in
