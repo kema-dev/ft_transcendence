@@ -107,7 +107,7 @@ function displayDate() : string {
   border-radius: calc(var(--height) / 2);
 }
 .conv_containerNR{
-  border: solid 4px v-bind("define.color2");
+  border: solid 3px v-bind("define.color2");
   font-weight: 800;
 }
 .avatar_cont {
@@ -159,6 +159,7 @@ function displayDate() : string {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+  /* color: grey; */
 }
 .noMessage {
   color: grey;

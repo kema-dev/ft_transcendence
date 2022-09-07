@@ -39,7 +39,13 @@ export class ChatService {
 		const userId1 = (await this.userService.getByLogin(login1)).id;
 		const userId2 = (await this.userService.getByLogin(login2)).id;
 		// console.log(`user1  = ${login1}, id= ${userId1}\nuser2  = ${login2}, id= ${userId2}`);
-		return await this.getPrivWithUserIds([userId1, userId2]);
+		let priv = await this.getPrivWithUserIds([userId1, userId2]);
+		if (priv && login1 != priv.messages[priv.messages.length - 1].user.login) {
+			priv.readed = true;
+			await this.privateRepository.save(priv)
+				.catch(e => console.log("Save private getPrivMsg error"));
+		}
+		return priv;
 		// const priv =  await this.getPrivWithUserIds([userId1, userId2]);
 		// console.log(priv);
 		// return priv;
