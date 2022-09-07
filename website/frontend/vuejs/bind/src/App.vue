@@ -11,7 +11,6 @@ import User from "@/chat/User";
 import Socket from '@/utils/Socket';
 import { FQDN } from "../.env.json";
 
-// provide("apiPath", "https://localhost:3000/api/v1/");
 let me = new User("tdayde", require("@/assets/avatars/(1).jpg"));
 me.friends.push(new User("Myfriend", require("@/assets/avatars/(6).jpg")));
 // provide('socket', new Socket(FQDN + ':3000'))
