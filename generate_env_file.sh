@@ -27,7 +27,7 @@ NEST_PHASE=start:dev
 
 # Your environment ?
 FQDN=https://localhost
-API_42_UID=38262d46e03eb3f2c3087994e6a92ffe63356d0f7335fc1ed54d671843af34b8
-API_42_SECRET=a8bc9dac0e43e031cf56a69de2604242a9875aef48710dc72eac4f1b02a8deb7
-API_42_REDIRECT_URI=https://localhost/
+API_42_UID=
+API_42_SECRET=
+API_42_REDIRECT_URI=
 " > .env
