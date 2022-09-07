@@ -20,8 +20,6 @@ services:
       - POSTGRES_DB=${POSTGRESQL_DATABASE}
       - POSTGRES_PASSWORD=${POSTGRESQL_PASSWORD}
       - POSTGRES_USER=${POSTGRESQL_USERNAME}
-    # volumes:
-    #   - ./website/backend/postgresql/db:/bitnami/postgresql
 
   s_pgadmin:
     build:
@@ -54,8 +52,10 @@ services:
       - POSTGRES_PASSWORD=${POSTGRESQL_PASSWORD}
       - POSTGRES_DB=${POSTGRESQL_DATABASE}
       - POSTGRES_HOST=s_postgresql
+      - FQDN=${FQDN}
+      - JWT_SECRET=${JWT_SECRET}
     command: "sh -c '\
-              echo \"POSTGRES_PORT=${POSTGRESQL_PORT}\\nPOSTGRES_PORT=${POSTGRESQL_PORT}\\nPOSTGRES_USER=${POSTGRESQL_USERNAME}\\nPOSTGRES_PASSWORD=${POSTGRESQL_PASSWORD}\\nPOSTGRES_DB=${POSTGRESQL_DATABASE}\\nJWT_MAX_AGE=${JWT_MAX_AGE}\\nJWT_SECRET=`date +%s%N | cut -b10-19 | md5sum | head -c 20`\\nAPI_42_UID=${API_42_UID}\\nAPI_42_SECRET=${API_42_SECRET}\\nAPI_42_REDIRECT_URI=${API_42_REDIRECT_URI}\" > .env && \
+              echo \"POSTGRES_PORT=${POSTGRESQL_PORT}\\nPOSTGRES_USER=${POSTGRESQL_USERNAME}\\nPOSTGRES_PASSWORD=${POSTGRESQL_PASSWORD}\\nPOSTGRES_DB=${POSTGRESQL_DATABASE}\\nJWT_MAX_AGE=${JWT_MAX_AGE}\\nJWT_SECRET=${JWT_SECRET}\\nAPI_42_UID=${API_42_UID}\\nAPI_42_SECRET=${API_42_SECRET}\\nAPI_42_REDIRECT_URI=${API_42_REDIRECT_URI}\\nFQDN=${FQDN}\" > .env && \
               mkdir -p /secrets && \
               openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /secrets/key.pem -out /secrets/cert.pem -subj \"/C=FR/ST=France/L=Paris/O=42/OU=42/CN=ft_transcendence\" && \
               chown 1000:1000 /secrets/key.pem && \
@@ -64,7 +64,9 @@ services:
               npm install && \
               npm run ${NEST_PHASE} \
               '"
-    restart: unless-stopped
+    restart: "no"
+    depends_on:
+      - s_postgresql
 
   s_vuejs:
     build:
@@ -79,7 +81,7 @@ services:
     volumes:
       - ./website/frontend/vuejs/bind:/app
     command: "sh -c '\
-              echo \"{\\\"API_42_UID\\\":\\\"$API_42_UID\\\",\\\"API_42_REDIRECT_URI\\\":\\\"$API_42_REDIRECT_URI\\\"}\" > src/env.json && \
+              echo \"{\\\"API_42_UID\\\":\\\"$API_42_UID\\\",\\\"API_42_REDIRECT_URI\\\":\\\"$API_42_REDIRECT_URI\\\",\\\"FQDN\\\":\\\"$FQDN\\\"}\" > .env.json && \
               mkdir -p /secrets && \
               openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /secrets/key.pem -out /secrets/cert.pem -subj \"/C=FR/ST=France/L=Paris/O=42/OU=42/CN=ft_transcendence\" && \
               chown 1000:1000 /secrets/key.pem && \
@@ -87,7 +89,29 @@ services:
               yarn install --ignore-engines && \
               yarn run ${VUE_PHASE} \
               '"
-    restart: unless-stopped
+    restart: "no"
     environment:
       - API_42_UID=${API_42_UID}
       - API_42_REDIRECT_URI=${API_42_REDIRECT_URI}
+      - FQDN=${FQDN}
+    depends_on:
+      - s_nestjs
+
+  s_nginx_frontend:
+    build:
+      context: ./website/frontend/nginx/
+    profiles:
+      - "prod"
+    image: 's_nginx'
+    networks:
+      - n_frontend
+    ports:
+      - "${FRONTEND_EXPOSED_HTTP}:${NGINX_PORT_HTTP}"
+      - "${FRONTEND_EXPOSED_HTTPS}:${NGINX_PORT_HTTPS}"
+    volumes:
+      - ./website/frontend/vuejs/bind/dist:/app
+      - ./website/frontend/nginx/my_server_block.conf:/opt/bitnami/nginx/conf/server_blocks/my_server_block.conf:ro
+    restart: unless-stopped
+    depends_on:
+      s_vuejs:
+        condition: service_completed_successfully

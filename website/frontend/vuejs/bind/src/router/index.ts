@@ -18,6 +18,8 @@ import axios from 'axios'
 import { useCookies } from "vue3-cookies";
 import { useToast } from "vue-toastification";
 
+const data =  require('../../.env')
+
 document.title = "pong.io"
 const { cookies } = useCookies();
 const toast = useToast();
@@ -123,7 +125,7 @@ router.beforeEach(async (to, from) => {
 	if (to.path === '/backend_down') {
 		return true;
 	} else {
-		await axios.get('https://localhost:3000/api/v1/auth/status')
+		await axios.get(data.FQDN + ':3000/api/v1/auth/status')
 		.catch(() => {
 			// backend is down
 			console.log('backend is down')
@@ -141,7 +143,7 @@ router.beforeEach(async (to, from) => {
 	} else {
 		// token: check validity
 		await axios
-		.post('https://localhost:3000/api/v1/auth/validate_token', {
+		.post(data.FQDN + ':3000/api/v1/auth/validate_token', {
 			login: cookies.get('login'),
 			token: cookies.get('session'),
 		})

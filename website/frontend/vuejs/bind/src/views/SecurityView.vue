@@ -23,8 +23,9 @@
 	import QrcodeVue from "qrcode.vue";
 	import { ref } from "vue";
 	import HTTP from "../components/axios";
+	import { FQDN } from "../../.env.json";
 
-	let apiPath = "https://localhost:3000/api/v1/";
+	let apiPath = FQDN + ":3000/api/v1/";
 	let totp_url = ref ("");
 	let totp_code = ref ("");
 	let test_mail = ref ("q@q.q");

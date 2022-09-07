@@ -11,14 +11,14 @@
 
 <script setup lang="ts">
 import axios from "axios";
-import Config from "../env.json";
 import { useToast } from "vue-toastification";
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
+import { FQDN } from "../../.env.json";
 
 const router = useRouter();
 
-let apiPath = "https://localhost:3000/api/v1/";
+let apiPath = FQDN + ":3000/api/v1/";
 
 let BACKEND_DOWN_MESSAGE =
 	"🖱️ Backend is down, please authorize our self-signed certificate manually by clicking this text";
