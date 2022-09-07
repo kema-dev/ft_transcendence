@@ -33,6 +33,8 @@ services:
     environment:
       - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL}
       - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD}
+    logging: 
+      driver: none
 
   s_nestjs:
     build:

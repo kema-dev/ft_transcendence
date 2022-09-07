@@ -15,7 +15,7 @@
 				</button>
 				<button v-if="!findChannel" @click="newChannelFn()" class="button_cont center column">
 					<span v-if="!newChannel" class="infoButtonText">Create channel</span>
-					<img v-if="!newChannel" src="~@/assets/new_channel.svg" alt="New message" class="new_msg_img">
+					<img v-if="!newChannel" src="~@/assets/add_logo.svg" alt="New message" class="new_msg_img">
 					<span v-if="newChannel" class="infoButtonText">Back</span>
 					<img v-if="newChannel" src="~@/assets/undo_logo.svg" alt="New message" class="new_msg_img">
 				</button>

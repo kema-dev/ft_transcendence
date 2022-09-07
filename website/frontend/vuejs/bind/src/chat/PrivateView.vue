@@ -1,4 +1,3 @@
-login
 <template>
 	<div id="private_view" class="center column">
 		<div class="option_private center raw">
@@ -47,23 +46,23 @@ login
 					:key="i"
 					:to="{ name: 'PrivConv', params: { conv_name: data.login } }"
 				>
-					<BasicProfil :user="data" />
+					<BasicProfil :avatar="data.avatar" :login="data.login"/>
 				</router-link>
 			</div>
 			<div
-				v-if="search.length > 0 && otherPeople().length > 0"
+				v-if="search.length > 0 && serverUsers"
 				class="otherPeople left column"
 			>
 				<h2 class="typeUsers">More people</h2>
 				<router-link
-					v-for="(data, i) in otherPeople()"
+					v-for="(data, i) in serverUsers"
 					:key="i"
 					:to="{ name: 'PrivConv', params: { conv_name: data.login } }"
 				>
-					<BasicProfil :user="data" />
+					<BasicProfil :avatar="data.avatar" :login="data.login"/>
 				</router-link>
 			</div>
-			<h2 v-if="knownPeople().length == 0 && otherPeople().length == 0">
+			<h2 v-if="knownPeople().length == 0 && !serverUsers">
 				No results
 			</h2>
 		</div>
@@ -79,13 +78,29 @@ import SearchItem from "@/components/SearchItem.vue";
 import Private from "@/chat/Private";
 import User from "@/chat/User";
 import Message from "@/chat/Message";
+import BasicUser from "@/chat/dto/BasicUser"
+import { Socket } from "socket.io-client";
 let define = inject("colors");
 let me: User = inject("me")!;
+
+let mySocket: Socket = inject("socket")!;
+let serverUsers = ref<BasicUser[]>();
+mySocket.on("getUsersByLoginFiltred", (data : [{login: string}]) => {
+	let tmp : BasicUser[] = [];
+	for(let i = 0; i < data.length; i++) {
+		tmp.push(new BasicUser(data[i].login));
+	}
+	serverUsers.value = tmp;
+	console.log("serverUsers = ", serverUsers.value);
+});
 
 const search = ref("");
 const newMsg = ref(false);
 const searchKey = ref(0);
 // const searchCompRef = ref<InstanceType<typeof SearchItem>>();
+
+
+
 
 let user1 = new User("Totolosa", require("@/assets/avatars/(1).jpg"));
 let user2 = new User("Ocean", require("@/assets/avatars/(2).jpg"));
@@ -126,6 +141,7 @@ let convsFiltred = ref(conversations);
 let friendsFiltred = ref(me.friends);
 // let knownPeople = [user1, user2, user3];
 // let otherPeople = [user4, user5];
+// let otherPeople = ref([]);
 
 conversations.sort(function (x, y) {
 	if (
@@ -145,14 +161,19 @@ conversations.sort(function (x, y) {
 
 function searchChange(value: string) {
 	search.value = value;
-	convsFiltred.value = conversations.filter(function (value) {
-		return value.user.login
-			.toUpperCase()
-			.startsWith(search.value.toUpperCase());
+	convsFiltred.value = conversations.filter(function(value) {
+		return value.user.login.toUpperCase().startsWith(search.value.toUpperCase());
 	});
-	friendsFiltred.value = me.friends.filter(function (value) {
-		return value.login.toUpperCase().startsWith(search.value.toUpperCase());
-	});
+	if (newMsg.value) {
+		friendsFiltred.value = me.friends.filter(function(value) {
+			return value.login.toUpperCase().startsWith(search.value.toUpperCase());
+		});
+	}
+	if (search.value != "") {
+		mySocket.emit('getUsersByLoginFiltred', search.value);
+	}
+
+
 }
 
 function knownPeople(): User[] {
@@ -170,7 +191,7 @@ function knownPeople(): User[] {
 
 function otherPeople(): User[] {
 	let others = [user4, user5];
-	return others.filter(function (value) {
+	return others.filter(function(value) {
 		return value.login.toUpperCase().startsWith(search.value.toUpperCase());
 	});
 }

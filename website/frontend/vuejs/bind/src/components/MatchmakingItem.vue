@@ -27,16 +27,16 @@
 <script setup lang="ts">
 import { inject, onMounted, provide, ref } from "vue";
 import GameItem from "@/components/GameItem.vue";
-import Socket from "@/utils/Socket";
+import { Socket } from "socket.io-client";
 let define = inject("colors");
 let start = ref(false);
 provide("playing", start);
-let socket: Socket = inject("socket");
+let socket: Socket = inject("socket")!;
 let nbrPlayer = 4;
 let nbrBall = 1;
 function launch() {
 	start.value = !start.value;
-	socket.send('start');
+	socket.emit('start');
 }
 function incr() {
 	if (nbrPlayer + 1 <= 7) {

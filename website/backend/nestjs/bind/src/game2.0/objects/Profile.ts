@@ -1,4 +1,4 @@
-import Wall from 'src/game2.0/objects/Wall';
+import Wall from '../objects/Wall';
 
 export default class Profile {
 	x: number;

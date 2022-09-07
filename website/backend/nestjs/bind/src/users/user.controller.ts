@@ -10,7 +10,7 @@ import {
 	Param,
 } from '@nestjs/common';
 import { get } from 'http';
-import UserDto from 'src/users/dto/user.dto';
+import UserDto from './dto/user.dto';
 
 import { UsersService } from './users.service';
 

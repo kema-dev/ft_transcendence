@@ -15,9 +15,10 @@
 <script setup lang="ts">
 import NavbarItem from "@/components/NavbarItem.vue";
 import NavmenuItem from "@/components/NavmenuItem.vue";
-import { onMounted } from "vue";
+import { onMounted, provide } from "vue";
 import { inject, ref } from "vue";
 import MatchmakingItem from '@/components/MatchmakingItem.vue';
+import io from "socket.io-client"
 
 let define = inject("colors");
 let reload = ref(0)
@@ -26,6 +27,23 @@ onMounted(() => {
 		reload.value++;
 	})
 });
+
+let socket = io('https://localhost:3000');
+provide("socket", socket);
+
+socket.on('connect', () => {
+	console.log("client-side connected");
+})
+
+socket.on('message', function(id, data) {
+	console.log(`Server message : ${id}: ${data}`, );
+})
+socket.on('getMsgs', (data) => {
+	console.log(data);
+})
+
+
+
 </script>
 
 <style>
