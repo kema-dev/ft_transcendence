@@ -19,6 +19,7 @@ import { onMounted, provide } from "vue";
 import { inject, ref } from "vue";
 import MatchmakingItem from '@/components/MatchmakingItem.vue';
 import io from "socket.io-client"
+import { FQDN } from "../../.env.json";
 
 let define = inject("colors");
 let reload = ref(0)
@@ -28,7 +29,7 @@ onMounted(() => {
 	})
 });
 
-let socket = io('https://localhost:3000');
+let socket = io(FQDN + ':3000');
 provide("socket", socket);
 
 socket.on('connect', () => {

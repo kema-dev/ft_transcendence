@@ -46,6 +46,7 @@ services:
       - "${BACKEND_PORT}:${BACKEND_PORT}"
     volumes:
       - ./website/backend/nestjs/bind:/app
+      - ./website/shared:/shared
     environment:
       - POSTGRES_PORT=${POSTGRESQL_PORT}
       - POSTGRES_USER=${POSTGRESQL_USERNAME}
@@ -80,6 +81,7 @@ services:
       - "${FRONTEND_EXPOSED_HTTPS}:${FRONTEND_PORT_HTTPS}"
     volumes:
       - ./website/frontend/vuejs/bind:/app
+      - ./website/shared:/shared
     command: "sh -c '\
               echo \"{\\\"API_42_UID\\\":\\\"$API_42_UID\\\",\\\"API_42_REDIRECT_URI\\\":\\\"$API_42_REDIRECT_URI\\\",\\\"FQDN\\\":\\\"$FQDN\\\"}\" > .env.json && \
               mkdir -p /secrets && \
