@@ -14,9 +14,14 @@ export default class PrivateTabDto {
     login: string;
     message: string;
     date: Date;
-    constructor(login: string, message: string, date: Date){
+    lastMsgUser: string;
+    readed: boolean;
+    constructor(login: string, message: string,
+        date: Date, lastMsgUser: string, readed: boolean){
         this.login = login;
         this.message = message;
         this.date = date;
+        this.lastMsgUser = lastMsgUser;
+        this.readed = readed;
     }
 }

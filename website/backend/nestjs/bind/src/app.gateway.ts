@@ -122,10 +122,12 @@ export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGateway
   async NewPrivMsg(@MessageBody() data: NewPrivMsgDto, @ConnectedSocket() client : Socket) {
     // console.log(`controller newPrivMsg:  userSend = ${data.userSend}, userReceive = ${data.userReceive}`)
     await this.chatService.addPrivMsg(data);
-    const userSocketId = (await this.userService.getByLogin(data.userReceive)).socketId;
+    const sendSocketId = (await this.userService.getByLogin(data.userSend)).socketId;
+    const receiveSocketId = (await this.userService.getByLogin(data.userReceive)).socketId;
     // let socketSocket = this.server.sockets.sockets.get(userSocketId);
     // let socketSocket = this.server.sockets.sockets.get("ok");
-    this.server.to(userSocketId).emit("newPrivMsg", data);
+    this.server.to(receiveSocketId).emit("newPrivMsg", data);
+    this.server.to(sendSocketId).emit("newPrivMsg", data);
     // console.log(socketSocket);
 
     

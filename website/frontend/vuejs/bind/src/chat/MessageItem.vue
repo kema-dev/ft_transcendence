@@ -2,7 +2,7 @@
 	<div class="msg_cont">
 		<!-- <span class="date">{{getDateMsg()}}</span> -->
 		<div v-if="me == userLogin" class="myMsg_cont raw right">
-			<span class="date">{{ getDateMsg() }}</span>
+			<!-- <span class="date">{{ getDateMsg() }}</span> -->
 			<div class="myMsg_text">
 				{{ message }}
 			</div>
@@ -12,7 +12,7 @@
 			<div class="userMsg_text">
 				{{ message }}
 			</div>
-			<span class="date">{{ getDateMsg() }}</span>
+			<!-- <span class="date">{{ getDateMsg() }}</span> -->
 		</div>
 	</div>
 </template>
@@ -64,11 +64,12 @@ function getDateMsg(): string {
 }
 .myMsg_text {
 	width: auto;
-	max-width: 65%;
+	max-width: 70%;
 	color: white;
 	padding: 8px;
 	border-radius: 10px;
-	margin: 10px;
+	margin: 5px 7px 5px 0;
+	text-align: right;
 	background-color: v-bind("colors.color2");
 	white-space: pre-line;
 	overflow-wrap: break-word;
@@ -83,7 +84,8 @@ function getDateMsg(): string {
 	color: black;
 	padding: 8px;
 	border-radius: 10px;
-	margin: 10px;
+	margin: 5px 0 5px 7px;
+	text-align: left;
 	background-color: white;
 	white-space: pre-line;
 	overflow-wrap: break-word;

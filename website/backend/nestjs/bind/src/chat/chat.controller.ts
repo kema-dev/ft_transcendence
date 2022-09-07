@@ -28,12 +28,19 @@ export class ChatController {
 			else
 				login = priv.users[0].login;
 			let msg = priv.messages[priv.messages.length - 1].message;
-			// let date = priv.messages[priv.messages.length - 1].createdAt;
+			let lastMsgUser = priv.messages[priv.messages.length - 1].user.login;
 			let date = priv.updatedAt;
-			privsTabDto.push(new PrivateTabDto(login, msg, date));
+			let read = priv.readed;
+			privsTabDto.push(new PrivateTabDto(login, msg, date, lastMsgUser, read));
 		}); 
 		// console.log(privsTabDto);
-		// privsTabDto.forEach(priv => console.log(`priv = ${priv.date.constructor.name}`));
+		privsTabDto.forEach(priv => console.log(`priv = 
+			login = ${priv.login}
+			message = ${priv.message}
+			date = ${priv.date}
+			lastMsgUser = ${priv.lastMsgUser}
+			readed = ${priv.readed}
+		`));
 		// privs.forEach(priv => console.log(`priv = ${priv.messages}`));
 		return privsTabDto;
 	}
@@ -47,11 +54,15 @@ export class ChatController {
 	@Get('getPriv/:user1/:user2')
 	async getPrivMsg(@Param() params : {user1: string, user2: string}) {
 		const priv = await this.chatService.getPrivMsg(params.user1, params.user2);
-		const messages : Message[] = [];
-		priv.messages.forEach(msg => {
-			messages.push(new Message(msg.user.login, msg.message,msg.createdAt));
-		});
-		return new PrivateConvDto(params.user2, messages);
+		if (priv) {
+			const messages : Message[] = [];
+			priv.messages.forEach(msg => {
+				messages.push(new Message(msg.user.login, msg.message,msg.createdAt));
+			});
+			return new PrivateConvDto(params.user2, messages);
+		}
+		else
+			return new PrivateConvDto(params.user2, []);
 		// const ret = new PrivateConvDto(params.user2, messages);
 		// console.log("ret = ", ret);
 		// return ret;

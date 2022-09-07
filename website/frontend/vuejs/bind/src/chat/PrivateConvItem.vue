@@ -21,14 +21,20 @@
 			</div>
 		</div>
 		<div class="conversation_content ">
-			<div id="messages_cont" class="messages ">
-					<MessageItem v-for="(message, i) in msgs" :key="i" 
+			<div id="messages_cont" ref="msgsCont" class="messages ">
+				<div v-for="(message, i) in msgs" :key="i" class="center column">
+					<div v-if="checkDate(i)" class="date">
+						{{displayDate(message.date, i)}}
+					</div>
+					<MessageItem 
 						:userAvatar="receiver!.avatar"
 						:userLogin="message.user"
 						:message="message.msg"
 						:date="message.date"
 					/>
+				</div>
 					<!-- <MessageItem v-for="(message, i) in msgs" :key="i" 
+						:userAvatar="receiver!.avatar"
 						:userLogin="message.user"
 						:message="message.msg"
 						:date="message.date"
@@ -53,7 +59,7 @@
 <script setup lang="ts">
 /* eslint @typescript-eslint/no-var-requires: "off" */
 import axios from "axios";
-import { inject, onMounted, ref, onBeforeUnmount, watch, onBeforeMount } from "vue";
+import { inject, onMounted, ref, onBeforeUnmount, watch, onBeforeMount, nextTick } from "vue";
 import { useRoute } from 'vue-router';
 import { Socket } from "socket.io-client";
 import HTTP from "../components/axios";
@@ -79,46 +85,58 @@ let msgs = ref<MessageDto[]>();
 let myMsg = ref("");
 let blockWarn = ref(false);
 let requestDone = ref(false);
+let msgsCont = ref(null);
 
 mySocket.on("newPrivMsg", (data: NewPrivMsgDto) => {
-	console.log(`msgs.value = ${msgs.value}`);
+	// console.log(`msgs.value = ${msgs.value}`);
 	let tmp = msgs.value!;
 	tmp.push(new MessageDto(data.userSend, data.message, new Date(data.date)))
 	msgs.value = tmp;
+	nextTick(() => {
+		((msgsCont.value!) as HTMLElement).scrollTop = 
+			((msgsCont.value!) as HTMLElement).scrollHeight;
+		console.log(`scrolled socket on`);
+	}).catch(e => console.log(e));
 });
 
 
-(async () => {
-	// receiver = (await HTTP.get(apiPath + "user/getBasicUser/:login" + userName)).data;
-	let privConvDto : PrivateConvDto = (await HTTP.get(apiPath
-		+ "chat/getPriv/" + me + "/" + userName)).data;
-	console.log(`privConvDto = ${privConvDto}`);
-	receiver.value = new BasicUserDto(privConvDto.user);
-	console.log(`receiver = ${receiver.value.login}`);
-	let msgsTmp : MessageDto[] = [];
-	privConvDto.msgs.forEach(msg => {
-		msgsTmp.push(new MessageDto(msg.user, msg.msg, new Date(msg.date)))
-	});
-	msgs.value = msgsTmp;
-	msgs.value.forEach(msg => {
-		console.log(msg);
-	});
-	// nbMsgs = msgs.value.length;
-	requestDone.value = true;
-})();
-
-// HTTP.get(apiPath + "chat/getPriv/" + me + "/" + userName)
-// 	.then(res => {
-// 		console.log(`privConvDto = ${res.data}`);
-// 		receiver = new BasicUserDto(res.data.user);
-// 		let msgsTmp : MessageDto[] = [];
-// 		res.data.msgs.forEach(msg => {
-// 			msgsTmp.push(new MessageDto(msg.user, msg.msg, new Date(msg.date)))
-// 		});
-// 		msgs.value = msgsTmp;
+// (async () => {
+// 	// receiver = (await HTTP.get(apiPath + "user/getBasicUser/:login" + userName)).data;
+// 	let privConvDto : PrivateConvDto = (await HTTP.get(apiPath
+// 		+ "chat/getPriv/" + me + "/" + userName))
+// 		.data;
+// 	// console.log(`privConvDto = ${privConvDto}`);
+// 	receiver.value = new BasicUserDto(privConvDto.user);
+// 	// console.log(`receiver = ${receiver.value.login}`);
+// 	let msgsTmp : MessageDto[] = [];
+// 	privConvDto.msgs.forEach(msg => {
+// 		msgsTmp.push(new MessageDto(msg.user, msg.msg, new Date(msg.date)))
 // 	});
+// 	msgs.value = msgsTmp;
+// 	// msgs.value.forEach(msg => {
+// 	// 	console.log(msg);
+// 	// });
+// 	// nbMsgs = msgs.value.length;
+// 	requestDone.value = true;
+// })();
 
-console.log("fin init");
+HTTP.get(apiPath + "chat/getPriv/" + me + "/" + userName)
+	.then(res => {
+		// console.log(`privConvDto = ${res.data}`);
+		receiver.value = new BasicUserDto(res.data.user);
+		if (res.data.messages == [])
+			msgs.value = [];
+		else {
+			let msgsTmp : MessageDto[] = [];
+			res.data.msgs.forEach((msg : MessageDto) => {
+				msgsTmp.push(new MessageDto(msg.user, msg.msg, new Date(msg.date)))
+			});
+			msgs.value = msgsTmp;
+		}
+		requestDone.value = true;
+	})
+	.catch(e => console.log(e));
+
 
 
 // axios.get(apiPath + "chat/message")
@@ -127,18 +145,59 @@ console.log("fin init");
 // let backMsg = await axios.get(apiPath + "chat/message");
 // console.log("backMsg = ", (await backMsg).data);
 
-let user1 = new User("Totolosa", require("@/assets/avatars/(1).jpg"));
-let user2 = new User("Ocean", require("@/assets/avatars/(2).jpg"));
-let user3 = new User("Patrick la trick", require("@/assets/avatars/(3).jpg"));
+// let user1 = new User("Totolosa", require("@/assets/avatars/(1).jpg"));
+// let user2 = new User("Ocean", require("@/assets/avatars/(2).jpg"));
+// let user3 = new User("Patrick la trick", require("@/assets/avatars/(3).jpg"));
 
-let msg1 = new Message(user1, "Salut frere ce fait graaaaave longtemps ca fais plaisr! Tu deviens quoi l'ami?", new Date('July 17, 2022 03:24:00'));
-let msg2 = new Message(user2, "Salut poto", new Date('July 22, 2022 03:25:12'));
-let msg3 = new Message(user1, "Game?", new Date('July 18, 2022 12:45:45'));
-let msg4 = new Message(user3, "Non je dois finir de faire le front, et wallah c'est chaud", new Date('July 18, 2022 12:47:55'));
-let msg5 = new Message(user1, "dsaibciauwncopneejvnjn fcoamsdomvcafosnvonsvonoans", new Date());
-let msg6 = new Message(user2, "Mais tu sais pas parler en fait", new Date());
+// let msg1 = new Message(user1, "Salut frere ce fait graaaaave longtemps ca fais plaisr! Tu deviens quoi l'ami?", new Date('July 17, 2022 03:24:00'));
+// let msg2 = new Message(user2, "Salut poto", new Date('July 22, 2022 03:25:12'));
+// let msg3 = new Message(user1, "Game?", new Date('July 18, 2022 12:45:45'));
+// let msg4 = new Message(user3, "Non je dois finir de faire le front, et wallah c'est chaud", new Date('July 18, 2022 12:47:55'));
+// let msg5 = new Message(user1, "dsaibciauwncopneejvnjn fcoamsdomvcafosnvonsvonoans", new Date());
+// let msg6 = new Message(user2, "Mais tu sais pas parler en fait", new Date());
 
-let conv = ref(new Private(user2, [msg1, msg2, msg3, msg5, msg6]));
+// let conv = ref(new Private(user2, [msg1, msg2, msg3, msg5, msg6]));
+
+function checkDate(i: number) {
+	if (i == 0)
+		return true;
+	else if (Math.ceil((msgs.value![i].date.getTime() 
+		- msgs.value![i-1].date.getTime()) / (1000 * 60)) > 15)
+		return true;
+	else
+		return false;
+}
+
+function displayDate(date: Date, i: number) {
+	let minutes : string | number;
+	if (date.getMinutes() < 10)
+		minutes = "0" + date.getMinutes().toString();
+	else
+		minutes = date.getMinutes();
+	let hours : string | number;
+		if (date.getHours() < 10)
+			hours = "0" + date.getHours().toString();
+		else
+			hours = date.getHours();
+	const day = date.getDay();
+	const month = date.toLocaleString('default', { month: 'long' })
+	// const monthNames = ["January", "February", "March", "April", "May", "June",
+	// 	"July", "August", "September", "October", "November", "December"];
+	const year = date.getFullYear();
+	if (i == 0)
+		return `Created the ${day} ${month} ${year} at ${hours}:${minutes}`;
+	const now = new Date();
+	const timeDif = date.getTime() - new Date().getTime();
+	const minutesDif = Math.ceil(timeDif / (1000 * 60));
+	const hoursDif = Math.ceil(minutesDif / 60);
+	const daysDif = Math.ceil(hoursDif / 24);
+	if (date.toDateString() == now.toDateString()) 
+		return `${hours}:${minutes}`
+	if (daysDif < 7)
+		return `${date.toLocaleDateString('en-GB', { weekday: 'long' })} ${hours}:${minutes}`;  
+	else
+		return `${day} ${month} ${year} at ${hours}:${minutes}`;
+}
 
 function banUser() {
 	// DEMMANDER DE BAN LE USER AU BACK <==================================
@@ -165,9 +224,14 @@ function sendMsg() {
 
 }
 
-watch(msgs, () => {
-	let msgsCont = document.getElementById("messages_cont");
-	msgsCont!.scrollTop = msgsCont!.scrollHeight;
+watch(msgs, (msg) => {
+	((msgsCont.value!) as HTMLElement).scrollTop = 
+	((msgsCont.value!) as HTMLElement).scrollHeight;
+	// nextTick(() => {
+		// 	let msgsCont = document.getElementById("messages_cont");
+		// 	msgsCont!.scrollTop = msgsCont!.scrollHeight;
+		// });
+		console.log("scrolled watch");
 }, {flush:'post'});
 
 
@@ -178,14 +242,14 @@ watch(msgs, () => {
 // })
 
 onMounted(() => {
-	console.log("debut mounted");
+	// console.log("debut mounted");
 	const box = document.getElementById('privateTabText');
 	if (box != null) {
 		box.style.setProperty('border-bottom', '2px solid #16638D');
 		box.style.setProperty('color', '#16638D');
 		box.style.setProperty('font-weight', '500');
 	}
-	console.log("fin mounted");
+	// console.log("fin mounted");
 	// let input = document.getElementById("sendbox");
 	// input!.addEventListener("keydown", function(e) {
 	// 	if (e.key === "Enter") {
@@ -284,6 +348,11 @@ onBeforeUnmount(() => {
 	width: 100%;
 	padding-top: 20px;
 } */
+.date {
+	margin: 15px;
+	font-size: 0.8rem;
+	white-space: pre;
+}
 .messages {
 	overflow-y: auto;
 	height: calc(100vh - 340px);

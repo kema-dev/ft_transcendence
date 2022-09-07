@@ -22,3 +22,9 @@
 ## GLOBAL
 
 - Faire un volume partage pour les Classes/DTO en commun entre front et back
+
+- matchMacking
+
+- delog si on se log sur un autre onglet/poste
+
+- regler pb delog : Failed to load resource: the server responded with a status of 400 (Bad Request) :3000/api/v1/auth/validate_token:1

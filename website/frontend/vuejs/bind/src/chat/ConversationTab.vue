@@ -1,5 +1,5 @@
 <template>
-    <router-link :to="{name: chan == true ? 'ChannelConv' : 'PrivConv', params: {conv_name: nameConv }}" class="conv_container left row stack">
+    <router-link :to="{name: chan == true ? 'ChannelConv' : 'PrivConv', params: {conv_name: nameConv }}" class="conv_container left row stack" :class="{ 'conv_containerNR': isRead() }">
       <div class="avatar_cont">
         <img v-if="avatar" :src="avatar" class="avatar" alt="avatar">
         <img v-else src="~@/assets/group_logo.svg" class="avatar" alt="avatar">
@@ -7,10 +7,10 @@
       <div class="info center column">
         <div class="top-bar row center stack">
           <div class="login">{{nameConv}}</div>
-          <div v-if="message" class="date">{{display_date()}}</div>
+          <div v-if="message" class="date">{{displayDate()}}</div>
         </div>
         <div class="message_cont center">
-          <div v-if="message" class="message">{{message}}</div>
+          <div v-if="message" class="message">{{displayMsg()}}</div>
           <div v-else class="message noMessage">Created the {{date?.toLocaleDateString("fr")}}, {{date?.toLocaleTimeString("fr")}}</div>
         </div>
       </div>
@@ -24,6 +24,7 @@ import User from "./objects/User";
 import Message from "./objects/Message";
 
 let define = inject("colors");
+let me : string = inject("me")!;
 const props = defineProps({
   nameConv: {
     type: String,
@@ -37,16 +38,40 @@ const props = defineProps({
     type: Date,
     required: true,
   },
+  lastMsgUser: {
+    type: String,
+    required: true,
+  },
+  read: {
+    type: Boolean,
+    required: true,
+  },
+
   avatar: String,
   chan: Boolean
 })
+
+function isRead() {
+  if (props.read == false && props.lastMsgUser != me)
+    return true;
+  return false;
+}
+
+function displayMsg() {
+  if (props.lastMsgUser == me)
+    return `You: ${props.message}`;
+    else if (!props.chan)
+    return props.message;
+    else
+    return `${props.lastMsgUser}: ${props.message}`;
+}
 
 function convertDate(date : Date) : string {
   function pad(d: number) { return (d < 10) ? '0' + d : d; }
   return [pad(date.getDate()), pad(date.getMonth()+1), date.getFullYear()].join('/');
 }
 
-function display_date() : string {
+function displayDate() : string {
   const now = new Date();
   let diff = now.getTime() - props.date.getTime();
   let days = (diff / (1000 * 3600 * 24));
@@ -77,9 +102,13 @@ function display_date() : string {
   height: var(--height);
   margin-top: 5px;
   margin-bottom: 5px;
-  border: solid 2px;
-  border-color: v-bind("define.color2");
+  border: solid 2px v-bind("define.color2");
+  /* border-color: ; */
   border-radius: calc(var(--height) / 2);
+}
+.conv_containerNR{
+  border: solid 4px v-bind("define.color2");
+  font-weight: 800;
 }
 .avatar_cont {
   width: var(--height);

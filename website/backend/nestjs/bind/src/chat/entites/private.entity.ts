@@ -9,6 +9,9 @@ export class PrivateEntity extends TimestampEntites{
 	@PrimaryGeneratedColumn()
 	id: number;
 
+	@Column()
+	readed: boolean;
+
 	@ManyToMany( type => UserEntity, (user) => user.privates, {
 		onDelete: 'CASCADE'
 	})

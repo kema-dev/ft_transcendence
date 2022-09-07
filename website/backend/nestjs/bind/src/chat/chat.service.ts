@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, ArrayContains } from 'typeorm';
 import { MessageEntity } from './entites/message.entity';
@@ -7,7 +7,8 @@ import { UserEntity } from '../users/user.entity';
 import { UsersService } from '../users/users.service';
 import { NewPrivMsgDto } from './dto/NewPrivMsgDto';
 import BasicUser from './dto/BasicUserDto';
-import { StringSchema } from 'joi';
+import { HttpService } from '@nestjs/axios';
+
 
 @Injectable()
 export class ChatService {
@@ -19,7 +20,8 @@ export class ChatService {
 		@InjectRepository(UserEntity)
 		private userRepository: Repository<UserEntity>,
 		private readonly userService: UsersService,
-		private readonly dataSource: DataSource,
+		// private readonly dataSource: DataSource,
+		// private httpService: HttpService,
 	) {}
 
 	// async getMessages() {
@@ -54,19 +56,19 @@ export class ChatService {
 	}
 
 	async getUserPrivs(login: string) {
-		const privs = await this.userRepository.findOne({
-			relations: {privates : {users: true, messages: true}},
+		const user = await this.userRepository.findOne({
+			relations: {privates : {users: true, messages: {user: true}}},
 			where: {login: login},
 			order: {privates: {updatedAt: 'DESC'}},
 			// select: {privates: true}
 		});
 
 		// const userId = (await this.userService.getByLogin(login)).id;
-		// const privs = await this.privateRepository.findBy({
+		// const user = await this.privateRepository.findBy({
 		// 	users: ArrayContains ([userId])
 		// });
 
-		// const privs = await this.privateRepository.createQueryBuilder("private")
+		// const user = await this.privateRepository.createQueryBuilder("private")
 		// 	// .leftJoinAndSelect("private.users", "users")
 		// 	// .where("users @> :login", {login: [login]})
 		// 	// .where("users.login = :login", {login: login})
@@ -74,9 +76,9 @@ export class ChatService {
 		// 	.orderBy("private.updatedAt", "DESC")
 		// 	.getMany();
 
-		// const privs = this.privateRepository.
+		// const user = this.privateRepository.
 
-		// let privs = await this.dataSource
+		// let user = await this.dataSource
 		// 	.createQueryBuilder()
 		// 	// .select("private")
 		// 	// .from(PrivateEntity, "private")
@@ -88,10 +90,10 @@ export class ChatService {
 		// 	// .select("privates")
 		// 	.getMany();
 
-		// privs.privates.forEach(priv => console.log(`type of date conv = ${priv.updatedAt.constructor.name}`));
-		// console.log("privs getUserPrivs = ", privs);
+		// user.privates.forEach(priv => console.log(`type of date conv = ${priv.updatedAt.constructor.name}`));
+		// console.log("user getUserPrivs = ", user);
 		
-		return privs.privates;
+		return user.privates;
 
 	}
 	
@@ -111,6 +113,7 @@ export class ChatService {
 			// console.log("priv = ", priv);
 			priv.messages.push(msg);
 			priv.updatedAt = msg.createdAt;
+			priv.readed = false;
 			// console.log(`Update priv: ${priv.updatedAt.toLocaleTimeString()}`)
 			await this.privateRepository.save(priv).catch(e => console.log("Save priv error"));
 			// await this.privateRepository.update(priv, {updatedAt: new Date()});
@@ -121,6 +124,7 @@ export class ChatService {
 			const newPriv = this.privateRepository.create();
 			newPriv.users = [userSend, userReceive];
 			newPriv.messages = [msg];
+			newPriv.readed = false;
 			await this.privateRepository.save(newPriv).catch(e => console.log("Save newPriv error"));
 		}
 	}
@@ -144,9 +148,9 @@ export class ChatService {
 				}
 			}
 		});
-		privates.forEach(priv => {
-			// console.log(`priv = ${priv}`);
-		})
+		// privates.forEach(priv => {
+		// 	// console.log(`priv = ${priv}`);
+		// })
 		const priv = privates.find((item) => {
 			// console.log(`item.users[0].id = ${item.users[0].id}\n
 			// item.users[1].id = ${item.users[1].id}\n
@@ -156,7 +160,12 @@ export class ChatService {
 				|| (item.users[0].id == userIds[1] && item.users[1].id == userIds[0]))
 				return true;
 		});
-		// console.log(`priv fin getPrivWithUserIds = ${priv}`);
 		return priv;
+		// if (priv) 
+		// 	return priv;
+		// else {
+		// 	console.log('getPrivWithUserIds failed, priv not found');
+		// 	throw new HttpException('E_PRIV_WITH_USERID_NFIND', HttpStatus.NOT_FOUND)
+		// }
 	}
 }
