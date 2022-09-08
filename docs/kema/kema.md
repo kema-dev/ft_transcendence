@@ -11,6 +11,7 @@
 * TODO make everyone use custom HTTP headers
 * TODO improve 2FA page
 * TODO make a refresh token function in backend and frontend (for frontend, ask for a refresh if $date + x > expiration\\_date$)
+* TODO fix unexisting page HTTP status code
 
 ## later
 
