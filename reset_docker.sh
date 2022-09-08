@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/bin/sh
 docker stop $(docker ps -qa)
 docker rm $(docker ps -qa)
 docker rmi -f $(docker images -qa)
@@ -9,3 +9,5 @@ rm -f website/frontend/vuejs/bind/package-lock.json
 rm -f website/frontend/vuejs/bind/yarn.lock
 rm -rf website/backend/nestjs/bind/node_modules
 rm -rf website/frontend/vuejs/bind/node_modules
+rm -rf website/frontend/vuejs/bind/.env
+rm -rf website/backend/nestjs/bind/.env

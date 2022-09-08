@@ -150,7 +150,7 @@ onMounted(async () => {
 	});
 	container.addEventListener("keyup", function (e: any) {
 		if (e.key == "ArrowLeft") {
-			if (mov <= 0) mov = 0;
+			if (mov <= 0) mov = 0;  
 		} else if (e.key == "ArrowRight") {
 			if (mov >= 0) mov = 0;
 		} else {

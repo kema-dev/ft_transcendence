@@ -84,21 +84,21 @@
 
 <script setup lang="ts">
 import axios from "axios";
-import Config from "../env.json";
 import { useToast } from "vue-toastification";
 import { inject, onMounted, provide, ref } from "vue";
 import { useRouter } from "vue-router";
 import { VueCookies } from "vue-cookies";
 import HTTP from "../components/axios";
+import { FQDN, API_42_UID, API_42_REDIRECT_URI } from "../../.env.json";
 
 const router = useRouter();
 
-let apiPath = "https://localhost:3000/api/v1/";
+let apiPath = FQDN + ":3000/api/v1/";
 let api42Path =
 	"https://api.intra.42.fr/oauth/authorize?client_id=" +
-	Config.API_42_UID +
+	API_42_UID +
 	"&redirect_uri=" +
-	Config.API_42_REDIRECT_URI +
+	API_42_REDIRECT_URI +
 	"&response_type=code";
 let email_register = ref("");
 let login_register = ref("");
