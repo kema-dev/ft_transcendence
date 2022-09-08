@@ -65,9 +65,15 @@ export class ChatService {
 		const user = await this.userRepository.findOne({
 			relations: {privates : {users: true, messages: {user: true}}},
 			where: {login: login},
-			order: {privates: {updatedAt: 'DESC'}},
-			// select: {privates: true}
-		});
+			// order: {privates: {updatedAt: 'DESC'}},
+			// order: {
+			// 	privates: {
+			// 		messages: {
+			// 			createdAt: 'ASC',
+			// 		} 
+			// 	}
+			// }
+	});
 
 		// const userId = (await this.userService.getByLogin(login)).id;
 		// const user = await this.privateRepository.findBy({

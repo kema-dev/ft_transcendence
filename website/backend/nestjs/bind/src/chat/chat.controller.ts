@@ -20,6 +20,12 @@ export class ChatController {
 	async getUserPrivs(@Param() params : {login: string}) {
 		console.log("getUserPrivs for user \'" + params.login + "\'");
 		const privs = await this.chatService.getUserPrivs(params.login);
+		privs.sort(function (x, y) {
+			if ( x.messages[x.messages.length - 1].createdAt 
+				< y.messages[y.messages.length - 1].createdAt) 
+				return 1;
+			return -1;
+		});
 		let privsTabDto : PrivateTabDto[] = [];
 		privs.forEach(priv => {
 			let login: string;
@@ -29,18 +35,17 @@ export class ChatController {
 				login = priv.users[0].login;
 			let msg = priv.messages[priv.messages.length - 1].message;
 			let lastMsgUser = priv.messages[priv.messages.length - 1].user.login;
-			let date = priv.updatedAt;
+			let date = priv.messages[priv.messages.length - 1].createdAt;
 			let read = priv.readed;
 			privsTabDto.push(new PrivateTabDto(login, msg, date, lastMsgUser, read));
 		}); 
-		// console.log(privsTabDto);
-		privsTabDto.forEach(priv => console.log(`priv = 
-			login = ${priv.login}
-			message = ${priv.message}
-			date = ${priv.date}
-			lastMsgUser = ${priv.lastMsgUser}
-			readed = ${priv.readed}
-		`));
+		// privsTabDto.forEach(priv => console.log(`priv = 
+		// 	login = ${priv.login}
+		// 	message = ${priv.message}
+		// 	date = ${priv.date}
+		// 	lastMsgUser = ${priv.lastMsgUser}
+		// 	readed = ${priv.readed}
+		// `));
 		// privs.forEach(priv => console.log(`priv = ${priv.messages}`));
 		return privsTabDto;
 	}

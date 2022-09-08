@@ -2,7 +2,11 @@
 
 ## ongoing
 
+* TODO fix "depends_on" directive in docker-compose.yml (use healthcheck)
+* TODO make the API **NOT** accessible from the outside (correct backend_status accordingly)
+
 * TODO make backend is up endpoint redirect to frontend
+* TODO make logpage redirect to /home if already logged in
 * TODO add JWT guards on backend endpoints
 * TODO make everyone use custom HTTP headers
 * TODO improve 2FA page

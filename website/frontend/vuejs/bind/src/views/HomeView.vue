@@ -20,6 +20,8 @@ import { inject, ref } from "vue";
 import MatchmakingItem from '@/components/MatchmakingItem.vue';
 import io from "socket.io-client"
 import { VueCookies } from "vue-cookies";
+import { FQDN } from "../../.env.json";
+// import { FQDN } from "@/.env.json";
 
 const $cookies = inject<VueCookies>('$cookies')!;
 const login : string = $cookies.get('login');
@@ -35,7 +37,7 @@ onMounted(() => {
 	})
 });
 
-let socket = io('https://localhost:3000', {query: {login}});
+let socket = io(FQDN + ':3000');
 provide("socket", socket);
 
 socket.on('connect', () => {

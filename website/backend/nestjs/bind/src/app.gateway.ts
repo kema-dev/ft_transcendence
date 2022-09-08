@@ -1,10 +1,10 @@
 import {
-  SubscribeMessage,
-  WebSocketGateway,
-  OnGatewayInit,
-  WebSocketServer,
-  OnGatewayConnection,
-  OnGatewayDisconnect,
+	SubscribeMessage,
+	WebSocketGateway,
+	OnGatewayInit,
+	WebSocketServer,
+	OnGatewayConnection,
+	OnGatewayDisconnect,
   MessageBody,
   ConnectedSocket,
 } from '@nestjs/websockets';
@@ -18,9 +18,9 @@ import { BallDto } from './game2.0/dto/BallDto';
 import { NewPrivMsgDto } from "./chat/dto/NewPrivMsgDto";
 
 @WebSocketGateway({
-  cors: {
-    origin: '*',
-  },
+	cors: {
+		origin: '*',
+	},
 })
 export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;

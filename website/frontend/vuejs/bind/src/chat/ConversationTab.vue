@@ -1,17 +1,17 @@
 <template>
-    <router-link :to="{name: chan == true ? 'ChannelConv' : 'PrivConv', params: {conv_name: nameConv }}" class="conv_container left row stack" :class="{ 'conv_containerNR': isRead() }">
+    <router-link :to="{name: chan == true ? 'ChannelConv' : 'PrivConv', params: {conv_name: nameConv }}" class="conv_container left row stack" :class="{ 'conv_containerNR': displayNotRead }">
       <div class="avatar_cont">
         <img v-if="avatar" :src="avatar" class="avatar" alt="avatar">
         <img v-else src="~@/assets/group_logo.svg" class="avatar" alt="avatar">
       </div>
       <div class="info center column">
         <div class="top-bar row center stack">
-          <div class="login">{{nameConv}}</div>
+          <div class="login" :class="{'loginNR': displayNotRead}">{{nameConv}}</div>
           <div v-if="message" class="date">{{displayDate()}}</div>
         </div>
-        <div class="message_cont center">
+        <div class="message_cont center" :class="{'messageNR': displayNotRead}">
           <div v-if="message" class="message">{{displayMsg()}}</div>
-          <div v-else class="message noMessage">Created the {{date?.toLocaleDateString("fr")}}, {{date?.toLocaleTimeString("fr")}}</div>
+          <div v-else class="message">Created the {{date?.toLocaleDateString("fr")}}, {{date?.toLocaleTimeString("fr")}}</div>
         </div>
       </div>
     </router-link>
@@ -51,11 +51,11 @@ const props = defineProps({
   chan: Boolean
 })
 
-function isRead() {
-  if (props.read == false && props.lastMsgUser != me)
-    return true;
-  return false;
-}
+let displayNotRead : boolean;
+if (props.read == false && props.lastMsgUser != me)
+  displayNotRead = true;
+else
+  displayNotRead = false;
 
 function displayMsg() {
   if (props.lastMsgUser == me)
@@ -91,10 +91,13 @@ function displayDate() : string {
 
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@use "@/assets/scss/_shared.scss" as *;
+
 * {
   --height: 70px;
 }
+// $height: 70px;
 
 .conv_container {
   background-color: white;
@@ -102,14 +105,11 @@ function displayDate() : string {
   height: var(--height);
   margin-top: 5px;
   margin-bottom: 5px;
-  border: solid 2px v-bind("define.color2");
+  border: solid 2px $color2;
   /* border-color: ; */
   border-radius: calc(var(--height) / 2);
 }
-.conv_containerNR{
-  border: solid 3px v-bind("define.color2");
-  font-weight: 800;
-}
+
 .avatar_cont {
   width: var(--height);
   height: var(--height);
@@ -138,7 +138,7 @@ function displayDate() : string {
   width: 130%;
   text-align: start;
   font-family: "Orbitron", sans-serif;
-  font-weight: bold;
+  font-weight: 400;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -152,6 +152,7 @@ function displayDate() : string {
 .message_cont {
   height: 100%;
   text-align: start;
+  color: grey;
   /* position: absolute; */
   /* top: 50%; */
 }
@@ -159,10 +160,16 @@ function displayDate() : string {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  /* color: grey; */
-}
-.noMessage {
-  color: grey;
 }
 
+// ======================== NOT READ DIPLAY =========================
+.conv_containerNR{
+  border: solid 3px $color2;
+}
+.loginNR, .messageNR {
+  font-weight: 800;
+}
+.messageNR {
+  color: $color2;
+}
 </style>
