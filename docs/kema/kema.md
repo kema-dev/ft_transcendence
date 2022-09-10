@@ -2,7 +2,6 @@
 
 ## ongoing
 
-* TODO fix unexisting page HTTP status code
 * TODO make everyone use custom HTTP headers
 * TODO add JWT guards on backend endpoints
 * TODO improve 2FA page
