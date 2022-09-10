@@ -106,6 +106,11 @@ const routes: Array<RouteRecordRaw> = [
 			},
 		]
 	},
+	// catch all 404 pages
+	{
+		path: '/:catchAll(.*)',
+		redirect: '/home'
+	}
 ]
 
 const router = createRouter({

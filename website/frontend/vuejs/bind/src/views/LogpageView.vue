@@ -226,6 +226,9 @@ function auth() {
 		});
 }
 onMounted(() => {
+	if ($cookies.get("session")) {
+		router.push("/home");
+	}
 	setTimeout(() => {
 		show.value = true;
 	}, 0.5);

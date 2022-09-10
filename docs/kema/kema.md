@@ -2,19 +2,17 @@
 
 ## ongoing
 
-* TODO fix "depends_on" directive in docker-compose.yml (use healthcheck)
-* TODO make the API **NOT** accessible from the outside (correct backend_status accordingly)
-
-* TODO make backend is up endpoint redirect to frontend
-* TODO make logpage redirect to /home if already logged in
-* TODO add JWT guards on backend endpoints
+* TODO fix unexisting page HTTP status code
 * TODO make everyone use custom HTTP headers
+* TODO add JWT guards on backend endpoints
 * TODO improve 2FA page
 * TODO make a refresh token function in backend and frontend (for frontend, ask for a refresh if $date + x > expiration\\_date$)
-* TODO fix unexisting page HTTP status code
 
 ## later
 
+* TODO fix "depends_on" directive in docker-compose.yml (use healthcheck)
+* TODO make the API **NOT** accessible from the outside (correct backend_status accordingly)
+* TODO make backend is up endpoint redirect to frontend
 * TODO update API's wiki
 * TODO find a way to generate valid https certificates for nestjs and vuejs (maybe using lets encrypt's certbot)
 * TODO change readme's images using a gif of a live game and some screenshots of the website
