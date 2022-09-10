@@ -1,5 +1,11 @@
 <div id="top"></div>
 
+<p align=center>
+  <img alt="Project's status" src="https://img.shields.io/badge/Status-Ongoing-red">
+  <img alt="Project's primary language" src="https://img.shields.io/badge/Language-Typescript-blue">
+  <img alt="Project's focus" src="https://img.shields.io/badge/Focus-Containerized%20website-blue">
+</p>
+
 <!-- PROJECT LOGO -->
 <br />
 <div align="center" style="height:200px; margin-bottom:10%">
