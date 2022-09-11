@@ -159,9 +159,9 @@ export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGateway
 
   @SubscribeMessage("privReaded")
   async privReaded(@MessageBody() data : {userSend: string, userReceive: string} , @ConnectedSocket() client: Socket) {
-    console.log(`privReaded AppGateway , socketid = ${client.id}`);
+    console.log(`privReaded AppGateway , users = ${data.userSend}, ${data.userReceive}`);
     // console.log(`userSend = ${data.userSend}, userReceive = ${data.userReceive}`);
-    let priv = await this.chatService.getPrivMsg(data.userSend, data.userReceive);
+    let priv = await this.chatService.getPriv([data.userSend, data.userReceive]);
     if (!priv)
       return console.log(`Error privReaded`);
     return await this.chatService.markPrivReaded(priv);

@@ -74,24 +74,12 @@ provide('privs', privsRef);
 provide('privDone', privDone);
 
 
-// function updatePrivs() {
-// 	privs.value = 'South Pole'
-// }
-
 function getPrivsRequest() {
-	console.log(`avant getPrivsRequest()`);
+	// console.log(`avant getPrivsRequest()`);
 	HTTP.get(apiPath + "chat/getPrivs/" + me)
 	.then(res => {
-		console.log(`privsConvDto : `);
-		res.data.forEach((priv : PrivConv) => {
-			console.log(`user = ${priv.user.login}`);
-			priv.messages.forEach((msg) => console.log(`${msg.msg}`));
-			// priv.messages.forEach((msg) => console.log(
-				// 	`msg = '${msg.msg}',
-				// 	user = ${msg.user},
-				// 	date = ${msg.date}`
-				// ));
-			});
+		// console.log(`privsConvDto : `);
+		// printPrivs(res.data);
 
 		if (!res.data)
 			// privs.value = [];
@@ -106,41 +94,27 @@ function getPrivsRequest() {
 					msgsTmp.push(new Message(msg.user, msg.msg, new Date(msg.date)))
 				});
 				privsTmp.push(new PrivConv(priv.user, msgsTmp, priv.readed, priv.id));
-				console.log(`readed = ${priv.readed}`);
 			});
 			// privs.value = privsTmp;
 			// privs = privsTmp;
 			privsRef.value = privsTmp;
 		}
 
-		// privsRef = ref(privs);
 		privDone.value = true;
-		console.log(`getPrivsRequest Done`);
+		// console.log(`getPrivsRequest Done`);
 
-		// console.log(`privsObject : `);
-		// privs.forEach(priv => {
-		// 	console.log(`user = ${priv.user.login}`);
-		// 	priv.messages.forEach((msg) => console.log(`${msg.msg}`));
-		// });
-		console.log(`privsRef : `);
-		privsRef.value.forEach(priv => {
-			console.log(`user = ${priv.user.login}`);
-			priv.messages.forEach((msg) => console.log(`${msg.msg}`));
-		});
+		// printPrivs(privsRef.value);
 	})
 	.catch(e => console.log(e));
 }
 
-watch(privsRef, () => {
-	console.log(`privs changed in homeview`);
-})
-
 // CREATE SOCKET LISTENERS 
 socket.on('newPrivConv', (data: PrivConv) => {
 	console.log(`New private created`)
-	// let privTmp = privs.value!;
-	// privTmp.push(data);
-	// privs.value = privTmp;
+	// let privTmp = privsRef.value!;
+	// let msg = new Message(data.messages[0].user, data.messages[0].msg, new Date (data.messages[0].date));
+	// privTmp.push(new PrivConv(new BasicUser(data.user.login), [msg], data.readed, data.id));
+	// privsRef.value = privTmp;
 	// ==============
 	// privs.push(data);
 	// ==============
@@ -149,35 +123,42 @@ socket.on('newPrivConv', (data: PrivConv) => {
 	// ==============
 	let newPriv = data;
 	newPriv.messages.forEach(msg => msg.date = new Date(msg.date));
-	privsRef.value.push(data);
+	privsRef.value.unshift(data);
 
-	console.log(`privsRef : `);
-	privsRef.value.forEach(priv => {
-		console.log(`user = ${priv.user.login}`);
-		priv.messages.forEach((msg) => console.log(`${msg.msg}`));
-	});
+	// console.log(`privsRef : `);
+	// printPrivs(privsRef.value);
 })
 socket.on('newPrivMsg', (data: {msg: Message, id: number}) => {
 	console.log(`New message received : ${data.msg.msg}`)
-	// let privsTmp = privs.value!;
+	// let privsTmp = privsRef.value!;
 	// let priv = privsTmp.find(priv => priv.id == data.id);
-	// priv?.messages.push(data.msg);
-	// privs.value = privsTmp;
+	// priv?.messages.push(new Message(data.msg.user, data.msg.msg, new Date(data.msg.date)));
+	// privsRef.value = privsTmp;
 	// ==============
 	// let priv = privs.find(priv => priv.id == data.id);
 	// priv?.messages.push(data.msg);
-	// ==============
+	// // ==============
 	let i = privsRef.value.findIndex(priv => priv.id == data.id);
 	privsRef.value[i].messages.push(new Message(data.msg.user, data.msg.msg, new Date(data.msg.date)));
 	
-	console.log(`privsRef : `);
-	privsRef.value.forEach(priv => {
-		console.log(`user = ${priv.user.login}`);
-		priv.messages.forEach((msg) => console.log(`${msg.msg}`));
-	});
+	// console.log(`privsRef : `);
+	// printPrivs(privsRef.value);
 })
 
-// console.log(`Homeview finished`);
+watch(privsRef, () => {
+	console.log(`privs changed in homeview`);
+})
+
+function printPriv(priv: PrivConv) {
+	priv.messages.forEach((msg) => console.log(`${msg.msg}`));
+}
+
+function printPrivs(privs: PrivConv[]) {
+	privs.forEach((priv : PrivConv) => {
+		console.log(`user = ${priv.user.login}`);
+		printPriv(priv);
+	});
+}
 
 </script>
 

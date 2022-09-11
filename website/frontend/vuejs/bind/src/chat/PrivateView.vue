@@ -122,6 +122,14 @@ watch(privDone, () => {
 	// });
 })
 
+watch(privs, () => {
+	console.log(`watch privs change PrivateView`);
+})
+
+watch(privsFiltred, () => {
+	console.log(`watch privsFiltred change PrivateView`);
+})
+
 // function getPrivsRequest() {
 // 	HTTP.get(apiPath + "chat/getPrivs/" + me)
 // 	.then(res => {

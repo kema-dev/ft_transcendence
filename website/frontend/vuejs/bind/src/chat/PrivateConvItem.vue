@@ -1,5 +1,5 @@
 <template>
-	<div v-if="privDone" id="conversation_view" class="stack">
+	<div id="conversation_view" class="stack">
 		<div class="userTopBar center raw space-between">
 			<div class="avatar_cont center">
 				<img :src="receiver!.avatar" class="avatar" alt="avatar">
@@ -22,24 +22,20 @@
 			</div>
 		</div>
 		<div class="conversation_content ">
-			<div v-if="selectPriv()" id="messages_cont" ref="msgsCont" class="messages ">
-				<div v-for="(message, i) in selectPriv()!.messages" :key="i" class="center column">
-					<div v-if="checkDate(i)" class="date">
-						{{displayDate(message.date, i)}}
+			<div id="messages_cont" ref="msgsCont" class="messages ">
+				<div v-if="privDone && privRef" ref="msgsLoaded">
+					<div v-for="(message, i) in privRef!.messages" :key="i" class="center column">
+						<div v-if="checkDate(i)" class="date">
+							{{displayDate(message.date, i)}}
+						</div>
+						<MessageItem 
+							:userAvatar="receiver.avatar"
+							:userLogin="message.user"
+							:message="message.msg"
+							:date="message.date"
+						/>
 					</div>
-					<MessageItem 
-						:userAvatar="receiver.avatar"
-						:userLogin="message.user"
-						:message="message.msg"
-						:date="message.date"
-					/>
 				</div>
-					<!-- <MessageItem v-for="(message, i) in msgs" :key="i" 
-						:userAvatar="receiver!.avatar"
-						:userLogin="message.user"
-						:message="message.msg"
-						:date="message.date"
-					/> -->
 			</div>
 			<div class="sendbox_cont">
 				<input v-model="myMsg" @keydown.enter="sendMsg()" type="text" placeholder="Aa..." id="sendbox" class="sendbox"/>
@@ -76,107 +72,77 @@ import { PrivConv } from "@/chat/objects/PrivConv";
 import BasicUser from "./objects/BasicUser";
 import { ConstantTypes } from "@vue/compiler-core";
 
+
+console.log('debut');
+
 let define = inject("colors");
 let apiPath: string = inject("apiPath")!;
 let mySocket: Socket = inject("socket")!;
 let me: string = inject("me")!;
-let privs : Ref<PrivConv[]> = inject("privs")!;
 const userName = useRoute().params.conv_name as string ;
 let receiver : BasicUser = new BasicUser(userName);
-const privDone: Ref<boolean> = inject("privDone")!;
-// console.log(`privDone = ${privDone.value}, privsRef : `);
-// privs.value.forEach(priv => {
-// 	console.log(`user = ${priv.user.login}`);
-// 	priv.messages.forEach((msg) => console.log(`${msg.msg}`));
-// });
+let privs : Ref<PrivConv[]> | undefined = inject("privs");
+// printPrivs(privs.value);
+// let privRef : Ref<PrivConv> | undefined;
+// if (privs) {
 
-// watch(privDone, () => {
-// 	console.log(`privDone = ${privDone.value}`);
-// })
+// }
+let priv = privs.value.find(priv => priv.user.login == userName);
+let privRef = ref(priv);
+// printPriv(privRef.value);
+const privDone: Ref<boolean> = inject("privDone")!;
+	
+	// console.log("Priv debut PrivConvItem :")
+	// printPriv(priv);
 
 let myMsg = ref("");
 let blockWarn = ref(false);
-let requestDone = ref(false);
 let msgsCont = ref(null);
+let msgsLoaded = ref(null);
+
+watch(privDone, () => {
+	console.log(`privDone = ${privDone.value}`);
+	// ((msgsCont.value!) as HTMLElement).scrollTop = 
+	// ((msgsCont.value!) as HTMLElement).scrollHeight;
+	privRef.value = privs.value.find(priv => priv.user.login == userName)!;
+})
+
+watch(msgsLoaded, () => {
+	console.log(`Mesages in privConvItem loaded`);
+	((msgsCont.value!) as HTMLElement).scrollTop = 
+		((msgsCont.value!) as HTMLElement).scrollHeight;
+	if (privRef.value!.messages[privRef.value!.messages.length - 1].user != me) {
+		mySocket.emit('privReaded', {userSend: userName, userReceive: me});
+		privRef.value!.readed = true;
+	}
+})
+
+watch(privs, () => {
+	console.log(`watch privs change`);
+	printPrivs(privs.value);
+	console.log(`apres watch privs`)
+	privRef.value = privs.value.find(priv => priv.user.login == userName)!;
+})
+
+
+watch(privRef, () => {
+	console.log(`watch privRef change`);
+	((msgsCont.value!) as HTMLElement).scrollTop = 
+	((msgsCont.value!) as HTMLElement).scrollHeight;
+	// nextTick(() => {
+		// 	let msgsCont = document.getElementById("messages_cont");
+		// 	msgsCont!.scrollTop = msgsCont!.scrollHeight;
+		// });
+	console.log("scrolled watch");
+}, {flush:'post'});
+
 
 function selectPriv() {
 	// console.log(`selectPriv()`);
-	return privs.value!.find(priv => priv.user.login == userName);
+	let priv = privs.value?.find(priv => priv.user.login == userName);
+	// console.log(`selectPriv = ${priv}`);
+	return priv;
 }
-
-// mySocket.on('newPrivMsg', (data: {msg: Message, id: number}) => {
-// 	console.log(`New message received : ${data.msg.msg}`)
-// })
-
-// mySocket.on("newPrivMsg", (data: NewPrivMsgDto) => {
-// 	// console.log(`msgs.value = ${msgs.value}`);
-// 	let tmp = msgs.value!;
-// 	tmp.push(new MessageDto(data.userSend, data.message, new Date(data.date)))
-// 	msgs.value = tmp;
-// 	nextTick(() => {
-// 		((msgsCont.value!) as HTMLElement).scrollTop = 
-// 			((msgsCont.value!) as HTMLElement).scrollHeight;
-// 		console.log(`scrolled socket on`);
-// 	}).catch(e => console.log(e));
-// 	console.log(`userSend = ${data.userSend}, me = ${me}`)
-// 	if (data.userSend != me)
-// 		mySocket.emit("privReaded", {userSend: userName, userReceive: me});
-// });
-
-
-// (async () => {
-// 	// receiver = (await HTTP.get(apiPath + "user/getBasicUser/:login" + userName)).data;
-// 	let privConvDto : PrivateConvDto = (await HTTP.get(apiPath
-// 		+ "chat/getPriv/" + me + "/" + userName))
-// 		.data;
-// 	// console.log(`privConvDto = ${privConvDto}`);
-// 	receiver.value = new BasicUserDto(privConvDto.user);
-// 	// console.log(`receiver = ${receiver.value.login}`);
-// 	let msgsTmp : MessageDto[] = [];
-// 	privConvDto.msgs.forEach(msg => {
-// 		msgsTmp.push(new MessageDto(msg.user, msg.msg, new Date(msg.date)))
-// 	});
-// 	msgs.value = msgsTmp;
-// 	// msgs.value.forEach(msg => {
-// 	// 	console.log(msg);
-// 	// });
-// 	// nbMsgs = msgs.value.length;
-// 	requestDone.value = true;
-// })();
-
-// HTTP.get(apiPath + "chat/getPriv/" + me + "/" + userName)
-// 	.then(res => {
-// 		// console.log(`privConvDto = ${res.data}`);
-// 		receiver.value = new BasicUserDto(res.data.user);
-// 		let msgsTmp : MessageDto[] = [];
-// 		res.data.msgs.forEach((msg : MessageDto) => {
-// 			msgsTmp.push(new MessageDto(msg.user, msg.msg, new Date(msg.date)))
-// 		});
-// 		msgs.value = msgsTmp;
-// 		requestDone.value = true;
-// 	})
-// 	.catch(e => console.log(e));
-
-
-
-// axios.get(apiPath + "chat/message")
-// 	.then(res => {console.log("backMsg = ", res.data)})
-// 	.catch(e => {console.log(e)});
-// let backMsg = await axios.get(apiPath + "chat/message");
-// console.log("backMsg = ", (await backMsg).data);
-
-// let user1 = new User("Totolosa", require("@/assets/avatars/(1).jpg"));
-// let user2 = new User("Ocean", require("@/assets/avatars/(2).jpg"));
-// let user3 = new User("Patrick la trick", require("@/assets/avatars/(3).jpg"));
-
-// let msg1 = new Message(user1, "Salut frere ce fait graaaaave longtemps ca fais plaisr! Tu deviens quoi l'ami?", new Date('July 17, 2022 03:24:00'));
-// let msg2 = new Message(user2, "Salut poto", new Date('July 22, 2022 03:25:12'));
-// let msg3 = new Message(user1, "Game?", new Date('July 18, 2022 12:45:45'));
-// let msg4 = new Message(user3, "Non je dois finir de faire le front, et wallah c'est chaud", new Date('July 18, 2022 12:47:55'));
-// let msg5 = new Message(user1, "dsaibciauwncopneejvnjn fcoamsdomvcafosnvonsvonoans", new Date());
-// let msg6 = new Message(user2, "Mais tu sais pas parler en fait", new Date());
-
-// let conv = ref(new Private(user2, [msg1, msg2, msg3, msg5, msg6]));
 
 function checkDate(i: number) {
 	// console.log(`checkDate(), i = ${i}`)
@@ -200,7 +166,7 @@ function displayDate(date: Date, i: number) {
 		minutes = "0" + date.getMinutes().toString();
 	else
 		minutes = date.getMinutes();
-	console.log(`test`);
+	// console.log(`test`);
 	let hours : string | number;
 	if (date.getHours() < 10)
 		hours = "0" + date.getHours().toString();
@@ -208,10 +174,8 @@ function displayDate(date: Date, i: number) {
 		hours = date.getHours();
 	const day = date.getDay();
 	const month = date.toLocaleString('default', { month: 'long' })
-	// const monthNames = ["January", "February", "March", "April", "May", "June",
-	// 	"July", "August", "September", "October", "November", "December"];
 	const year = date.getFullYear();
-	console.log(`displayDate() avant returns`)
+	// console.log(`displayDate() avant returns`)
 	if (i == 0)
 		return `Created the ${day} ${month} ${year} at ${hours}:${minutes}`;
 	const now = new Date();
@@ -232,40 +196,19 @@ function banUser() {
 }
 
 function sendMsg() {
-	// e.preventDefault();
-	// ENVOI MSG AU BACK <=================================================
-
-	// // POST REQUEST
-	// axios.post(apiPath + "chat/message", myMsg)
-	// 		.then(res => {
-	// 			console.log("Send msg to back OK");
-	// 			let newMsg = new Message(me, myMsg.value, new Date());
-	// 			conv.value.messages.push(newMsg);
-				// myMsg.value = "";
-				// 		}).catch(e => {console.log(e)});
-				
-	// // SOCKET
-	// mySocket.emit('message', myMsg.value);
+	// console.log(`message send`);
 	mySocket.emit('newPrivMsg', new NewPrivMsgDto(me, userName, myMsg.value));
-	// mySocket.emit('getMsgs');
 	myMsg.value = "";
 
 }
 
-watch(selectPriv()!.messages!, (msg) => {
-	((msgsCont.value!) as HTMLElement).scrollTop = 
-	((msgsCont.value!) as HTMLElement).scrollHeight;
-	// nextTick(() => {
-		// 	let msgsCont = document.getElementById("messages_cont");
-		// 	msgsCont!.scrollTop = msgsCont!.scrollHeight;
-		// });
-	console.log("scrolled watch");
-}, {flush:'post'});
-
 onMounted(() => {
-	((msgsCont.value!) as HTMLElement).scrollTop = 
-	((msgsCont.value!) as HTMLElement).scrollHeight;
-	console.log("scrolled onMounted");
+	// console.log(`debut onMounted PrivConvIten`);
+	// console.log(`msgsCont.value = ${msgsCont.value}`);
+	// console.log(`msgsCont.scrollHeight = ${((msgsCont.value!) as HTMLElement).scrollHeight}, `);
+	// ((msgsCont.value!) as HTMLElement).scrollTop = 
+	// ((msgsCont.value!) as HTMLElement).scrollHeight;
+	// console.log("scrolled onMounted");
 })
 
 onBeforeUnmount(() => {
@@ -288,6 +231,21 @@ onUnmounted(() => {
 	}
 	// console.log("fin mounted");
 });
+
+function printPriv(priv: PrivConv | undefined) {
+	if (!priv)
+		return console.log(`priv undefined`);
+	priv.messages.forEach((msg) => console.log(`${msg.msg}`));
+}
+
+function printPrivs(privs: PrivConv[] | undefined) {
+	if (!privs)
+		return console.log(`privs undefined`);
+	privs.forEach((priv : PrivConv) => {
+		console.log(`user = ${priv.user.login}`);
+		printPriv(priv);
+	});
+}
 
 </script>
 
