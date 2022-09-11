@@ -16,6 +16,10 @@ import { ChatService } from './chat/chat.service';
 import { UsersService } from './users/users.service';
 import { BallDto } from './game2.0/dto/BallDto';
 import { NewPrivMsgDto } from "./chat/dto/NewPrivMsgDto";
+import { PrivConv } from './chat/dto/PrivConv';
+import BasicUser from './chat/dto/BasicUser';
+import { Message } from './chat/dto/PrivateConvDto';
+// import { PrivMsgDto as NewPrivMsgDto } from '../../../../shared/dto/PrivMsgDto';
 
 @WebSocketGateway({
 	cors: {
@@ -30,20 +34,32 @@ export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGateway
   constructor(
     private readonly chatService : ChatService,
     private readonly userService : UsersService,
+    
     ) {}
     
     // =========================== GENERAL ==================================
 
     // Connection
-    handleConnection(client: Socket) {
-      console.log(`Client connected : ${client.id}`, )
+    async handleConnection(@ConnectedSocket() client: Socket) {
+      console.log(`Client connected : ${client.id}`);
+      console.log("query = ", client.handshake.query.login);
+      let login = client.handshake.query.login as string;
+      await this.userService.saveSocket(login, client.id);
+      // handleConnection(@ConnectedSocket() client: Socket, login: string) {
+      // console.log(`Client connected : ${client.id}, login = ${login}`);
     }
     // Disconnection
     handleDisconnect(client: Socket) {
       this.logger.log(`Client disconnected: ${client.id}`);
+      // console.log("query = ", client.handshake.query.login);
       if (this.game)
-        this.game.stop()
-      delete this.game
+        this.game.stop();
+      delete this.game;
+    }
+
+    @SubscribeMessage('connection')
+    saveSocket(@ConnectedSocket() client: Socket, ...args: any[]) {
+      console.log("debut saveSocket");
     }
 
 
@@ -84,42 +100,70 @@ export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGateway
   
   // ============================ CHAT =====================================
   
-  @SubscribeMessage('message')
-  handleMessage(@MessageBody() data:string, @ConnectedSocket() client: Socket) {
-    console.log(`Client message : ${data}`, )
-    this.server.emit('message', client.id, data);
-  }
+  // @SubscribeMessage('message')
+  // handleMessage(@MessageBody() data:string, @ConnectedSocket() client: Socket) {
+  //   console.log(`Client message : ${data}`, )
+  //   this.server.emit('message', client.id, data);
+  // }
   
-  @SubscribeMessage("getMsgs")
-  async getMsgs(@ConnectedSocket() client: Socket)  {
-    this.chatService.getMessages().then(res => {
-      console.log(res);
-      client.emit("getMsgs", res);
-    })
-  }
+  // @SubscribeMessage("getMsgs")
+  // async getMsgs(@ConnectedSocket() client: Socket)  {
+  //   this.chatService.getMessages().then(res => {
+  //     console.log(res);
+  //     client.emit("getMsgs", res);
+  //   })
+  // }
 
-  @SubscribeMessage("getPrivConvs")
-  async getPrivConvs(@ConnectedSocket() client: Socket)  {
-    this.chatService.getPrivConvs().then(res => {
-      console.log(res);
-      client.emit("getMsgs", res);
-    })
-  }
+  // @SubscribeMessage("getPrivConvs")
+  // async getPrivConvs(@ConnectedSocket() client: Socket)  {
+  //   this.chatService.getPrivConvs().then(res => {
+  //     console.log(res);
+  //     client.emit("getMsgs", res);
+  //   })
+  // }
 
   @SubscribeMessage('newPrivMsg')
   async NewPrivMsg(@MessageBody() data: NewPrivMsgDto, @ConnectedSocket() client : Socket) {
-    await this.chatService.addPrivMsg(data);
-    // await this.getMsgs(client);
+    // console.log(`controller newPrivMsg:  userSend = ${data.userSend}, userReceive = ${data.userReceive}`)
+    const priv = await this.chatService.addPrivMsg(data);
+    // console.log("ici");
+    const sendSocketId = (await this.userService.getByLogin(data.userSend)).socketId;
+    const receiveSocketId = (await this.userService.getByLogin(data.userReceive)).socketId;
+    const msg = new Message(data.userSend, data.message, new Date(data.date));
+    // console.log(`sendId = ${sendSocketId}\nreceiveId = ${receiveSocketId}`);
+    if (priv.messages.length == 1) {
+      const userSend = new BasicUser(data.userSend);
+      const userReceive = new BasicUser(data.userReceive);
+      const newPrivSenderDto = new PrivConv(userSend, [msg], false, priv.id);
+      const newPrivReceiverDto = new PrivConv(userReceive, [msg], false, priv.id);
+      this.server.to(receiveSocketId).emit("newPrivConv", newPrivSenderDto);
+      this.server.to(sendSocketId).emit("newPrivConv", newPrivReceiverDto);
+    }
+    else {
+      this.server.to(receiveSocketId).emit("newPrivMsg", {msg: msg, id: priv.id});
+      this.server.to(sendSocketId).emit("newPrivMsg", {msg: msg, id: priv.id});
+      // console.log(`newPrivMsg '${data.message}' emited`)
+    }
   }
 
   @SubscribeMessage("getUsersByLoginFiltred")
-  async getUserFiltred(@MessageBody() data : string, @ConnectedSocket() client: Socket) {
-    const users = await this.userService.getByLoginFiltred(data);
+  async getUserFiltred(@MessageBody() data : {filter: string, login: string} , @ConnectedSocket() client: Socket) {
+    const users = await this.userService.getByLoginFiltred(data.filter);
     let basicInfos : { login: string }[] = [];
     for(let i = 0; i < users.length; i++) {
-      basicInfos.push({login: users[i].login});
+      if (data.login != users[i].login)
+        basicInfos.push({login: users[i].login});
     }
-    console.log(basicInfos);
     client.emit("getUsersByLoginFiltred", basicInfos);
+  }
+
+  @SubscribeMessage("privReaded")
+  async privReaded(@MessageBody() data : {userSend: string, userReceive: string} , @ConnectedSocket() client: Socket) {
+    console.log(`privReaded AppGateway , socketid = ${client.id}`);
+    // console.log(`userSend = ${data.userSend}, userReceive = ${data.userReceive}`);
+    let priv = await this.chatService.getPrivMsg(data.userSend, data.userReceive);
+    if (!priv)
+      return console.log(`Error privReaded`);
+    return await this.chatService.markPrivReaded(priv);
   }
 }

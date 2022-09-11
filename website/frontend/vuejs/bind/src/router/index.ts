@@ -113,13 +113,13 @@ const router = createRouter({
 	routes
 })
 
-router.afterEach((to, from) => {
-	const toDepth = to.path.split('/').length;
-  const fromDepth = from.path.split('/').length;
-	const prev = to.path.split('/').pop();
-	// console.log(prev);
-  to.meta.transitionName = toDepth < fromDepth ? 'slide-right' : 'slide-left';
-})
+// router.afterEach((to, from) => {
+// 	const toDepth = to.path.split('/').length;
+//   const fromDepth = from.path.split('/').length;
+// 	const prev = to.path.split('/').pop();
+// 	// console.log(prev);
+//   to.meta.transitionName = toDepth < fromDepth ? 'slide-right' : 'slide-left';
+// })
 
 router.beforeEach(async (to, from) => {
 	if (to.path === '/backend_down') {

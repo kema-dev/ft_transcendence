@@ -42,8 +42,8 @@
 import { inject, defineProps, ref, nextTick, onMounted } from "vue";
 import { useRouter} from "vue-router";
 import WarningMsg from "@/components/WarningMsg.vue";
-import Channel from "@/chat/Channel";
-import User from "@/chat/User";
+import Channel from "@/chat/objects/Channel";
+import User from "@/chat/objects/User";
 
 let define = inject("colors");
 let me : User = inject("me")!;

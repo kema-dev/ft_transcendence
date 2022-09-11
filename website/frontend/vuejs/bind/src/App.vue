@@ -7,14 +7,9 @@
 <script setup lang="ts">
 /* eslint @typescript-eslint/no-var-requires: "off" */
 import { onMounted, provide, ref } from "vue";
-import User from "@/chat/User";
-import Socket from '@/utils/Socket';
 import { FQDN } from "../.env.json";
 
-let me = new User("tdayde", require("@/assets/avatars/(1).jpg"));
-me.friends.push(new User("Myfriend", require("@/assets/avatars/(6).jpg")));
-// provide('socket', new Socket(FQDN + ':3000'))
-provide("me", me);
+provide("apiPath", FQDN + ":3000/api/v1/");
 provide("playing", false);
 provide("colors", {
 	color0: "#fff",

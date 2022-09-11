@@ -15,35 +15,169 @@
 <script setup lang="ts">
 import NavbarItem from "@/components/NavbarItem.vue";
 import NavmenuItem from "@/components/NavmenuItem.vue";
-import { onMounted, provide } from "vue";
+import { onMounted, Ref, provide, watch } from "vue";
 import { inject, ref } from "vue";
 import MatchmakingItem from '@/components/MatchmakingItem.vue';
 import io from "socket.io-client"
+import { VueCookies } from "vue-cookies";
 import { FQDN } from "../../.env.json";
+import { Socket } from "socket.io-client";
+import HTTP from "../components/axios";
+import { PrivConv } from "@/chat/objects/PrivConv"
+import Message from "@/chat/objects/Message";
+import BasicUser from "@/chat/dto/BasicUserDto";
+// import { FQDN } from "@/.env.json";
 
-let define = inject("colors");
+// let define = inject("colors");
+
+// COOKIES + APIPATCH
+const $cookies = inject<VueCookies>('$cookies')!;
+const apiPath = FQDN + ":3000/api/v1/";
+provide("apiPath", apiPath);
+
+// GET MY NAME + AVATAR
+const me : string = $cookies.get('login');
+provide("me", me);
+console.log(`I am '${me}'`)
+
+// CREATE SOCKET
+let socket = io(FQDN + ':3000', {query: {login: me}});
+provide("socket", socket);
+
+// socket.on('newPrivConv', (data: PrivConv) => {
+// 	let privTmp = privs.value!;
+// 	privTmp.push(data);
+// 	privs.value = privTmp;
+// })
+// socket.on('newPrivMsg', (data: {msg: Message, id: number}) => {
+// 	let privsTmp = privs.value!;
+// 	let priv = privsTmp.find(priv => priv.id == data.id);
+// 	priv?.messages.push(data.msg);
+// 	privs.value = privsTmp;
+// })
+
+// RESIZE WINDOW
 let reload = ref(0)
 onMounted(() => {
 	window.addEventListener("resize", () => {
 		reload.value++;
 	})
 });
+	
 
-let socket = io(FQDN + ':3000');
-provide("socket", socket);
+// GET PRIVS 
+let privs : PrivConv[] = []; 
+let privsRef : Ref<PrivConv[]> = ref(privs);
+let privDone = ref(false);
+getPrivsRequest();
+provide('privs', privsRef);
+provide('privDone', privDone);
 
-socket.on('connect', () => {
-	console.log("client-side connected");
+
+// function updatePrivs() {
+// 	privs.value = 'South Pole'
+// }
+
+function getPrivsRequest() {
+	console.log(`avant getPrivsRequest()`);
+	HTTP.get(apiPath + "chat/getPrivs/" + me)
+	.then(res => {
+		console.log(`privsConvDto : `);
+		res.data.forEach((priv : PrivConv) => {
+			console.log(`user = ${priv.user.login}`);
+			priv.messages.forEach((msg) => console.log(`${msg.msg}`));
+			// priv.messages.forEach((msg) => console.log(
+				// 	`msg = '${msg.msg}',
+				// 	user = ${msg.user},
+				// 	date = ${msg.date}`
+				// ));
+			});
+
+		if (!res.data)
+			// privs.value = [];
+			// privs = [];
+			privsRef.value = [];
+		else {
+			// privs.value = res.data;
+			let privsTmp : PrivConv[] = [];
+			res.data.forEach((priv : PrivConv) => {
+				let msgsTmp : Message[] = [];
+				priv.messages.forEach((msg, j) => {
+					msgsTmp.push(new Message(msg.user, msg.msg, new Date(msg.date)))
+				});
+				privsTmp.push(new PrivConv(priv.user, msgsTmp, priv.readed, priv.id));
+				console.log(`readed = ${priv.readed}`);
+			});
+			// privs.value = privsTmp;
+			// privs = privsTmp;
+			privsRef.value = privsTmp;
+		}
+
+		// privsRef = ref(privs);
+		privDone.value = true;
+		console.log(`getPrivsRequest Done`);
+
+		// console.log(`privsObject : `);
+		// privs.forEach(priv => {
+		// 	console.log(`user = ${priv.user.login}`);
+		// 	priv.messages.forEach((msg) => console.log(`${msg.msg}`));
+		// });
+		console.log(`privsRef : `);
+		privsRef.value.forEach(priv => {
+			console.log(`user = ${priv.user.login}`);
+			priv.messages.forEach((msg) => console.log(`${msg.msg}`));
+		});
+	})
+	.catch(e => console.log(e));
+}
+
+watch(privsRef, () => {
+	console.log(`privs changed in homeview`);
 })
 
-socket.on('message', function(id, data) {
-	console.log(`Server message : ${id}: ${data}`, );
+// CREATE SOCKET LISTENERS 
+socket.on('newPrivConv', (data: PrivConv) => {
+	console.log(`New private created`)
+	// let privTmp = privs.value!;
+	// privTmp.push(data);
+	// privs.value = privTmp;
+	// ==============
+	// privs.push(data);
+	// ==============
+	// let msg = new Message(data.messages[0].user, data.messages[0].msg, new Date (data.messages[0].date));
+	// privsRef.value.push(new PrivConv(new BasicUser(data.user.login), [msg], data.readed, data.id));
+	// ==============
+	let newPriv = data;
+	newPriv.messages.forEach(msg => msg.date = new Date(msg.date));
+	privsRef.value.push(data);
+
+	console.log(`privsRef : `);
+	privsRef.value.forEach(priv => {
+		console.log(`user = ${priv.user.login}`);
+		priv.messages.forEach((msg) => console.log(`${msg.msg}`));
+	});
 })
-socket.on('getMsgs', (data) => {
-	console.log(data);
+socket.on('newPrivMsg', (data: {msg: Message, id: number}) => {
+	console.log(`New message received : ${data.msg.msg}`)
+	// let privsTmp = privs.value!;
+	// let priv = privsTmp.find(priv => priv.id == data.id);
+	// priv?.messages.push(data.msg);
+	// privs.value = privsTmp;
+	// ==============
+	// let priv = privs.find(priv => priv.id == data.id);
+	// priv?.messages.push(data.msg);
+	// ==============
+	let i = privsRef.value.findIndex(priv => priv.id == data.id);
+	privsRef.value[i].messages.push(new Message(data.msg.user, data.msg.msg, new Date(data.msg.date)));
+	
+	console.log(`privsRef : `);
+	privsRef.value.forEach(priv => {
+		console.log(`user = ${priv.user.login}`);
+		priv.messages.forEach((msg) => console.log(`${msg.msg}`));
+	});
 })
 
-
+// console.log(`Homeview finished`);
 
 </script>
 

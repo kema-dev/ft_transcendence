@@ -36,7 +36,7 @@ function changeInput(value : string) {
 }
 
 onMounted( () => {
-    emit('searchInput', search.value);
+    // emit('searchInput', search.value);
 })
 
 </script>
