@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like } from 'typeorm';
 import {UserEntity} from './user.entity';
@@ -8,6 +8,7 @@ import CreateUserDto from './dto/createUser.dto';
 
 @Injectable()
 export class UsersService {
+  private logger: Logger = new Logger('UsersService');
 	constructor(
 		@InjectRepository(UserEntity)
 		private usersRepository: Repository<UserEntity>,
@@ -38,7 +39,7 @@ export class UsersService {
 		console.error('getByLogin: ' + logname + ' not found, returning ✘');
 		throw new HttpException('E_USER_NOT_FOUND', HttpStatus.NOT_FOUND);
 	}
-	
+
 	async getByLoginFiltred(filter: string) {
 		let maxUsers = 15;
 		console.log('getByLoginFiltred: starting for ' + filter);
@@ -79,6 +80,21 @@ export class UsersService {
 		}
 		console.error('getByAny: ' + name + ' not found, returning ✘');
 		throw new HttpException('E_USER_NOT_FOUND', HttpStatus.NOT_FOUND);
+	}
+
+	async sendFriendRequest(sender: string, receiver: string) {
+		let userReceiver = await this.getByLogin(receiver);
+		let userSender = await this.getByLogin(sender);
+		userReceiver.requestFriend.push(userSender);
+		this.usersRepository.save(userReceiver);
+	}
+
+	async addFriend(sender: string, receiver: string) {
+		let userSender = await this.getByLogin(sender);
+		let userReceiver = await this.getByLogin(receiver);
+		userSender.friends.push(userReceiver);
+		userReceiver.friends.push(userSender);
+		this.usersRepository.save([userReceiver, userSender]);
 	}
 
 	async checkLoginExistence(login: string) {

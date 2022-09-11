@@ -1,7 +1,7 @@
 <template>
 	<div>
 		<div class="center column">
-			<div class="search_groupe center row">
+			<!-- <div class="search_groupe center row">
 				<input
 					type="text"
 					placeholder="Recherche"
@@ -13,18 +13,25 @@
 						search
 					</span>
 				</button>
-			</div>
-			<!-- <SearchItem @change="searchChange" :search="search.value"/> -->
+			</div> -->
+			<!-- <SearchItem v-model="search"/> -->
+			<input type="text" placeholder="Recherche" id="search" ref="search" />
 			<div v-if="search.value == ''" class="column center">
+			<div v-if="me.requestFriend.length != 0">
+				<h2>Friend request</h2>
+				<div v-for="friend in me.requestFriend" :key="friend.login">
+					<h2>{{ friend.login }}</h2>
+				</div>
+			</div>
 				<!-- <div class="center column"> -->
-				<h2 v-if="user.friends.length == 0">No friends</h2>
+				<h2 v-if="me.friends.length == 0">No friends</h2>
 				<div
 					v-for="friend in users"
-					v-bind:key="friend.name"
+					v-bind:key="friend.login"
 					class="row center"
 				>
 					<div
-						v-if="user.friends.includes(friend.name)"
+						v-if="me.friends.includes(friend)"
 						class="center column"
 					>
 						<FriendItem :friend="friend" />
@@ -33,18 +40,16 @@
 				</div>
 			</div>
 			<div v-else class="center column">
+				<h2>{{users.length}}</h2>
+				<h2 v-if="users.length == 0">No user</h2>
 				<div
-					v-for="friend in users"
-					v-bind:key="friend.name"
+					v-else
+					v-for="user in users"
+					v-bind:key="user.login"
 					class="row center"
 				>
-					<div class="center row" v-if="friend.name == search.value">
-						<div :set="(find = true)" style="display: none"></div>
-						<FriendItem :friend="friend" />
-					</div>
+					<FriendItem :friend="user" />
 				</div>
-				<h2 v-if="find == false">No user</h2>
-				<div :set="(find = false)"></div>
 			</div>
 		</div>
 	</div>
@@ -56,12 +61,18 @@ import { inject, onMounted, ref } from "vue";
 import FriendItem from "@/components/FriendItem.vue";
 import SearchItem from "@/components/SearchItem.vue";
 import { FQDN } from "../../.env.json";
+import User from "@/chat/User";
+import { Socket } from "engine.io-client";
 
 let define = inject("colors");
-
-let find = false;
-
+let me: User = inject("me")!;
+let socket: Socket = inject("socket")!;
+let users = ref([]);
 const search = ref("");
+socket.on("getUsersByLoginFiltred", (data: User[]) => {
+	users.value = data;
+	console.log(users);
+});
 onMounted(() => {
 	let input = document.getElementById("search");
 	if (input == null) console.log("error");
@@ -71,37 +82,15 @@ onMounted(() => {
 			return;
 		}
 		search.value = input.value;
+		if (search.value != "") {
+			// users.value = post('user/getUsers', search.value);
+			socket.emit("getByLoginFiltred", search.value);
+		}
 	});
 });
-let options: {
-	minimizable: false;
-	playerSize: "standard";
-	backgroundColor: "#fff";
-	backgroundStyle: "color";
-	theme: {
-		controlsView: "standard";
-		active: "light";
-		light: {
-			color: "#3D4852";
-			backgroundColor: "#fff";
-			opacity: "0.7";
-		};
-		dark: {
-			color: "#fff";
-			backgroundColor: "#202020";
-			opacity: "0.7";
-		};
-	};
-};
 // function search_user(str: string) {
 // 	users.forEach((u) => u.name == str);
 // }
-let user = {
-	name: "zeus",
-	level: "1000",
-	avatar: require("@/assets/avatars/(2).jpg"),
-	friends: ["Jane", "John", "Jacksdfgtertwdsfadfsafdertert"],
-};
 function post(url: string, args: any) {
 	let data;
 	axios
@@ -122,57 +111,57 @@ function post(url: string, args: any) {
 // 	login: user.name,
 // 	infos: ["avatar"],
 // });
-let users = [
-	{
-		name: "John",
-		level: "25",
-		avatar: require("@/assets/avatars/(1).jpg"),
-		friends: ["Jane"],
-		status: "offline",
-		rank: "1st",
-		ratiov: "10",
-		ratiod: "5",
-	},
-	{
-		name: "Jane",
-		level: "24",
-		avatar: require("@/assets/avatars/(2).jpg"),
-		friends: ["Jill"],
-		status: "online",
-		rank: "2st",
-		ratiov: "10",
-		ratiod: "5",
-	},
-	{
-		name: "Jacksdfgtertwdsfadfsafdertert",
-		level: "2365464654654654646546546545",
-		avatar: require("@/assets/avatars/(3).jpg"),
-		status: "in game",
-		rank: "3st",
-		ratiov: "10",
-		ratiod: "5",
-	},
-	{
-		name: "Jill",
-		level: "2",
-		avatar: require("@/assets/avatars/(4).jpg"),
-		friends: ["Jane", "Jacksdfgtertwdsfadfsafdertert"],
-		status: "online",
-		rank: "4st",
-		ratiov: "10",
-		ratiod: "5",
-	},
-	{
-		name: "Joe",
-		level: "21",
-		avatar: require("@/assets/avatars/(5).jpg"),
-		friends: ["Jane", "Jacksdfgtertwdsfadfsafdertert"],
-		status: "online",
-		rank: "5st",
-		ratiov: "10",
-		ratiod: "5",
-	},
-];
+// let users = [
+// 	{
+// 		login: "John",
+// 		level: "25",
+// 		avatar: require("@/assets/avatars/(1).jpg"),
+// 		friends: ["Jane"],
+// 		status: "offline",
+// 		rank: "1st",
+// 		ratiov: "10",
+// 		ratiod: "5",
+// 	},
+// 	{
+// 		name: "Jane",
+// 		level: "24",
+// 		avatar: require("@/assets/avatars/(2).jpg"),
+// 		friends: ["Jill"],
+// 		status: "online",
+// 		rank: "2st",
+// 		ratiov: "10",
+// 		ratiod: "5",
+// 	},
+// 	{
+// 		login: "Jacksdfgtertwdsfadfsafdertert",
+// 		level: "2365464654654654646546546545",
+// 		avatar: require("@/assets/avatars/(3).jpg"),
+// 		status: "in game",
+// 		rank: "3st",
+// 		ratiov: "10",
+// 		ratiod: "5",
+// 	},
+// 	{
+// 		name: "Jill",
+// 		level: "2",
+// 		avatar: require("@/assets/avatars/(4).jpg"),
+// 		friends: ["Jane", "Jacksdfgtertwdsfadfsafdertert"],
+// 		status: "online",
+// 		rank: "4st",
+// 		ratiov: "10",
+// 		ratiod: "5",
+// 	},
+// 	{
+// 		name: "Joe",
+// 		level: "21",
+// 		avatar: require("@/assets/avatars/(5).jpg"),
+// 		friends: ["Jane", "Jacksdfgtertwdsfadfsafdertert"],
+// 		status: "online",
+// 		rank: "5st",
+// 		ratiov: "10",
+// 		ratiod: "5",
+// 	},
+// ];
 </script>
 
 <style scoped>

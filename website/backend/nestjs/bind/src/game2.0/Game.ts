@@ -120,7 +120,7 @@ export default class Game {
 				return;
 			}
 	}
-	stop() {
+	destructor() {
 		this.run = false;
 	}
 	async loop() {

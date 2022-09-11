@@ -43,8 +43,6 @@ socket.on('getMsgs', (data) => {
 	console.log(data);
 })
 
-
-
 </script>
 
 <style>

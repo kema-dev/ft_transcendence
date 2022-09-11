@@ -3,21 +3,21 @@
 		class="friend_case space-between row"
 	>
 		<div class="center row">
-			<router-link :to="{name: 'player', params: {name: friend.name}}"><img :src="friend.avatar" class="avatar" alt="avatar" /></router-link>
+			<router-link :to="{name: 'player', params: {name: friend.login}}"><img :src="friend.avatar" class="avatar" alt="avatar" /></router-link>
 			<div class="center column">
 				<div class="space-between left row">
 					<div class="left column">
-						<router-link :to="{name: 'player', params: {name: friend.name}}"><h2 class="name">{{ friend.name }}</h2></router-link>
+						<router-link :to="{name: 'player', params: {name: friend.login}}"><h2 class="name">{{ friend.login }}</h2></router-link>
 						<h3 class="text">level {{ friend.level }}</h3>
 					</div>
 					<div class="right column">
 						<button
 							class="action"
-							v-on:click="remove_friend(friend.name)"
+							v-on:click="remove_friend(friend.login)"
 						>
 							X
 						</button>
-						<h3 class="status" v-if="user.friends.includes(friend.name)">{{ friend.status }}</h3>
+						<h3 class="status" v-if="me.friends.includes(friend.login)">{{ friend.status }}</h3>
 					</div>
 				</div>
 				<div class="space-between row">
@@ -26,9 +26,9 @@
 					<!-- <h2 class="score">{{friend.ratiov}} | {{friend.ratiod}}</h2> -->
 				<!-- </div> -->
 				<div class="right row">
-					<button class="action" v-on:click="add_friend(friend.name)" v-if="!user.friends.includes(friend.name)">add friend</button>
+					<button class="action" v-on:click="add_friend(friend.login)" v-if="!me.friends.includes(friend.login)">add friend</button>
 					<button class="action">invit</button>
-					<button class="action" v-if="user.friends.includes(friend.name)">chat</button>
+					<button class="action" v-if="me.friends.includes(friend.login)">chat</button>
 				</div>
 				</div>
 			</div>
@@ -37,18 +37,16 @@
 </template>
 
 <script setup lang="ts">
+import User from '@/chat/User';
+import { Socket } from 'engine.io-client';
 import { inject, defineProps } from "vue";
+let socket: Socket = inject('socket')!;
+let me: User = inject('me')!;
 let define = inject("colors");
 const props = defineProps(['friend'])
 
-let user = {
-	name: "zeus",
-	level: "1000",
-	avatar: require("@/assets/avatars/(2).jpg"),
-	friends: ["Jane", "John", "Jacksdfgtertwdsfadfsafdertert"],
-};
 function add_friend(name: string) {
-	name;
+	socket.send('addFriend', {sender: me.login, reciever: name})
 }
 function remove_friend(name: string) {
 	name;

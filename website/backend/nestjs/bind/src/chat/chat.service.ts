@@ -24,7 +24,7 @@ export class ChatService {
 		return await this.msgRepository.find();
 		// return 'get msg';
 	}
-	
+
 	async getPrivConvs() {
 		console.log("getPrivConvs Chat");
 		return await this.privateRepository.find({relations: ['users', 'messages']});
@@ -35,7 +35,7 @@ export class ChatService {
 	// 	console.log("AddMesage Chat");
 	// 	return await this.msgRepository.save(data);
 	// }
-	
+
 	async addPrivMsg(data : NewPrivMsgDto) {
 		console.log("addPrivMsg Chat");
 		// Find and add UsersId to Msg + PrivConv
@@ -46,7 +46,7 @@ export class ChatService {
 		await this.msgRepository.save(msg).catch(e => console.log("Save msg error"));
 		// Check if PrivConv exist
 		const privates = await this.privateRepository.find( {relations: ['users', 'messages']});
-		const priv = privates.find((item) => 
+		const priv = privates.find((item) =>
 			(item.users[0].id == userSend.id && item.users[1].id == userReceive.id)
 			|| (item.users[1].id == userSend.id && item.users[0].id == userReceive.id)
 		)
@@ -65,7 +65,4 @@ export class ChatService {
 			await this.privateRepository.save(newPriv).catch(e => console.log("Save newPriv error"));
 		}
 	}
-
-	
-	
 }

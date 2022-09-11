@@ -3,14 +3,16 @@ export default class User {
     level: number;
     avatar: any;
     friends: User[];
-    status: boolean;
-    rank: number
+    status: string;
+    rank: number;
+    requestFriend: User[];
     constructor(name: string, avatar: any) {
         this.login = name;
         this.avatar = avatar;
         this.level = 0;
         this.friends = [];
-        this.status = false;
+        this.requestFriend = [];
+        this.status = "offline";
         this.rank = 0;
     }
 }

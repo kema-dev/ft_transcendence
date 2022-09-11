@@ -3,8 +3,26 @@ import { MessageEntity } from '../chat/entites/message.entity';
 import { PrivateEntity } from '../chat/entites/private.entity';
 import TimestampEntites from '../utils/timestamp.enties';
 
+function toDataURL(url: string, callback: Function) {
+	var xhr = new XMLHttpRequest();
+	xhr.onload = function () {
+		var reader = new FileReader();
+		reader.onloadend = function () {
+			callback(reader.result);
+		}
+		reader.readAsDataURL(xhr.response);
+	};
+	xhr.open('GET', url);
+	xhr.responseType = 'blob';
+	xhr.send();
+}
 @Entity("user")
-export class UserEntity extends TimestampEntites{
+export class UserEntity extends TimestampEntites {
+	constructor() {
+		super();
+		this.level = 0;
+		this.status = "offline";
+	}
 	@PrimaryGeneratedColumn()
 	public id?: number;
 
@@ -20,13 +38,23 @@ export class UserEntity extends TimestampEntites{
 	@Column()
 	public level: number;
 
-	@Column({nullable: true})
+	@Column({ nullable: true })
 	public avatar: string;
-	// @Column()
-	// public avatar: string;
 
-	// @Column()
-	// public friends: [User];
+	@Column({ nullable: true })
+	public status: string;
+
+	@ManyToMany(type => UserEntity, (user) => user.friends, {
+		onDelete: 'SET NULL'
+	})
+	@JoinTable()
+	public friends: UserEntity[];
+
+	@ManyToMany(type => UserEntity, (user) => user.requestFriend, {
+		onDelete: 'SET NULL'
+	})
+	@JoinTable()
+	public requestFriend: UserEntity[];
 
 	@Column()
 	public ft_code: string;
@@ -52,22 +80,26 @@ export class UserEntity extends TimestampEntites{
 	@Column()
 	public totp_code: string;
 
-	@Column({nullable: true})
+	@Column({ nullable: true })
 	public session_token: string;
 
-	@Column({nullable: true})
+	@Column({ nullable: true })
 	public session_expiration: Date;
 
-	@OneToMany(type => MessageEntity, (message) => message.user ,{
+	@OneToMany(type => MessageEntity, (message) => message.user, {
 		cascade: true,
 		nullable: true
 	})
 	messages: MessageEntity[];
-	
-	@ManyToMany(type => PrivateEntity, (priv) => priv.users ,{
+
+	@ManyToMany(type => PrivateEntity, (priv) => priv.users, {
 		cascade: true,
 		nullable: true
 	})
 	@JoinTable()
 	privates: PrivateEntity[];
 }
+function getBase64StringFromDataURL(result: string | ArrayBuffer) {
+	throw new Error('Function not implemented.');
+}
+

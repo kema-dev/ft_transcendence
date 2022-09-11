@@ -6,6 +6,7 @@
             id="search"
 			v-model="search"
 			@input="$emit('searchInput', search)"
+            
         />
         <!-- <input
             :value="modelValue"
