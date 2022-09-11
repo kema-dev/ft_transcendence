@@ -3,9 +3,9 @@ export class NewPrivMsgDto {
     userReceive: string;
     message: string;
     date = Date();
-    constructor(user1: string, user2: string, message: string) {
-        this.userSend = user1;
-        this.userReceive = user2;
+    constructor(userSend: string, userReceive: string, message: string) {
+        this.userSend = userSend;
+        this.userReceive = userReceive;
         this.message = message;
     }
 }

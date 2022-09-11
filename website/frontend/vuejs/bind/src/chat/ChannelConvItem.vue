@@ -89,7 +89,7 @@
 import { inject, onMounted, ref, onBeforeUnmount, watch } from "vue";
 import { useRoute } from 'vue-router';
 import MessageItem from "@/chat/MessageItem.vue";
-import Private from '@/chat/objects/Private';
+import Private from '@/chat/objects/PrivConv';
 import User from "@/chat/objects/User";
 import Message from "@/chat/objects/Message";
 import BlockAdvert from "@/components/BlockItem.vue";

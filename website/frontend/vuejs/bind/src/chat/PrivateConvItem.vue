@@ -1,5 +1,5 @@
 <template>
-	<div v-if="requestDone" id="conversation_view" class="stack">
+	<div v-if="privDone" id="conversation_view" class="stack">
 		<div class="userTopBar center raw space-between">
 			<div class="avatar_cont center">
 				<img :src="receiver!.avatar" class="avatar" alt="avatar">
@@ -14,20 +14,21 @@
 					<span class="infoButtonText">Block</span>
 					<img src="~@/assets/block_logo.svg" alt="Invite game button" class="logo_img">
 				</button>
-				<button onclick="history.back();" class="button_cont infoButton center">
+				<!-- <button onclick="history.back();" class="button_cont infoButton center"> -->
+				<router-link :to="{name: 'private'}" class="button_cont infoButton center">
 					<span class="infoButtonText">Close</span>
 					<img src="~@/assets/close_logo.svg" alt="Invite game button" class="logo_img">
-				</button>
+				</router-link>
 			</div>
 		</div>
 		<div class="conversation_content ">
-			<div id="messages_cont" ref="msgsCont" class="messages ">
-				<div v-for="(message, i) in msgs" :key="i" class="center column">
+			<div v-if="selectPriv()" id="messages_cont" ref="msgsCont" class="messages ">
+				<div v-for="(message, i) in selectPriv()!.messages" :key="i" class="center column">
 					<div v-if="checkDate(i)" class="date">
 						{{displayDate(message.date, i)}}
 					</div>
 					<MessageItem 
-						:userAvatar="receiver!.avatar"
+						:userAvatar="receiver.avatar"
 						:userLogin="message.user"
 						:message="message.msg"
 						:date="message.date"
@@ -59,12 +60,11 @@
 <script setup lang="ts">
 /* eslint @typescript-eslint/no-var-requires: "off" */
 import axios from "axios";
-import { inject, onMounted, ref, onBeforeUnmount, watch, onBeforeMount, nextTick } from "vue";
+import { inject, onMounted, onUnmounted, ref, Ref, onBeforeUnmount, watch, onBeforeMount, nextTick } from "vue";
 import { useRoute } from 'vue-router';
 import { Socket } from "socket.io-client";
 import HTTP from "../components/axios";
 import MessageItem from "@/chat/MessageItem.vue";
-import Private from '@/chat/objects/Private';
 import User from "@/chat/objects/User";
 import Message from "@/chat/objects/Message";
 import WarningMsg from "@/components/WarningMsg.vue";
@@ -72,32 +72,56 @@ import { NewPrivMsgDto } from "@/chat/dto/NewPrivMsgDto";
 import BasicUserDto from "./dto/BasicUserDto";
 import MessageDto from "./dto/MessageDto"
 import {PrivateConvDto} from "./dto/PrivateConvDto"
+import { PrivConv } from "@/chat/objects/PrivConv";
+import BasicUser from "./objects/BasicUser";
+import { ConstantTypes } from "@vue/compiler-core";
 
+let define = inject("colors");
 let apiPath: string = inject("apiPath")!;
 let mySocket: Socket = inject("socket")!;
-let define = inject("colors");
 let me: string = inject("me")!;
+let privs : Ref<PrivConv[]> = inject("privs")!;
 const userName = useRoute().params.conv_name as string ;
-let receiver = ref<BasicUserDto>();
-let msgs = ref<MessageDto[]>();
-// let privConv : PrivateConvDto;
+let receiver : BasicUser = new BasicUser(userName);
+const privDone: Ref<boolean> = inject("privDone")!;
+// console.log(`privDone = ${privDone.value}, privsRef : `);
+// privs.value.forEach(priv => {
+// 	console.log(`user = ${priv.user.login}`);
+// 	priv.messages.forEach((msg) => console.log(`${msg.msg}`));
+// });
+
+// watch(privDone, () => {
+// 	console.log(`privDone = ${privDone.value}`);
+// })
 
 let myMsg = ref("");
 let blockWarn = ref(false);
 let requestDone = ref(false);
 let msgsCont = ref(null);
 
-mySocket.on("newPrivMsg", (data: NewPrivMsgDto) => {
-	// console.log(`msgs.value = ${msgs.value}`);
-	let tmp = msgs.value!;
-	tmp.push(new MessageDto(data.userSend, data.message, new Date(data.date)))
-	msgs.value = tmp;
-	nextTick(() => {
-		((msgsCont.value!) as HTMLElement).scrollTop = 
-			((msgsCont.value!) as HTMLElement).scrollHeight;
-		console.log(`scrolled socket on`);
-	}).catch(e => console.log(e));
-});
+function selectPriv() {
+	// console.log(`selectPriv()`);
+	return privs.value!.find(priv => priv.user.login == userName);
+}
+
+// mySocket.on('newPrivMsg', (data: {msg: Message, id: number}) => {
+// 	console.log(`New message received : ${data.msg.msg}`)
+// })
+
+// mySocket.on("newPrivMsg", (data: NewPrivMsgDto) => {
+// 	// console.log(`msgs.value = ${msgs.value}`);
+// 	let tmp = msgs.value!;
+// 	tmp.push(new MessageDto(data.userSend, data.message, new Date(data.date)))
+// 	msgs.value = tmp;
+// 	nextTick(() => {
+// 		((msgsCont.value!) as HTMLElement).scrollTop = 
+// 			((msgsCont.value!) as HTMLElement).scrollHeight;
+// 		console.log(`scrolled socket on`);
+// 	}).catch(e => console.log(e));
+// 	console.log(`userSend = ${data.userSend}, me = ${me}`)
+// 	if (data.userSend != me)
+// 		mySocket.emit("privReaded", {userSend: userName, userReceive: me});
+// });
 
 
 // (async () => {
@@ -120,22 +144,18 @@ mySocket.on("newPrivMsg", (data: NewPrivMsgDto) => {
 // 	requestDone.value = true;
 // })();
 
-HTTP.get(apiPath + "chat/getPriv/" + me + "/" + userName)
-	.then(res => {
-		// console.log(`privConvDto = ${res.data}`);
-		receiver.value = new BasicUserDto(res.data.user);
-		if (res.data.messages == [])
-			msgs.value = [];
-		else {
-			let msgsTmp : MessageDto[] = [];
-			res.data.msgs.forEach((msg : MessageDto) => {
-				msgsTmp.push(new MessageDto(msg.user, msg.msg, new Date(msg.date)))
-			});
-			msgs.value = msgsTmp;
-		}
-		requestDone.value = true;
-	})
-	.catch(e => console.log(e));
+// HTTP.get(apiPath + "chat/getPriv/" + me + "/" + userName)
+// 	.then(res => {
+// 		// console.log(`privConvDto = ${res.data}`);
+// 		receiver.value = new BasicUserDto(res.data.user);
+// 		let msgsTmp : MessageDto[] = [];
+// 		res.data.msgs.forEach((msg : MessageDto) => {
+// 			msgsTmp.push(new MessageDto(msg.user, msg.msg, new Date(msg.date)))
+// 		});
+// 		msgs.value = msgsTmp;
+// 		requestDone.value = true;
+// 	})
+// 	.catch(e => console.log(e));
 
 
 
@@ -159,31 +179,39 @@ HTTP.get(apiPath + "chat/getPriv/" + me + "/" + userName)
 // let conv = ref(new Private(user2, [msg1, msg2, msg3, msg5, msg6]));
 
 function checkDate(i: number) {
+	// console.log(`checkDate(), i = ${i}`)
 	if (i == 0)
 		return true;
-	else if (Math.ceil((msgs.value![i].date.getTime() 
-		- msgs.value![i-1].date.getTime()) / (1000 * 60)) > 15)
-		return true;
-	else
+	else if (Math.ceil((selectPriv()!.messages[i].date.getTime() 
+		- selectPriv()!.messages[i-1].date.getTime()) / (1000 * 60)) > 15) {
+			// console.log(`checkDate = true`);
+			return true;
+		}
+	else {
+		// console.log(`checkDate = false`);
 		return false;
+	}
 }
 
 function displayDate(date: Date, i: number) {
+	// console.log(`displayDate()`)
 	let minutes : string | number;
 	if (date.getMinutes() < 10)
 		minutes = "0" + date.getMinutes().toString();
 	else
 		minutes = date.getMinutes();
+	console.log(`test`);
 	let hours : string | number;
-		if (date.getHours() < 10)
-			hours = "0" + date.getHours().toString();
-		else
-			hours = date.getHours();
+	if (date.getHours() < 10)
+		hours = "0" + date.getHours().toString();
+	else
+		hours = date.getHours();
 	const day = date.getDay();
 	const month = date.toLocaleString('default', { month: 'long' })
 	// const monthNames = ["January", "February", "March", "April", "May", "June",
 	// 	"July", "August", "September", "October", "November", "December"];
 	const year = date.getFullYear();
+	console.log(`displayDate() avant returns`)
 	if (i == 0)
 		return `Created the ${day} ${month} ${year} at ${hours}:${minutes}`;
 	const now = new Date();
@@ -224,47 +252,21 @@ function sendMsg() {
 
 }
 
-watch(msgs, (msg) => {
+watch(selectPriv()!.messages!, (msg) => {
 	((msgsCont.value!) as HTMLElement).scrollTop = 
 	((msgsCont.value!) as HTMLElement).scrollHeight;
 	// nextTick(() => {
 		// 	let msgsCont = document.getElementById("messages_cont");
 		// 	msgsCont!.scrollTop = msgsCont!.scrollHeight;
 		// });
-		console.log("scrolled watch");
+	console.log("scrolled watch");
 }, {flush:'post'});
 
-
-// onBeforeMount(() => {
-// 	while(requestDone == false) {
-// 		setTimeout(() => {console.log(`request not done`)}, 100)
-// 	}
-// })
-
 onMounted(() => {
-	// console.log("debut mounted");
-	const box = document.getElementById('privateTabText');
-	if (box != null) {
-		box.style.setProperty('border-bottom', '2px solid #16638D');
-		box.style.setProperty('color', '#16638D');
-		box.style.setProperty('font-weight', '500');
-	}
-	// console.log("fin mounted");
-	// let input = document.getElementById("sendbox");
-	// input!.addEventListener("keydown", function(e) {
-	// 	if (e.key === "Enter") {
-	// 		e.preventDefault();
-	// 		// ENVOI MSG AU BACK <===================================
-	// 		axios.post(apiPath + "chat/message", myMsg)
-	// 		.then(res => {
-	// 			console.log("Send msg to back OK");
-	// 			let newMsg = new Message(me, myMsg.value, new Date());
-	// 			conv.value.messages.push(newMsg);
-	// 			myMsg.value = "";
-	// 		}).catch(e => {console.log(e)});
-	// 	}
-	// });
-});
+	((msgsCont.value!) as HTMLElement).scrollTop = 
+	((msgsCont.value!) as HTMLElement).scrollHeight;
+	console.log("scrolled onMounted");
+})
 
 onBeforeUnmount(() => {
 	const box = document.getElementById('privateTabText');
@@ -274,6 +276,18 @@ onBeforeUnmount(() => {
 		box.style.removeProperty('font-weight');
 	}
 })
+
+onUnmounted(() => {
+	// console.log("debut mounted");
+	// mySocket.off("newPrivMsg");
+	const box = document.getElementById('privateTabText');
+	if (box != null) {
+		box.style.setProperty('border-bottom', '2px solid #16638D');
+		box.style.setProperty('color', '#16638D');
+		box.style.setProperty('font-weight', '500');
+	}
+	// console.log("fin mounted");
+});
 
 </script>
 

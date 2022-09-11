@@ -19,7 +19,7 @@
 
 <script setup lang="ts">
 import { inject, defineProps, onMounted, ref } from "vue";
-import Private from '@/chat/objects/Private';
+import Private from '@/chat/objects/PrivConv';
 import User from "./objects/User";
 import Message from "./objects/Message";
 
@@ -56,6 +56,7 @@ if (props.read == false && props.lastMsgUser != me)
   displayNotRead = true;
 else
   displayNotRead = false;
+console.log(`\ndisplayNotRead = ${displayNotRead}\nread = ${props.read}\nlastMsgUser = ${props.lastMsgUser}`);
 
 function displayMsg() {
   if (props.lastMsgUser == me)

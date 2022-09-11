@@ -1,44 +1,47 @@
 import { Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
 import { string } from 'joi';
 import { ChatService } from './chat.service';
+import BasicUser from './dto/BasicUser';
 import { Message, PrivateConvDto } from './dto/PrivateConvDto';
 import PrivateTabDto from './dto/PrivateTabDto';
+import { PrivConv } from './dto/PrivConv';
 
 
 @Controller('chat')
 export class ChatController {
 	constructor(private readonly chatService: ChatService){}
 
-	// @Get('message') 
-	// getMessage() {
-	// 	console.log("Get message list");
-	// 	// return "Get Message";
-	// 	return this.chatService.getMessages();
-	// }
-
 	@Get('getPrivs/:login')
-	async getUserPrivs(@Param() params : {login: string}) {
-		console.log("getUserPrivs for user \'" + params.login + "\'");
+	async getPrivs(@Param() params : {login: string}) {
+		console.log(`getPrivs for user ${params.login }`);
 		const privs = await this.chatService.getUserPrivs(params.login);
+		// await this.chatService.printPrivs(privs);
 		privs.sort(function (x, y) {
-			if ( x.messages[x.messages.length - 1].createdAt 
-				< y.messages[y.messages.length - 1].createdAt) 
+			if ( x.messages[x.messages.length - 1].createdAt.getTime() 
+				< y.messages[y.messages.length - 1].createdAt.getTime()) 
 				return 1;
 			return -1;
 		});
-		let privsTabDto : PrivateTabDto[] = [];
+		// await this.chatService.printPrivs(privs);
+		let privsDto : PrivConv[] = [];
 		privs.forEach(priv => {
 			let login: string;
 			if (priv.users[0].login == params.login)
 				login = priv.users[1].login;
 			else
 				login = priv.users[0].login;
-			let msg = priv.messages[priv.messages.length - 1].message;
-			let lastMsgUser = priv.messages[priv.messages.length - 1].user.login;
-			let date = priv.messages[priv.messages.length - 1].createdAt;
+			let user = new BasicUser(login);
 			let read = priv.readed;
-			privsTabDto.push(new PrivateTabDto(login, msg, date, lastMsgUser, read));
-		}); 
+			let msgs : Message[] = [];
+			let id = priv.id;
+			priv.messages.forEach((msg) => msgs.push(new Message(msg.user.login, msg.message, msg.createdAt)))
+			privsDto.push(new PrivConv(user, msgs, read, id));
+			// let msg = priv.messages[priv.messages.length - 1].message;
+			// let lastMsgUser = priv.messages[priv.messages.length - 1].user.login;
+			// let date = priv.messages[priv.messages.length - 1].createdAt;
+			// privsTabDto.push(new PrivConv(login, msg, date, lastMsgUser, read));
+		});
+		return privsDto;
 		// privsTabDto.forEach(priv => console.log(`priv = 
 		// 	login = ${priv.login}
 		// 	message = ${priv.message}
@@ -47,7 +50,7 @@ export class ChatController {
 		// 	readed = ${priv.readed}
 		// `));
 		// privs.forEach(priv => console.log(`priv = ${priv.messages}`));
-		return privsTabDto;
+		// return privsTabDto;
 	}
 
 	@Get('getUsersByLoginFiltred/:login/:filter')

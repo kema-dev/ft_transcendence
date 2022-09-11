@@ -30,9 +30,15 @@ services:
     ports:
       - "${PGADMIN_HOST_PORT}:${PGADMIN_PORT_HTTP}"
     restart: unless-stopped
+    # environment:
+    #   - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL}
+    #   - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD}
+    #   - GUNICORN_ACCESS_LOGFILE=/dev/null
     environment:
-      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL}
-      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD}
+      PGADMIN_DEFAULT_EMAIL: 'pgadmin@example.com'
+      PGADMIN_DEFAULT_PASSWORD: 'pgadmin_pass'
+      GUNICORN_ACCESS_LOGFILE: '/dev/null'
+      PGADMIN_CONFIG_UPGRADE_CHECK_ENABLED: 'False'
     logging: 
       driver: none
 

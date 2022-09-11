@@ -1,5 +1,6 @@
 <template>
-	<div v-if="initReqDone" id="private_view" class="center column">
+	<!-- <div v-if="initReqDone" id="private_view" class="center column"> -->
+	<div v-if="privDone" id="private_view" class="center column">
 		<div class="option_private center raw">
 			<SearchItem @searchInput="searchChange" :key="searchKey" />
 			<div class="buttons_cont space-around raw">
@@ -24,12 +25,12 @@
 		<div v-if="!newMsg" class="myConversations center column">
 			<ConversationTab
 				v-for="(data, i) in privsFiltred" :key="i"
-				:name-conv="data.login"
-				:message="data.message"
-				:date="data.date"
-				:last-msg-user="data.lastMsgUser"
+				:name-conv="data.user.login"
+				:message="data.messages[data.messages.length-1].msg"
+				:date="new Date(data.messages[data.messages.length-1].date)"
+				:last-msg-user="data.messages[data.messages.length-1].user"
 				:read="data.readed"
-				:avatar="data.avatar"
+				:avatar="data.user.avatar"
 				class="center"
 			/>
 			<h2 v-if="privs!.length == 0" class="no_results">
@@ -75,11 +76,10 @@
 
 <script setup lang="ts">
 /* eslint @typescript-eslint/no-var-requires: "off" */
-import { inject, onMounted, defineEmits, ref, nextTick, onBeforeMount } from "vue";
+import { inject, onMounted, defineEmits, ref, Ref, nextTick, onBeforeMount, onUnmounted, watch } from "vue";
 import ConversationTab from "@/chat/ConversationTab.vue";
 import BasicProfil from "@/components/BasicProfilItem.vue";
 import SearchItem from "@/components/SearchItem.vue";
-import Private from "@/chat/objects/Private";
 import PrivateTabDto from "@/chat/dto/PrivateTabDto"
 import User from "@/chat/objects/User";
 import Message from "@/chat/objects/Message";
@@ -87,42 +87,62 @@ import BasicUserDto from "@/chat/dto/BasicUserDto"
 import { Socket } from "socket.io-client";
 import HTTP from "../components/axios";
 import { baseCompile } from "@vue/compiler-core";
+import { PrivConv } from "@/chat/objects/PrivConv";
 
-let define = inject("colors");
+
+// INJECTS
+let colors = inject("colors");
 let me: string = inject("me")!;
 let mySocket: Socket = inject("socket")!;
 let apiPath: string = inject("apiPath")!;
-let privs = ref<PrivateTabDto[]>();
-let privsFiltred = ref<PrivateTabDto[]>();
+let privs : Ref<PrivConv[]> = inject("privs")!;
+let privsFiltred = ref(privs.value);
+const privDone: Ref<boolean> = inject("privDone")!;
+
+
+
+// let privsFiltred = ref<PrivConv[]>();
 let serverUsers = ref<BasicUserDto[]>();
 const search = ref("");
 const newMsg = ref(false);
 const searchKey = ref(0);
-let initReqDone = ref(false);
 let userServReqDone = ref(false);
 
-mySocket.on("newPrivMsg", () => {
-	HTTP.get(apiPath + "chat/getPrivs/" + me)
-	.then(res => {
-		// console.log(`privConvDto = ${res.data}`);
-		let privsTmp : PrivateTabDto[] = [];
-		res.data.forEach((priv : PrivateTabDto) => {
-			privsTmp.push(new PrivateTabDto(priv.login, priv.message
-				, new Date(priv.date), priv.lastMsgUser, priv.readed));
-		});
-		// privsTmp.forEach(priv => console.log(`priv = 
-		// 	login = ${priv.login}
-		// 	message = ${priv.message}
-		// 	date = ${priv.date}
-		// 	lastMsgUser = ${priv.lastMsgUser}
-		// 	readed = ${priv.readed}
-		// `));
-		privs.value = privsTmp;
-		privsFiltred.value = privs.value;
-		initReqDone.value = true;
-	})
-	.catch(e => console.log(e));
-});
+watch(privDone, () => {
+	console.log(`privDone = ${privDone.value}`);
+	privsFiltred.value = privs.value;
+	// privs.value!.forEach(priv => {
+	// 	console.log(`user = ${priv.user.login}`);
+	// 	priv.messages.forEach((msg) => console.log(`${msg.msg}`));
+	// 	// priv.messages.forEach((msg) => console.log(
+	// 	// 	`msg = '${msg.msg}',
+	// 	// 	user = ${msg.user},
+	// 	// 	date = ${msg.date}`
+	// 	// ));
+	// });
+})
+
+// function getPrivsRequest() {
+// 	HTTP.get(apiPath + "chat/getPrivs/" + me)
+// 	.then(res => {
+// 		// console.log(`privConvDto = ${res.data}`);
+// 		let privsTmp : PrivateTabDto[] = [];
+// 		res.data.forEach((priv : PrivateTabDto) => {
+// 			privsTmp.push(new PrivateTabDto(priv.login, priv.message
+// 				, new Date(priv.date), priv.lastMsgUser, priv.readed));
+// 			console.log(`readed = ${priv.readed}`);
+// 		});
+// 		privs.value = privsTmp;
+// 		privsFiltred.value = privs.value;
+// 		initReqDone.value = true;
+		
+// 	})
+// 	.catch(e => console.log(e));
+// }
+// mySocket.on("newPrivMsg", () => {
+// 	getPrivsRequest();
+// });
+// getPrivsRequest();
 
 // mySocket.on("getUsersByLoginFiltred", (data : [{login: string}]) => {
 // 	let tmp : BasicUser[] = [];
@@ -133,69 +153,7 @@ mySocket.on("newPrivMsg", () => {
 // 	// console.log("serverUsers = ", serverUsers.value);
 // });
 
-// (async () => {
-// 	let dto : PrivateTabDto[] = (await HTTP.get(apiPath + "chat/getPrivs/" + me)).data;
-// 	let privsTmp : PrivateTabDto[] = [];
-// 	dto.forEach(priv => {
-// 		privsTmp.push(new PrivateTabDto(priv.login, priv.message, new Date(priv.date)));
-// 	});
-// 	privs.value = privsTmp;
-// 	privsFiltred.value = privs.value;
-// })();
 
-HTTP.get(apiPath + "chat/getPrivs/" + me)
-	.then(res => {
-		// console.log(`privConvDto = ${res.data}`);
-		let privsTmp : PrivateTabDto[] = [];
-		res.data.forEach((priv : PrivateTabDto) => {
-			privsTmp.push(new PrivateTabDto(priv.login, priv.message
-				, new Date(priv.date), priv.lastMsgUser, priv.readed));
-		});
-		privs.value = privsTmp;
-		privsFiltred.value = privs.value;
-		initReqDone.value = true;
-	})
-	.catch(e => console.log(e));
-
-
-
-
-// let user1 = new User("Totolosa", require("@/assets/avatars/(1).jpg"));
-// let user2 = new User("Ocean", require("@/assets/avatars/(2).jpg"));
-// let user3 = new User("Patrick la trick", require("@/assets/avatars/(3).jpg"));
-// let user4 = new User("Jeanjean", require("@/assets/avatars/(4).jpg"));
-// let user5 = new User("Totofake", require("@/assets/avatars/(5).jpg"));
-// // let user6 = new User("Patrick la trick", require("@/assets/avatars/(6).jpg"));
-
-// let msg1 = new Message(
-// 	user1,
-// 	"Salut frere rwf;jnavionra'mrv'aomfgifsivbdfvndfnvjsdglbjgb;fgklb;s;bg",
-// 	new Date("July 17, 2022 03:24:00")
-// );
-// let msg2 = new Message(user2, "Salut poto", new Date("July 22, 2022 03:25:12"));
-// let msg3 = new Message(user3, "Game?", new Date("July 18, 2022 12:45:45"));
-// let msg4 = new Message(
-// 	user1,
-// 	"Non je dois finir de faire le front, et wallah c'est chaud",
-// 	new Date("July 18, 2022 12:47:55")
-// );
-// let msg5 = new Message(
-// 	user1,
-// 	"dsaibciauwncopneejvnjnfcoamsdomvcafosnvonsvonoans",
-// 	new Date()
-// );
-// let msg6 = new Message(user2, "Mais tu sais pas parler en fait", new Date());
-
-// let conv1 = new Private(user2, [msg1, msg2]);
-// let conv2 = new Private(user3, [msg3, msg4]);
-// let conv3 = new Private(user1, [msg5, msg6]);
-
-// // let conversations = [conv1, conv2, conv3];
-// // let convsFiltred = ref(conversations);
-// // let friendsFiltred = ref(me.friends);
-// let conversations = [conv1, conv2, conv3];
-// let convsFiltred = ref(conversations);
-// // let friendsFiltred = ref(me.friends);
 
 
 
@@ -220,7 +178,7 @@ function searchChange(value: string) {
 	search.value = value;
 	// console.log("privs = ", privsFiltred.value);
 	privsFiltred.value = privs.value?.filter(function(value) {
-		return value.login.toUpperCase().startsWith(search.value.toUpperCase());
+		return value.user.login.toUpperCase().startsWith(search.value.toUpperCase());
 	});
 	// if (newMsg.value) {
 	// 	friendsFiltred.value = me.friends.filter(function(value) {
@@ -292,6 +250,11 @@ function createNewMsg() {
 		document.getElementById("search")?.focus();
 	});
 }
+
+// onUnmounted(() => {
+// 	mySocket.off("newPrivMsg");
+// })
+
 </script>
 
 <style>

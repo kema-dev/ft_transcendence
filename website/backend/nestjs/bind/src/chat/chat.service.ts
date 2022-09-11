@@ -6,8 +6,10 @@ import { PrivateEntity } from './entites/private.entity';
 import { UserEntity } from '../users/user.entity';
 import { UsersService } from '../users/users.service';
 import { NewPrivMsgDto } from './dto/NewPrivMsgDto';
+// import { PrivMsgDto as NewPrivMsgDto } from '../../../../../shared/dto/PrivMsgDto'
 import BasicUser from './dto/BasicUserDto';
 import { HttpService } from '@nestjs/axios';
+import { timeStamp } from 'console';
 
 
 @Injectable()
@@ -34,6 +36,8 @@ export class ChatService {
 	// 	console.log("getPrivConvs Chat");
 	// 	return await this.privateRepository.find({relations: ['users', 'messages']});
 	// }
+
+	
 
 	async getPrivMsg(login1: string, login2: string) {
 		const userId1 = (await this.userService.getByLogin(login1)).id;
@@ -66,13 +70,13 @@ export class ChatService {
 			relations: {privates : {users: true, messages: {user: true}}},
 			where: {login: login},
 			// order: {privates: {updatedAt: 'DESC'}},
-			// order: {
-			// 	privates: {
-			// 		messages: {
-			// 			createdAt: 'ASC',
-			// 		} 
-			// 	}
-			// }
+			order: {
+				privates: {
+					messages: {
+						createdAt: 'ASC',
+					} 
+				}
+			}
 	});
 
 		// const userId = (await this.userService.getByLogin(login)).id;
@@ -110,10 +114,10 @@ export class ChatService {
 	}
 	
 	async addPrivMsg(data : NewPrivMsgDto) {
+		console.log(`addPrivMsg Chatservice, msg = '${data.message}'`);
 		// Find users
 		const userSend = await this.userService.getByLogin(data.userSend);
 		const userReceive = await this.userService.getByLogin(data.userReceive);
-		console.log("addPrivMsg Chat");
 		// Create and save Msg
 		const msg = this.msgRepository.create({user: userSend, message: data.message});
 		await this.msgRepository.save(msg).catch(e => console.log("Save msg error"));
@@ -124,10 +128,11 @@ export class ChatService {
 			// console.log("Add msg in PrivateConv which already exist");
 			// console.log("priv = ", priv);
 			priv.messages.push(msg);
-			priv.updatedAt = msg.createdAt;
+			// priv.updatedAt = msg.createdAt;
 			priv.readed = false;
 			// console.log(`Update priv: ${priv.updatedAt.toLocaleTimeString()}`)
 			await this.privateRepository.save(priv).catch(e => console.log("Save priv error"));
+			return priv;
 			// await this.privateRepository.update(priv, {updatedAt: new Date()});
 		}
 		// else => Create a new PrivateConv
@@ -138,7 +143,14 @@ export class ChatService {
 			newPriv.messages = [msg];
 			newPriv.readed = false;
 			await this.privateRepository.save(newPriv).catch(e => console.log("Save newPriv error"));
+			return newPriv;
 		}
+	}
+
+	async markPrivReaded(priv : PrivateEntity) {
+		priv.readed = true;
+		this.privateRepository.save(priv);
+		return priv;
 	}
 
 
@@ -179,5 +191,19 @@ export class ChatService {
 		// 	console.log('getPrivWithUserIds failed, priv not found');
 		// 	throw new HttpException('E_PRIV_WITH_USERID_NFIND', HttpStatus.NOT_FOUND)
 		// }
+	}
+
+	async printPriv(priv: PrivateEntity) {
+		console.log(`Priv info :\nusers = ${priv.users[0].login}, ${priv.users[1].login}`);
+		console.log("msgs :");
+		priv.messages.forEach(msg => {
+			console.log(`${msg.message}, created at ${msg.createdAt.toLocaleTimeString("fr")}}`)
+		})
+	}
+
+	async printPrivs(privs: PrivateEntity[]) {
+		privs.forEach(async (priv) => {
+			await this.printPriv(priv);
+		});
 	}
 }
