@@ -23,8 +23,8 @@
 		</div>
 		<div class="conversation_content ">
 			<div id="messages_cont" ref="msgsCont" class="messages ">
-				<div v-if="privDone && privRef" ref="msgsLoaded">
-					<div v-for="(message, i) in privRef!.messages" :key="i" class="center column">
+				<div v-if="privDone && selectPriv()">
+					<div v-for="(message, i) in selectPriv()!.messages" :key="i" class="center column">
 						<div v-if="checkDate(i)" class="date">
 							{{displayDate(message.date, i)}}
 						</div>
@@ -56,7 +56,7 @@
 <script setup lang="ts">
 /* eslint @typescript-eslint/no-var-requires: "off" */
 import axios from "axios";
-import { inject, onMounted, onUnmounted, ref, Ref, onBeforeUnmount, watch, onBeforeMount, nextTick } from "vue";
+import { inject, onMounted, onUnmounted, ref, Ref, onBeforeUnmount, watch, onBeforeMount, nextTick, onUpdated, onBeforeUpdate } from "vue";
 import { useRoute } from 'vue-router';
 import { Socket } from "socket.io-client";
 import HTTP from "../components/axios";
@@ -85,10 +85,13 @@ let privs : Ref<PrivConv[]> | undefined = inject("privs");
 // printPrivs(privs.value);
 // let privRef : Ref<PrivConv> | undefined;
 // if (privs) {
-
 // }
-let priv = privs.value.find(priv => priv.user.login == userName);
-let privRef = ref(priv);
+
+// let priv = privs.value.find(priv => priv.user.login == userName);
+// let privRef = ref(priv);
+// let privRef = ref(privs.value.find(priv => priv.user.login == userName));
+// let privRef = privs.value.find(priv => priv.user.login == userName);
+
 // printPriv(privRef.value);
 const privDone: Ref<boolean> = inject("privDone")!;
 	
@@ -98,44 +101,85 @@ const privDone: Ref<boolean> = inject("privDone")!;
 let myMsg = ref("");
 let blockWarn = ref(false);
 let msgsCont = ref(null);
-let msgsLoaded = ref(null);
+// let msgsLoaded = ref(null);
 
-watch(privDone, () => {
-	console.log(`privDone = ${privDone.value}`);
-	// ((msgsCont.value!) as HTMLElement).scrollTop = 
-	// ((msgsCont.value!) as HTMLElement).scrollHeight;
-	privRef.value = privs.value.find(priv => priv.user.login == userName)!;
+// watch(privDone, () => {
+// 	console.log(`privDone = ${privDone.value}`);
+// 	// ((msgsCont.value!) as HTMLElement).scrollTop = 
+// 	// ((msgsCont.value!) as HTMLElement).scrollHeight;
+// 	// privRef.value = privs.value.find(priv => priv.user.login == userName)!;
+// 	// privRef = privs.value.find(priv => priv.user.login == userName)!;
+// })
+
+// watch(msgsLoaded, () => {
+// 	console.log(`Mesages in privConvItem loaded`);
+// 	((msgsCont.value!) as HTMLElement).scrollTop = 
+// 		((msgsCont.value!) as HTMLElement).scrollHeight;
+// 	// if (privRef.value!.messages[privRef.value!.messages.length - 1].user != me) {
+// 	// 	mySocket.emit('privReaded', {userSend: userName, userReceive: me});
+// 	// 	privRef.value!.readed = true;
+// 	// }
+// })
+
+// watch(privs, () => {
+// 	console.log(`watch privs change`);
+// 	printPrivs(privs.value);
+// 	console.log(`apres watch privs`)
+// 	// privRef.value = privs.value.find(priv => priv.user.login == userName)!;
+// })
+
+
+// watch(privRef, () => {
+// 	console.log(`watch privRef change`);
+// 	((msgsCont.value!) as HTMLElement).scrollTop = 
+// 	((msgsCont.value!) as HTMLElement).scrollHeight;
+// 	// nextTick(() => {
+// 		// 	let msgsCont = document.getElementById("messages_cont");
+// 		// 	msgsCont!.scrollTop = msgsCont!.scrollHeight;
+// 		// });
+// 	console.log("scrolled watch");
+// }, {flush:'post'});
+
+// watch((privs.value.find(priv => priv.user.login == userName)), () => {
+// 	((msgsCont.value!) as HTMLElement).scrollTop = 
+// 	((msgsCont.value!) as HTMLElement).scrollHeight;
+// })
+
+
+let scroll = true;
+
+onBeforeUpdate(() => {
+	let oldScrollTop = ((msgsCont.value!) as HTMLElement).scrollTop;
+	let oldScrollHeight = ((msgsCont.value!) as HTMLElement).scrollHeight;
+	let oldClientHeight = ((msgsCont.value!) as HTMLElement).clientHeight;
+	// let oldOffsetHeight = ((msgsCont.value!) as HTMLElement).offsetHeight;
+
+	console.log(`onBeforeUpdate oldScrollTop =  ${oldScrollTop}`)
+	console.log(`onBeforeUpdate oldScrollHeight =  ${oldScrollHeight}`)
+	console.log(`onBeforeUpdate oldClientHeight =  ${oldClientHeight}`)
+	// console.log(`onBeforeUpdate oldOffsetHeight =  ${oldOffsetHeight}`)
+
+	if (oldScrollTop + oldClientHeight == oldScrollHeight)
+		scroll = true;
+	else
+		scroll = false;
 })
 
-watch(msgsLoaded, () => {
-	console.log(`Mesages in privConvItem loaded`);
-	((msgsCont.value!) as HTMLElement).scrollTop = 
-		((msgsCont.value!) as HTMLElement).scrollHeight;
-	if (privRef.value!.messages[privRef.value!.messages.length - 1].user != me) {
+onUpdated( () => {
+	console.log(`PrivConvItem Updated`);
+	// console.log(`onUpdate scrollTop =  ${((msgsCont.value!) as HTMLElement).scrollTop}`);
+	console.log(`onUpdate scrollHeight =  ${((msgsCont.value!) as HTMLElement).scrollHeight}`);
+	if (scroll == true) {
+		((msgsCont.value!) as HTMLElement).scrollTop = 
+			((msgsCont.value!) as HTMLElement).scrollHeight;
+	}
+	// ((msgsCont.value!) as HTMLElement).scrollTop = 
+	// 	((msgsCont.value!) as HTMLElement).scrollHeight;
+	if (selectPriv()!.messages[selectPriv()!.messages.length - 1].user != me) {
 		mySocket.emit('privReaded', {userSend: userName, userReceive: me});
-		privRef.value!.readed = true;
+		selectPriv()!.readed = true;
 	}
 })
-
-watch(privs, () => {
-	console.log(`watch privs change`);
-	printPrivs(privs.value);
-	console.log(`apres watch privs`)
-	privRef.value = privs.value.find(priv => priv.user.login == userName)!;
-})
-
-
-watch(privRef, () => {
-	console.log(`watch privRef change`);
-	((msgsCont.value!) as HTMLElement).scrollTop = 
-	((msgsCont.value!) as HTMLElement).scrollHeight;
-	// nextTick(() => {
-		// 	let msgsCont = document.getElementById("messages_cont");
-		// 	msgsCont!.scrollTop = msgsCont!.scrollHeight;
-		// });
-	console.log("scrolled watch");
-}, {flush:'post'});
-
 
 function selectPriv() {
 	// console.log(`selectPriv()`);
@@ -206,8 +250,8 @@ onMounted(() => {
 	// console.log(`debut onMounted PrivConvIten`);
 	// console.log(`msgsCont.value = ${msgsCont.value}`);
 	// console.log(`msgsCont.scrollHeight = ${((msgsCont.value!) as HTMLElement).scrollHeight}, `);
-	// ((msgsCont.value!) as HTMLElement).scrollTop = 
-	// ((msgsCont.value!) as HTMLElement).scrollHeight;
+	((msgsCont.value!) as HTMLElement).scrollTop = 
+	((msgsCont.value!) as HTMLElement).scrollHeight;
 	// console.log("scrolled onMounted");
 })
 

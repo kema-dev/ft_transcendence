@@ -66,8 +66,8 @@ onMounted(() => {
 	
 
 // GET PRIVS 
-let privs : PrivConv[] = []; 
-let privsRef : Ref<PrivConv[]> = ref(privs);
+// let privs : PrivConv[] = []; 
+let privsRef : Ref<PrivConv[]> = ref([]);
 let privDone = ref(false);
 getPrivsRequest();
 provide('privs', privsRef);
@@ -140,14 +140,31 @@ socket.on('newPrivMsg', (data: {msg: Message, id: number}) => {
 	// // ==============
 	let i = privsRef.value.findIndex(priv => priv.id == data.id);
 	privsRef.value[i].messages.push(new Message(data.msg.user, data.msg.msg, new Date(data.msg.date)));
-	
+	if (i != 0)
+		putPrivFirst(i);
+
 	// console.log(`privsRef : `);
 	// printPrivs(privsRef.value);
 })
 
-watch(privsRef, () => {
-	console.log(`privs changed in homeview`);
-})
+// watch(privsRef, () => {
+// 	console.log(`privs changed in homeview`);
+// })
+
+function putPrivFirst(index: number) {
+	// if(privsRef.value.length == 1)
+	// 	return;
+	if (privsRef.value.length == 2)
+		return [privsRef.value[0], privsRef.value[1]] = [privsRef.value[1], privsRef.value[0]];
+	let privTmp1 = privsRef.value[0];
+	let privTmp2 : PrivConv;
+	privsRef.value[0] = privsRef.value[index];
+	for(let i = 1; i <= index && i < privsRef.value.length - 1; i++) {
+		privTmp2 = privsRef.value[i];
+		privsRef.value[i] = privTmp1;
+		privTmp1 = privTmp2;
+	}
+}
 
 function printPriv(priv: PrivConv) {
 	priv.messages.forEach((msg) => console.log(`${msg.msg}`));
