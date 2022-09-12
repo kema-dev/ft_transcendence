@@ -2,11 +2,9 @@
 
 ## ongoing
 
-* TODO add JWT guards on backend endpoints
-* TODO make a refresh token function in backend and frontend (for frontend, ask for a refresh if $date + x > expiration\\_date$)
-
 ## later
 
+* TODO make a refresh token function in backend and frontend (for frontend, ask for a refresh if $date + x > expiration\\_date$)
 * TODO fix "depends_on" directive in docker-compose.yml (use healthcheck)
 * TODO make the API **NOT** accessible from the outside (correct backend_status accordingly)
 * TODO make backend is up endpoint redirect to frontend
