@@ -17,38 +17,36 @@
 			<!-- <SearchItem v-model="search"/> -->
 			<input type="text" placeholder="Recherche" id="search" ref="search" />
 			<div v-if="search.value == ''" class="column center">
-			<div v-if="me.requestFriend.length != 0">
+			<div v-if="me?.requestFriend.length != 0">
 				<h2>Friend request</h2>
-				<div v-for="friend in me.requestFriend" :key="friend.login">
+				<div v-for="friend in me?.requestFriend" :key="friend.login">
 					<h2>{{ friend.login }}</h2>
 				</div>
 			</div>
 				<!-- <div class="center column"> -->
-				<h2 v-if="me.friends.length == 0">No friends</h2>
+				<h2 v-if="me?.friends.length == 0">No friends</h2>
 				<div
-					v-for="friend in users"
+					v-for="friend of me?.friends"
 					v-bind:key="friend.login"
 					class="row center"
 				>
 					<div
-						v-if="me.friends.includes(friend)"
 						class="center column"
 					>
-						<FriendItem :friend="friend" />
+						<FriendItem :friend="friend" :bool="true"/>
 					</div>
 					<!-- </div> -->
 				</div>
 			</div>
 			<div v-else class="center column">
-				<h2>{{users.length}}</h2>
 				<h2 v-if="users.length == 0">No user</h2>
 				<div
 					v-else
 					v-for="user in users"
-					v-bind:key="user.login"
+					:key="user.login"
 					class="row center"
 				>
-					<FriendItem :friend="user" />
+					<FriendItem :friend="user" :bool="false"/>
 				</div>
 			</div>
 		</div>
@@ -57,7 +55,7 @@
 
 <script setup lang="ts">
 import axios from "axios";
-import { inject, onMounted, ref } from "vue";
+import { inject, onMounted, onUnmounted, Ref, ref } from "vue";
 import FriendItem from "@/components/FriendItem.vue";
 import SearchItem from "@/components/SearchItem.vue";
 import { FQDN } from "../../.env.json";
@@ -65,15 +63,15 @@ import User from "@/chat/User";
 import { Socket } from "engine.io-client";
 
 let define = inject("colors");
-let me: User = inject("me")!;
+let me = inject("user")!;
 let socket: Socket = inject("socket")!;
 let users = ref([]);
 const search = ref("");
+onMounted(() => {
 socket.on("getUsersByLoginFiltred", (data: User[]) => {
 	users.value = data;
 	console.log(users);
 });
-onMounted(() => {
 	let input = document.getElementById("search");
 	if (input == null) console.log("error");
 	input?.addEventListener("input", (str) => {
@@ -88,80 +86,12 @@ onMounted(() => {
 		}
 	});
 });
+onUnmounted(() => {
+	socket.off("getUsersByLoginFiltred");
+})
 // function search_user(str: string) {
 // 	users.forEach((u) => u.name == str);
 // }
-function post(url: string, args: any) {
-	let data;
-	axios
-		.post(FQDN + ":3000/api/v1/" + url, args)
-		.then((response) => {
-			data = response.data;
-			console.log(url + ": ", data);
-		})
-		.catch((error) => {
-			console.log(url + ": failed request.\nargs: " + args);
-			console.log(error);
-		});
-	return data;
-}
-
-// let userr = post("user/getUser", {login: user.name});
-// let avatar = post("user/getAnyByLogin", {
-// 	login: user.name,
-// 	infos: ["avatar"],
-// });
-// let users = [
-// 	{
-// 		login: "John",
-// 		level: "25",
-// 		avatar: require("@/assets/avatars/(1).jpg"),
-// 		friends: ["Jane"],
-// 		status: "offline",
-// 		rank: "1st",
-// 		ratiov: "10",
-// 		ratiod: "5",
-// 	},
-// 	{
-// 		name: "Jane",
-// 		level: "24",
-// 		avatar: require("@/assets/avatars/(2).jpg"),
-// 		friends: ["Jill"],
-// 		status: "online",
-// 		rank: "2st",
-// 		ratiov: "10",
-// 		ratiod: "5",
-// 	},
-// 	{
-// 		login: "Jacksdfgtertwdsfadfsafdertert",
-// 		level: "2365464654654654646546546545",
-// 		avatar: require("@/assets/avatars/(3).jpg"),
-// 		status: "in game",
-// 		rank: "3st",
-// 		ratiov: "10",
-// 		ratiod: "5",
-// 	},
-// 	{
-// 		name: "Jill",
-// 		level: "2",
-// 		avatar: require("@/assets/avatars/(4).jpg"),
-// 		friends: ["Jane", "Jacksdfgtertwdsfadfsafdertert"],
-// 		status: "online",
-// 		rank: "4st",
-// 		ratiov: "10",
-// 		ratiod: "5",
-// 	},
-// 	{
-// 		name: "Joe",
-// 		level: "21",
-// 		avatar: require("@/assets/avatars/(5).jpg"),
-// 		friends: ["Jane", "Jacksdfgtertwdsfadfsafdertert"],
-// 		status: "online",
-// 		rank: "5st",
-// 		ratiov: "10",
-// 		ratiod: "5",
-// 	},
-// ];
 </script>
 
 <style scoped>

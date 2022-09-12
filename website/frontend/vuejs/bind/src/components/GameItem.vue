@@ -9,7 +9,7 @@ import Konva from "konva";
 import { Socket } from "socket.io-client";
 import { GameDto } from "@/dto/GameDto";
 import Profile from "@/game2.0/Profile";
-import User from "@/chat/User";
+import User from "@/chat/objects/User";
 let define = inject("colors");
 let socket: Socket = inject("socket")!;
 let props = defineProps(["nbrPlayer", "nbrBall", "start"]);

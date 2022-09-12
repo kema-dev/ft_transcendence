@@ -14,6 +14,13 @@ export class UsersService {
 		private usersRepository: Repository<UserEntity>,
 	) {}
 
+	async saveSocket(login: string, socket: string) {
+		let user = await this.getByLogin(login);
+		user.socketId = socket;
+		await this.usersRepository.save(user)
+			.catch(e => console.log("Save saveSocket error"));
+	}
+
 	async getByEmail(mail: string) {
 		console.log('getByEmail: starting for ' + mail);
 		const user = await this.usersRepository.findOne({
@@ -42,7 +49,7 @@ export class UsersService {
 
 	async getByLoginFiltred(filter: string) {
 		let maxUsers = 15;
-		console.log('getByLoginFiltred: starting for ' + filter);
+		console.log('getByLoginFiltred: starting for \'' + filter + '\'');
 		const users = await this.usersRepository.find({
 			where: {login: Like(filter + "%")},
 			take: maxUsers
@@ -82,11 +89,13 @@ export class UsersService {
 		throw new HttpException('E_USER_NOT_FOUND', HttpStatus.NOT_FOUND);
 	}
 
-	async sendFriendRequest(sender: string, receiver: string) {
+	async sendFriendRequest(sender: string, receiver: string, server: any) {
 		let userReceiver = await this.getByLogin(receiver);
 		let userSender = await this.getByLogin(sender);
 		userReceiver.requestFriend.push(userSender);
 		this.usersRepository.save(userReceiver);
+		this.logger.log("sendFriendRequest: " + sender + " sent a friend request to " + receiver);
+		server.to(userReceiver.socketId).emit('friendRequest', userSender);
 	}
 
 	async addFriend(sender: string, receiver: string) {

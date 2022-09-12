@@ -17,7 +17,7 @@
 						>
 							X
 						</button>
-						<h3 class="status" v-if="me.friends.includes(friend.login)">{{ friend.status }}</h3>
+						<h3 class="status" v-if="bool">{{ friend.status }}</h3>
 					</div>
 				</div>
 				<div class="space-between row">
@@ -26,9 +26,9 @@
 					<!-- <h2 class="score">{{friend.ratiov}} | {{friend.ratiod}}</h2> -->
 				<!-- </div> -->
 				<div class="right row">
-					<button class="action" v-on:click="add_friend(friend.login)" v-if="!me.friends.includes(friend.login)">add friend</button>
+					<button class="action" v-on:click="add_friend(friend.login)" v-if="!bool">add friend</button>
 					<button class="action">invit</button>
-					<button class="action" v-if="me.friends.includes(friend.login)">chat</button>
+					<button class="action" v-if="bool">chat</button>
 				</div>
 				</div>
 			</div>
@@ -37,13 +37,12 @@
 </template>
 
 <script setup lang="ts">
-import User from '@/chat/User';
 import { Socket } from 'engine.io-client';
 import { inject, defineProps } from "vue";
 let socket: Socket = inject('socket')!;
-let me: User = inject('me')!;
+let me = inject('user')!;
 let define = inject("colors");
-const props = defineProps(['friend'])
+const props = defineProps(['friend', 'bool'])
 
 function add_friend(name: string) {
 	socket.send('addFriend', {sender: me.login, reciever: name})

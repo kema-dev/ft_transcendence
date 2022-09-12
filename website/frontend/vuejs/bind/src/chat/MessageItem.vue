@@ -1,18 +1,18 @@
 <template>
 	<div class="msg_cont">
 		<!-- <span class="date">{{getDateMsg()}}</span> -->
-		<div v-if="me.login == message!.user.login" class="myMsg_cont raw right">
-			<span class="date">{{ getDateMsg() }}</span>
+		<div v-if="me == userLogin" class="myMsg_cont raw right">
+			<!-- <span class="date">{{ getDateMsg() }}</span> -->
 			<div class="myMsg_text">
-				{{ message?.msg }}
+				{{ message }}
 			</div>
 		</div>
 		<div v-else class="userMsg_cont raw left">
-			<img :src="message!.user.avatar" alt="Avatar" class="avatar" />
+			<img :src="userAvatar" alt="Avatar" class="avatar" />
 			<div class="userMsg_text">
-				{{ message?.msg }}
+				{{ message }}
 			</div>
-			<span class="date">{{ getDateMsg() }}</span>
+			<!-- <span class="date">{{ getDateMsg() }}</span> -->
 		</div>
 	</div>
 </template>
@@ -21,19 +21,35 @@
 /* eslint @typescript-eslint/no-var-requires: "off" */
 import { inject, defineProps, onMounted, ref } from "vue";
 // import Conversation from '@/chat/Conversation';
-import User from "@/chat/User";
-import Message from "@/chat/Message";
+// import User from "@/chat/objects/User";
+// import Message from "@/chat/objects/Message";
+// import BasicUser from "./dto/BasicUserDto";
 
 let colors = inject("colors");
-let me: User = inject("me")!;
+let me: string = inject("me")!;
 const props = defineProps({
-	message: Message,
+  userAvatar: {
+    type: String,
+    required: true,
+  },
+  userLogin: {
+    type: String,
+    required: true,
+  },
+  message: {
+    type: String,
+    required: true,
+  },
+  date: {
+    type: Date,
+    required: true,
+  },
 });
 
 function getDateMsg(): string {
 	let ret =
-		props.message!.date.getHours() + ":" + props.message!.date.getMinutes();
-	ret += "\n" + props.message!.date.toLocaleDateString("fr");
+		props.date.getHours() + ":" + props.date.getMinutes();
+	ret += "\n" + props.date.toLocaleDateString("fr");
 	return ret;
 }
 </script>
@@ -48,11 +64,12 @@ function getDateMsg(): string {
 }
 .myMsg_text {
 	width: auto;
-	max-width: 65%;
+	max-width: 70%;
 	color: white;
 	padding: 8px;
 	border-radius: 10px;
-	margin: 10px;
+	margin: 5px 7px 5px 0;
+	text-align: right;
 	background-color: v-bind("colors.color2");
 	white-space: pre-line;
 	overflow-wrap: break-word;
@@ -67,7 +84,8 @@ function getDateMsg(): string {
 	color: black;
 	padding: 8px;
 	border-radius: 10px;
-	margin: 10px;
+	margin: 5px 0 5px 7px;
+	text-align: left;
 	background-color: white;
 	white-space: pre-line;
 	overflow-wrap: break-word;

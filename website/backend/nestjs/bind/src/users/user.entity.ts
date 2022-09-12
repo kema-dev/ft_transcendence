@@ -1,3 +1,4 @@
+import { Socket } from 'socket.io';
 import { Column, Entity, PrimaryGeneratedColumn, OneToMany, ManyToMany, JoinTable } from 'typeorm';
 import { MessageEntity } from '../chat/entites/message.entity';
 import { PrivateEntity } from '../chat/entites/private.entity';
@@ -59,6 +60,9 @@ export class UserEntity extends TimestampEntites {
 	@Column()
 	public ft_code: string;
 
+	@Column({ nullable: true })
+	socketId: string;
+	
 	@Column()
 	public ft_accessToken: string;
 
@@ -98,8 +102,6 @@ export class UserEntity extends TimestampEntites {
 	})
 	@JoinTable()
 	privates: PrivateEntity[];
-}
-function getBase64StringFromDataURL(result: string | ArrayBuffer) {
-	throw new Error('Function not implemented.');
+
 }
 

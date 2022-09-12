@@ -1,4 +1,4 @@
-export class NewPrivMsgDto {
+export class PrivMsgDto {
   userSend: string;
   userReceive: string;
   message: string;

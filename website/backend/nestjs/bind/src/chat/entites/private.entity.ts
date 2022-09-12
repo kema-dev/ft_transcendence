@@ -9,12 +9,17 @@ export class PrivateEntity extends TimestampEntites{
 	@PrimaryGeneratedColumn()
 	id: number;
 
+	@Column()
+	readed: boolean;
+
 	@ManyToMany( type => UserEntity, (user) => user.privates, {
 		onDelete: 'CASCADE'
 	})
 	users: [UserEntity, UserEntity];
 
-	@OneToMany( type => MessageEntity, (message) => message.convers)
+	@OneToMany( type => MessageEntity, (message) => message.convers, {
+		cascade: true,
+	})
 	messages: MessageEntity[];
 
 }
