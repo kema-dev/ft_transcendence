@@ -185,7 +185,7 @@ function register() {
 			}
 		});
 }
-function auth() {
+async function auth() {
 	if (email_auth.value === "" || password_auth.value === "") {
 		toast.warning("📝 At least one field is empty, please fill all of them");
 		return;
@@ -197,7 +197,7 @@ function auth() {
 			mfa: totp_val.value,
 		})
 		.then((response) => {
-			console.log(response);
+			// console.log(response);
 			$cookies.set(response.data.key, response.data.value);
 			$cookies.set('login', response.data.login);
 			toast.success(

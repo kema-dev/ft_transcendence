@@ -9,6 +9,7 @@ import {
 	UseGuards,
 	Param,
 } from '@nestjs/common';
+import { AuthGuard } from '../authentication/auth.guard';
 import { get } from 'http';
 import UserDto from './dto/user.dto';
 
@@ -18,8 +19,8 @@ import { UsersService } from './users.service';
 export class UsersController {
 	constructor(private readonly usersService: UsersService) {}
 
-	// @UseGuards(JwtAuthenticationGuard) FIXME
-	@Post('getUser')
+	@UseGuards(AuthGuard)
+	@Get('getUser')
 	async getUser(@Body() params: any) {
 		return this.usersService.getByLogin(params.login);
 	}

@@ -148,9 +148,11 @@ router.beforeEach(async (to, from) => {
 	} else {
 		// token: check validity
 		await API
-		.post('auth/validate_token', {
-			login: cookies.get('login'),
-			token: cookies.get('session'),
+		.get('auth/validate_token', {
+			headers:{
+				login: cookies.get('login'),
+				token: cookies.get('session'),
+			}
 		})
 		.then(() => {
 			return true;
