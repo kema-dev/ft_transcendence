@@ -2,7 +2,12 @@
 
 ## ongoing
 
-
+* TODO make `lobby_name` uniques
+* TODO find about `lobby_name` to group players (how to make a player join a lobby / socket.io rooms)
+* TODO lobby sync across players (store in DB) (party owner rules everything)
+* TODO sync players in lobbies (existing players, new players in lobby, player leaving lobby)
+* TODO loby selection page (option to create a new one)
+* TODO autofill option (join first available lobby)
 
 ## later
 
