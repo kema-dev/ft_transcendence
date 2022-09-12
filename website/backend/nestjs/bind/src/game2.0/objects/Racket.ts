@@ -19,13 +19,13 @@ export default class Racket {
 		this.height = wall.height / 4;
 		this.vector = wall.vector;
 		this.vector.normalize();
-		this.x = wall.x
-		this.y = wall.y
-		this.x += wall.vector.x * 10
-		this.y += wall.vector.y * 10
-		this.startX = this.x
-		this.startY = this.y
-		this.angle = wall.angle
+		this.x = wall.x;
+		this.y = wall.y;
+		this.x += wall.vector.x * 10;
+		this.y += wall.vector.y * 10;
+		this.startX = this.x;
+		this.startY = this.y;
+		this.angle = wall.angle;
 		this.speed = 2.56;
 		this.wall = wall;
 		if (this.angle < 90)

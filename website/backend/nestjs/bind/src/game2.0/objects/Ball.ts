@@ -1,11 +1,11 @@
 import { Logger } from '@nestjs/common';
 import { GameDto } from '../dto/GameDto';
 import Racket from '../objects/Racket';
-import Vector from './Vector'
-import Wall from './Wall'
+import Vector from './Vector';
+import Wall from './Wall';
 
 function delay(ms: number) {
-	return new Promise(resolve => setTimeout(resolve, ms));
+	return new Promise((resolve) => setTimeout(resolve, ms));
 }
 export default class Ball {
 	x: number;
@@ -46,30 +46,31 @@ export default class Ball {
 	}
 	detectCollision(objects: Array<any>): boolean {
 		for (let i = 0; i < objects.length; ++i) {
-			let object = objects[i];
+			const object = objects[i];
 			if (!object || object == this) return false;
 			// const wall = walls.get(object.rotation);
 			// this.logger.log(object.angle)
 			// if (!wall)
 			// 	return;
 			// check collision
-			if (this.v.dotPorduct(object.vector) < 0 && detectCollisionRC(object, this)) {
+			if (
+				this.v.dotPorduct(object.vector) < 0 &&
+				detectCollisionRC(object, this)
+			) {
 				const v = object.vector;
 				this.touch++;
-				if (this.touch >= 30)
-					this.start();
-				if (this.speed < this.initSpeed * 3)
-					this.speed += this.initSpeed / 10;
+				if (this.touch >= 30) this.start();
+				if (this.speed < this.initSpeed * 3) this.speed += this.initSpeed / 10;
 				this.v = this.v.add(
-					v.multiplication(v.dotPorduct(this.v.reverse()) * 2));
+					v.multiplication(v.dotPorduct(this.v.reverse()) * 2),
+				);
 				// check if is wall or racket for the score
 				if (object.side) {
 					object.profile.red = true;
 					object.profile.score -= 1;
-					this.start()
-						.then(() => {
-							object.profile.red = false;
-						});
+					this.start().then(() => {
+						object.profile.red = false;
+					});
 					if (object.profile.score <= 0) {
 						return true;
 					}
@@ -78,10 +79,7 @@ export default class Ball {
 		}
 	}
 }
-function detectCollisionRC(
-	rect: Wall | Racket,
-	circle: Ball
-) {
+function detectCollisionRC(rect: Wall | Racket, circle: Ball) {
 	let cx, cy;
 	const angleOfRad = degToRad(-rect.angle);
 	// const rectCenterX = rect.x + rect.height / 2;
