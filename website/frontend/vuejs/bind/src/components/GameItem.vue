@@ -4,20 +4,25 @@
   </div>
 </template>
 <script setup lang="ts">
-import { inject, onMounted, defineProps, onUnmounted, ref, h } from "vue";
+import { inject, onMounted, defineProps, onUnmounted, ref } from "vue";
 import Konva from "konva";
 import { Socket } from "socket.io-client";
 import { GameDto } from "@/dto/GameDto";
 import Profile from "@/game2.0/Profile";
 import User from "@/chat/User";
-let define = inject("colors");
 let socket: Socket = inject("socket")!;
-let props = defineProps(["nbrPlayer", "nbrBall", "start"]);
 let run = true;
-// let nbrPlayer = ref(props.nbrPlayer)
 let me: User = inject("me")!;
 let rotation = 0;
 let gameDto: GameDto | undefined = undefined;
+
+let props = defineProps<{
+  nbrPlayer: number;
+  nbrBall: number;
+  players: Array<string>;
+  lobby_name: string;
+  start: boolean;
+}>();
 
 // let balls: Array<Ball> = [];
 var mov = 0;
@@ -26,12 +31,18 @@ let walls: Konva.Rect[] = [];
 let balls: Konva.Circle[] = [];
 let profiles: Profile[] = [];
 var container: any;
+
 onMounted(async () => {
-  socket.emit("newRoom", {
-    nbrBall: 1,
-    nbrPlayer: 4,
+  update();
+});
+async function update() {
+	socket.emit("newRoom", {
+    nbrBall: props.nbrBall,
+    nbrPlayer: props.nbrPlayer,
+    players: props.players,
+    lobby_name: props.lobby_name,
   });
-  socket.on("game", (game: string) => {
+  socket.on(props.lobby_name, (game: string) => {
     // console.log(game)
     gameDto = JSON.parse(game);
     // console.log(gameDto);
@@ -159,7 +170,7 @@ onMounted(async () => {
     socket.emit("setMov", { mov: mov, login: me.login });
     e.preventDefault();
   });
-});
+}
 async function loop() {
   while (gameDto === undefined) {
     await delay(100);
@@ -202,12 +213,9 @@ async function loop() {
     await delay(1); // TODO delta
   }
 }
-function focus() {
-  container.focus();
-}
 onUnmounted(() => {
   run = false;
-  socket.off("game");
+  socket.off(props.lobby_name);
   // window.removeEventListener("resize", () => {});
 });
 const delay = (time: number) =>

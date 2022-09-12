@@ -15,6 +15,7 @@ export default class Game {
 	nbrPlayer: number;
 	nbrBall: number;
 	start: boolean;
+	lobby_name: string;
 	run: boolean;
 	balls: Array<Ball>;
 	walls: Wall[];
@@ -30,8 +31,10 @@ export default class Game {
 		nbrBall: number,
 		private server: any,
 		players: string[],
+		lobby_name: string,
 	) {
 		this.start = false;
+		this.lobby_name = lobby_name;
 		this.run = true;
 		this.nbrBall = nbrBall;
 		this.nbrPlayer = nbrPlayer;
@@ -171,7 +174,7 @@ export default class Game {
 				// }
 			}
 			await this.setMinimumDto();
-			this.server.emit('game', JSON.stringify(this.dto));
+			this.server.emit(this.lobby_name, JSON.stringify(this.dto));
 			const end = await performance.now();
 			this.deltaTime = end - start;
 			this.deltaTime /= 1000;

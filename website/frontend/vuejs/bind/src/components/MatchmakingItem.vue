@@ -4,7 +4,10 @@
 			<GameItem
 				:nbrPlayer="nbrPlayer"
 				:nbrBall="nbrBall"
+				:players="players"
+				:lobby_name="lobby_name"
 				:start="start"
+				:key="remount"
 			/>
 		</div>
 		<div class="center column" id="settings">
@@ -28,34 +31,50 @@
 import { inject, onMounted, provide, ref } from "vue";
 import GameItem from "@/components/GameItem.vue";
 import { Socket } from "socket.io-client";
+import { VueCookies } from "vue-cookies";
+
 let define = inject("colors");
 let start = ref(false);
 provide("playing", start);
 let socket: Socket = inject("socket")!;
-let nbrPlayer = 4;
-let nbrBall = 1;
+const $cookies = inject<VueCookies>('$cookies'); 
+let remount = ref(false);
+
+let nbrPlayer = ref(6);
+let nbrBall = ref(3);
+let lobby_name = ref("lobby_name");
+let players = ref([$cookies.get("login")]);
+
+function update_game() {
+	remount.value = !remount.value;
+	console.log("updated settings");
+}
 function launch() {
 	start.value = !start.value;
 	socket.emit('start');
 }
 function incr() {
-	if (nbrPlayer + 1 <= 7) {
-		nbrPlayer++;
+	if (nbrPlayer.value + 1 <= 7) {
+		nbrPlayer.value++;
+		update_game();
 	}
 }
 function decr() {
-	if (nbrPlayer - 1 >= 2) {
-		nbrPlayer--;
+	if (nbrPlayer.value - 1 >= 2) {
+		nbrPlayer.value--;
+		update_game();
 	}
 }
 function incrBall() {
-	if (nbrBall + 1 <= 3) {
-		nbrBall++;
+	if (nbrBall.value + 1 <= 3) {
+		nbrBall.value++;
+		update_game();
 	}
 }
 function decrBall() {
-	if (nbrBall - 1 >= 1) {
-		nbrBall--;
+	if (nbrBall.value - 1 >= 1) {
+		nbrBall.value--;
+		update_game();
 	}
 }
 onMounted(() => {

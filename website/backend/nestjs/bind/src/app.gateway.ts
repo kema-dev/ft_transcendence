@@ -64,8 +64,17 @@ export class AppGateway
 		// this.gameService.games.push(
 		// var game = new Game(payload.nbrPlayer, payload.nbrBall, this.server)
 		// );
-		if (!this.game)
-			this.game = new Game(4, 3, this.server, ['tdayde', 'oc8', 'zeus', 'Jj']);
+		if (this.game) {
+			this.game.stop();
+			delete this.game;
+		}
+		this.game = new Game(
+			payload.nbrPlayer,
+			payload.nbrBall,
+			this.server,
+			payload.players,
+			payload.lobby_name,
+		);
 	}
 	@SubscribeMessage('start')
 	start(client: Socket, payload: any): void {
