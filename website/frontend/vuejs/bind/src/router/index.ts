@@ -14,7 +14,7 @@ import ChannelConv from '@/chat/ChannelConvItem.vue'
 import Settings from '@/menu/SettingsTab.vue'
 import Profile from '@/menu/ProfileTab.vue'
 import Player from '@/menu/PlayerTab.vue'
-import axios from 'axios'
+import API from "../components/axios";
 import { useCookies } from "vue3-cookies";
 import { useToast } from "vue-toastification";
 
@@ -130,7 +130,7 @@ router.beforeEach(async (to, from) => {
 	if (to.path === '/backend_down') {
 		return true;
 	} else {
-		await axios.get(data.FQDN + ':3000/api/v1/auth/status')
+		await API.get('auth/status')
 		.catch(() => {
 			// backend is down
 			console.log('backend is down')
@@ -147,8 +147,8 @@ router.beforeEach(async (to, from) => {
 		}
 	} else {
 		// token: check validity
-		await axios
-		.post(data.FQDN + ':3000/api/v1/auth/validate_token', {
+		await API
+		.post('auth/validate_token', {
 			login: cookies.get('login'),
 			token: cookies.get('session'),
 		})

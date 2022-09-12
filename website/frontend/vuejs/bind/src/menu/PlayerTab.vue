@@ -7,14 +7,13 @@
 <script setup lang="ts">
 import { inject } from 'vue'
 import { useRoute } from 'vue-router'
-import axios from "axios";
-import { FQDN } from "../../.env.json";
+import API from "../components/axios";
 
 let define = inject('colors');
 const route = useRoute()
 let user;
-axios
-.get(FQDN + ":3000/api/v1/auth/getInfo", {login: "hey"})
+API
+.get("auth/getInfo", {login: "hey"})
 .then((response) => {
 	user = response.data;
 })

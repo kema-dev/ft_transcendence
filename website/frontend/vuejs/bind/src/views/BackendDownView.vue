@@ -10,7 +10,7 @@
 </template>
 
 <script setup lang="ts">
-import axios from "axios";
+import API from "../components/axios";
 import { useToast } from "vue-toastification";
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
@@ -30,8 +30,8 @@ let backend_status = ref(false);
 const toast = useToast();
 
 onMounted(() => {
-	axios
-		.get(apiPath + "auth/status")
+	API
+		.get("auth/status")
 		.then(() => {
 			backend_status.value = true;
 			toast.info(BACKEND_UP_MESSAGE);

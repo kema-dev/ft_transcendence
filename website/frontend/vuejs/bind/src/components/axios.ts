@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 const data = require('../../.env.json');
+const api_url = ':3000/api/v1/';
 
 let login = decodeURIComponent(document.cookie.replace(new RegExp('(?:(?:^|.*;)\\s*' + encodeURIComponent('login').replace(/[-.+*\\]/g, '\\$&') + '\\s*\\=\\s*([^;]*).*$)|^.*$'), '$1')) || "";
 
@@ -22,11 +23,11 @@ if (session && ((session.substring(0, 1) === '{' && session.substring(session.le
   }
 }
 
-export const HTTP = axios.create({
-  baseURL: data.FQDN,
+export const API = axios.create({
+  baseURL: data.FQDN + ':3000/api/v1/',
 	headers:{
     token: session,
   }
 })
 
-export default HTTP;
+export default API;

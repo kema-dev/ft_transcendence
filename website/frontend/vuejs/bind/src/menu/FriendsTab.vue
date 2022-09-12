@@ -51,7 +51,7 @@
 </template>
 
 <script setup lang="ts">
-import axios from "axios";
+import API from "../components/axios";
 import { inject, onMounted, ref } from "vue";
 import FriendItem from "@/components/FriendItem.vue";
 import SearchItem from "@/components/SearchItem.vue";
@@ -104,8 +104,8 @@ let user = {
 };
 function post(url: string, args: any) {
 	let data;
-	axios
-		.post(FQDN + ":3000/api/v1/" + url, args)
+	API
+		.post(url, args)
 		.then((response) => {
 			data = response.data;
 			console.log(url + ": ", data);

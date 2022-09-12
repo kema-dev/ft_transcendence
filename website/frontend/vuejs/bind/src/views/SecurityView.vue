@@ -18,11 +18,9 @@
 </template>
 
 <script setup lang="ts">
-
-	import axios from "axios";
 	import QrcodeVue from "qrcode.vue";
 	import { ref } from "vue";
-	import HTTP from "../components/axios";
+	import API from "../components/axios";
 	import { FQDN } from "../../.env.json";
 
 	let apiPath = FQDN + ":3000/api/v1/";
@@ -35,8 +33,8 @@
 		document.getElementById("qrcode").style.height = "20vh";
 		document.getElementById("qr_img").style.filter = "opacity(1)";
 		document.getElementById("qr_text").style.filter = "opacity(1)";
-		axios
-			.post(apiPath + "auth/set_totp", {
+		API
+			.post("auth/set_totp", {
 				email: test_mail.value, // TODO get email from jwt
 			})
 			.then((response) => {
@@ -49,8 +47,8 @@
 	}
 
 	function debug() {
-		HTTP
-			.post(apiPath + "auth/debug", {
+		API
+			.post("auth/debug", {
 				email: test_mail.value,
 			})
 			.then((response) => {
@@ -63,8 +61,8 @@
 
 	function verify() {
 		console.log(test_mail.value, test_code.value);
-		axios
-			.post(apiPath + "auth/verify_totp", {
+		API
+			.post("auth/verify_totp", {
 				name: test_mail.value,
 				code: test_code.value,
 			})

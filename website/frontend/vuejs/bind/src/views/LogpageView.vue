@@ -83,12 +83,11 @@
 </template>
 
 <script setup lang="ts">
-import axios from "axios";
 import { useToast } from "vue-toastification";
 import { inject, onMounted, provide, ref } from "vue";
 import { useRouter } from "vue-router";
 import { VueCookies } from "vue-cookies";
-import HTTP from "../components/axios";
+import API from "../components/axios";
 import { FQDN, API_42_UID, API_42_REDIRECT_URI } from "../../.env.json";
 
 const router = useRouter();
@@ -147,8 +146,8 @@ function register() {
 		toast.warning(E_EMPTY_FIELD);
 		return;
 	}
-	axios
-		.post(apiPath + "auth/register", {
+	API
+		.post("auth/register", {
 			email: email_register.value,
 			login: login_register.value,
 			password: password_register.value,
@@ -191,8 +190,8 @@ function auth() {
 		toast.warning("📝 At least one field is empty, please fill all of them");
 		return;
 	}
-	axios
-		.post(apiPath + "auth/login", {
+	API
+		.post("auth/login", {
 			email: email_auth.value,
 			password: password_auth.value,
 			mfa: totp_val.value,
@@ -235,8 +234,8 @@ onMounted(() => {
 	let urlParams = new URLSearchParams(window.location.search);
 	let code = urlParams.get("code");
 	if (code) {
-		axios
-			.post(apiPath + "auth/login42", {
+		API
+			.post("auth/login42", {
 				code: code,
 			})
 			.then((response) => {
