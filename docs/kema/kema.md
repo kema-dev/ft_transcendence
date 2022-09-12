@@ -3,7 +3,6 @@
 ## ongoing
 
 * TODO add JWT guards on backend endpoints
-* TODO improve 2FA page
 * TODO make a refresh token function in backend and frontend (for frontend, ask for a refresh if $date + x > expiration\\_date$)
 
 ## later
