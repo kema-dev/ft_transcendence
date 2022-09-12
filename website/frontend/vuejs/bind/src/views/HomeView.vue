@@ -66,11 +66,14 @@ onMounted(() => {
 	
 
 // GET PRIVS 
-// let privs : PrivConv[] = []; 
 let privsRef : Ref<PrivConv[]> = ref([]);
 let privDone = ref(false);
+function markReaded(index : number, readed: boolean) {
+	privsRef.value[index].readed = readed;
+}
 getPrivsRequest();
 provide('privs', privsRef);
+provide('markReaded', markReaded);
 provide('privDone', privDone);
 
 
@@ -140,6 +143,7 @@ socket.on('newPrivMsg', (data: {msg: Message, id: number}) => {
 	// // ==============
 	let i = privsRef.value.findIndex(priv => priv.id == data.id);
 	privsRef.value[i].messages.push(new Message(data.msg.user, data.msg.msg, new Date(data.msg.date)));
+	privsRef.value[i].readed = false;
 	if (i != 0)
 		putPrivFirst(i);
 
@@ -156,10 +160,11 @@ function putPrivFirst(index: number) {
 	// 	return;
 	if (privsRef.value.length == 2)
 		return [privsRef.value[0], privsRef.value[1]] = [privsRef.value[1], privsRef.value[0]];
-	let privTmp1 = privsRef.value[0];
+	console.log(`index = ${index}`);
+		let privTmp1 = privsRef.value[0];
 	let privTmp2 : PrivConv;
 	privsRef.value[0] = privsRef.value[index];
-	for(let i = 1; i <= index && i < privsRef.value.length - 1; i++) {
+	for(let i = 1; i <= index && i < privsRef.value.length; i++) {
 		privTmp2 = privsRef.value[i];
 		privsRef.value[i] = privTmp1;
 		privTmp1 = privTmp2;

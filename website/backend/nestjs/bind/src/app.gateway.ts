@@ -164,6 +164,7 @@ export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGateway
     let priv = await this.chatService.getPriv([data.userSend, data.userReceive]);
     if (!priv)
       return console.log(`Error privReaded`);
-    return await this.chatService.markPrivReaded(priv);
+    await this.chatService.markPrivReaded(priv);
+    
   }
 }

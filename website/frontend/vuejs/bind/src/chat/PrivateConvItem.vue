@@ -82,6 +82,17 @@ let me: string = inject("me")!;
 const userName = useRoute().params.conv_name as string ;
 let receiver : BasicUser = new BasicUser(userName);
 let privs : Ref<PrivConv[]> | undefined = inject("privs");
+let markReaded: (index: number, readed: boolean) => void = inject("markReaded")!;
+let index = ref(-1);
+if (privs?.value.length) {
+	index.value = privs!.value.findIndex(priv => priv.user.login == userName);
+	// console.log(`index priv of privConvItem = ${index.value}`);
+	if (index.value != -1 && privs.value[index.value].messages.at(-1)?.user != me) {
+		mySocket.emit('privReaded', {userSend: userName, userReceive: me});
+		markReaded(index.value, true);
+	}
+}
+// let p : {privs: Ref<PrivConv[]>, (index : number, readed: boolean) : void } | undefined = inject("privsPackage");
 // printPrivs(privs.value);
 // let privRef : Ref<PrivConv> | undefined;
 // if (privs) {
@@ -154,9 +165,9 @@ onBeforeUpdate(() => {
 	let oldClientHeight = ((msgsCont.value!) as HTMLElement).clientHeight;
 	// let oldOffsetHeight = ((msgsCont.value!) as HTMLElement).offsetHeight;
 
-	console.log(`onBeforeUpdate oldScrollTop =  ${oldScrollTop}`)
-	console.log(`onBeforeUpdate oldScrollHeight =  ${oldScrollHeight}`)
-	console.log(`onBeforeUpdate oldClientHeight =  ${oldClientHeight}`)
+	// console.log(`onBeforeUpdate oldScrollTop =  ${oldScrollTop}`)
+	// console.log(`onBeforeUpdate oldScrollHeight =  ${oldScrollHeight}`)
+	// console.log(`onBeforeUpdate oldClientHeight =  ${oldClientHeight}`)
 	// console.log(`onBeforeUpdate oldOffsetHeight =  ${oldOffsetHeight}`)
 
 	if (oldScrollTop + oldClientHeight == oldScrollHeight)
@@ -167,23 +178,33 @@ onBeforeUpdate(() => {
 
 onUpdated( () => {
 	console.log(`PrivConvItem Updated`);
+	if (selectPriv()) {
+		index.value = privs!.value.findIndex(priv => priv.user.login == userName);
+	}
+	// index = privs!.value.findIndex(priv => {
+	// 	console.log(`priv.user.login = ${priv.user.login}, userName = ${userName}`);
+	// 	if (priv.user.login == userName)
+	// 		return true;
+	// });
+	console.log(`index priv of privConvItem = ${index.value}`);
 	// console.log(`onUpdate scrollTop =  ${((msgsCont.value!) as HTMLElement).scrollTop}`);
-	console.log(`onUpdate scrollHeight =  ${((msgsCont.value!) as HTMLElement).scrollHeight}`);
+	// console.log(`onUpdate scrollHeight =  ${((msgsCont.value!) as HTMLElement).scrollHeight}`);
 	if (scroll == true) {
 		((msgsCont.value!) as HTMLElement).scrollTop = 
 			((msgsCont.value!) as HTMLElement).scrollHeight;
 	}
 	// ((msgsCont.value!) as HTMLElement).scrollTop = 
 	// 	((msgsCont.value!) as HTMLElement).scrollHeight;
-	if (selectPriv()!.messages[selectPriv()!.messages.length - 1].user != me) {
+	if (selectPriv() && selectPriv()?.messages[selectPriv()!.messages.length - 1].user != me) {
 		mySocket.emit('privReaded', {userSend: userName, userReceive: me});
-		selectPriv()!.readed = true;
+		markReaded(index.value, true);
+
 	}
 })
 
 function selectPriv() {
 	// console.log(`selectPriv()`);
-	let priv = privs.value?.find(priv => priv.user.login == userName);
+	let priv = privs?.value.find(priv => priv.user.login == userName);
 	// console.log(`selectPriv = ${priv}`);
 	return priv;
 }
