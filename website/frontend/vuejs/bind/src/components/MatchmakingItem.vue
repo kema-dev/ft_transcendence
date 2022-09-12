@@ -10,8 +10,8 @@
 				:key="remount"
 			/>
 		</div>
-		<div class="center column" id="settings">
-			<h1 v-if="!start">{{ nbrPlayer }}</h1>
+		<div class="center column" id="settings" v-show="!start" >
+			<h1>{{ nbrPlayer }}</h1>
 			<h2 class="title">Players</h2>
 			<div class="center row">
 				<button class="button" v-on:click="decr">LESS</button>
@@ -22,7 +22,7 @@
 				<button class="button" v-on:click="decrBall">LESS</button>
 				<button class="button" v-on:click="incrBall">MORE</button>
 			</div>
-			<button class="start" v-on:click="launch" v-if="!start">start</button>
+			<button class="start" v-on:click="launch">start</button>
 		</div>
 	</div>
 </template>
@@ -94,13 +94,12 @@ onMounted(() => {
 	/* padding: 0 calc(); */
 }
 #settings {
-	position: relative;
+	position: absolute;
+	top: 0;
 	z-index: 10;
-	/* height: 500px; */
 }
 #game_pos {
-	position: absolute;
-	z-index: 1;
+	position: relative;
 	top: 0;
 	left: 0;
 }
