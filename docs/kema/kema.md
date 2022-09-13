@@ -11,7 +11,7 @@
 
 ## later
 
-* TODO check identity of users istead of just checking if they are logged in
+* TODO check identity of users istead of just checking if they are logged in (send session + login and check login against decoded session)
 * TODO make a refresh token function in backend and frontend (for frontend, ask for a refresh if $date + x > expiration\\_date$)
 * TODO fix "depends_on" directive in docker-compose.yml (use healthcheck)
 * TODO make the API **NOT** accessible from the outside (correct backend_status accordingly)
