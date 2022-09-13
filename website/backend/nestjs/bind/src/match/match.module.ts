@@ -8,9 +8,12 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MatchService } from './match.service';
 import { MatchController } from './match.controller';
+import { MatchEntity } from './match.entity';
+import { TypeOrmModule } from '@nestjs/typeorm/dist/typeorm.module';
 
 @Module({
 	imports: [
+		TypeOrmModule.forFeature([MatchEntity]),
 		HttpModule.register({
 			timeout: 5000,
 			maxRedirects: 5,
@@ -27,7 +30,7 @@ import { MatchController } from './match.controller';
 			}),
 		}),
 	],
-	providers: [AuthenticationService, MatchService],
-	controllers: [AuthenticationController, MatchController],
+	providers: [MatchService, MatchEntity],
+	controllers: [MatchController],
 })
 export class MatchModule {}

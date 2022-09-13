@@ -11,9 +11,12 @@ export class MatchEntity {
 	@Column()
 	public nbrBall: number;
 
-	@Column()
+	@Column({ type: 'simple-array' })
 	public players: Array<string>;
 
 	@Column()
 	public start: boolean;
+
+	@Column()
+	public lobby_name: string;
 }

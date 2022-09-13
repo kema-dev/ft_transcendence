@@ -10,6 +10,7 @@ import { Socket } from "socket.io-client";
 import { GameDto } from "@/dto/GameDto";
 import Profile from "@/game2.0/Profile";
 import User from "@/chat/User";
+
 let socket: Socket = inject("socket")!;
 let run = true;
 let me: User = inject("me")!;

@@ -16,6 +16,7 @@ import { ChatService } from './chat/chat.service';
 import { UsersService } from './users/users.service';
 import { BallDto } from './game2.0/dto/BallDto';
 import { NewPrivMsgDto } from './chat/dto/NewPrivMsgDto';
+import { MatchService } from './match/match.service';
 
 @WebSocketGateway({
 	cors: {
@@ -32,6 +33,7 @@ export class AppGateway
 	constructor(
 		private readonly chatService: ChatService,
 		private readonly userService: UsersService,
+		private readonly matchService: MatchService,
 	) {}
 
 	// =========================== GENERAL ==================================
@@ -60,7 +62,7 @@ export class AppGateway
 		this.game.setMov(args.mov, args.login);
 	}
 	@SubscribeMessage('newRoom')
-	newRoom(client: Socket, payload: any): void {
+	async newRoom(client: Socket, payload: any): Promise<void> {
 		// this.gameService.games.push(
 		// var game = new Game(payload.nbrPlayer, payload.nbrBall, this.server)
 		// );
@@ -68,11 +70,18 @@ export class AppGateway
 			this.game.stop();
 			delete this.game;
 		}
+		const match_db = await this.matchService.create_match({
+			nbrPlayer: payload.nbrPlayer,
+			nbrBall: payload.nbrBall,
+			players: payload.players,
+			start: false,
+			lobby_name: payload.lobby_name,
+		});
 		this.game = new Game(
-			payload.nbrPlayer,
-			payload.nbrBall,
+			match_db.nbrPlayer,
+			match_db.nbrBall,
 			this.server,
-			payload.players,
+			match_db.players,
 			payload.lobby_name,
 		);
 	}
@@ -82,7 +91,9 @@ export class AppGateway
 		// var game = new Game(payload.nbrPlayer, payload.nbrBall, this.server)
 		// );
 		if (this.game) {
-			console.log('startback');
+			console.log('Game: Starting');
+			// this.matchService.start_match(payload.lobby_name);
+			// console.log(payload);
 			this.game.start = true;
 		}
 	}

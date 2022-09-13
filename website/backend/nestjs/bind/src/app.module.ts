@@ -6,10 +6,15 @@ import { AuthenticationModule } from './authentication/authentication.module';
 import { UsersModule } from './users/users.module';
 import { ChatModule } from './chat/chat.module';
 import { AppGateway } from './app.gateway';
+import { MatchModule } from './match/match.module';
+import { MatchService } from './match/match.service';
+import { MatchEntity } from './match/match.entity';
+import { TypeOrmModule } from '@nestjs/typeorm';
 // import { SocketModule } from './socket/socket.module';
 
 @Module({
 	imports: [
+		TypeOrmModule.forFeature([MatchEntity]),
 		ConfigModule.forRoot({
 			validationSchema: Joi.object({
 				POSTGRES_HOST: Joi.string().required(),
@@ -32,6 +37,6 @@ import { AppGateway } from './app.gateway';
 		// SocketModule
 	],
 	controllers: [],
-	providers: [AppGateway],
+	providers: [AppGateway, MatchModule, MatchService],
 })
 export class AppModule {}

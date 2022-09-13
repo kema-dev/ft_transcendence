@@ -42,8 +42,8 @@ let remount = ref(false);
 
 let nbrPlayer = ref(6);
 let nbrBall = ref(3);
-let lobby_name = ref("lobby_name");
 let players = ref([$cookies.get("login")]);
+let lobby_name = ref($cookies.get("login"));
 
 function update_game() {
 	remount.value = !remount.value;

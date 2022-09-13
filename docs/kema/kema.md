@@ -2,7 +2,8 @@
 
 ## ongoing
 
-* TODO make `lobby_name` uniques
+* TODO make lobbies updated not recreated
+* TODO warn when a lobby is full / max-min balls / max-min players
 * TODO find about `lobby_name` to group players (how to make a player join a lobby / socket.io rooms)
 * TODO lobby sync across players (store in DB) (party owner rules everything)
 * TODO sync players in lobbies (existing players, new players in lobby, player leaving lobby)
