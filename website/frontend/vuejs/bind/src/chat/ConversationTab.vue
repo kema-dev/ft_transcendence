@@ -1,15 +1,15 @@
 <template>
-    <router-link :to="{name: chan == true ? 'ChannelConv' : 'PrivConv', params: {conv_name: nameConv }}" class="conv_container left row stack" :class="{ 'conv_containerNR': displayNotRead }">
+    <router-link :to="{name: chan == true ? 'ChannelConv' : 'PrivConv', params: {conv_name: nameConv }}" class="conv_container left row stack" :class="{ 'conv_containerNR': displayNotRead() }">
       <div class="avatar_cont">
         <img v-if="avatar" :src="avatar" class="avatar" alt="avatar">
         <img v-else src="~@/assets/group_logo.svg" class="avatar" alt="avatar">
       </div>
       <div class="info center column">
         <div class="top-bar row center stack">
-          <div class="login" :class="{'loginNR': displayNotRead}">{{nameConv}}</div>
+          <div class="login" :class="{'loginNR': displayNotRead()}">{{nameConv}}</div>
           <div v-if="message" class="date">{{displayDate()}}</div>
         </div>
-        <div class="message_cont center" :class="{'messageNR': displayNotRead}">
+        <div class="message_cont center" :class="{'messageNR': displayNotRead()}">
           <div v-if="message" class="message">{{displayMsg()}}</div>
           <div v-else class="message">Created the {{date?.toLocaleDateString("fr")}}, {{date?.toLocaleTimeString("fr")}}</div>
         </div>
@@ -18,10 +18,10 @@
 </template>
 
 <script setup lang="ts">
-import { inject, defineProps, onMounted, ref } from "vue";
-import Private from '@/chat/objects/PrivConv';
-import User from "./objects/User";
-import Message from "./objects/Message";
+import { inject, defineProps, ref } from "vue";
+// import Private from '@/chat/objects/PrivConv';
+// import User from "./objects/User";
+// import Message from "./objects/Message";
 
 let define = inject("colors");
 let me : string = inject("me")!;
@@ -51,12 +51,14 @@ const props = defineProps({
   chan: Boolean
 })
 
-let displayNotRead : boolean;
-if (props.read == false && props.lastMsgUser != me)
-  displayNotRead = true;
-else
-  displayNotRead = false;
-console.log(`\ndisplayNotRead = ${displayNotRead}\nread = ${props.read}\nlastMsgUser = ${props.lastMsgUser}`);
+// let displayNotRead : boolean;
+function displayNotRead() {
+  if (props.read == false && props.lastMsgUser != me)
+    return true;
+  else
+    return false;
+}
+// console.log(`\ndisplayNotRead = ${displayNotRead()}\nread = ${props.read}\nlastMsgUser = ${props.lastMsgUser}`);
 
 function displayMsg() {
   if (props.lastMsgUser == me)

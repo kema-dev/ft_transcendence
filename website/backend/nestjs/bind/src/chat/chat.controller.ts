@@ -59,22 +59,22 @@ export class ChatController {
 			getUsersByLoginFiltred(params.login, params.filter);
   }
 
-	@Get('getPriv/:user1/:user2')
-	async getPrivMsg(@Param() params : {user1: string, user2: string}) {
-		const priv = await this.chatService.getPrivMsg(params.user1, params.user2);
-		if (priv) {
-			const messages : Message[] = [];
-			priv.messages.forEach(msg => {
-				messages.push(new Message(msg.user.login, msg.message,msg.createdAt));
-			});
-			return new PrivateConvDto(params.user2, messages);
-		}
-		else
-			return new PrivateConvDto(params.user2, []);
-		// const ret = new PrivateConvDto(params.user2, messages);
-		// console.log("ret = ", ret);
-		// return ret;
-  }
+	// @Get('getPriv/:user1/:user2')
+	// async getPrivMsg(@Param() params : {user1: string, user2: string}) {
+	// 	const priv = await this.chatService.getPrivMsg(params.user1, params.user2);
+	// 	if (priv) {
+	// 		const messages : Message[] = [];
+	// 		priv.messages.forEach(msg => {
+	// 			messages.push(new Message(msg.user.login, msg.message,msg.createdAt));
+	// 		});
+	// 		return new PrivateConvDto(params.user2, messages);
+	// 	}
+	// 	else
+	// 		return new PrivateConvDto(params.user2, []);
+	// 	// const ret = new PrivateConvDto(params.user2, messages);
+	// 	// console.log("ret = ", ret);
+	// 	// return ret;
+  // }
 
 	@Post('message')
 	postMessage() {

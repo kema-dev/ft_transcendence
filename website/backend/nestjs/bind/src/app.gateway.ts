@@ -41,17 +41,16 @@ export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGateway
 
     // Connection
     async handleConnection(@ConnectedSocket() client: Socket) {
-      console.log(`Client connected : ${client.id}`);
-      console.log("query = ", client.handshake.query.login);
       let login = client.handshake.query.login as string;
+      this.logger.log(`Client '${login}' connected : ${client.id}`);
       await this.userService.saveSocket(login, client.id);
       // handleConnection(@ConnectedSocket() client: Socket, login: string) {
       // console.log(`Client connected : ${client.id}, login = ${login}`);
     }
     // Disconnection
     handleDisconnect(client: Socket) {
-      this.logger.log(`Client disconnected: ${client.id}`);
-      // console.log("query = ", client.handshake.query.login);
+      let login = client.handshake.query.login as string;
+      this.logger.log(`Client '${login}' disconnected: ${client.id}`);
       if (this.game)
         this.game.stop();
       delete this.game;
@@ -159,11 +158,12 @@ export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGateway
 
   @SubscribeMessage("privReaded")
   async privReaded(@MessageBody() data : {userSend: string, userReceive: string} , @ConnectedSocket() client: Socket) {
-    console.log(`privReaded AppGateway , socketid = ${client.id}`);
+    console.log(`privReaded AppGateway , sender = ${data.userSend}, receiver = ${data.userReceive}`);
     // console.log(`userSend = ${data.userSend}, userReceive = ${data.userReceive}`);
-    let priv = await this.chatService.getPrivMsg(data.userSend, data.userReceive);
+    let priv = await this.chatService.getPriv([data.userSend, data.userReceive]);
     if (!priv)
       return console.log(`Error privReaded`);
-    return await this.chatService.markPrivReaded(priv);
+    await this.chatService.markPrivReaded(priv);
+    
   }
 }

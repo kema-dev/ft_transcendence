@@ -1,67 +1,53 @@
 <template>
     <form class="search_groupe center row stack">
         <input
-            type="text"
+            :value="search"
             placeholder="Search"
             id="search"
-			v-model="search"
-			@input="$emit('searchInput', search)"
+            @input="$emit('update:search', $event.target!.value)"
         />
-        <!-- <input
-            :value="modelValue"
-            @input="$emit('update:modelValue', $event.target!.value)"
-        /> -->
-        <button v-if="search.length > 0" @click="changeInput('')" class="reset_button center">
+        <!-- <button v-if="search.length > 0" @click="changeInput('')" class="reset_button center">
             <img src="~@/assets/clear_button.png" alt="clear button" class="reset_button_img">
-        </button>
+        </button> -->
     </form>
 </template>
 
 <script setup lang="ts">
-import { defineProps, defineEmits, ref, onMounted } from 'vue';
-// const props = defineProps({
-//   search: String
-// })
+import { defineProps, defineEmits, onMounted } from 'vue';
 
-// defineProps(['modelValue'])
-// defineEmits(['update:modelValue'])
+const props = defineProps({
+    search: String,
+})
 
-const emit = defineEmits(['searchInput']);
-
-let search = ref("");
-
-function changeInput(value : string) {
-    search.value = value;
-    emit('searchInput', search.value);
-}
+defineEmits(['update:search'])
 
 onMounted( () => {
-    // emit('searchInput', search.value);
+    document.getElementById('search')?.focus();
 })
 
 </script>
 
 <style scoped>
 .search_groupe {
-	margin-top: 5px;
-	width: 70%;
+    margin-top: 5px;
+    width: 70%;
 }
 #search {
-	top: 0px;
-	width: 90%;
-	height: 40px;
+    top: 0px;
+    width: 90%;
+    height: 40px;
     background-image: url('~@/assets/logo_search.png') ;
     background-position: left 10px top 50%;
     background-size: 20px 20px;
     background-repeat:no-repeat;
-	border: solid 1px #ccc;
-	border-radius: 12px;
-	padding-left: 40px;
-	margin: 15px 0;
-	margin-right: 2%;
-	font-size: 1rem;
-	outline: none;
-	box-shadow: 0px 0px 4px #aaa;
+    border: solid 1px #ccc;
+    border-radius: 12px;
+    padding-left: 40px;
+    margin: 15px 0;
+    margin-right: 2%;
+    font-size: 1rem;
+    outline: none;
+    box-shadow: 0px 0px 4px #aaa;
 }
 .reset_button {
     position: absolute;

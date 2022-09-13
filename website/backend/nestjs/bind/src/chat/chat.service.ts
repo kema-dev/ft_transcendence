@@ -39,24 +39,30 @@ export class ChatService {
 
 	
 
-	async getPrivMsg(login1: string, login2: string) {
-		const userId1 = (await this.userService.getByLogin(login1)).id;
-		const userId2 = (await this.userService.getByLogin(login2)).id;
-		// console.log(`user1  = ${login1}, id= ${userId1}\nuser2  = ${login2}, id= ${userId2}`);
-		let priv = await this.getPrivWithUserIds([userId1, userId2]);
-		if (priv && login1 != priv.messages[priv.messages.length - 1].user.login) {
-			priv.readed = true;
-			await this.privateRepository.save(priv)
-				.catch(e => console.log("Save private getPrivMsg error"));
-		}
-		return priv;
-		// const priv =  await this.getPrivWithUserIds([userId1, userId2]);
-		// console.log(priv);
-		// return priv;
-	}
+	// async getPrivMsg(login1: string, login2: string) {
+	// 	const userId1 = (await this.userService.getByLogin(login1)).id;
+	// 	const userId2 = (await this.userService.getByLogin(login2)).id;
+	// 	// console.log(`user1  = ${login1}, id= ${userId1}\nuser2  = ${login2}, id= ${userId2}`);
+	// 	let priv = await this.getPriv([userId1, userId2]);
+	// 	// if (priv && login1 != priv.messages[priv.messages.length - 1].user.login) {
+	// 	// 	priv.readed = true;
+	// 	// 	await this.privateRepository.save(priv)
+	// 	// 		.catch(e => console.log("Save private getPrivMsg error"));
+	// 	// }
+	// 	return priv;
+	// 	// const priv =  await this.getPrivWithUserIds([userId1, userId2]);
+	// 	// console.log(priv);
+	// 	// return priv;
+	// }
+
+	// async haveCommounPriv(users: [UserEntity, UserEntity]) : boolean {
+
+	// }
 
 	async getUsersByLoginFiltred(login: string, filter: string) {
 		const users = await this.userService.getByLoginFiltred(filter);
+		// const requestor = await this.userService.getByLogin(login); 
+		// const usersFiltred = users.filter(user => this.haveCommounPriv([requestor, user]));
     let basicInfos : BasicUser[] = [];
     for(let i = 0; i < users.length; i++) {
       if (login != users[i].login)
@@ -122,7 +128,7 @@ export class ChatService {
 		const msg = this.msgRepository.create({user: userSend, message: data.message});
 		await this.msgRepository.save(msg).catch(e => console.log("Save msg error"));
 		// Check if PrivConv exist
-		const priv = await this.getPrivWithUserIds([userSend.id, userReceive.id]);
+		const priv = await this.getPriv([data.userSend, data.userReceive]);
 		// If PrivateConv exist => add message to the existing one
 		if (priv) {
 			// console.log("Add msg in PrivateConv which already exist");
@@ -138,7 +144,7 @@ export class ChatService {
 		// else => Create a new PrivateConv
 		else {
 			console.log("creation New PrivateConv");
-			const newPriv = this.privateRepository.create();
+			const newPriv = this.privateRepository.create({readed:false});
 			newPriv.users = [userSend, userReceive];
 			newPriv.messages = [msg];
 			newPriv.readed = false;
@@ -156,7 +162,7 @@ export class ChatService {
 
 	// ========================= UTILS =========================
 	
-	async getPrivWithUserIds(userIds: [number, number]) {
+	async getPriv(logins: [string, string]) {
 		// const userId1 = (await this.userService.getByLogin(userIds[0])).id;
 		// const userId2 = (await this.userService.getByLogin(userIds[1])).id;
 		const privates = await this.privateRepository.find({
@@ -180,8 +186,8 @@ export class ChatService {
 			// item.users[1].id = ${item.users[1].id}\n
 			// userIds[0] = ${userIds[0]}\n
 			// userIds[1] = ${userIds[1]}\n`);
-			if ((item.users[0].id == userIds[0] && item.users[1].id == userIds[1])
-				|| (item.users[0].id == userIds[1] && item.users[1].id == userIds[0]))
+			if ((item.users[0].login == logins[0] && item.users[1].login == logins[1])
+				|| (item.users[0].login == logins[1] && item.users[1].login == logins[0]))
 				return true;
 		});
 		return priv;
