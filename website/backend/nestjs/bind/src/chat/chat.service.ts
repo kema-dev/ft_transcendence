@@ -147,6 +147,7 @@ export class ChatService {
 			const newPriv = this.privateRepository.create({readed:false});
 			newPriv.users = [userSend, userReceive];
 			newPriv.messages = [msg];
+			newPriv.readed = false;
 			await this.privateRepository.save(newPriv).catch(e => console.log("Save newPriv error"));
 			return newPriv;
 		}

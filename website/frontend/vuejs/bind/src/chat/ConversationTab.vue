@@ -94,7 +94,6 @@ function displayDate() : string {
 
 </script>
 
-
 <style lang="scss" scoped>
 @use "@/assets/scss/_shared.scss" as *;
 
