@@ -19,4 +19,7 @@ export class MatchEntity {
 
 	@Column()
 	public lobby_name: string;
+
+	@Column()
+	public open: boolean;
 }

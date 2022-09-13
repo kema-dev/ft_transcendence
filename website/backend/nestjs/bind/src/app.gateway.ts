@@ -76,6 +76,7 @@ export class AppGateway
 			players: payload.players,
 			start: false,
 			lobby_name: payload.lobby_name,
+			open: true,
 		});
 		this.game = new Game(
 			match_db.nbrPlayer,
@@ -92,8 +93,8 @@ export class AppGateway
 		// );
 		if (this.game) {
 			console.log('Game: Starting');
-			// this.matchService.start_match(payload.lobby_name);
-			// console.log(payload);
+			this.matchService.start_match(payload.lobby_name);
+			console.log(payload);
 			this.game.start = true;
 		}
 	}

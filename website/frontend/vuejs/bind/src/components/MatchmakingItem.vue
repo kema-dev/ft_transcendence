@@ -51,7 +51,9 @@ function update_game() {
 }
 function launch() {
 	start.value = !start.value;
-	socket.emit('start');
+	socket.emit('start', {
+		lobby_name: lobby_name.value,
+	});
 }
 function incr() {
 	if (nbrPlayer.value + 1 <= 7) {
