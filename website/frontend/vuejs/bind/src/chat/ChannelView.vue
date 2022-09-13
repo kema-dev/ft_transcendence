@@ -58,7 +58,7 @@
 
 <script setup lang="ts">
 /* eslint @typescript-eslint/no-var-requires: "off" */
-import { inject, onMounted, defineEmits, ref, nextTick } from "vue";
+import { inject, onMounted, onBeforeUnmount, ref, nextTick } from "vue";
 import ConversationTab from "@/chat/ConversationTab.vue";
 import ChannelTab from "@/chat/ChannelTab.vue";
 import SearchItem from "@/components/SearchItem.vue";
@@ -168,6 +168,18 @@ function submitChannel() {
 	newChannel.value = false;
 	console.log(data.get('name') as string);
 }
+
+onMounted(() => {
+	const box = document.getElementById('channelsTabText');
+	if (box != null)
+		box.classList.add("chatTabActive");
+})
+
+onBeforeUnmount(() => {
+	const box = document.getElementById('channelsTabText');
+	if (box != null)
+		box.classList.remove("chatTabActive");
+})
 
 </script>
 

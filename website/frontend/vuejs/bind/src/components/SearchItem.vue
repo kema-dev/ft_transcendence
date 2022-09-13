@@ -18,7 +18,7 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, defineEmits, ref, onMounted } from 'vue';
+import { defineEmits, ref, onMounted } from 'vue';
 // const props = defineProps({
 //   search: String
 // })
@@ -36,7 +36,7 @@ function changeInput(value : string) {
 }
 
 onMounted( () => {
-    // emit('searchInput', search.value);
+    document.getElementById('search')?.focus();
 })
 
 </script>

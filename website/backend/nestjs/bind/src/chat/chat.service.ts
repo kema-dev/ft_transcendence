@@ -55,8 +55,14 @@ export class ChatService {
 	// 	// return priv;
 	// }
 
+	// async haveCommounPriv(users: [UserEntity, UserEntity]) : boolean {
+
+	// }
+
 	async getUsersByLoginFiltred(login: string, filter: string) {
 		const users = await this.userService.getByLoginFiltred(filter);
+		// const requestor = await this.userService.getByLogin(login); 
+		// const usersFiltred = users.filter(user => this.haveCommounPriv([requestor, user]));
     let basicInfos : BasicUser[] = [];
     for(let i = 0; i < users.length; i++) {
       if (login != users[i].login)

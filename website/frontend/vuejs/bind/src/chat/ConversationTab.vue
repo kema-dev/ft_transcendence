@@ -18,10 +18,10 @@
 </template>
 
 <script setup lang="ts">
-import { inject, defineProps, onMounted, ref } from "vue";
-import Private from '@/chat/objects/PrivConv';
-import User from "./objects/User";
-import Message from "./objects/Message";
+import { inject, defineProps, ref } from "vue";
+// import Private from '@/chat/objects/PrivConv';
+// import User from "./objects/User";
+// import Message from "./objects/Message";
 
 let define = inject("colors");
 let me : string = inject("me")!;
@@ -93,6 +93,7 @@ function displayDate() : string {
 }
 
 </script>
+
 
 <style lang="scss" scoped>
 @use "@/assets/scss/_shared.scss" as *;

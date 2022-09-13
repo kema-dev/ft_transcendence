@@ -63,16 +63,26 @@ onMounted(() => {
 		reload.value++;
 	})
 });
-	
+
+
+
+
 
 // GET PRIVS 
 let privsRef : Ref<PrivConv[]> = ref([]);
+let nbPrivNR : Ref<number[]> = ref([]);
+function resetNbPrivNR() {
+	nbPrivNR.value = [];
+}
 let privDone = ref(false);
 function markReaded(index : number, readed: boolean) {
 	privsRef.value[index].readed = readed;
 }
 getPrivsRequest();
 provide('privs', privsRef);
+// provide('nbPrivNR', {nbPrivMsg: nbPrivNR, editNbPrivMsg: editNbPrivNR});
+provide('nbPrivNR', {n: nbPrivNR, reset: resetNbPrivNR});
+
 provide('markReaded', markReaded);
 provide('privDone', privDone);
 
@@ -83,10 +93,7 @@ function getPrivsRequest() {
 	.then(res => {
 		// console.log(`privsConvDto : `);
 		// printPrivs(res.data);
-
 		if (!res.data)
-			// privs.value = [];
-			// privs = [];
 			privsRef.value = [];
 		else {
 			// privs.value = res.data;
@@ -96,7 +103,9 @@ function getPrivsRequest() {
 				priv.messages.forEach((msg, j) => {
 					msgsTmp.push(new Message(msg.user, msg.msg, new Date(msg.date)))
 				});
-				privsTmp.push(new PrivConv(priv.user, msgsTmp, priv.readed, priv.id));
+				privsTmp.push(new PrivConv(new BasicUser(priv.user.login), msgsTmp, priv.readed, priv.id));
+				if (priv.readed == false && priv.messages.at(-1)?.user != me)
+					nbPrivNR.value.push(priv.id);
 			});
 			// privs.value = privsTmp;
 			// privs = privsTmp;
@@ -110,6 +119,9 @@ function getPrivsRequest() {
 	})
 	.catch(e => console.log(e));
 }
+
+
+
 
 // CREATE SOCKET LISTENERS 
 socket.on('newPrivConv', (data: PrivConv) => {
@@ -125,8 +137,10 @@ socket.on('newPrivConv', (data: PrivConv) => {
 	// privsRef.value.push(new PrivConv(new BasicUser(data.user.login), [msg], data.readed, data.id));
 	// ==============
 	let newPriv = data;
+	newPriv.user = new BasicUser(newPriv.user.login);
 	newPriv.messages.forEach(msg => msg.date = new Date(msg.date));
 	privsRef.value.unshift(data);
+	nbPrivNR.value.push(data.id);
 
 	// console.log(`privsRef : `);
 	// printPrivs(privsRef.value);
@@ -144,11 +158,11 @@ socket.on('newPrivMsg', (data: {msg: Message, id: number}) => {
 	let i = privsRef.value.findIndex(priv => priv.id == data.id);
 	privsRef.value[i].messages.push(new Message(data.msg.user, data.msg.msg, new Date(data.msg.date)));
 	privsRef.value[i].readed = false;
+	if (data.msg.user != me && !nbPrivNR.value.includes(privsRef.value[i].id))
+		nbPrivNR.value.push(privsRef.value[i].id);
+	console.log(`nbr Priv Mesage Not Read = ${nbPrivNR.value}`)
 	if (i != 0)
 		putPrivFirst(i);
-
-	// console.log(`privsRef : `);
-	// printPrivs(privsRef.value);
 })
 
 // watch(privsRef, () => {
@@ -198,6 +212,7 @@ function printPrivs(privs: PrivConv[]) {
 	width: clamp(0px, 50vw, 80vh);
 	height: clamp(0px, 50vw, 80vh);
 } */
+
 @media screen and (max-width: 1000px) {
 	#game {
 		/* margin: 100px 0; */

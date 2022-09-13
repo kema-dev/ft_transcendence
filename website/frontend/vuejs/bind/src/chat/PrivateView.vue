@@ -41,16 +41,16 @@
 			</h2>
 		</div>
 		<div v-if="newMsg" class="newMsgResults">
-			<!-- <div v-if="knownPeople().length > 0" class="knownPeople left column">
+			<div v-if="privsFiltred.length > 0" class="knownPeople left column">
 				<h2 class="typeUsers">Friends/conversations</h2>
 				<router-link
-					v-for="(data, i) in knownPeople()"
+					v-for="(data, i) in privsFiltred.slice(0, 5)"
 					:key="i"
-					:to="{ name: 'PrivConv', params: { conv_name: data.login } }"
+					:to="{name: 'PrivConv', params: {conv_name: data.user.login}}"
 				>
-					<BasicProfil :avatar="data.avatar" :login="data.login"/>
+					<BasicProfil  :avatar="data.user.avatar" :login="data.user.login"/>
 				</router-link>
-			</div> -->
+			</div>
 			<div
 				v-if="userServReqDone && search.length > 0 && serverUsers?.length"
 				class="otherPeople left column"
@@ -64,9 +64,12 @@
 					<BasicProfil :avatar="data.avatar" :login="data.login"/>
 				</router-link>
 			</div>
-			<!-- <h2 v-if="knownPeople().length == 0 && !serverUsers">
+			<!-- <h2 v-if="privsFiltred.length == 0 && !serverUsers">
 				No results
 			</h2> -->
+			<h2 v-if="privsFiltred.length == 0 && search.length == 0">
+				No conversation yet, search for a new one !
+			</h2>
 			<h2 v-if="userServReqDone && search.length > 0 && !serverUsers?.length">
 				No results
 			</h2>
@@ -76,17 +79,13 @@
 
 <script setup lang="ts">
 /* eslint @typescript-eslint/no-var-requires: "off" */
-import { inject, onMounted, defineEmits, ref, Ref, nextTick, onBeforeMount, onUnmounted, watch } from "vue";
+import { inject, onMounted, ref, Ref, nextTick, onBeforeUnmount, watch, onUpdated } from "vue";
 import ConversationTab from "@/chat/ConversationTab.vue";
 import BasicProfil from "@/components/BasicProfilItem.vue";
 import SearchItem from "@/components/SearchItem.vue";
-import PrivateTabDto from "@/chat/dto/PrivateTabDto"
-import User from "@/chat/objects/User";
-import Message from "@/chat/objects/Message";
-import BasicUserDto from "@/chat/dto/BasicUserDto"
+import { BasicUser } from "@/chat/objects/BasicUser"
 import { Socket } from "socket.io-client";
 import HTTP from "../components/axios";
-import { baseCompile } from "@vue/compiler-core";
 import { PrivConv } from "@/chat/objects/PrivConv";
 
 
@@ -96,90 +95,33 @@ let me: string = inject("me")!;
 let mySocket: Socket = inject("socket")!;
 let apiPath: string = inject("apiPath")!;
 let privs : Ref<PrivConv[]> = inject("privs")!;
+let nbPrivNR : { n: Ref<number[]>, reset: () => void} = inject("nbPrivNR")!;
 let privsFiltred = ref(privs.value);
 const privDone: Ref<boolean> = inject("privDone")!;
 
-
-
-// let privsFiltred = ref<PrivConv[]>();
-let serverUsers = ref<BasicUserDto[]>();
+// let knownPeople = ref<BasicUser[]>();
+let serverUsers = ref<BasicUser[]>();
 const search = ref("");
 const newMsg = ref(false);
 const searchKey = ref(0);
 let userServReqDone = ref(false);
 
+if (privs.value.length) {
+	console.log(`Privs Notif Saw = ${nbPrivNR.n.value}`)
+	nbPrivNR.reset();
+}
+
 watch(privDone, () => {
-	console.log(`privDone = ${privDone.value}`);
+	// console.log(`privDone = ${privDone.value}`);
 	privsFiltred.value = privs.value;
-	// privs.value!.forEach(priv => {
-	// 	console.log(`user = ${priv.user.login}`);
-	// 	priv.messages.forEach((msg) => console.log(`${msg.msg}`));
-	// 	// priv.messages.forEach((msg) => console.log(
-	// 	// 	`msg = '${msg.msg}',
-	// 	// 	user = ${msg.user},
-	// 	// 	date = ${msg.date}`
-	// 	// ));
-	// });
+	console.log(`Privs Notif Saw = ${nbPrivNR.n.value}`)
+	nbPrivNR.reset();
 })
 
-watch(privs, () => {
-	console.log(`watch privs change PrivateView`);
+onUpdated(() => {
+	if (nbPrivNR.n.value.length)
+		nbPrivNR.reset();
 })
-
-watch(privsFiltred, () => {
-	console.log(`watch privsFiltred change PrivateView`);
-})
-
-// function getPrivsRequest() {
-// 	HTTP.get(apiPath + "chat/getPrivs/" + me)
-// 	.then(res => {
-// 		// console.log(`privConvDto = ${res.data}`);
-// 		let privsTmp : PrivateTabDto[] = [];
-// 		res.data.forEach((priv : PrivateTabDto) => {
-// 			privsTmp.push(new PrivateTabDto(priv.login, priv.message
-// 				, new Date(priv.date), priv.lastMsgUser, priv.readed));
-// 			console.log(`readed = ${priv.readed}`);
-// 		});
-// 		privs.value = privsTmp;
-// 		privsFiltred.value = privs.value;
-// 		initReqDone.value = true;
-		
-// 	})
-// 	.catch(e => console.log(e));
-// }
-// mySocket.on("newPrivMsg", () => {
-// 	getPrivsRequest();
-// });
-// getPrivsRequest();
-
-// mySocket.on("getUsersByLoginFiltred", (data : [{login: string}]) => {
-// 	let tmp : BasicUser[] = [];
-// 	for(let i = 0; i < data.length; i++) {
-// 		tmp.push(new BasicUser(data[i].login));
-// 	}
-// 	serverUsers.value = tmp;
-// 	// console.log("serverUsers = ", serverUsers.value);
-// });
-
-
-
-
-
-// conversations.sort(function (x, y) {
-// 	if (
-// 		x.messages[x.messages.length - 1].date <
-// 		y.messages[y.messages.length - 1].date
-// 	) {
-// 		return 1;
-// 	}
-// 	if (
-// 		x.messages[x.messages.length - 1].date >
-// 		y.messages[y.messages.length - 1].date
-// 	) {
-// 		return -1;
-// 	}
-// 	return 0;
-// });
 
 function searchChange(value: string) {
 	userServReqDone.value = false;
@@ -200,11 +142,24 @@ function searchChange(value: string) {
 		else {
 			HTTP.get(apiPath + "chat/getUsersByLoginFiltred/" + me + "/" + search.value)
 			.then(res => {
-				let usersTmp : BasicUserDto[] = [];
-				res.data.forEach((user : BasicUserDto) => {
-					usersTmp.push(new BasicUserDto(user.login));
+				let usersTmp : BasicUser[] = [];
+				res.data.forEach((user : BasicUser) => {
+					usersTmp.push(new BasicUser(user.login));
 				});
 				serverUsers.value = usersTmp;
+
+				serverUsers.value = serverUsers.value.filter((user, i) => {
+					let isAlreadyKnow = true;
+					for (let priv of privsFiltred.value) {
+						if (priv.user.login == user.login){
+							isAlreadyKnow = false;
+							break;
+						}
+					}
+					return isAlreadyKnow;
+					// ========== AJOUTER FRIENDS =========== 
+				})
+
 				userServReqDone.value = true;	
 			})
 			.catch(e => console.log(e));
@@ -259,9 +214,18 @@ function createNewMsg() {
 	});
 }
 
-// onUnmounted(() => {
-// 	mySocket.off("newPrivMsg");
-// })
+
+onMounted(() => {
+	const box = document.getElementById('privateTabText');
+	if (box != null)
+		box.classList.add("chatTabActive");
+})
+
+onBeforeUnmount(() => {
+	const box = document.getElementById('privateTabText');
+	if (box != null)
+		box.classList.remove("chatTabActive");
+})
 
 </script>
 

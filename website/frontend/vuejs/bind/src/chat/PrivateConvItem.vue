@@ -2,7 +2,7 @@
 	<div id="conversation_view" class="stack">
 		<div class="userTopBar center raw space-between">
 			<div class="avatar_cont center">
-				<img :src="receiver!.avatar" class="avatar" alt="avatar">
+				<img :src="receiver.avatar" class="avatar" alt="avatar">
 			</div>
 			<button @click="toProfile" class="login">{{receiver!.login}}</button>
 			<div class="option_buttons center raw stack">
@@ -14,11 +14,10 @@
 					<span class="infoButtonText">Block</span>
 					<img src="~@/assets/block_logo.svg" alt="Invite game button" class="logo_img">
 				</button>
-				<!-- <button onclick="history.back();" class="button_cont infoButton center"> -->
-				<router-link :to="{name: 'private'}" class="button_cont infoButton center">
+				<button onclick="history.back();" class="button_cont infoButton center">
 					<span class="infoButtonText">Close</span>
 					<img src="~@/assets/close_logo.svg" alt="Invite game button" class="logo_img">
-				</router-link>
+				</button>
 			</div>
 		</div>
 		<div class="conversation_content ">
@@ -55,28 +54,16 @@
 
 <script setup lang="ts">
 /* eslint @typescript-eslint/no-var-requires: "off" */
-import axios from "axios";
-import { inject, onMounted, onUnmounted, ref, Ref, onBeforeUnmount, watch, onBeforeMount, nextTick, onUpdated, onBeforeUpdate } from "vue";
+import { inject, onMounted, onUnmounted, ref, Ref, onBeforeUnmount, onUpdated, onBeforeUpdate } from "vue";
 import { useRoute } from 'vue-router';
 import { Socket } from "socket.io-client";
-import HTTP from "../components/axios";
 import MessageItem from "@/chat/MessageItem.vue";
-import User from "@/chat/objects/User";
-import Message from "@/chat/objects/Message";
 import WarningMsg from "@/components/WarningMsg.vue";
 import { NewPrivMsgDto } from "@/chat/dto/NewPrivMsgDto";
-import BasicUserDto from "./dto/BasicUserDto";
-import MessageDto from "./dto/MessageDto"
-import {PrivateConvDto} from "./dto/PrivateConvDto"
 import { PrivConv } from "@/chat/objects/PrivConv";
-import BasicUser from "./objects/BasicUser";
-import { ConstantTypes } from "@vue/compiler-core";
+import { BasicUser } from "./objects/BasicUser";
 
-
-console.log('debut');
-
-let define = inject("colors");
-let apiPath: string = inject("apiPath")!;
+let colors = inject("colors");
 let mySocket: Socket = inject("socket")!;
 let me: string = inject("me")!;
 const userName = useRoute().params.conv_name as string ;
@@ -86,12 +73,12 @@ let markReaded: (index: number, readed: boolean) => void = inject("markReaded")!
 let index = ref(-1);
 if (privs?.value.length) {
 	index.value = privs!.value.findIndex(priv => priv.user.login == userName);
-	// console.log(`index priv of privConvItem = ${index.value}`);
 	if (index.value != -1 && privs.value[index.value].messages.at(-1)?.user != me) {
 		mySocket.emit('privReaded', {userSend: userName, userReceive: me});
 		markReaded(index.value, true);
 	}
 }
+const privDone: Ref<boolean> = inject("privDone")!;
 // let p : {privs: Ref<PrivConv[]>, (index : number, readed: boolean) : void } | undefined = inject("privsPackage");
 // printPrivs(privs.value);
 // let privRef : Ref<PrivConv> | undefined;
@@ -104,7 +91,6 @@ if (privs?.value.length) {
 // let privRef = privs.value.find(priv => priv.user.login == userName);
 
 // printPriv(privRef.value);
-const privDone: Ref<boolean> = inject("privDone")!;
 	
 	// console.log("Priv debut PrivConvItem :")
 	// printPriv(priv);
@@ -112,108 +98,18 @@ const privDone: Ref<boolean> = inject("privDone")!;
 let myMsg = ref("");
 let blockWarn = ref(false);
 let msgsCont = ref(null);
-// let msgsLoaded = ref(null);
-
-// watch(privDone, () => {
-// 	console.log(`privDone = ${privDone.value}`);
-// 	// ((msgsCont.value!) as HTMLElement).scrollTop = 
-// 	// ((msgsCont.value!) as HTMLElement).scrollHeight;
-// 	// privRef.value = privs.value.find(priv => priv.user.login == userName)!;
-// 	// privRef = privs.value.find(priv => priv.user.login == userName)!;
-// })
-
-// watch(msgsLoaded, () => {
-// 	console.log(`Mesages in privConvItem loaded`);
-// 	((msgsCont.value!) as HTMLElement).scrollTop = 
-// 		((msgsCont.value!) as HTMLElement).scrollHeight;
-// 	// if (privRef.value!.messages[privRef.value!.messages.length - 1].user != me) {
-// 	// 	mySocket.emit('privReaded', {userSend: userName, userReceive: me});
-// 	// 	privRef.value!.readed = true;
-// 	// }
-// })
-
-// watch(privs, () => {
-// 	console.log(`watch privs change`);
-// 	printPrivs(privs.value);
-// 	console.log(`apres watch privs`)
-// 	// privRef.value = privs.value.find(priv => priv.user.login == userName)!;
-// })
 
 
-// watch(privRef, () => {
-// 	console.log(`watch privRef change`);
-// 	((msgsCont.value!) as HTMLElement).scrollTop = 
-// 	((msgsCont.value!) as HTMLElement).scrollHeight;
-// 	// nextTick(() => {
-// 		// 	let msgsCont = document.getElementById("messages_cont");
-// 		// 	msgsCont!.scrollTop = msgsCont!.scrollHeight;
-// 		// });
-// 	console.log("scrolled watch");
-// }, {flush:'post'});
+// ====================== METHODS ======================
 
-// watch((privs.value.find(priv => priv.user.login == userName)), () => {
-// 	((msgsCont.value!) as HTMLElement).scrollTop = 
-// 	((msgsCont.value!) as HTMLElement).scrollHeight;
-// })
+function sendMsg() {
+	mySocket.emit('newPrivMsg', new NewPrivMsgDto(me, userName, myMsg.value));
+	myMsg.value = "";
+}
 
-
-let scroll = true;
-let oldNbMsg = -1;
-let newMsg = false;
-
-onBeforeUpdate(() => {
-	if (privs?.value.length) {
-		index.value = privs!.value.findIndex(priv => priv.user.login == userName);
-	}
-	if (index.value != -1 && oldNbMsg != privs!.value[index.value].messages.length) {
-		newMsg = true;
-		oldNbMsg = privs!.value[index.value].messages.length;
-	} else {
-		newMsg = false;
-	}
-
-	let oldScrollTop = ((msgsCont.value!) as HTMLElement).scrollTop;
-	let oldScrollHeight = ((msgsCont.value!) as HTMLElement).scrollHeight;
-	let oldClientHeight = ((msgsCont.value!) as HTMLElement).clientHeight;
-	// let oldOffsetHeight = ((msgsCont.value!) as HTMLElement).offsetHeight;
-
-	// console.log(`onBeforeUpdate oldScrollTop =  ${oldScrollTop}`)
-	// console.log(`onBeforeUpdate oldScrollHeight =  ${oldScrollHeight}`)
-	// console.log(`onBeforeUpdate oldClientHeight =  ${oldClientHeight}`)
-	// console.log(`onBeforeUpdate oldOffsetHeight =  ${oldOffsetHeight}`)
-
-	if (oldScrollTop + oldClientHeight == oldScrollHeight)
-		scroll = true;
-	else
-		scroll = false;
-})
-
-onUpdated( () => {
-	// console.log(`PrivConvItem Updated`);
-
-	// if (privs?.value.length) {
-	// 	index.value = privs!.value.findIndex(priv => priv.user.login == userName);
-	// }
-
-	// index = privs!.value.findIndex(priv => {
-	// 	console.log(`priv.user.login = ${priv.user.login}, userName = ${userName}`);
-	// 	if (priv.user.login == userName)
-	// 		return true;
-	// });
-	// console.log(`index priv of privConvItem = ${index.value}`);
-	// console.log(`onUpdate scrollTop =  ${((msgsCont.value!) as HTMLElement).scrollTop}`);
-	// console.log(`onUpdate scrollHeight =  ${((msgsCont.value!) as HTMLElement).scrollHeight}`);
-	if (scroll == true) {
-		((msgsCont.value!) as HTMLElement).scrollTop = 
-			((msgsCont.value!) as HTMLElement).scrollHeight;
-	}
-
-	// if (index.value != -1 && privs!.value[index.value].messages.at(-1)?.user != me) {
-	if (newMsg && privs!.value[index.value].messages.at(-1)?.user != me) {
-		mySocket.emit('privReaded', {userSend: userName, userReceive: me});
-		markReaded(index.value, true);
-	}
-})
+function banUser() {
+	// DEMMANDER DE BAN LE USER AU BACK
+}
 
 function selectPriv() {
 	// console.log(`selectPriv()`);
@@ -269,46 +165,75 @@ function displayDate(date: Date, i: number) {
 		return `${day} ${month} ${year} at ${hours}:${minutes}`;
 }
 
-function banUser() {
-	// DEMMANDER DE BAN LE USER AU BACK <==================================
-}
 
-function sendMsg() {
-	// console.log(`message send`);
-	mySocket.emit('newPrivMsg', new NewPrivMsgDto(me, userName, myMsg.value));
-	myMsg.value = "";
+// ====================== LIFECYCLES HOOKS ======================
 
-}
+let scroll = true;
+let oldNbMsg = -1;
+let newMsg = false;
+
+onBeforeUpdate(() => {
+	if (privs?.value.length)
+		index.value = privs!.value.findIndex(priv => priv.user.login == userName);
+	if (index.value != -1 && oldNbMsg != privs!.value[index.value].messages.length) {
+		newMsg = true;
+		oldNbMsg = privs!.value[index.value].messages.length;
+	} 
+	else
+		newMsg = false;
+	let oldScrollTop = ((msgsCont.value!) as HTMLElement).scrollTop;
+	let oldScrollHeight = ((msgsCont.value!) as HTMLElement).scrollHeight;
+	let oldClientHeight = ((msgsCont.value!) as HTMLElement).clientHeight;
+	if (oldScrollTop + oldClientHeight == oldScrollHeight)
+		scroll = true;
+	else
+		scroll = false;
+})
+
+onUpdated( () => {
+	// console.log(`PrivConvItem Updated`);
+
+	// if (privs?.value.length) {
+	// 	index.value = privs!.value.findIndex(priv => priv.user.login == userName);
+	// }
+
+	// index = privs!.value.findIndex(priv => {
+	// 	console.log(`priv.user.login = ${priv.user.login}, userName = ${userName}`);
+	// 	if (priv.user.login == userName)
+	// 		return true;
+	// });
+	// console.log(`index priv of privConvItem = ${index.value}`);
+	// console.log(`onUpdate scrollTop =  ${((msgsCont.value!) as HTMLElement).scrollTop}`);
+	// console.log(`onUpdate scrollHeight =  ${((msgsCont.value!) as HTMLElement).scrollHeight}`);
+	if (scroll == true) {
+		((msgsCont.value!) as HTMLElement).scrollTop = 
+			((msgsCont.value!) as HTMLElement).scrollHeight;
+	}
+
+	// if (index.value != -1 && privs!.value[index.value].messages.at(-1)?.user != me) {
+	if (newMsg && privs!.value[index.value].messages.at(-1)?.user != me) {
+		mySocket.emit('privReaded', {userSend: userName, userReceive: me});
+		markReaded(index.value, true);
+	}
+})
 
 onMounted(() => {
-	// console.log(`debut onMounted PrivConvIten`);
-	// console.log(`msgsCont.value = ${msgsCont.value}`);
-	// console.log(`msgsCont.scrollHeight = ${((msgsCont.value!) as HTMLElement).scrollHeight}, `);
 	((msgsCont.value!) as HTMLElement).scrollTop = 
 	((msgsCont.value!) as HTMLElement).scrollHeight;
-	// console.log("scrolled onMounted");
+	document.getElementById('sendbox')?.focus();
+	const box = document.getElementById('privateTabText');
+	if (box != null)
+		box.classList.add("chatTabActive");
 })
 
 onBeforeUnmount(() => {
 	const box = document.getElementById('privateTabText');
-	if (box != null) {
-		box.style.removeProperty('border-bottom');
-		box.style.removeProperty('color');
-		box.style.removeProperty('font-weight');
-	}
+	if (box != null)
+		box.classList.remove("chatTabActive");
 })
 
-onUnmounted(() => {
-	// console.log("debut mounted");
-	// mySocket.off("newPrivMsg");
-	const box = document.getElementById('privateTabText');
-	if (box != null) {
-		box.style.setProperty('border-bottom', '2px solid #16638D');
-		box.style.setProperty('color', '#16638D');
-		box.style.setProperty('font-weight', '500');
-	}
-	// console.log("fin mounted");
-});
+
+// ====================== UTILS ======================
 
 function printPriv(priv: PrivConv | undefined) {
 	if (!priv)
@@ -360,7 +285,7 @@ function printPrivs(privs: PrivConv[] | undefined) {
   text-overflow: ellipsis;
 }
 .login:hover {
-	color: v-bind("define.color2");
+	color: v-bind("colors.color2");
 }
 .option_buttons {
 	width: auto;

@@ -9,7 +9,7 @@
 
 <script setup lang="ts">
 import { inject, defineProps, onMounted, ref } from "vue";
-import Conversation from "@/chat/objects/PrivConv";
+// import Conversation from "@/chat/objects/PrivConv";
 import User from "@/chat/objects/User";
 import { stringifyQuery } from "vue-router";
 

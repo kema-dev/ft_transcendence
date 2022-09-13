@@ -41,17 +41,16 @@ export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGateway
 
     // Connection
     async handleConnection(@ConnectedSocket() client: Socket) {
-      console.log(`Client connected : ${client.id}`);
-      console.log("query = ", client.handshake.query.login);
       let login = client.handshake.query.login as string;
+      this.logger.log(`Client '${login}' connected : ${client.id}`);
       await this.userService.saveSocket(login, client.id);
       // handleConnection(@ConnectedSocket() client: Socket, login: string) {
       // console.log(`Client connected : ${client.id}, login = ${login}`);
     }
     // Disconnection
     handleDisconnect(client: Socket) {
-      this.logger.log(`Client disconnected: ${client.id}`);
-      // console.log("query = ", client.handshake.query.login);
+      let login = client.handshake.query.login as string;
+      this.logger.log(`Client '${login}' disconnected: ${client.id}`);
       if (this.game)
         this.game.stop();
       delete this.game;
