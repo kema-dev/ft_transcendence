@@ -51,7 +51,7 @@
 				>
 					<BasicProfil  :avatar="data.user.avatar" :login="data.user.login"/>
 				</router-link>
-			</div>
+			</div> -->
 			<div
 				v-if="userServReqDone && search.length > 0 && serverUsers?.length"
 				class="otherPeople left column"
