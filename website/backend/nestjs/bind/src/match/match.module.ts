@@ -1,11 +1,13 @@
 import { Module } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios'
-import { AuthenticationService } from './authentication.service';
+import { AuthenticationService } from '../authentication/authentication.service';
 import { UsersModule } from '../users/users.module';
-import { AuthenticationController } from './authentication.controller';
+import { AuthenticationController } from '../authentication/authentication.controller';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { MatchService } from './match.service';
+import { MatchController } from './match.controller';
 
 @Module({
 	imports: [
@@ -25,7 +27,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 			}),
 		}),
 	],
-	providers: [AuthenticationService],
-	controllers: [AuthenticationController],
+	providers: [AuthenticationService, MatchService],
+	controllers: [AuthenticationController, MatchController],
 })
-export class AuthenticationModule {}
+export class MatchModule {}
