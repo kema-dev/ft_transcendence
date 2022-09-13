@@ -63,11 +63,7 @@ onMounted(() => {
 		reload.value++;
 	})
 });
-
-
-
-
-
+	
 // GET PRIVS 
 let privsRef : Ref<PrivConv[]> = ref([]);
 let nbPrivNR : Ref<number[]> = ref([]);
