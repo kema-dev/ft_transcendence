@@ -160,7 +160,7 @@ socket.on('newPrivMsg', (data: {msg: Message, id: number}) => {
 	privsRef.value[i].readed = false;
 	if (data.msg.user != me && !nbPrivNR.value.includes(privsRef.value[i].id))
 		nbPrivNR.value.push(privsRef.value[i].id);
-	console.log(`nbr Priv Mesage Not Read = ${nbPrivNR.value}`)
+	// console.log(`nbr Priv Mesage Not Read = ${nbPrivNR.value}`)
 	if (i != 0)
 		putPrivFirst(i);
 })

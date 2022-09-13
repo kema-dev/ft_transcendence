@@ -58,7 +58,7 @@ function displayNotRead() {
   else
     return false;
 }
-console.log(`\ndisplayNotRead = ${displayNotRead()}\nread = ${props.read}\nlastMsgUser = ${props.lastMsgUser}`);
+// console.log(`\ndisplayNotRead = ${displayNotRead()}\nread = ${props.read}\nlastMsgUser = ${props.lastMsgUser}`);
 
 function displayMsg() {
   if (props.lastMsgUser == me)

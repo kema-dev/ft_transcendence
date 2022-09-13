@@ -2,7 +2,8 @@
 	<!-- <div v-if="initReqDone" id="private_view" class="center column"> -->
 	<div v-if="privDone" id="private_view" class="center column">
 		<div class="option_private center raw">
-			<SearchItem @searchInput="searchChange" :key="searchKey" />
+			<!-- <SearchItem @searchInput="searchChange" :key="searchKey" /> -->
+			<SearchItem v-model:search="search"/>
 			<div class="buttons_cont space-around raw">
 				<button @click="createNewMsg()" class="button_cont center column">
 					<span v-if="!newMsg" class="infoButtonText">New message</span>
@@ -107,14 +108,12 @@ const searchKey = ref(0);
 let userServReqDone = ref(false);
 
 if (privs.value.length) {
-	console.log(`Privs Notif Saw = ${nbPrivNR.n.value}`)
 	nbPrivNR.reset();
 }
 
 watch(privDone, () => {
 	// console.log(`privDone = ${privDone.value}`);
 	privsFiltred.value = privs.value;
-	console.log(`Privs Notif Saw = ${nbPrivNR.n.value}`)
 	nbPrivNR.reset();
 })
 
@@ -123,10 +122,8 @@ onUpdated(() => {
 		nbPrivNR.reset();
 })
 
-function searchChange(value: string) {
+watch(search, () => {
 	userServReqDone.value = false;
-	search.value = value;
-	// console.log("privs = ", privsFiltred.value);
 	privsFiltred.value = privs.value?.filter(function(value) {
 		return value.user.login.toUpperCase().startsWith(search.value.toUpperCase());
 	});
@@ -136,10 +133,7 @@ function searchChange(value: string) {
 	// 	});
 	// }
 	if (newMsg.value) {
-		if (search.value == ""){
-			// serverUsers.value = [];
-		}
-		else {
+		if (search.value != "") {
 			HTTP.get(apiPath + "chat/getUsersByLoginFiltred/" + me + "/" + search.value)
 			.then(res => {
 				let usersTmp : BasicUser[] = [];
@@ -165,26 +159,7 @@ function searchChange(value: string) {
 			.catch(e => console.log(e));
 		}
 	}
-
-	// if (search.value != "" && newMsg.value){
-	// 	// userServReqDone.value = false;
-	// 	HTTP.get(apiPath + "chat/getUsersByLoginFiltred/" + me + "/" + search.value)
-	// 		.then(res => {
-	// 			let usersTmp : BasicUserDto[] = [];
-	// 			res.data.forEach((user : BasicUserDto) => {
-	// 				usersTmp.push(new BasicUserDto(user.login));
-	// 			});
-	// 			serverUsers.value = usersTmp;
-	// 		})
-	// 		.catch(e => console.log(e));
-		
-	// 	// serverUsers.value = (await HTTP.get(
-	// 	// 	apiPath + "chat/getUsersByLoginFiltred/" + me + "/" + search.value)).data;
-	// 	userServReqDone.value = true;	
-	// }
-
-		// HTTP.get(apiPath + "chat/getUsersByLoginFiltred/" + me).then(res => serverUsers.value = res);
-}
+})
 
 // function knownPeople(): User[] {
 // 	let res: User[] = [];
@@ -207,8 +182,9 @@ function searchChange(value: string) {
 // }
 
 function createNewMsg() {
+	search.value = "";
 	newMsg.value = !newMsg.value;
-	searchKey.value += 1;
+	// searchKey.value += 1;
 	nextTick(() => {
 		document.getElementById("search")?.focus();
 	});
