@@ -32,6 +32,8 @@ import { inject, onMounted, provide, ref } from "vue";
 import GameItem from "@/components/GameItem.vue";
 import { Socket } from "socket.io-client";
 import { VueCookies } from "vue-cookies";
+import { useToast } from "vue-toastification";
+const toast = useToast();
 
 let define = inject("colors");
 let start = ref(false);
@@ -59,24 +61,32 @@ function incr() {
 	if (nbrPlayer.value + 1 <= 7) {
 		nbrPlayer.value++;
 		update_game();
+	} else {
+		toast.warning('7 players maximum');
 	}
 }
 function decr() {
 	if (nbrPlayer.value - 1 >= 2) {
 		nbrPlayer.value--;
 		update_game();
+	} else {
+		toast.warning('2 players minimum');
 	}
 }
 function incrBall() {
 	if (nbrBall.value + 1 <= 3) {
 		nbrBall.value++;
 		update_game();
+	} else {
+		toast.warning('3 balls maximum');
 	}
 }
 function decrBall() {
 	if (nbrBall.value - 1 >= 1) {
 		nbrBall.value--;
 		update_game();
+	} else {
+		toast.warning('1 balls minimum');
 	}
 }
 onMounted(() => {

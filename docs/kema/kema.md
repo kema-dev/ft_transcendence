@@ -2,7 +2,6 @@
 
 ## ongoing
 
-* TODO warn when a lobby is full / max-min balls / max-min players
 * TODO find about `lobby_name` to group players (how to make a player join a lobby / socket.io rooms)
 * TODO do not let non-owner players to change settings / start the game
 * TODO sync players in lobbies (existing players, new players in lobby, player leaving lobby)
