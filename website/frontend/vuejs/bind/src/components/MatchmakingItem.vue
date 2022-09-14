@@ -1,9 +1,6 @@
 <template>
 	<div class="stack" id="page">
-		<div class="switch">
-			<button class="switch-button" @click="switch_page()">Switch</button>
-		</div>
-		<div id="game_pos" v-if="gaming">
+		<div id="game_pos">
 			<GameItem
 				:nbrPlayer="nbrPlayer"
 				:nbrBall="nbrBall"
@@ -13,10 +10,7 @@
 				:key="remount"
 			/>
 		</div>
-		<div id="lobby_lists" v-if="!gaming">
-			<LobbyList/>
-		</div>
-		<div class="center column" id="settings" v-show="!start && gaming" >
+		<div class="center column" id="settings" v-show="!start" >
 			<h1>{{ nbrPlayer }}</h1>
 			<h2 class="title">Players</h2>
 			<div class="center row">
@@ -52,8 +46,6 @@ let nbrPlayer = ref(6);
 let nbrBall = ref(3);
 let players = ref([$cookies.get("login")]);
 let lobby_name = ref($cookies.get("login"));
-
-let gaming = ref(false);
 
 function update_game() {
 	remount.value = !remount.value;
@@ -96,9 +88,6 @@ function decrBall() {
 	} else {
 		toast.warning('1 balls minimum');
 	}
-}
-function switch_page() {
-	gaming.value = !gaming.value;
 }
 onMounted(() => {
 	let game = document.getElementById("container");

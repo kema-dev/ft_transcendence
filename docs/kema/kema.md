@@ -2,12 +2,14 @@
 
 ## ongoing
 
+* TODO make players show on hover
 * TODO find about `lobby_name` to group players (how to make a player join a lobby / socket.io rooms)
 * TODO do not let non-owner players to change settings / start the game
 * TODO sync players in lobbies (existing players, new players in lobby, player leaving lobby)
 * TODO loby selection page (option to create a new one)
 * TODO make `start` false when the game is over
 * TODO autofill option (join first available lobby)
+* TODO make a play again button
 
 ## later
 
