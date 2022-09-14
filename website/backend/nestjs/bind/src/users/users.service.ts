@@ -1,18 +1,20 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like } from 'typeorm';
-import {UserEntity} from './user.entity';
+import { UserEntity } from './user.entity';
 import CreateUserDto from './dto/createUser.dto';
+import ResumUserDto from 'src/users/dto/ResumUserDto';
+import ProfileUserDto from 'src/users/dto/ProfileUserDto';
 
 // NOTE - API's documentation can be found at `docs/api/v1.md`
 
 @Injectable()
 export class UsersService {
-  private logger: Logger = new Logger('UsersService');
+	private logger: Logger = new Logger('UsersService');
 	constructor(
 		@InjectRepository(UserEntity)
 		private usersRepository: Repository<UserEntity>,
-	) {}
+	) { }
 
 	async saveSocket(login: string, socket: string) {
 		let user = await this.getByLogin(login);
@@ -34,11 +36,14 @@ export class UsersService {
 		throw new HttpException('E_USER_NOT_FOUND', HttpStatus.NOT_FOUND);
 	}
 
-	async getByLogin(logname: string) {
+	async getByLogin(logname: string, relations?: any) {
 		console.log('getByLogin: starting for ' + logname);
-		const user = await this.usersRepository.findOne({
-			where: { login: logname },
-		});
+		let params;
+		if (relations)
+			params = { where: { login: logname }, relations: relations };
+		else
+			params = { where: { login: logname } };
+		const user = await this.usersRepository.findOne(params);
 		if (user) {
 			console.log('getByLogin: found ' + logname + ', returning ✔');
 			return user;
@@ -51,7 +56,7 @@ export class UsersService {
 		let maxUsers = 15;
 		console.log('getByLoginFiltred: starting for \'' + filter + '\'');
 		const users = await this.usersRepository.find({
-			where: {login: Like(filter + "%")},
+			where: { login: Like(filter + "%") },
 			take: maxUsers
 		})
 		return users;
@@ -89,22 +94,72 @@ export class UsersService {
 		throw new HttpException('E_USER_NOT_FOUND', HttpStatus.NOT_FOUND);
 	}
 
-	async sendFriendRequest(sender: string, receiver: string, server: any) {
-		let userReceiver = await this.getByLogin(receiver);
-		let userSender = await this.getByLogin(sender);
-		userReceiver.requestFriend.push(userSender);
-		this.usersRepository.save(userReceiver);
-		this.logger.log("sendFriendRequest: " + sender + " sent a friend request to " + receiver);
-		server.to(userReceiver.socketId).emit('friendRequest', userSender);
-	}
 
-	async addFriend(sender: string, receiver: string) {
-		let userSender = await this.getByLogin(sender);
-		let userReceiver = await this.getByLogin(receiver);
+	async sendFriendRequest(sender: string, receiver: string, server: any) {
+		let userReceiver = await this.getByLogin(receiver, { requestFriend: true, friends: true });
+		let userSender = await this.getByLogin(sender, { requestFriend: true, friends: true });
+		if (userReceiver.login == userSender.login)
+			return;
+		if (!userReceiver.requestFriend)
+			userReceiver.requestFriend = [];
+		if (userReceiver.requestFriend.find(user => user.login == sender))
+			return;
+		userReceiver.requestFriend.push(userSender);
+		// this.usersRepository.createQueryBuilder().relation(UserEntity, "requestFriend").of(userReceiver).add(userSender);
+		this.usersRepository.save(userReceiver).catch(e => this.logger.log("Save user error"));
+		server.to(userReceiver.socketId).emit('userUpdate', new ProfileUserDto(userReceiver));
+		// server.to(userReceiver.socketId).emit('friendRequest', new ResumUserDto(userSender));
+	}
+	async declineFriendRequest(sender: string, receiver: string, server: any) {
+		let userSender = await this.getByLogin(sender, { requestFriend: true, friends: true });
+		if (!userSender.requestFriend)
+			userSender.requestFriend = [];
+		userSender.requestFriend = userSender.requestFriend.filter(user => user.login != receiver);
+		this.usersRepository.save([userSender]).catch(e => this.logger.log("Save user error"));
+		server.to(userSender.socketId).emit('userUpdate', new ProfileUserDto(userSender));
+	}
+	async addFriend(sender: string, receiver: string, server: any) {
+		let userSender = await this.getByLogin(sender, { requestFriend: true, friends: true });
+		let userReceiver = await this.getByLogin(receiver, { requestFriend: true, friends: true });
+		if (!userSender.friends)
+			userSender.friends = [];
+		if (!userReceiver.friends)
+			userReceiver.friends = [];
 		userSender.friends.push(userReceiver);
 		userReceiver.friends.push(userSender);
+		if (!userSender.requestFriend)
+			userSender.requestFriend = [];
+		userSender.requestFriend = userSender.requestFriend.filter(user => user.login != receiver);
+		if (!userReceiver.requestFriend)
+			userReceiver.requestFriend = [];
+		userReceiver.requestFriend = userReceiver.requestFriend.filter(user => user.login != sender);
+		// userSender.requestFriend.filter(user => user.login != receiver);
 		this.usersRepository.save([userReceiver, userSender]);
+		server.to(userSender.socketId).emit('userUpdate', new ProfileUserDto(userSender));
+		server.to(userReceiver.socketId).emit('userUpdate', new ProfileUserDto(userReceiver));
+		// server.to(userReceiver.socketId).emit('friendAccepted', new ResumUserDto(userSender));
+		// server.to(userSender.socketId).emit('friendAccepted', new ResumUserDto(userReceiver));
+		// server.to(userSender.socketId).emit('removeFriendRequest', new ResumUserDto(userReceiver));
 	}
+	async removeFriend(sender: string, receiver: string, server: any) {
+		let userSender = await this.getByLogin(sender, { requestFriend: true, friends: true });
+		let userReceiver = await this.getByLogin(receiver, { requestFriend: true, friends: true });
+		if (!userSender.friends)
+			userSender.friends = [];
+		if (!userReceiver.friends)
+			userReceiver.friends = [];
+		userSender.friends = userSender.friends.filter(user => user.login != receiver);
+		userReceiver.friends = userReceiver.friends.filter(user => user.login != sender);
+		this.usersRepository.save([userReceiver, userSender]);
+		server.to(userSender.socketId).emit('userUpdate', new ProfileUserDto(userSender));
+		server.to(userReceiver.socketId).emit('userUpdate', new ProfileUserDto(userReceiver));
+	}
+	async changeAvatar(login: string, avatar: string) {
+		let user = await this.getByLogin(login);
+		user.avatar = avatar;
+		this.usersRepository.save(user);
+	}
+
 
 	async checkLoginExistence(login: string) {
 		console.log('checkLoginExistence: starting for ' + login);

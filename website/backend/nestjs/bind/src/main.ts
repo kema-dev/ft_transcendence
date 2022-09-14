@@ -11,7 +11,10 @@ async function bootstrap() {
 		cert: fs.readFileSync('/secrets/cert.pem'),
 	};
 	const app = await NestFactory.create<NestExpressApplication>(AppModule, {httpsOptions});
-	app.useStaticAssets(join(__dirname, '..', 'static'));
+	app.useStaticAssets(join(__dirname, '..', 'public'), {
+    index: false,
+    prefix: '/public',
+});
 	app.setGlobalPrefix('api/v1');
 	app.use(cookieParser());
 	app.enableCors();

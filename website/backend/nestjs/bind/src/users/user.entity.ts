@@ -4,25 +4,13 @@ import { MessageEntity } from '../chat/entites/message.entity';
 import { PrivateEntity } from '../chat/entites/private.entity';
 import TimestampEntites from '../utils/timestamp.enties';
 
-function toDataURL(url: string, callback: Function) {
-	var xhr = new XMLHttpRequest();
-	xhr.onload = function () {
-		var reader = new FileReader();
-		reader.onloadend = function () {
-			callback(reader.result);
-		}
-		reader.readAsDataURL(xhr.response);
-	};
-	xhr.open('GET', url);
-	xhr.responseType = 'blob';
-	xhr.send();
-}
 @Entity("user")
 export class UserEntity extends TimestampEntites {
 	constructor() {
 		super();
 		this.level = 0;
 		this.status = "offline";
+		// this.avatar = require('/public/avatars/1.jpg');
 	}
 	@PrimaryGeneratedColumn()
 	public id?: number;
@@ -51,7 +39,7 @@ export class UserEntity extends TimestampEntites {
 	@JoinTable()
 	public friends: UserEntity[];
 
-	@ManyToMany(type => UserEntity, (user) => user.requestFriend, {
+	@ManyToMany(type => UserEntity, {
 		onDelete: 'SET NULL'
 	})
 	@JoinTable()
@@ -62,7 +50,7 @@ export class UserEntity extends TimestampEntites {
 
 	@Column({ nullable: true })
 	socketId: string;
-	
+
 	@Column()
 	public ft_accessToken: string;
 

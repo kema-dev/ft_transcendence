@@ -1,17 +1,17 @@
 <template>
 	<div class="column center">
 		<div v-on:click="change_avatar" id="avatar">
-			<img src="@/assets/avatars/(1).jpg" id="img" />
+			<img :src="me?.avatar" id="img" />
 		</div>
 		<input id="none" type="file" />
 		<h2 class="info">{{ user.rank }}</h2>
-		<h1 id="name">{{ user.name }}</h1>
-		<h2 class="info">level {{ user.level }}</h2>
+		<h1 id="name">{{ me?.login }}</h1>
+		<h2 class="info">level {{ me?.level }}</h2>
 		<h3 id="ratio">{{ user.ratiov }} | {{ user.ratiod }}</h3>
 		<h2>Match history</h2>
 		<div v-for="match in user.history" :key="match.adversary">
 			<!-- <ScoreItem :player="user.name" :adversary="match.adversary" :points1="match.points1" :points2="match.points2"/> -->
-			<MatchItem index=""/>
+			<MatchItem index="" />
 		</div>
 	</div>
 </template>
@@ -19,8 +19,11 @@
 <script setup lang="ts">
 import { onMounted, inject } from "vue";
 import ScoreItem from "../components/ScoreItem.vue";
-import MatchItem from '@/components/MatchItem.vue';
-let define = inject('colors')
+import MatchItem from "@/components/MatchItem.vue";
+let define = inject("colors");
+let me = inject("user")!;
+let socket = inject("socket")!;
+
 let user = {
 	name: "zeus",
 	level: "1000",
@@ -53,8 +56,12 @@ onMounted(() => {
 	input?.addEventListener("change", () => {
 		const reader = new FileReader();
 		reader.addEventListener("load", () => {
-			const uploaded_image = reader.result;
-			document.querySelector("#img").src = `${uploaded_image}`;
+			let image = reader.result;
+			document.querySelector("#img").src = `${image}`;
+			socket.emit("changeAvatar", {
+				login: me.value.login,
+				avatar: `${image}`,
+			});
 		});
 		reader.readAsDataURL(input.files[0]);
 	});
@@ -67,7 +74,8 @@ function change_avatar() {
 
 <style scoped>
 #avatar {
-	width: 40%;
+	width: 200px;
+	height: 200px;
 	border-radius: 50%;
 	box-shadow: 0px 2px 5px #333;
 	cursor: pointer;
@@ -79,8 +87,10 @@ function change_avatar() {
 	/* padding-top: 40%; */
 }
 #img {
+	object-fit: cover;
 	vertical-align: middle;
 	width: 100%;
+	height: 100%;
 	border-radius: 50%;
 }
 #none {

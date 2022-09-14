@@ -1,6 +1,20 @@
 <template>
     <div>
 		<h1>{{route.params.name}}</h1>
+			<!-- <div class="column center">
+		<div v-on:click="change_avatar" id="avatar">
+			<img src="@/assets/avatars/(1).jpg" id="img" />
+		</div>
+		<input id="none" type="file" />
+		<h2 class="info">{{ user.rank }}</h2>
+		<h1 id="name">{{ me.login }}</h1>
+		<h2 class="info">level {{ me.level }}</h2>
+		<h3 id="ratio">{{ user.ratiov }} | {{ user.ratiod }}</h3>
+		<h2>Match history</h2>
+		<div v-for="match in user.history" :key="match.adversary">
+			<MatchItem index=""/>
+		</div>
+	</div> -->
     </div>
 </template>
 
