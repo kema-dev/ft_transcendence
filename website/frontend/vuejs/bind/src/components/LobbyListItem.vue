@@ -1,21 +1,25 @@
 <template>
 	<div class="wrap">
-		<p class="title">Matchmaking</p>
-		<div v-for="lobby in lobbies" :key="lobby.name">
-			<div class="lobby">
-				<div class="lobby-name">
-					{{ lobby.name }}
-				</div>
-				<div class="lobby-players">
-					<div v-for="player in lobby.players" :key="player">
-						{{ player }}
-					</div>
-				</div>
-				<div class="lobby-join">
-					<button @click="join(lobby.name)">join</button>
-				</div>
-			</div>
-		</div>
+		<nav>
+			<ul class="dropdown">
+				<li class="drop"><a href="#">LOBBIES</a>
+					<ul class="sub_menu">
+						<li><a href="#">Lorem</a></li>
+						<li><a href="#">Ipsum</a></li>
+						<li><a href="#">Dolor</a></li>
+						<li><a href="#">Lipsum</a></li>
+						<li><a href="#">Consectetur </a></li>
+						<li><a href="#">Duis</a></li>
+						<li><a href="#">Sed</a></li>
+						<li><a href="#">Natus</a></li>
+						<li><a href="#">Excepteur</a></li>
+						<li><a href="#">Voluptas</a></li>
+						<li><a href="#">Voluptate</a></li>
+						<li><a href="#">Malorum</a></li>
+					</ul>
+				</li>
+			</ul>
+		</nav>
 	</div>
 </template>
 
@@ -57,28 +61,61 @@ function join(name: string) {
 </script>
 
 <style>
-body {
-	font-family: "Roboto", sans-serif;
+
+.dropdown {
+	top: 60px;
+	left: 0;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	position: fixed;
+	display: inline-block;
 }
-.lobby {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	height: 80px;
-	margin: 10px;
-	border-radius: 10px;
-	background-color: #222;
+
+.dropdown li {
+	display: inline-block;
 }
-.lobby-name {
-	width: 200px;
-	padding: 0 10px;
+
+.dropdown li a {
+	display: block;
+	padding: 10px 20px;
+	color: #000;
+	text-decoration: none;
 }
-.lobby-players {
-	width: 200px;
-	padding: 0 10px;
+
+.dropdown li a:hover {
+	background: #16638d;
 }
-.lobby-join {
-	width: 200px;
-	padding: 0 10px;
+
+.dropdown li:hover .sub_menu {
+	display: block;
 }
+
+.sub_menu {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	position: absolute;
+	display: none;
+	background: #16638d81;
+	border-radius: 0 0 5px 5px;
+	overflow: scroll;
+	height: calc(100vh - 65px);
+}
+
+.sub_menu li {
+	display: block;
+}
+
+.sub_menu li a {
+	display: block;
+	padding: 10px 20px;
+	text-decoration: none;
+	color: #000;
+}
+
+.sub_menu li a:hover {
+	background: #16638d;
+}
+
 </style>

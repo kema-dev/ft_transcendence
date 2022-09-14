@@ -1,5 +1,8 @@
 <template>
 	<div class="stack" id="page">
+		<div id="lobbies_menu">
+			<LobbyListItem />
+		</div>
 		<div id="game_pos">
 			<GameItem
 				:nbrPlayer="nbrPlayer"
@@ -30,6 +33,7 @@
 <script setup lang="ts">
 import { inject, onMounted, provide, ref } from "vue";
 import GameItem from "@/components/GameItem.vue";
+import LobbyListItem from "@/components/LobbyListItem.vue";
 import { Socket } from "socket.io-client";
 import { VueCookies } from "vue-cookies";
 import { useToast } from "vue-toastification";
