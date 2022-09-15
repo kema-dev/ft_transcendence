@@ -2,6 +2,8 @@
 
 ## ongoing
 
+* fix backend crash when user in `login` cookie is not in database
+* fix lobbies list listing
 * find about `lobby_name` to group players (how to make a player join a lobby / socket.io rooms)
 * do not let non-owner players to change settings / start the game
 * sync players in lobbies (existing players, new players in lobby, player leaving lobby)
