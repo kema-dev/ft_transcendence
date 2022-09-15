@@ -10,7 +10,7 @@ import {
 	Param,
 } from '@nestjs/common';
 import { get } from 'http';
-import BasicUserDto from '../chat/dto/BasicUserDto';
+import { BasicUserDto } from '../chat/dto/BasicUserDto';
 import UserDto from './dto/user.dto';
 
 import { UsersService } from './users.service';

@@ -6,17 +6,17 @@
 			</div>
 			<button @click="toProfile" class="login">{{receiver!.login}}</button>
 			<div class="option_buttons center raw stack">
-				<button @click="inviteGame" class="button_cont infoButton center">
+				<button @click="inviteGame" class="button_cont center">
 					<span class="infoButtonText">Invite in room</span>
-					<img src="~@/assets/ball_logo.svg" alt="Invite game button" class="logo_img">
+					<img src="~@/assets/ball_logo.svg" alt="Invite game button" class="button_img">
 				</button>
-				<button @click="blockWarn = true" class="button_cont infoButton center">
+				<button @click="blockWarn = true" class="button_cont center">
 					<span class="infoButtonText">Block</span>
-					<img src="~@/assets/block_logo.svg" alt="Invite game button" class="logo_img">
+					<img src="~@/assets/block_logo.svg" alt="Invite game button" class="button_img">
 				</button>
-				<button onclick="history.back();" class="button_cont infoButton center">
+				<button onclick="history.back();" class="button_cont center">
 					<span class="infoButtonText">Close</span>
-					<img src="~@/assets/close_logo.svg" alt="Invite game button" class="logo_img">
+					<img src="~@/assets/close_logo.svg" alt="Invite game button" class="button_img">
 				</button>
 			</div>
 		</div>
@@ -60,15 +60,15 @@ import { Socket } from "socket.io-client";
 import MessageItem from "@/chat/MessageItem.vue";
 import WarningMsg from "@/components/WarningMsg.vue";
 import { NewPrivMsgDto } from "@/chat/dto/NewPrivMsgDto";
-import { PrivConv } from "@/chat/objects/PrivConv";
-import { BasicUser } from "./objects/BasicUser";
+import { PrivConvDto } from "@/chat/dto/PrivConvDto";
+import { BasicUserDto } from "./dto/BasicUserDto";
 
 let colors = inject("colors");
 let mySocket: Socket = inject("socket")!;
 let me: string = inject("me")!;
 const userName = useRoute().params.conv_name as string ;
-let receiver : BasicUser = new BasicUser(userName);
-let privs : Ref<PrivConv[]> | undefined = inject("privs");
+let receiver : BasicUserDto = new BasicUserDto(userName);
+let privs : Ref<PrivConvDto[]> | undefined = inject("privs");
 let markReaded: (index: number, readed: boolean) => void = inject("markReaded")!;
 let index = ref(-1);
 if (privs?.value.length) {
@@ -235,16 +235,16 @@ onBeforeUnmount(() => {
 
 // ====================== UTILS ======================
 
-function printPriv(priv: PrivConv | undefined) {
+function printPriv(priv: PrivConvDto | undefined) {
 	if (!priv)
 		return console.log(`priv undefined`);
 	priv.messages.forEach((msg) => console.log(`${msg.msg}`));
 }
 
-function printPrivs(privs: PrivConv[] | undefined) {
+function printPrivs(privs: PrivConvDto[] | undefined) {
 	if (!privs)
 		return console.log(`privs undefined`);
-	privs.forEach((priv : PrivConv) => {
+	privs.forEach((priv : PrivConvDto) => {
 		console.log(`user = ${priv.user.login}`);
 		printPriv(priv);
 	});
@@ -289,21 +289,24 @@ function printPrivs(privs: PrivConv[] | undefined) {
 }
 .option_buttons {
 	width: auto;
-	position: relative;
-
+	margin-right: 8px;
 }
-.button_cont {
-	margin: 5px;
-	position: static;
-}
-.logo_img {
+.button_img {
 	width: 30px;
 	height: 30px;
 	filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg) brightness(86%) contrast(83%);
 }
+.button_cont {
+	border-radius: 50%;
+	padding: 5px;
+}
+.button_cont:hover {
+	background-color: white;
+	box-shadow: 0px 0px 4px #aaa;
+}
 
 .infoButtonText {
-	opacity:0;
+	visibility: hidden;
 	font-size: 0.8rem;
   width: 120px;
   background-color: rgba(0,0,0,0.6);
@@ -313,16 +316,26 @@ function printPrivs(privs: PrivConv[] | undefined) {
   border-radius: 6px;
   position: absolute;
   z-index: 1;
-  bottom: 100%;
+  bottom: 110%;
 	right: 50%;
 	transform: translate(50%);
 }
+.button_cont:hover .infoButtonText {
+	visibility: visible;
+	opacity: 0;
+	animation: displayButtonInfo 0.3s;
+	animation-delay: 0.3s;
+	animation-fill-mode: forwards;
+}
+@keyframes displayButtonInfo {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
 
-/* .conversation_content {
-	height: calc(100% - 70px);
-	width: 100%;
-	padding-top: 20px;
-} */
 .date {
 	margin: 15px;
 	font-size: 0.8rem;

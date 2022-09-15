@@ -6,9 +6,12 @@ import { UserEntity } from "../users/user.entity";
 import { MessageEntity } from "./entites/message.entity";
 import { PrivateEntity } from "./entites/private.entity";
 import { UsersService } from "../users/users.service";
+import { ChannelEntity } from "./entites/channel.entity";
 
 @Module({
-	imports: [TypeOrmModule.forFeature([UserEntity, PrivateEntity, MessageEntity])],
+	imports: [TypeOrmModule.forFeature(
+		[UserEntity, ChannelEntity, PrivateEntity, MessageEntity]
+	)],
 	exports:[ChatService],
 	providers:[ChatService, UsersService],
 	controllers:[ChatController],
