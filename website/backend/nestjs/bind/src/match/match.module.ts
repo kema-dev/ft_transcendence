@@ -1,15 +1,19 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Module } from '@nestjs/common';
-import { HttpModule } from '@nestjs/axios';
-import { AuthenticationService } from './authentication.service';
+import { HttpModule } from '@nestjs/axios'
+import { AuthenticationService } from '../authentication/authentication.service';
 import { UsersModule } from '../users/users.module';
-import { AuthenticationController } from './authentication.controller';
+import { AuthenticationController } from '../authentication/authentication.controller';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { MatchService } from './match.service';
+import { MatchController } from './match.controller';
+import { MatchEntity } from './match.entity';
+import { TypeOrmModule } from '@nestjs/typeorm/dist/typeorm.module';
 
 @Module({
 	imports: [
+		TypeOrmModule.forFeature([MatchEntity]),
 		HttpModule.register({
 			timeout: 5000,
 			maxRedirects: 5,
@@ -26,7 +30,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 			}),
 		}),
 	],
-	providers: [AuthenticationService],
-	controllers: [AuthenticationController],
+	providers: [MatchService, MatchEntity],
+	controllers: [MatchController],
 })
-export class AuthenticationModule {}
+export class MatchModule {}

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
 	Body,
 	Controller,
@@ -19,10 +20,10 @@ export class AuthenticationController {
 	constructor(private readonly authenticationService: AuthenticationService) {}
 
 	@UseGuards(AuthGuard)
-	@Post('debug')
+	@Get('debug')
 	async debug(@Headers() headers: any) {
-		console.log('Debug');
-		// console.log(headers);
+		// console.log('Debug');
+		console.log(headers);
 	}
 
 	@Post('register')
@@ -53,9 +54,13 @@ export class AuthenticationController {
 		return 'Backend is up and running, you can go back to the website';
 	}
 
-	@Post('validate_token')
-	validate_token(@Body() request: CheckDto) {
-		return this.authenticationService.validate_token(request);
+	@Get('validate_token')
+	validate_token(@Headers() request: any) {
+		const credentials = {
+			login: request.login,
+			token: request.token,
+		};
+		return this.authenticationService.validate_token(credentials);
 	}
 
 	@Post('set_totp')

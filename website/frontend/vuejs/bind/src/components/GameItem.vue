@@ -4,20 +4,27 @@
 	</div>
 </template>
 <script setup lang="ts">
-import { inject, onMounted, defineProps, onUnmounted, ref, h } from "vue";
-import Konva from "konva";
-import { Socket } from "socket.io-client";
-import { GameDto } from "@/dto/GameDto";
-import Profile from "@/game2.0/Profile";
-import User from "@/chat/objects/User";
-let define = inject("colors");
-let socket: Socket = inject("socket")!;
-let props = defineProps(["nbrPlayer", "nbrBall", "start"]);
+import { inject, onMounted, defineProps, onUnmounted, ref } from 'vue';
+import Konva from 'konva';
+import { Socket } from 'socket.io-client';
+import { GameDto } from '@/dto/GameDto';
+import Profile from '@/game2.0/Profile';
+import User from '@/chat/User';
+
+let socket: Socket = inject('socket')!;
 let run = true;
-// let nbrPlayer = ref(props.nbrPlayer)
-let me : User = inject("me")!;
+let me: User = inject('me')!;
 let rotation = 0;
 let gameDto: GameDto | undefined = undefined;
+
+let props = defineProps<{
+	nbrPlayer: number;
+	nbrBall: number;
+	players: Array<string>;
+	lobby_name: string;
+	start: boolean;
+	owner: string;
+}>();
 
 // let balls: Array<Ball> = [];
 var mov = 0;
@@ -26,12 +33,19 @@ let walls: Konva.Rect[] = [];
 let balls: Konva.Circle[] = [];
 let profiles: Profile[] = [];
 var container: any;
+
 onMounted(async () => {
-	socket.emit("newRoom", {
-		nbrBall: 1,
-		nbrPlayer: 4,
+	update();
+});
+async function update() {
+	socket.emit('newRoom', {
+		nbrBall: props.nbrBall,
+		nbrPlayer: props.nbrPlayer,
+		players: props.players,
+		lobby_name: props.lobby_name,
+		owner: props.owner,
 	});
-	socket.on("game", (game: string) => {
+	socket.on(props.lobby_name, (game: string) => {
 		// console.log(game)
 		gameDto = JSON.parse(game);
 		// console.log(gameDto);
@@ -44,7 +58,7 @@ onMounted(async () => {
 	var sceneHeight = 1000;
 	let radius = 410;
 	var stage = new Konva.Stage({
-		container: "container",
+		container: 'container',
 		width: sceneWidth,
 		height: sceneHeight,
 	});
@@ -61,7 +75,7 @@ onMounted(async () => {
 	container.tabIndex = 1;
 	container.focus();
 	function fitStageIntoParentContainer() {
-		var container = document.getElementById("stage-parent");
+		var container = document.getElementById('stage-parent');
 		// now we need to fit stage into parent container
 		var containerWidth = container!.offsetWidth;
 		// but we also make the full scene visible
@@ -72,7 +86,7 @@ onMounted(async () => {
 		stage.scale({ x: scale, y: scale });
 	}
 	fitStageIntoParentContainer();
-	window.addEventListener("resize", fitStageIntoParentContainer);
+	window.addEventListener('resize', fitStageIntoParentContainer);
 
 	while (gameDto === undefined) {
 		await delay(100);
@@ -89,7 +103,7 @@ onMounted(async () => {
 		let tmp = new Konva.Rect({
 			width: wall.w,
 			height: wall.h,
-			fill: "#16638D",
+			fill: '#16638D',
 			rotation: wall.rotation,
 			x: wall.x,
 			y: wall.y,
@@ -101,7 +115,7 @@ onMounted(async () => {
 		let tmp = new Konva.Rect({
 			width: rack.w,
 			height: rack.h,
-			fill: "#16638D",
+			fill: '#16638D',
 			rotation: rack.rotation,
 			x: rack.x,
 			y: rack.y,
@@ -111,7 +125,7 @@ onMounted(async () => {
 	}
 	for (let ball of gameDto.balls) {
 		let tmp = new Konva.Circle({
-			fill: "#16638D",
+			fill: '#16638D',
 			x: ball.x,
 			y: ball.y,
 			radius: 10,
@@ -127,8 +141,8 @@ onMounted(async () => {
 	let background = new Konva.Line({
 		points: fieldPoints,
 		closed: true,
-		fill: "#E5F4FB",
-		shadowColor: "black",
+		fill: '#E5F4FB',
+		shadowColor: 'black',
 		shadowBlur: 5,
 		shadowOffset: { x: 5, y: 5 },
 		shadowOpacity: 0.3,
@@ -137,29 +151,29 @@ onMounted(async () => {
 	game.add(objects);
 	layer.add(game);
 	loop();
-	container.addEventListener("keydown", function (e: any) {
-		if (e.key == "ArrowLeft") {
+	container.addEventListener('keydown', function (e: any) {
+		if (e.key == 'ArrowLeft') {
 			mov = -1;
-		} else if (e.key == "ArrowRight") {
+		} else if (e.key == 'ArrowRight') {
 			mov = 1;
 		} else {
 			return;
 		}
-		socket.emit("setMov", {mov: mov, login: me.login});
+		socket.emit('setMov', { mov: mov, login: me.login });
 		e.preventDefault();
 	});
-	container.addEventListener("keyup", function (e: any) {
-		if (e.key == "ArrowLeft") {
-			if (mov <= 0) mov = 0;  
-		} else if (e.key == "ArrowRight") {
+	container.addEventListener('keyup', function (e: any) {
+		if (e.key == 'ArrowLeft') {
+			if (mov <= 0) mov = 0;
+		} else if (e.key == 'ArrowRight') {
 			if (mov >= 0) mov = 0;
 		} else {
 			return;
 		}
-		socket.emit("setMov", {mov: mov, login: me.login});
+		socket.emit('setMov', { mov: mov, login: me.login });
 		e.preventDefault();
 	});
-});
+}
 async function loop() {
 	while (gameDto === undefined) {
 		await delay(100);
@@ -179,18 +193,18 @@ async function loop() {
 			p.konvaScore.text(gameDto.profiles[i].score.toString());
 			if (gameDto.profiles[i].red) {
 				p.konvaScore.fontSize(30);
-				p.konvaScore.fill("#E00D0D");
-				p.konvaBackground.stroke("#E00D0D");
-				p.konvaRound.stroke("#E00D0D");
+				p.konvaScore.fill('#E00D0D');
+				p.konvaBackground.stroke('#E00D0D');
+				p.konvaRound.stroke('#E00D0D');
 				p.konvaRound.strokeWidth(5);
 				p.konvaBackground.strokeWidth(5);
 			} else {
-				p.konvaBackground.stroke("#16638D");
+				p.konvaBackground.stroke('#16638D');
 				p.konvaBackground.strokeWidth(3);
-				p.konvaRound.stroke("#16638D");
+				p.konvaRound.stroke('#16638D');
 				p.konvaRound.strokeWidth(3);
 				p.konvaScore.fontSize(25);
-				p.konvaScore.fill("#16638D");
+				p.konvaScore.fill('#16638D');
 			}
 		}
 		// if (
@@ -202,12 +216,9 @@ async function loop() {
 		await delay(1); // TODO delta
 	}
 }
-function focus() {
-	container.focus();
-}
 onUnmounted(() => {
 	run = false;
-	socket.off("game");
+	socket.off(props.lobby_name);
 	// window.removeEventListener("resize", () => {});
 });
 const delay = (time: number) =>

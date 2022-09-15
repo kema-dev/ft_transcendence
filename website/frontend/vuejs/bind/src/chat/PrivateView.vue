@@ -3,7 +3,7 @@
 	<div v-if="privDone" id="private_view" class="center column">
 		<div class="toBarCont center raw stack">
 			<!-- <SearchItem @searchInput="searchChange" :key="searchKey" /> -->
-			<SearchItem v-model:search="search"/>
+			<SearchItem v-model:search="search" />
 			<div class="option_buttons space-around raw stack">
 				<button @click="createNewMsg()" class="button_cont center">
 					<span v-if="!newMsg" class="infoButtonText">New message</span>
@@ -25,18 +25,17 @@
 		</div>
 		<div v-if="!newMsg" class="myConversations center column">
 			<ConversationTab
-				v-for="(data, i) in privsFiltred" :key="i"
+				v-for="(data, i) in privsFiltred"
+				:key="i"
 				:name-conv="data.user.login"
-				:message="data.messages[data.messages.length-1].msg"
-				:date="new Date(data.messages[data.messages.length-1].date)"
-				:last-msg-user="data.messages[data.messages.length-1].user"
+				:message="data.messages[data.messages.length - 1].msg"
+				:date="new Date(data.messages[data.messages.length - 1].date)"
+				:last-msg-user="data.messages[data.messages.length - 1].user"
 				:read="data.readed"
 				:avatar="data.user.avatar"
 				class="center"
 			/>
-			<h2 v-if="privs!.length == 0" class="no_results">
-				No conversations
-			</h2>
+			<h2 v-if="privs!.length == 0" class="no_results">No conversations</h2>
 			<h2 v-else-if="privsFiltred!.length == 0" class="no_results">
 				No results
 			</h2>
@@ -47,9 +46,9 @@
 				<router-link
 					v-for="(data, i) in privsFiltred.slice(0, 5)"
 					:key="i"
-					:to="{name: 'PrivConv', params: {conv_name: data.user.login}}"
+					:to="{ name: 'PrivConv', params: { conv_name: data.user.login } }"
 				>
-					<BasicProfil  :avatar="data.user.avatar" :login="data.user.login"/>
+					<BasicProfil :avatar="data.user.avatar" :login="data.user.login" />
 				</router-link>
 			</div>
 			<div
@@ -62,7 +61,7 @@
 					:key="i"
 					:to="{ name: 'PrivConv', params: { conv_name: data.login } }"
 				>
-					<BasicProfil :avatar="data.avatar" :login="data.login"/>
+					<BasicProfil :avatar="data.avatar" :login="data.login" />
 				</router-link>
 			</div>
 			<!-- <h2 v-if="privsFiltred.length == 0 && !serverUsers">
@@ -80,23 +79,32 @@
 
 <script setup lang="ts">
 /* eslint @typescript-eslint/no-var-requires: "off" */
-import { inject, onMounted, ref, Ref, nextTick, onBeforeUnmount, watch, onUpdated } from "vue";
+import {
+	inject,
+	onMounted,
+	ref,
+	Ref,
+	nextTick,
+	onBeforeUnmount,
+	watch,
+	onUpdated,
+} from "vue";
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import ConversationTab from "@/chat/ConversationTab.vue";
 import BasicProfil from "@/components/BasicProfilItem.vue";
 import SearchItem from "@/components/SearchItem.vue";
-import { BasicUserDto } from "@/chat/dto/BasicUserDto"
+import { BasicUserDto } from "@/chat/dto/BasicUserDto";
 import { Socket } from "socket.io-client";
 import HTTP from "../components/axios";
 import { PrivConvDto } from "@/chat/dto/PrivConvDto";
-
 
 // INJECTS
 let colors = inject("colors");
 let me: string = inject("me")!;
 let mySocket: Socket = inject("socket")!;
 let apiPath: string = inject("apiPath")!;
-let privs : Ref<PrivConvDto[]> = inject("privs")!;
-let nbPrivNR : { n: Ref<number[]>, reset: () => void} = inject("nbPrivNR")!;
+let privs: Ref<PrivConvDto[]> = inject("privs")!;
+let nbPrivNR: { n: Ref<number[]>; reset: () => void } = inject("nbPrivNR")!;
 let privsFiltred = ref(privs.value);
 const privDone: Ref<boolean> = inject("privDone")!;
 
@@ -115,17 +123,18 @@ watch(privDone, () => {
 	// console.log(`privDone = ${privDone.value}`);
 	privsFiltred.value = privs.value;
 	nbPrivNR.reset();
-})
+});
 
 onUpdated(() => {
-	if (nbPrivNR.n.value.length)
-		nbPrivNR.reset();
-})
+	if (nbPrivNR.n.value.length) nbPrivNR.reset();
+});
 
 watch(search, () => {
 	userServReqDone.value = false;
-	privsFiltred.value = privs.value?.filter(function(value) {
-		return value.user.login.toUpperCase().startsWith(search.value.toUpperCase());
+	privsFiltred.value = privs.value?.filter(function (value) {
+		return value.user.login
+			.toUpperCase()
+			.startsWith(search.value.toUpperCase());
 	});
 	// if (newMsg.value) {
 	// 	friendsFiltred.value = me.friends.filter(function(value) {
@@ -152,55 +161,55 @@ watch(search, () => {
 			// 			}
 			// 		}
 			// 		return isAlreadyKnow;
-			// 		// ========== AJOUTER FRIENDS =========== 
+			// 		// ========== AJOUTER FRIENDS ===========
 			// 	})
 
-			// 	userServReqDone.value = true;	
+			// 	userServReqDone.value = true;
 			// })
 			// .catch(e => console.log(e));
 		}
 	}
-})
+});
 
 function getServerUsers() {
 	HTTP.get(apiPath + "chat/getServerUsersFiltred/" + me + "/" + search.value)
-			.then(res => {
-				let usersTmp : BasicUserDto[] = [];
-				res.data.forEach((user : BasicUserDto) => {
-					usersTmp.push(new BasicUserDto(user.login));
-				});
-				serverUsers.value = usersTmp;
+		.then((res) => {
+			let usersTmp: BasicUserDto[] = [];
+			res.data.forEach((user: BasicUserDto) => {
+				usersTmp.push(new BasicUserDto(user.login));
+			});
+			serverUsers.value = usersTmp;
 
-				filterServerUsers();
-				// serverUsers.value = serverUsers.value.filter((user, i) => {
-				// 	let isAlreadyKnow = true;
-				// 	for (let priv of privsFiltred.value) {
-				// 		if (priv.user.login == user.login){
-				// 			isAlreadyKnow = false;
-				// 			break;
-				// 		}
-				// 	}
-				// 	return isAlreadyKnow;
-				// 	// ========== AJOUTER FRIENDS =========== 
-				// })
+			filterServerUsers();
+			// serverUsers.value = serverUsers.value.filter((user, i) => {
+			// 	let isAlreadyKnow = true;
+			// 	for (let priv of privsFiltred.value) {
+			// 		if (priv.user.login == user.login){
+			// 			isAlreadyKnow = false;
+			// 			break;
+			// 		}
+			// 	}
+			// 	return isAlreadyKnow;
+			// 	// ========== AJOUTER FRIENDS ===========
+			// })
 
-				userServReqDone.value = true;	
-			})
-			.catch(e => console.log(e));
+			userServReqDone.value = true;
+		})
+		.catch((e) => console.log(e));
 }
 
 function filterServerUsers() {
 	serverUsers.value = serverUsers.value!.filter((user, i) => {
 		let isAlreadyKnow = true;
 		for (let priv of privsFiltred.value) {
-			if (priv.user.login == user.login){
+			if (priv.user.login == user.login) {
 				isAlreadyKnow = false;
 				break;
 			}
 		}
 		return isAlreadyKnow;
-		// ========== AJOUTER FRIENDS =========== 
-	})
+		// ========== AJOUTER FRIENDS ===========
+	});
 }
 
 // function knownPeople(): User[] {
@@ -228,23 +237,19 @@ function createNewMsg() {
 	newMsg.value = !newMsg.value;
 	// searchKey.value += 1;
 	nextTick(() => {
-		document.getElementById("search")?.focus();
+		document.getElementById('search')?.focus();
 	});
 }
 
-
 onMounted(() => {
-	const box = document.getElementById('privateTabText');
-	if (box != null)
-		box.classList.add("chatTabActive");
-})
+	const box = document.getElementById("privateTabText");
+	if (box != null) box.classList.add("chatTabActive");
+});
 
 onBeforeUnmount(() => {
-	const box = document.getElementById('privateTabText');
-	if (box != null)
-		box.classList.remove("chatTabActive");
-})
-
+	const box = document.getElementById("privateTabText");
+	if (box != null) box.classList.remove("chatTabActive");
+});
 </script>
 
 <style scoped>
@@ -263,7 +268,8 @@ onBeforeUnmount(() => {
 .button_img {
 	width: 30px;
 	height: 30px;
-	filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg) brightness(86%) contrast(83%);
+	filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg)
+		brightness(86%) contrast(83%);
 }
 .button_cont {
 	border-radius: 50%;
@@ -278,15 +284,15 @@ onBeforeUnmount(() => {
 .infoButtonText {
 	visibility: hidden;
 	font-size: 0.8rem;
-  width: auto;
-  background-color: rgba(0,0,0,0.6);
-  color: #fff;
-  text-align: center;
-  padding: 5px 0;
-  border-radius: 6px;
-  position: absolute;
-  z-index: 1;
-  bottom: 110%;
+	width: auto;
+	background-color: rgba(0, 0, 0, 0.6);
+	color: #fff;
+	text-align: center;
+	padding: 5px 0;
+	border-radius: 6px;
+	position: absolute;
+	z-index: 1;
+	bottom: 110%;
 	right: 0;
 	/* transform: translate(50%); */
 }
@@ -306,8 +312,6 @@ onBeforeUnmount(() => {
 	}
 }
 
-
-
 .newMsgResults {
 	width: 90%;
 }
@@ -320,11 +324,11 @@ onBeforeUnmount(() => {
 
 /* .myFade-enter-active,
 .myFade-leave-active {
-  transition: opacity 3s ease;
+	transition: opacity 3s ease;
 }
 
 .myFade-enter-from,
 .myFade-leave-to {
-  opacity: 0;
+	opacity: 0;
 } */
 </style>

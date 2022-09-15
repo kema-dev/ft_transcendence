@@ -1,6 +1,6 @@
 export default class Vector {
-	x: number
-	y: number
+	x: number;
+	y: number;
 	constructor(x: number, y: number) {
 		this.x = x;
 		this.y = y;
@@ -11,7 +11,7 @@ export default class Vector {
 		this.y = tmp * Math.sin(angle) + this.y * Math.cos(angle);
 	}
 	add(src: Vector) {
-		return new Vector(this.x + src.x, this.y + src.y)
+		return new Vector(this.x + src.x, this.y + src.y);
 	}
 
 	reverse(): Vector {
@@ -22,8 +22,8 @@ export default class Vector {
 		const size = Math.sqrt(this.x ** 2 + this.y ** 2);
 		this.x /= size;
 		this.y /= size;
-		this.x = Math.round(this.x * 100) / 100
-		this.y = Math.round(this.y * 100) / 100
+		this.x = Math.round(this.x * 100) / 100;
+		this.y = Math.round(this.y * 100) / 100;
 	}
 
 	dotPorduct(v: Vector): number {
@@ -31,10 +31,10 @@ export default class Vector {
 	}
 
 	multiplication(n: number): Vector {
-		return new Vector(this.x * n, this.y * n)
+		return new Vector(this.x * n, this.y * n);
 	}
 
 	clone() {
-		return new Vector(this.x, this.y)
+		return new Vector(this.x, this.y);
 	}
 }
