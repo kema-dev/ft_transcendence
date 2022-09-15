@@ -5,6 +5,7 @@ export default class ProfileDto {
 	login: string;
 	score: number;
 	red: boolean;
+	avatar: string;
 	constructor() {
 		this.x = 0;
 		this.y = 0;
@@ -12,5 +13,6 @@ export default class ProfileDto {
 		this.login = 'search...';
 		this.score = 10;
 		this.red = false;
+		this.avatar = '';
 	}
 }

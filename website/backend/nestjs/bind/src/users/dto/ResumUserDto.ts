@@ -6,6 +6,8 @@ export class ResumUserDto {
 		this.level = user.level;
 		this.avatar = user.avatar;
 		this.status = user.status;
+		if (!user.status)
+			this.status = "offline";
 	}
 	login: string;
 	level: number;

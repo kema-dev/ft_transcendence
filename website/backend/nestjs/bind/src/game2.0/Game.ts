@@ -2,7 +2,6 @@ import Field from "./objects/Field";
 import Ball from "./objects/Ball";
 import Wall from "./objects/Wall";
 import Racket from "./objects/Racket";
-import Vector from './objects/Vector';
 import { Logger } from '@nestjs/common';
 import { GameDto } from './dto/GameDto';
 import { BallDto } from './dto/BallDto';
@@ -25,7 +24,8 @@ export default class Game {
 	rackets: Racket[];
 	profiles: Profile[];
 	players: string[];
-	constructor(nbrPlayer: number, nbrBall: number, private server: any, players: string[]) {
+	avatars: string[];
+	constructor(nbrPlayer: number, nbrBall: number, private server: any, players: string[], avatars?: string[]) {
 		this.start = false;
 		this.run = true;
 		this.nbrBall = nbrBall;
@@ -37,6 +37,13 @@ export default class Game {
 		this.profiles = [];
 		this.players = players;
 		this.logger = new Logger();
+		if (avatars)
+			this.avatars = avatars;
+		else {
+			this.avatars = [];
+			for (let i = 0; i < this.nbrPlayer; ++i)
+				this.avatars.push('https://i.imgur.com/2QV7Kj5.png');
+		}
 		this.dto = new GameDto(nbrPlayer, nbrBall);
 		this.init();
 		this.setDto();
@@ -60,7 +67,7 @@ export default class Game {
 		this.walls.forEach((wall) => {
 			this.objects.push(wall);
 			if (wall.side) {
-				let tmp = new Profile(this.players[i], 10 - this.nbrPlayer, wall);
+				let tmp = new Profile(this.players[i], this.avatars[i], 10 - this.nbrPlayer, wall);
 				this.profiles.push(tmp);
 				wall.profile = tmp;
 				let tmp2 = wall.getRacket();
@@ -119,6 +126,15 @@ export default class Game {
 				p.mov = value * this.walls[0].height / 100 * this.rackets[0].speed;
 				return;
 			}
+	}
+	getScores() {
+		let scores = [];
+		for (let p of this.profiles)
+			scores.push(p.score);
+		return scores;
+	}
+	isEnd() {
+		return !this.run;
 	}
 	destructor() {
 		this.run = false;

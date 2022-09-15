@@ -71,53 +71,7 @@
 					<div class="center column">
 						<FriendItem :friend="friend">
 							<template #content>
-								<div class="space-between left row">
-									<div class="left column">
-										<router-link
-											:to="{
-												name: 'player',
-												params: { name: friend.login },
-											}"
-											><h2 class="name">
-												{{ friend.login }}
-											</h2></router-link
-										>
-										<h3 class="text">level {{ friend.level }}</h3>
-									</div>
-									<div class="right column">
-										<button
-											class="action"
-											style="margin-right: 10px"
-											@click="remove_friend(friend.login)"
-										>
-											X
-										</button>
-										<h3
-											class="status"
-											:style="
-												'background-color: ' +
-												statusColor[friend.status] +
-												';'
-											"
-										>
-											{{ friend.status }}
-										</h3>
-									</div>
-								</div>
-								<div class="space-between row">
-									<!-- <div class="left row"> -->
-									<h2 class="score">{{ friend.rank }}</h2>
-									<!-- <h2 class="score">{{friend.ratiov}} | {{friend.ratiod}}</h2> -->
-									<!-- </div> -->
-									<div class="right row" style="margin-right: 7px">
-										<button
-											v-if="friend.status == 'in game'" class="action">
-											watch game
-										</button>
-										<button class="action">invit</button>
-										<button class="action">chat</button>
-									</div>
-								</div>
+								<FriendContentItem :friend="friend" />
 							</template>
 						</FriendItem>
 					</div>
@@ -133,7 +87,7 @@
 					class="row center"
 				>
 					<FriendItem :friend="user">
-						<template #content>
+						<template v-if="myFriend(user.login)" #content>
 							<div class="space-between left row">
 								<div class="left column">
 									<router-link
@@ -164,6 +118,9 @@
 								</div>
 							</div>
 						</template>
+						<template v-else #content>
+							<FriendContentItem :friend="user" />
+						</template>
 					</FriendItem>
 				</div>
 			</div>
@@ -176,16 +133,13 @@ import { inject, onMounted, onUnmounted, Ref, ref } from "vue";
 import FriendItem from "@/components/FriendItem.vue";
 import SearchItem from "@/components/SearchItem.vue";
 import { Socket } from "engine.io-client";
+import FriendContentItem from "../components/FriendContentItem.vue";
 
 let define = inject("colors");
 let me = inject("user")!;
 let socket: Socket = inject("socket")!;
 let users = ref([]);
-let statusColor = {
-	online: "green",
-	offline: "red",
-	"in game": "orange",
-};
+
 const search = ref("");
 function add_friend(name: string) {
 	socket.emit("addFriend", { sender: me.value.login, receiver: name });
@@ -198,6 +152,9 @@ function acceptFriend(name: string) {
 }
 function declineFriend(name: string) {
 	socket.emit("declineFriend", { sender: me.value.login, receiver: name });
+}
+function myFriend(name: string) {
+	return !me.value.friends.find((friend) => friend.login == name);
 }
 
 onMounted(() => {
@@ -255,12 +212,6 @@ onUnmounted(() => {
 }
 .icon_search {
 	font-size: 2rem;
-}
-.status {
-	margin: 0 9px;
-	color: white;
-	padding: 0 5px;
-	border-radius: 5px;
 }
 .score {
 	font-weight: 500;
