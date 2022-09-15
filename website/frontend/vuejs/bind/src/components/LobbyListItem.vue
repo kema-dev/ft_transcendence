@@ -33,13 +33,18 @@ onMounted(() => {
 	});
 });
 
-function join(id: string) {
-	socket.emit("join_lobby", {username: $cookies.get("login"), lobby: id});
+function join(lobby_name: string) {
+	socket.emit("join_lobby", {username: $cookies.get("login"), lobby: lobby_name});
 	socket.on("join_lobby", (data: any) => {
 		if (data.status == "ok") {
-			toast.success("You've joined the lobby " + id);
+			toast.success("You've joined the lobby " + lobby_name);
 		} else {
-			toast.error("Unable to join the lobby " + id);
+			// console.log('data:' + data);
+			if (data.error == 'User already in lobby') {
+				// toast.warning("Your are already in this lobby");
+			} else {
+				toast.error("Unable to join the lobby " + lobby_name);
+			}
 		}
 	});
 }

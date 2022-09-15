@@ -2,18 +2,16 @@
 
 ## ongoing
 
-* make players shown on hover and a join button
 * find about `lobby_name` to group players (how to make a player join a lobby / socket.io rooms)
 * do not let non-owner players to change settings / start the game
 * sync players in lobbies (existing players, new players in lobby, player leaving lobby)
-* loby selection page (option to create a new one)
 * make `start` false when the game is over
-* autofill option (join first available lobby)
+* make a join button in lobbies list
 * make a play again button
 
 ## later
 
-* add names to lobbies
+* make players shown on hover and a join button
 * check identity of users istead of just checking if they are logged in (send session + login and check login against decoded session)
 * make a refresh token function in backend and frontend (for frontend, ask for a refresh if $date + x > expiration\\_date$)
 * fix "depends_on" directive in docker-compose.yml (use healthcheck)

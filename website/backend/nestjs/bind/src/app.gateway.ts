@@ -164,7 +164,16 @@ export class AppGateway
 		@MessageBody() data: { username: string; lobby: string },
 		@ConnectedSocket() client: Socket,
 	) {
-		const lobby = await this.matchService.join_lobby(data.username, data.lobby);
+		let lobby;
+		try {
+			lobby = await this.matchService.join_lobby(data.username, data.lobby);
+		} catch (err) {
+			console.log(err.message);
+			if (err.message === 'User already in lobby') {
+				client.emit('join_lobby', { error: err.message });
+			}
+			return;
+		}
 		client.emit('join_lobby', lobby);
 	}
 }

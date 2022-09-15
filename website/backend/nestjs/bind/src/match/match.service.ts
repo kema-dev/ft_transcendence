@@ -70,16 +70,17 @@ export class MatchService {
 		return match;
 	}
 
-	async join_lobby(name: string, user: string) {
-		console.log('joinLobby: Starting');
+	async join_lobby(user: string, lobby: string) {
+		console.log('joinLobby: Starting for user ' + user + ' in lobby ' + lobby);
 		const match = await this.matchRepository.findOne({
-			where: { lobby_name: name },
+			where: { lobby_name: lobby },
 		});
 		if (!match) {
 			throw new HttpException('Match not found', HttpStatus.NOT_FOUND);
-		}
-		if (match.players.length >= 7) {
+		} else if (match.players.length >= 7) {
 			throw new HttpException('Match full', HttpStatus.NOT_FOUND);
+		} else if (match.players.includes(user)) {
+			throw new HttpException('User already in lobby', HttpStatus.NOT_FOUND);
 		}
 		match.players.push(user);
 		await this.matchRepository.save(match);
