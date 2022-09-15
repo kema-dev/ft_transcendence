@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like } from 'typeorm';
-import {UserEntity} from './user.entity';
+import { UserEntity } from './user.entity';
 import CreateUserDto from './dto/createUser.dto';
 
 // NOTE - API's documentation can be found at `docs/api/v1.md`
@@ -12,6 +13,14 @@ export class UsersService {
 		@InjectRepository(UserEntity)
 		private usersRepository: Repository<UserEntity>,
 	) {}
+
+	async saveSocket(login: string, socket: string) {
+		const user = await this.getByLogin(login);
+		user.socketId = socket;
+		await this.usersRepository
+			.save(user)
+			.catch((e) => console.log('Save saveSocket error'));
+	}
 
 	async getByEmail(mail: string) {
 		console.log('getByEmail: starting for ' + mail);
@@ -27,7 +36,7 @@ export class UsersService {
 	}
 
 	async getByLogin(logname: string) {
-		console.log('getByLogin: starting for ' + logname);
+		// console.log('getByLogin: starting for ' + logname);
 		const user = await this.usersRepository.findOne({
 			where: { login: logname },
 		});
@@ -38,14 +47,14 @@ export class UsersService {
 		console.error('getByLogin: ' + logname + ' not found, returning ✘');
 		throw new HttpException('E_USER_NOT_FOUND', HttpStatus.NOT_FOUND);
 	}
-	
+
 	async getByLoginFiltred(filter: string) {
-		let maxUsers = 15;
-		console.log('getByLoginFiltred: starting for ' + filter);
+		const maxUsers = 20;
+		console.log("getByLoginFiltred: starting for '" + filter + "'");
 		const users = await this.usersRepository.find({
-			where: {login: Like(filter + "%")},
-			take: maxUsers
-		})
+			where: { login: Like(filter + '%') },
+			take: maxUsers,
+		});
 		return users;
 	}
 

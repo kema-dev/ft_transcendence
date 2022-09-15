@@ -1,5 +1,3 @@
-import { VectorDto } from './VectorDto';
-
 export class BallDto {
 	x: number;
 	y: number;

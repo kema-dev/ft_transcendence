@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios from "axios";
 
 const data = require('../../.env.json');
 const api_url = ':3000/api/v1/';

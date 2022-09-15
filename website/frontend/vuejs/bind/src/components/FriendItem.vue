@@ -46,9 +46,10 @@
 </template>
 
 <script setup lang="ts">
-import { inject, defineProps } from 'vue';
-let define = inject('colors');
-const props = defineProps(['friend']);
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { inject, defineProps } from "vue";
+let define = inject("colors");
+const props = defineProps(["friend"]);
 
 let user = {
 	name: 'zeus',

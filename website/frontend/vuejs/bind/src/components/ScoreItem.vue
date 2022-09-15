@@ -18,9 +18,9 @@
 </template>
 
 <script setup lang="ts">
-import { inject, defineProps, onMounted } from 'vue';
-let define = inject('colors');
-const props = defineProps(['player', 'adversary', 'points1', 'points2']);
+import { inject, defineProps, onMounted } from "vue";
+let define = inject("colors");
+const props = defineProps(["player", "adversary", "points1", "points2"]);
 let res = 0;
 if (props.points1 > props.points2) res = 1;
 else if (props.points2 > props.points1) res = 2;

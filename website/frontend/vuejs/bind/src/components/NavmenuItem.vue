@@ -1,8 +1,11 @@
 <template>
 	<div id="menu">
 		<div id="nav_menu" class="center row">
-			<router-link to="/home/chat" class="nav_menu_link">
+			<router-link to="/home/chat" class="nav_menu_link stack">
 				<h2 class="nav_menu_text">CHAT</h2>
+				<div v-if="nbPrivNR.n.value.length" class="notifMsgCont center">
+					<div class="notifMsgNumber">{{ nbPrivNR.n.value.length }}</div>
+				</div>
 			</router-link>
 			<h1 class="pipe">|</h1>
 			<router-link to="/home/friends" class="nav_menu_link">
@@ -22,16 +25,17 @@
 </template>
 
 <script setup lang="ts">
-import { inject } from 'vue';
+import { inject, Ref } from "vue";
 
-let define = inject('colors');
+let colors = inject("colors");
+let nbPrivNR: { n: Ref<number[]>; reset: () => void } = inject("nbPrivNR")!;
 </script>
 
 <style scoped>
 #menu {
 	height: calc(100vh - 60px);
 	width: 30vw;
-	background: v-bind('define.color3');
+	background: v-bind("colors.color3");
 	box-shadow: -4px 0px 4px rgba(0, 0, 0, 0.25);
 	margin-top: 60px;
 }
@@ -45,7 +49,7 @@ let define = inject('colors');
 	height: 60px;
 	justify-content: space-around;
 	align-items: center;
-	background-color: v-bind('define.color0');
+	background-color: v-bind("colors.color0");
 	box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
 }
 .pipe {
@@ -62,6 +66,26 @@ let define = inject('colors');
 .router-link-active > .nav_menu_text {
 	font-weight: 900;
 }
+.notifMsgCont {
+	position: absolute;
+	right: 0px;
+	top: -5px;
+	height: 18px;
+	width: 18px;
+	border-radius: 9px;
+	/* background-color: rgb(255, 69, 69); */
+	background-color: v-bind("colors.color2");
+}
+.notifMsgNumber {
+	color: white;
+	font-size: 0.8rem;
+	font-family: "Orbitron", sans-serif;
+	font-weight: bold;
+}
+.router-link-active > .notifMsgCont {
+	visibility: hidden;
+}
+
 @media screen and (max-width: 1000px) {
 	#menu {
 		width: 100%;

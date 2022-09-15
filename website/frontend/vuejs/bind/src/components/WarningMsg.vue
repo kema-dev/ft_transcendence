@@ -9,13 +9,9 @@
 </template>
 
 <script setup lang="ts">
-import { anyTypeAnnotation } from '@babel/types';
-import { inject, defineProps } from 'vue';
-let define = inject('colors');
-let props = defineProps({
-	img: String,
-	msg: String,
-});
+import { inject } from "vue";
+
+let colors = inject("colors");
 </script>
 
 <style>
@@ -49,7 +45,7 @@ let props = defineProps({
 	padding: 5px;
 	margin: 0 5px;
 	color: #fff;
-	background-color: v-bind('define.color2');
+	background-color: v-bind("colors.color2");
 	border-radius: 10px;
 	z-index: 3;
 }

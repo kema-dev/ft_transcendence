@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ChatController } from './chat.controller';
@@ -12,10 +13,16 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { UsersModule } from '../users/users.module';
 import { AuthenticationService } from '../authentication/authentication.service';
+import { ChannelEntity } from './entites/channel.entity';
 
 @Module({
 	imports: [
-		TypeOrmModule.forFeature([UserEntity, PrivateEntity, MessageEntity]),
+		TypeOrmModule.forFeature([
+			UserEntity,
+			PrivateEntity,
+			ChannelEntity,
+			MessageEntity,
+		]),
 		HttpModule.register({
 			timeout: 5000,
 			maxRedirects: 5,

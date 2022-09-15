@@ -1,50 +1,28 @@
 <template>
 	<form class="search_groupe center row stack">
-		<input
-			type="text"
-			placeholder="Search"
-			id="search"
-			v-model="search"
-			@input="$emit('searchInput', search)"
-		/>
-		<!-- <input
-            :value="modelValue"
-            @input="$emit('update:modelValue', $event.target!.value)"
-        /> -->
-		<button
-			v-if="search.length > 0"
-			@click="changeInput('')"
-			class="reset_button center"
-		>
-			<img
-				src="~@/assets/clear_button.png"
-				alt="clear button"
-				class="reset_button_img"
-			/>
-		</button>
+	<input
+		:value="search"
+		placeholder="Search"
+		id="search"
+		@input="$emit('update:search', $event.target!.value)"
+	/>
+	<!-- <button v-if="search.length > 0" @click="changeInput('')" class="reset_button center">
+			<img src="~@/assets/clear_button.png" alt="clear button" class="reset_button_img">
+		</button> -->
 	</form>
 </template>
 
 <script setup lang="ts">
-import { defineProps, defineEmits, ref, onMounted } from 'vue';
-// const props = defineProps({
-//   search: String
-// })
+import { defineProps, defineEmits, onMounted } from "vue";
 
-// defineProps(['modelValue'])
-// defineEmits(['update:modelValue'])
+const props = defineProps({
+	search: String,
+});
 
-const emit = defineEmits(['searchInput']);
-
-let search = ref('');
-
-function changeInput(value: string) {
-	search.value = value;
-	emit('searchInput', search.value);
-}
+defineEmits(["update:search"]);
 
 onMounted(() => {
-	emit('searchInput', search.value);
+	document.getElementById("search")?.focus();
 });
 </script>
 
@@ -57,7 +35,7 @@ onMounted(() => {
 	top: 0px;
 	width: 90%;
 	height: 40px;
-	background-image: url('~@/assets/logo_search.png');
+	background-image: url("~@/assets/logo_search.png");
 	background-position: left 10px top 50%;
 	background-size: 20px 20px;
 	background-repeat: no-repeat;

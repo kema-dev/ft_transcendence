@@ -1,17 +1,39 @@
-import { Controller, Delete, Get, Post, Put, UseGuards } from '@nestjs/common';
-import { ChatService } from './chat.service';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import {
+	Controller,
+	Delete,
+	Get,
+	Param,
+	Post,
+	Put,
+	UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from '../authentication/auth.guard';
+import { ChatService } from './chat.service';
+import { BasicUserDto } from './dto/BasicUserDto';
 
 @Controller('chat')
 export class ChatController {
 	constructor(private readonly chatService: ChatService) {}
 
 	@UseGuards(AuthGuard)
-	@Get('message')
-	getMessage() {
-		console.log('Get message list');
-		// return "Get Message";
-		return this.chatService.getMessages();
+	@Get('getPrivs/:login')
+	async getPrivs(@Param() params: { login: string }) {
+		console.log(`getPrivs for user ${params.login}`);
+		const privs = await this.chatService.getUserPrivs(params.login);
+		await this.chatService.sortPrivs(privs);
+		return await this.chatService.createPrivsDto(params.login, privs);
+	}
+
+	@UseGuards(AuthGuard)
+	@Get('getServerUsersFiltred/:login/:filter')
+	async getServerUsersFiltred(
+		@Param() params: { login: string; filter: string },
+	) {
+		return await this.chatService.getServerUsersFiltred(
+			params.login,
+			params.filter,
+		);
 	}
 
 	@UseGuards(AuthGuard)

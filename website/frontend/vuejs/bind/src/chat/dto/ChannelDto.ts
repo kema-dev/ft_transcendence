@@ -1,69 +1,77 @@
-import User from '@/chat/User';
-import Message from '@/chat/Message';
+// import User from '@/chat/objects/User';
+import { MessageDto } from '@/chat/dto/MessageDto';
+import { BasicUserDto } from './BasicUserDto';
 
-export default class Channel {
+export class ChannelDto {
 	name: string;
-	admins: User[];
-	users: User[];
-	messages: Message[];
+	admins: BasicUserDto[];
+	users: BasicUserDto[];
+	messages: MessageDto[];
 	psw?: string;
-	bans: User[] = [];
+	bans: BasicUserDto[] = [];
+	mutes: BasicUserDto[] = [];
+	readed: boolean;
 	avatar: string = require('@/assets/group_logo.svg');
 	creation: Date = new Date();
 	constructor(
 		name: string,
-		admins: User[],
+		admins: BasicUserDto[],
+		readed = false,
+		users: BasicUserDto[] = [],
 		psw?: string,
-		users: User[] = [],
-		messages: Message[] = [],
+		messages: MessageDto[] = [],
 	) {
 		this.name = name;
 		this.admins = admins;
+		this.readed = readed;
 		this.users = users;
 		this.messages = messages;
 		if (psw) {
 			this.psw = psw;
 		}
 	}
-	isAdmin(user: User): boolean {
+	isAdmin(user: BasicUserDto): boolean {
 		if (this.admins.includes(user)) {
 			return true;
 		} else {
 			return false;
 		}
 	}
-	isBan(user: User): boolean {
+	isBan(user: BasicUserDto): boolean {
 		if (this.bans.includes(user)) {
 			return true;
 		} else {
 			return false;
 		}
 	}
-	isUser(user: User): boolean {
+	isUser(user: BasicUserDto): boolean {
 		if (this.users.includes(user)) {
 			return true;
 		} else {
 			return false;
 		}
 	}
-	addUser(user: User) {
+	addUser(user: BasicUserDto) {
 		if (!this.users?.includes(user)) {
 			this.users?.push(user);
 		}
 	}
-	addBan(toBan: User, admin: User) {
+	addBan(toBan: BasicUserDto, admin: BasicUserDto) {
 		if (this.isAdmin(admin)) {
 			this.bans?.push(toBan);
 		} else {
 			console.log("This user is not admin, he can't ban a user");
 		}
 	}
-	delUser(user: User) {
+	delUser(user: BasicUserDto) {
 		// if (this.users?.includes(user)) {
-		//     this.users?.push(user);
+		//   this.users?.push(user);
 		// }
 	}
 	numberOfUser(): number {
 		return this.admins.length + this.users.length;
+	}
+	printMsgs() {
+		this.messages.forEach((msg) => console.log(`${msg.msg}`));
 	}
 }

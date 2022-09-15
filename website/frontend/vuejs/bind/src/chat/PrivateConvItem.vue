@@ -2,43 +2,55 @@
 	<div id="conversation_view" class="stack">
 		<div class="userTopBar center raw space-between">
 			<div class="avatar_cont center">
-				<img :src="conv.user.avatar" class="avatar" alt="avatar" />
+				<img :src="receiver.avatar" class="avatar" alt="avatar" />
 			</div>
-			<button @click="toProfile" class="login">{{ userName }}</button>
+			<button @click="toProfile" class="login">{{ receiver!.login }}</button>
 			<div class="option_buttons center raw stack">
-				<button @click="inviteGame" class="button_cont infoButton center">
+				<button @click="inviteGame" class="button_cont center">
 					<span class="infoButtonText">Invite in room</span>
 					<img
 						src="~@/assets/ball_logo.svg"
 						alt="Invite game button"
-						class="logo_img"
+						class="button_img"
 					/>
 				</button>
-				<button @click="blockWarn = true" class="button_cont infoButton center">
+				<button @click="blockWarn = true" class="button_cont center">
 					<span class="infoButtonText">Block</span>
 					<img
 						src="~@/assets/block_logo.svg"
 						alt="Invite game button"
-						class="logo_img"
+						class="button_img"
 					/>
 				</button>
-				<button onclick="history.back();" class="button_cont infoButton center">
+				<button onclick="history.back();" class="button_cont center">
 					<span class="infoButtonText">Close</span>
 					<img
 						src="~@/assets/close_logo.svg"
 						alt="Invite game button"
-						class="logo_img"
+						class="button_img"
 					/>
 				</button>
 			</div>
 		</div>
 		<div class="conversation_content">
-			<div id="messages_cont" class="messages">
-				<MessageItem
-					v-for="(message, i) in conv.messages"
-					:key="i"
-					:message="message"
-				/>
+			<div id="messages_cont" ref="msgsCont" class="messages">
+				<div v-if="privDone && selectPriv()">
+					<div
+						v-for="(message, i) in selectPriv()!.messages"
+						:key="i"
+						class="center column"
+					>
+						<div v-if="checkDate(i)" class="date">
+							{{ displayDate(message.date, i) }}
+						</div>
+						<MessageItem
+							:userAvatar="receiver.avatar"
+							:userLogin="message.user"
+							:message="message.msg"
+							:date="message.date"
+						/>
+					</div>
+				</div>
 			</div>
 			<div class="sendbox_cont">
 				<input
@@ -68,124 +80,208 @@
 
 <script setup lang="ts">
 /* eslint @typescript-eslint/no-var-requires: "off" */
-import { inject, onMounted, ref, onBeforeUnmount, watch } from 'vue';
-import { useRoute } from 'vue-router';
-import MessageItem from '@/chat/MessageItem.vue';
-import Private from '@/chat/Private';
-import User from '@/chat/User';
-import Message from '@/chat/Message';
-import WarningMsg from '@/components/WarningMsg.vue';
-import { Socket } from 'socket.io-client';
-import { NewPrivMsgDto } from '@/chat/dto/NewPrivMsgDto';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import {
+	inject,
+	onMounted,
+	onUnmounted,
+	ref,
+	Ref,
+	onBeforeUnmount,
+	onUpdated,
+	onBeforeUpdate,
+} from "vue";
+import { useRoute } from "vue-router";
+import { Socket } from "socket.io-client";
+import MessageItem from "@/chat/MessageItem.vue";
+import WarningMsg from "@/components/WarningMsg.vue";
+import { NewPrivMsgDto } from "@/chat/dto/NewPrivMsgDto";
+import { PrivConvDto } from "@/chat/dto/PrivConvDto";
+import { BasicUserDto } from "./dto/BasicUserDto";
 
-let apiPath: string = inject('apiPath')!;
+let colors = inject("colors");
+let mySocket: Socket = inject("socket")!;
+let me: string = inject("me")!;
 const userName = useRoute().params.conv_name as string;
-let define = inject('colors');
-let me: User = inject('me')!;
-let myMsg = ref('');
+let receiver: BasicUserDto = new BasicUserDto(userName);
+let privs: Ref<PrivConvDto[]> | undefined = inject("privs");
+let markReaded: (index: number, readed: boolean) => void =
+	inject("markReaded")!;
+let index = ref(-1);
+if (privs?.value.length) {
+	index.value = privs!.value.findIndex((priv) => priv.user.login == userName);
+	if (
+		index.value != -1 &&
+		privs.value[index.value].messages.at(-1)?.user != me
+	) {
+		mySocket.emit("privReaded", { userSend: userName, userReceive: me });
+		markReaded(index.value, true);
+	}
+}
+const privDone: Ref<boolean> = inject("privDone")!;
+// let p : {privs: Ref<PrivConv[]>, (index : number, readed: boolean) : void } | undefined = inject("privsPackage");
+// printPrivs(privs.value);
+// let privRef : Ref<PrivConv> | undefined;
+// if (privs) {
+// }
+
+// let priv = privs.value.find(priv => priv.user.login == userName);
+// let privRef = ref(priv);
+// let privRef = ref(privs.value.find(priv => priv.user.login == userName));
+// let privRef = privs.value.find(priv => priv.user.login == userName);
+
+// printPriv(privRef.value);
+
+// console.log("Priv debut PrivConvItem :")
+// printPriv(priv);
+
+let myMsg = ref("");
 let blockWarn = ref(false);
+let msgsCont = ref(null);
 
-let mySocket: Socket = inject('socket')!;
-// let mySocket: Socket<DefaultEventsMap, DefaultEventsMap> = inject("socket")!;
+// ====================== METHODS ======================
 
-// axios.get(apiPath + "chat/message")
-// 	.then(res => {console.log("backMsg = ", res.data)})
-// 	.catch(e => {console.log(e)});
-// let backMsg = await axios.get(apiPath + "chat/message");
-// console.log("backMsg = ", (await backMsg).data);
-
-let user1 = new User('Totolosa', require('@/assets/avatars/(1).jpg'));
-let user2 = new User('Ocean', require('@/assets/avatars/(2).jpg'));
-let user3 = new User('Patrick la trick', require('@/assets/avatars/(3).jpg'));
-
-let msg1 = new Message(
-	user1,
-	"Salut frere ce fait graaaaave longtemps ca fais plaisr! Tu deviens quoi l'ami?",
-	new Date('July 17, 2022 03:24:00'),
-);
-let msg2 = new Message(user2, 'Salut poto', new Date('July 22, 2022 03:25:12'));
-let msg3 = new Message(user1, 'Game?', new Date('July 18, 2022 12:45:45'));
-let msg4 = new Message(
-	user3,
-	"Non je dois finir de faire le front, et wallah c'est chaud",
-	new Date('July 18, 2022 12:47:55'),
-);
-let msg5 = new Message(
-	user1,
-	'dsaibciauwncopneejvnjn fcoamsdomvcafosnvonsvonoans',
-	new Date(),
-);
-let msg6 = new Message(user2, 'Mais tu sais pas parler en fait', new Date());
-
-let conv = ref(new Private(user2, [msg1, msg2, msg3, msg5, msg6]));
+function sendMsg() {
+	mySocket.emit("newPrivMsg", new NewPrivMsgDto(me, userName, myMsg.value));
+	myMsg.value = "";
+}
 
 function banUser() {
-	// DEMMANDER DE BAN LE USER AU BACK <==================================
+	// DEMMANDER DE BAN LE USER AU BACK
 }
 
-function sendMsg(e: Event) {
-	// e.preventDefault();
-	// ENVOI MSG AU BACK <=================================================
-
-	// // POST REQUEST
-	// axios.post(apiPath + "chat/message", myMsg)
-	// 		.then(res => {
-	// 			console.log("Send msg to back OK");
-	// 			let newMsg = new Message(me, myMsg.value, new Date());
-	// 			conv.value.messages.push(newMsg);
-	// myMsg.value = "";
-	// 		}).catch(e => {console.log(e)});
-
-	// // SOCKET
-	// mySocket.emit('message', myMsg.value);
-	mySocket.emit(
-		'newPrivMsg',
-		new NewPrivMsgDto(me.login, userName, myMsg.value),
-	);
-	// mySocket.emit('getMsgs');
-	myMsg.value = '';
+function selectPriv() {
+	// console.log(`selectPriv()`);
+	let priv = privs?.value.find((priv) => priv.user.login == userName);
+	// console.log(`selectPriv = ${priv}`);
+	return priv;
 }
 
-watch(
-	conv.value.messages,
-	(newMsg) => {
-		let msgs = document.getElementById('messages_cont');
-		msgs!.scrollTop = msgs!.scrollHeight;
-	},
-	{ flush: 'post' },
-);
+function checkDate(i: number) {
+	// console.log(`checkDate(), i = ${i}`)
+	if (i == 0) return true;
+	else if (
+		Math.ceil(
+			(selectPriv()!.messages[i].date.getTime() -
+				selectPriv()!.messages[i - 1].date.getTime()) /
+				(1000 * 60)
+		) > 15
+	) {
+		// console.log(`checkDate = true`);
+		return true;
+	} else {
+		// console.log(`checkDate = false`);
+		return false;
+	}
+}
+
+function displayDate(date: Date, i: number) {
+	// console.log(`displayDate()`)
+	let minutes: string | number;
+	if (date.getMinutes() < 10) minutes = "0" + date.getMinutes().toString();
+	else minutes = date.getMinutes();
+	// console.log(`test`);
+	let hours: string | number;
+	if (date.getHours() < 10) hours = "0" + date.getHours().toString();
+	else hours = date.getHours();
+	const day = date.getDay();
+	const month = date.toLocaleString("default", { month: "long" });
+	const year = date.getFullYear();
+	// console.log(`displayDate() avant returns`)
+	if (i == 0)
+		return `Created the ${day} ${month} ${year} at ${hours}:${minutes}`;
+	const now = new Date();
+	const timeDif = date.getTime() - new Date().getTime();
+	const minutesDif = Math.ceil(timeDif / (1000 * 60));
+	const hoursDif = Math.ceil(minutesDif / 60);
+	const daysDif = Math.ceil(hoursDif / 24);
+	if (date.toDateString() == now.toDateString()) return `${hours}:${minutes}`;
+	if (daysDif < 7)
+		return `${date.toLocaleDateString("en-GB", {
+			weekday: "long",
+		})} ${hours}:${minutes}`;
+	else return `${day} ${month} ${year} at ${hours}:${minutes}`;
+}
+
+// ====================== LIFECYCLES HOOKS ======================
+
+let scroll = true;
+let oldNbMsg = -1;
+let newMsg = false;
+
+onBeforeUpdate(() => {
+	if (privs?.value.length)
+		index.value = privs!.value.findIndex((priv) => priv.user.login == userName);
+	if (
+		index.value != -1 &&
+		oldNbMsg != privs!.value[index.value].messages.length
+	) {
+		newMsg = true;
+		oldNbMsg = privs!.value[index.value].messages.length;
+	} else newMsg = false;
+	let oldScrollTop = (msgsCont.value! as HTMLElement).scrollTop;
+	let oldScrollHeight = (msgsCont.value! as HTMLElement).scrollHeight;
+	let oldClientHeight = (msgsCont.value! as HTMLElement).clientHeight;
+	if (oldScrollTop + oldClientHeight == oldScrollHeight) scroll = true;
+	else scroll = false;
+});
+
+onUpdated(() => {
+	// console.log(`PrivConvItem Updated`);
+
+	// if (privs?.value.length) {
+	// 	index.value = privs!.value.findIndex(priv => priv.user.login == userName);
+	// }
+
+	// index = privs!.value.findIndex(priv => {
+	// 	console.log(`priv.user.login = ${priv.user.login}, userName = ${userName}`);
+	// 	if (priv.user.login == userName)
+	// 		return true;
+	// });
+	// console.log(`index priv of privConvItem = ${index.value}`);
+	// console.log(`onUpdate scrollTop =  ${((msgsCont.value!) as HTMLElement).scrollTop}`);
+	// console.log(`onUpdate scrollHeight =  ${((msgsCont.value!) as HTMLElement).scrollHeight}`);
+	if (scroll == true) {
+		(msgsCont.value! as HTMLElement).scrollTop = (
+			msgsCont.value! as HTMLElement
+		).scrollHeight;
+	}
+
+	// if (index.value != -1 && privs!.value[index.value].messages.at(-1)?.user != me) {
+	if (newMsg && privs!.value[index.value].messages.at(-1)?.user != me) {
+		mySocket.emit("privReaded", { userSend: userName, userReceive: me });
+		markReaded(index.value, true);
+	}
+});
 
 onMounted(() => {
-	const box = document.getElementById('privateTabText');
-	if (box != null) {
-		box.style.setProperty('border-bottom', '2px solid #16638D');
-		box.style.setProperty('color', '#16638D');
-		box.style.setProperty('font-weight', '500');
-	}
-	// let input = document.getElementById("sendbox");
-	// input!.addEventListener("keydown", function(e) {
-	// 	if (e.key === "Enter") {
-	// 		e.preventDefault();
-	// 		// ENVOI MSG AU BACK <===================================
-	// 		axios.post(apiPath + "chat/message", myMsg)
-	// 		.then(res => {
-	// 			console.log("Send msg to back OK");
-	// 			let newMsg = new Message(me, myMsg.value, new Date());
-	// 			conv.value.messages.push(newMsg);
-	// 			myMsg.value = "";
-	// 		}).catch(e => {console.log(e)});
-	// 	}
-	// });
+	(msgsCont.value! as HTMLElement).scrollTop = (
+		msgsCont.value! as HTMLElement
+	).scrollHeight;
+	document.getElementById("sendbox")?.focus();
+	const box = document.getElementById("privateTabText");
+	if (box != null) box.classList.add("chatTabActive");
 });
 
 onBeforeUnmount(() => {
-	const box = document.getElementById('privateTabText');
-	if (box != null) {
-		box.style.removeProperty('border-bottom');
-		box.style.removeProperty('color');
-		box.style.removeProperty('font-weight');
-	}
+	const box = document.getElementById("privateTabText");
+	if (box != null) box.classList.remove("chatTabActive");
 });
+
+// ====================== UTILS ======================
+
+function printPriv(priv: PrivConvDto | undefined) {
+	if (!priv) return console.log(`priv undefined`);
+	priv.messages.forEach((msg) => console.log(`${msg.msg}`));
+}
+
+function printPrivs(privs: PrivConvDto[] | undefined) {
+	if (!privs) return console.log(`privs undefined`);
+	privs.forEach((priv: PrivConvDto) => {
+		console.log(`user = ${priv.user.login}`);
+		printPriv(priv);
+	});
+}
 </script>
 
 <style scoped>
@@ -213,7 +309,7 @@ onBeforeUnmount(() => {
 	border-radius: 50%;
 }
 .login {
-	font-family: 'Orbitron', sans-serif;
+	font-family: "Orbitron", sans-serif;
 	font-size: 1.2rem;
 	font-weight: bold;
 	overflow: hidden;
@@ -221,25 +317,29 @@ onBeforeUnmount(() => {
 	text-overflow: ellipsis;
 }
 .login:hover {
-	color: v-bind('define.color2');
+	color: v-bind("colors.color2");
 }
 .option_buttons {
 	width: auto;
-	position: relative;
+	margin-right: 8px;
 }
-.button_cont {
-	margin: 5px;
-	position: static;
-}
-.logo_img {
+.button_img {
 	width: 30px;
 	height: 30px;
 	filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg)
 		brightness(86%) contrast(83%);
 }
+.button_cont {
+	border-radius: 50%;
+	padding: 5px;
+}
+.button_cont:hover {
+	background-color: white;
+	box-shadow: 0px 0px 4px #aaa;
+}
 
 .infoButtonText {
-	opacity: 0;
+	visibility: hidden;
 	font-size: 0.8rem;
 	width: 120px;
 	background-color: rgba(0, 0, 0, 0.6);
@@ -249,16 +349,31 @@ onBeforeUnmount(() => {
 	border-radius: 6px;
 	position: absolute;
 	z-index: 1;
-	bottom: 100%;
+	bottom: 110%;
 	right: 50%;
 	transform: translate(50%);
 }
+.button_cont:hover .infoButtonText {
+	visibility: visible;
+	opacity: 0;
+	animation: displayButtonInfo 0.3s;
+	animation-delay: 0.3s;
+	animation-fill-mode: forwards;
+}
+@keyframes displayButtonInfo {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
 
-/* .conversation_content {
-	height: calc(100% - 70px);
-	width: 100%;
-	padding-top: 20px;
-} */
+.date {
+	margin: 15px;
+	font-size: 0.8rem;
+	white-space: pre;
+}
 .messages {
 	overflow-y: auto;
 	height: calc(100vh - 340px);
@@ -290,7 +405,7 @@ onBeforeUnmount(() => {
 
 /* .mySlide-leave-active,
 .mySlide-enter-active {
-  transition: 1s;
+	transition: 1s;
 }
 .mySlide-leave-to,
 .mySlide-enter-from {

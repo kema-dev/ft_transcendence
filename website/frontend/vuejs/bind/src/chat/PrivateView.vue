@@ -1,56 +1,58 @@
 <template>
-	<div id="private_view" class="center column">
-		<div class="option_private center raw">
-			<SearchItem @searchInput="searchChange" :key="searchKey" />
-			<div class="buttons_cont space-around raw">
-				<button @click="createNewMsg()" class="button_cont center column">
+	<!-- <div v-if="initReqDone" id="private_view" class="center column"> -->
+	<div v-if="privDone" id="private_view" class="center column">
+		<div class="toBarCont center raw stack">
+			<!-- <SearchItem @searchInput="searchChange" :key="searchKey" /> -->
+			<SearchItem v-model:search="search" />
+			<div class="option_buttons space-around raw stack">
+				<button @click="createNewMsg()" class="button_cont center">
 					<span v-if="!newMsg" class="infoButtonText">New message</span>
 					<img
 						v-if="!newMsg"
 						src="~@/assets/new_msg.svg"
 						alt="New message"
-						class="new_msg_img"
+						class="button_img"
 					/>
 					<span v-if="newMsg" class="infoButtonText">Back</span>
 					<img
 						v-if="newMsg"
 						src="~@/assets/undo_logo.svg"
 						alt="New message"
-						class="new_msg_img"
+						class="button_img"
 					/>
 				</button>
 			</div>
 		</div>
 		<div v-if="!newMsg" class="myConversations center column">
 			<ConversationTab
-				v-for="(data, i) in convsFiltred"
+				v-for="(data, i) in privsFiltred"
 				:key="i"
 				:name-conv="data.user.login"
+				:message="data.messages[data.messages.length - 1].msg"
+				:date="new Date(data.messages[data.messages.length - 1].date)"
+				:last-msg-user="data.messages[data.messages.length - 1].user"
+				:read="data.readed"
 				:avatar="data.user.avatar"
-				:message="data.messages[data.messages.length - 1]"
-				:date="data.messages[data.messages.length - 1].date"
 				class="center"
 			/>
-			<h2 v-if="conversations.length == 0" class="no_results">
-				No conversations
-			</h2>
-			<h2 v-else-if="convsFiltred!.length == 0" class="no_results">
+			<h2 v-if="privs!.length == 0" class="no_results">No conversations</h2>
+			<h2 v-else-if="privsFiltred!.length == 0" class="no_results">
 				No results
 			</h2>
 		</div>
 		<div v-if="newMsg" class="newMsgResults">
-			<div v-if="knownPeople().length > 0" class="knownPeople left column">
+			<div v-if="privsFiltred.length > 0" class="knownPeople left column">
 				<h2 class="typeUsers">Friends/conversations</h2>
 				<router-link
-					v-for="(data, i) in knownPeople()"
+					v-for="(data, i) in privsFiltred.slice(0, 5)"
 					:key="i"
-					:to="{ name: 'PrivConv', params: { conv_name: data.login } }"
+					:to="{ name: 'PrivConv', params: { conv_name: data.user.login } }"
 				>
-					<BasicProfil :avatar="data.avatar" :login="data.login" />
+					<BasicProfil :avatar="data.user.avatar" :login="data.user.login" />
 				</router-link>
 			</div>
 			<div
-				v-if="search.length > 0 && serverUsers"
+				v-if="userServReqDone && search.length > 0 && serverUsers?.length"
 				class="otherPeople left column"
 			>
 				<h2 class="typeUsers">More people</h2>
@@ -62,145 +64,195 @@
 					<BasicProfil :avatar="data.avatar" :login="data.login" />
 				</router-link>
 			</div>
-			<h2 v-if="knownPeople().length == 0 && !serverUsers">No results</h2>
+			<!-- <h2 v-if="privsFiltred.length == 0 && !serverUsers">
+				No results
+			</h2> -->
+			<h2 v-if="privsFiltred.length == 0 && search.length == 0">
+				No conversation yet, search for a new one !
+			</h2>
+			<h2 v-if="userServReqDone && search.length > 0 && !serverUsers?.length">
+				No results
+			</h2>
 		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
 /* eslint @typescript-eslint/no-var-requires: "off" */
-import { inject, onMounted, defineEmits, ref, nextTick } from 'vue';
-import ConversationTab from '@/chat/ConversationTab.vue';
-import BasicProfil from '@/components/BasicProfilItem.vue';
-import SearchItem from '@/components/SearchItem.vue';
-import Private from '@/chat/Private';
-import User from '@/chat/User';
-import Message from '@/chat/Message';
-import BasicUser from '@/chat/dto/BasicUser';
-import { Socket } from 'socket.io-client';
-let define = inject('colors');
-let me: User = inject('me')!;
+import {
+	inject,
+	onMounted,
+	ref,
+	Ref,
+	nextTick,
+	onBeforeUnmount,
+	watch,
+	onUpdated,
+} from "vue";
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import ConversationTab from "@/chat/ConversationTab.vue";
+import BasicProfil from "@/components/BasicProfilItem.vue";
+import SearchItem from "@/components/SearchItem.vue";
+import { BasicUserDto } from "@/chat/dto/BasicUserDto";
+import { Socket } from "socket.io-client";
+import HTTP from "../components/axios";
+import { PrivConvDto } from "@/chat/dto/PrivConvDto";
 
-let mySocket: Socket = inject('socket')!;
-let serverUsers = ref<BasicUser[]>();
-mySocket.on('getUsersByLoginFiltred', (data: [{ login: string }]) => {
-	let tmp: BasicUser[] = [];
-	for (let i = 0; i < data.length; i++) {
-		tmp.push(new BasicUser(data[i].login));
-	}
-	serverUsers.value = tmp;
-	console.log('serverUsers = ', serverUsers.value);
-});
+// INJECTS
+let colors = inject("colors");
+let me: string = inject("me")!;
+let mySocket: Socket = inject("socket")!;
+let apiPath: string = inject("apiPath")!;
+let privs: Ref<PrivConvDto[]> = inject("privs")!;
+let nbPrivNR: { n: Ref<number[]>; reset: () => void } = inject("nbPrivNR")!;
+let privsFiltred = ref(privs.value);
+const privDone: Ref<boolean> = inject("privDone")!;
 
-const search = ref('');
+// let knownPeople = ref<BasicUser[]>();
+let serverUsers = ref<BasicUserDto[]>();
+const search = ref("");
 const newMsg = ref(false);
 const searchKey = ref(0);
-// const searchCompRef = ref<InstanceType<typeof SearchItem>>();
+let userServReqDone = ref(false);
 
-let user1 = new User('Totolosa', require('@/assets/avatars/(1).jpg'));
-let user2 = new User('Ocean', require('@/assets/avatars/(2).jpg'));
-let user3 = new User('Patrick la trick', require('@/assets/avatars/(3).jpg'));
-let user4 = new User('Jeanjean', require('@/assets/avatars/(4).jpg'));
-let user5 = new User('Totofake', require('@/assets/avatars/(5).jpg'));
-// let user6 = new User("Patrick la trick", require("@/assets/avatars/(6).jpg"));
+if (privs.value.length) {
+	nbPrivNR.reset();
+}
 
-let msg1 = new Message(
-	user1,
-	"Salut frere rwf;jnavionra'mrv'aomfgifsivbdfvndfnvjsdglbjgb;fgklb;s;bg",
-	new Date('July 17, 2022 03:24:00'),
-);
-let msg2 = new Message(user2, 'Salut poto', new Date('July 22, 2022 03:25:12'));
-let msg3 = new Message(user3, 'Game?', new Date('July 18, 2022 12:45:45'));
-let msg4 = new Message(
-	user1,
-	"Non je dois finir de faire le front, et wallah c'est chaud",
-	new Date('July 18, 2022 12:47:55'),
-);
-let msg5 = new Message(
-	user1,
-	'dsaibciauwncopneejvnjnfcoamsdomvcafosnvonsvonoans',
-	new Date(),
-);
-let msg6 = new Message(user2, 'Mais tu sais pas parler en fait', new Date());
-
-let conv1 = new Private(user2, [msg1, msg2]);
-let conv2 = new Private(user3, [msg3, msg4]);
-let conv3 = new Private(user1, [msg5, msg6]);
-// let conv4 = new Conversation([user1, user2, user3], [msg1, msg2, msg3, msg4, msg5, msg6]);
-// let conv5 = new Conversation([user1, user2, user3], [msg1, msg2, msg3, msg4], "Test channel");
-
-let conversations = [conv1, conv2, conv3];
-// let convsFiltred = ref<Conversation[]>();
-// convsFiltred.value = conversations;
-let convsFiltred = ref(conversations);
-let friendsFiltred = ref(me.friends);
-// let knownPeople = [user1, user2, user3];
-// let otherPeople = [user4, user5];
-// let otherPeople = ref([]);
-
-conversations.sort(function (x, y) {
-	if (
-		x.messages[x.messages.length - 1].date <
-		y.messages[y.messages.length - 1].date
-	) {
-		return 1;
-	}
-	if (
-		x.messages[x.messages.length - 1].date >
-		y.messages[y.messages.length - 1].date
-	) {
-		return -1;
-	}
-	return 0;
+watch(privDone, () => {
+	// console.log(`privDone = ${privDone.value}`);
+	privsFiltred.value = privs.value;
+	nbPrivNR.reset();
 });
 
-function searchChange(value: string) {
-	search.value = value;
-	convsFiltred.value = conversations.filter(function (value) {
+onUpdated(() => {
+	if (nbPrivNR.n.value.length) nbPrivNR.reset();
+});
+
+watch(search, () => {
+	userServReqDone.value = false;
+	privsFiltred.value = privs.value?.filter(function (value) {
 		return value.user.login
 			.toUpperCase()
 			.startsWith(search.value.toUpperCase());
 	});
+	// if (newMsg.value) {
+	// 	friendsFiltred.value = me.friends.filter(function(value) {
+	// 		return value.login.toUpperCase().startsWith(search.value.toUpperCase());
+	// 	});
+	// }
 	if (newMsg.value) {
-		friendsFiltred.value = me.friends.filter(function (value) {
-			return value.login.toUpperCase().startsWith(search.value.toUpperCase());
-		});
-	}
-	if (search.value != '') {
-		mySocket.emit('getUsersByLoginFiltred', search.value);
-	}
-}
+		if (search.value != "") {
+			getServerUsers();
+			// HTTP.get(apiPath + "chat/getServerUsersFiltred/" + me + "/" + search.value)
+			// .then(res => {
+			// 	let usersTmp : BasicUser[] = [];
+			// 	res.data.forEach((user : BasicUser) => {
+			// 		usersTmp.push(new BasicUser(user.login));
+			// 	});
+			// 	serverUsers.value = usersTmp;
 
-function knownPeople(): User[] {
-	let res: User[] = [];
-	for (let i = 0; i < convsFiltred.value.length; i++) {
-		res.push(convsFiltred.value[i].user);
-	}
-	for (let i = 0; i < friendsFiltred.value.length; i++) {
-		if (!res.includes(friendsFiltred.value[i])) {
-			res.push(friendsFiltred.value[i]);
+			// 	serverUsers.value = serverUsers.value.filter((user, i) => {
+			// 		let isAlreadyKnow = true;
+			// 		for (let priv of privsFiltred.value) {
+			// 			if (priv.user.login == user.login){
+			// 				isAlreadyKnow = false;
+			// 				break;
+			// 			}
+			// 		}
+			// 		return isAlreadyKnow;
+			// 		// ========== AJOUTER FRIENDS ===========
+			// 	})
+
+			// 	userServReqDone.value = true;
+			// })
+			// .catch(e => console.log(e));
 		}
 	}
-	return res;
+});
+
+function getServerUsers() {
+	HTTP.get(apiPath + "chat/getServerUsersFiltred/" + me + "/" + search.value)
+		.then((res) => {
+			let usersTmp: BasicUserDto[] = [];
+			res.data.forEach((user: BasicUserDto) => {
+				usersTmp.push(new BasicUserDto(user.login));
+			});
+			serverUsers.value = usersTmp;
+
+			filterServerUsers();
+			// serverUsers.value = serverUsers.value.filter((user, i) => {
+			// 	let isAlreadyKnow = true;
+			// 	for (let priv of privsFiltred.value) {
+			// 		if (priv.user.login == user.login){
+			// 			isAlreadyKnow = false;
+			// 			break;
+			// 		}
+			// 	}
+			// 	return isAlreadyKnow;
+			// 	// ========== AJOUTER FRIENDS ===========
+			// })
+
+			userServReqDone.value = true;
+		})
+		.catch((e) => console.log(e));
 }
 
-function otherPeople(): User[] {
-	let others = [user4, user5];
-	return others.filter(function (value) {
-		return value.login.toUpperCase().startsWith(search.value.toUpperCase());
+function filterServerUsers() {
+	serverUsers.value = serverUsers.value!.filter((user, i) => {
+		let isAlreadyKnow = true;
+		for (let priv of privsFiltred.value) {
+			if (priv.user.login == user.login) {
+				isAlreadyKnow = false;
+				break;
+			}
+		}
+		return isAlreadyKnow;
+		// ========== AJOUTER FRIENDS ===========
 	});
 }
 
+// function knownPeople(): User[] {
+// 	let res: User[] = [];
+// 	for (let i = 0; i < privsFiltred.value!.length; i++) {
+// 		res.push(privsFiltred.value![i].login);
+// 	}
+// 	// for (let i = 0; i < friendsFiltred.value.length; i++) {
+// 	// 	if (!res.includes(friendsFiltred.value[i])) {
+// 	// 		res.push(friendsFiltred.value[i]);
+// 	// 	}
+// 	// }
+// 	return res;
+// }
+
+// function otherPeople(): User[] {
+// 	let others = [user4, user5];
+// 	return others.filter(function(value) {
+// 		return value.login.toUpperCase().startsWith(search.value.toUpperCase());
+// 	});
+// }
+
 function createNewMsg() {
+	search.value = "";
 	newMsg.value = !newMsg.value;
-	searchKey.value += 1;
+	// searchKey.value += 1;
 	nextTick(() => {
 		document.getElementById('search')?.focus();
 	});
 }
+
+onMounted(() => {
+	const box = document.getElementById("privateTabText");
+	if (box != null) box.classList.add("chatTabActive");
+});
+
+onBeforeUnmount(() => {
+	const box = document.getElementById("privateTabText");
+	if (box != null) box.classList.remove("chatTabActive");
+});
 </script>
 
-<style>
+<style scoped>
 #private_view {
 	height: calc(100vh - 180px);
 	justify-content: flex-start;
@@ -208,40 +260,44 @@ function createNewMsg() {
 .no_results {
 	margin-top: 1rem;
 }
-.buttons_cont {
-	width: 20%;
+
+/* ============= BUTTONS TOPBAR ============= */
+.option_buttons {
+	width: 25%;
+}
+.button_img {
+	width: 30px;
+	height: 30px;
+	filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg)
+		brightness(86%) contrast(83%);
 }
 .button_cont {
 	border-radius: 50%;
 	padding: 5px;
-	position: relative;
+	/* position: static; */
 }
 .button_cont:hover {
 	background-color: white;
 	box-shadow: 0px 0px 4px #aaa;
 }
-.new_msg_img {
-	height: 28px;
-	width: 28px;
-	/* border-radius: 50%; */
-	filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg)
-		brightness(86%) contrast(83%);
-}
+
 .infoButtonText {
-	opacity: 0;
+	visibility: hidden;
 	font-size: 0.8rem;
 	width: auto;
 	background-color: rgba(0, 0, 0, 0.6);
 	color: #fff;
 	text-align: center;
-	padding: 5px;
+	padding: 5px 0;
 	border-radius: 6px;
 	position: absolute;
 	z-index: 1;
-	bottom: 100%;
-	/* right: 50%; */
+	bottom: 110%;
+	right: 0;
+	/* transform: translate(50%); */
 }
 .button_cont:hover .infoButtonText {
+	visibility: visible;
 	opacity: 0;
 	animation: displayButtonInfo 0.3s;
 	animation-delay: 0.3s;
@@ -268,11 +324,11 @@ function createNewMsg() {
 
 /* .myFade-enter-active,
 .myFade-leave-active {
-  transition: opacity 3s ease;
+	transition: opacity 3s ease;
 }
 
 .myFade-enter-from,
 .myFade-leave-to {
-  opacity: 0;
+	opacity: 0;
 } */
 </style>

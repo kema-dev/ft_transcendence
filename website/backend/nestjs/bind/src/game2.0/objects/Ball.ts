@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Logger } from '@nestjs/common';
 import { GameDto } from '../dto/GameDto';
 import Racket from '../objects/Racket';

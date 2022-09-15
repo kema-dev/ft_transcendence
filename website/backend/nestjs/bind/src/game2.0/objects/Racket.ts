@@ -1,4 +1,3 @@
-import e from 'express';
 import Vector from './Vector';
 import Wall from './Wall';
 

@@ -17,6 +17,7 @@
 </template>
 
 <script setup lang="ts">
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { onMounted, inject } from 'vue';
 import ScoreItem from '../components/ScoreItem.vue';
 import MatchItem from '@/components/MatchItem.vue';

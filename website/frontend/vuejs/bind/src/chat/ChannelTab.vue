@@ -1,28 +1,28 @@
 <template>
 	<router-link
-		v-if="!channel?.psw"
-		:to="{name: 'ChannelConv', params: {conv_name: channel!.name }}"
+		v-if="!infos?.psw"
+		:to="{name: 'ChannelConv', params: {conv_name: infos!.name }}"
 	>
 		<div class="channelTab center row stack">
 			<div class="avatar_cont center">
-				<img :src="channel!.avatar" alt="avatar" class="avatar" />
+				<img :src="infos!.avatar" alt="avatar" class="avatar" />
 			</div>
-			<div class="chanName">{{ channel!.name }}</div>
+			<div class="chanName">{{ infos!.name }}</div>
 			<div class="userNumberCont center">
 				<img src="~@/assets/group2_logo.svg" alt="Number of user" class="img" />
-				<span class="userNumber">{{ channel!.numberOfUser() }}</span>
+				<span class="userNumber">{{ infos!.nbUsers }}</span>
 			</div>
 		</div>
 	</router-link>
 	<div v-else class="channelPsw center column stack">
 		<div @click="showPswDiv()" class="channelTab center row stack">
 			<div class="avatar_cont center">
-				<img :src="channel!.avatar" alt="avatar" class="avatar" />
+				<img :src="infos!.avatar" alt="avatar" class="avatar" />
 			</div>
-			<div class="chanName">{{ channel!.name }}</div>
+			<div class="chanName">{{ infos!.name }}</div>
 			<div class="userNumberCont center">
 				<img src="~@/assets/group2_logo.svg" alt="Number of user" class="img" />
-				<span class="userNumber">{{ channel!.numberOfUser() }}</span>
+				<span class="userNumber">{{ infos!.nbUsers }}</span>
 			</div>
 			<img src="~@/assets/lock_logo.svg" alt="Protected" class="img lock" />
 		</div>
@@ -51,17 +51,19 @@
 </template>
 
 <script setup lang="ts">
-import { inject, defineProps, ref, nextTick, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-import WarningMsg from '@/components/WarningMsg.vue';
-import Channel from '@/chat/Channel';
-import User from '@/chat/User';
+import { inject, defineProps, ref, nextTick, onMounted } from "vue";
+import { useRouter } from "vue-router";
+import WarningMsg from "@/components/WarningMsg.vue";
+import { ChannelTabDto } from "@/chat/dto/ChannelTabDto ";
 
-let define = inject('colors');
-let me: User = inject('me')!;
+let colors = inject("colors");
+let me: string = inject("me")!;
 const router = useRouter();
 const props = defineProps({
-	channel: Channel,
+	infos: {
+		type: ChannelTabDto,
+		required: true,
+	},
 });
 
 let showPsw = ref(false);
@@ -72,11 +74,11 @@ let chanViewPos: DOMRect;
 
 function showPswDiv() {
 	// DEMMANDE BACK IF USER BANNED <==================================
-	if (props.channel?.isBan(me)) {
+	if (props.infos?.ban) {
 		banWarn.value = true;
 	} else {
 		showPsw.value = !showPsw.value;
-		psw.value = '';
+		psw.value = "";
 		if (showPsw.value) {
 			nextTick(() => {
 				(input.value! as HTMLInputElement).focus();
@@ -86,36 +88,34 @@ function showPswDiv() {
 }
 
 function checkPsw() {
-	(input.value! as HTMLInputElement).classList.remove('invalidPsw');
-	setTimeout(() => {
-		if (psw.value == props.channel?.psw) {
-			router.push({
-				name: 'PrivConv',
-				params: { conv_name: props.channel.name },
-			});
-		} else {
-			(input.value! as HTMLInputElement).classList.add('invalidPsw');
-		}
-	}, 50);
+	// faire le check du password en back ============================================
+	(input.value! as HTMLInputElement).classList.remove("invalidPsw");
+	// setTimeout(() => {
+	//   if (psw.value == props.infos?.psw) {
+	//     router.push({name: 'PrivConv', params: {conv_name: props.infos.name }});
+	//   } else {
+	//     ((input.value!) as HTMLInputElement).classList.add("invalidPsw");
+	//   }
+	// }, 50);
 }
 
 onMounted(() => {
 	chanViewPos = document
-		.getElementById('channel_view')!
+		.getElementById("channel_view")!
 		.getBoundingClientRect()!;
 	console.log(
-		'height = ',
+		"height = ",
 		chanViewPos.height,
-		'width = ',
+		"width = ",
 		chanViewPos.width,
-		'top = ',
+		"top = ",
 		chanViewPos.top,
-		'right = ',
+		"right = ",
 		chanViewPos.right,
-		'bottom = ',
+		"bottom = ",
 		chanViewPos.bottom,
-		'left = ',
-		chanViewPos.left,
+		"left = ",
+		chanViewPos.left
 	);
 });
 </script>
@@ -133,7 +133,7 @@ onMounted(() => {
 	height: calc(var(--height) + 10px);
 	margin: 3px 0;
 	background-color: white;
-	border: 2px solid v-bind('define.color2');
+	border: 2px solid v-bind("colors.color2");
 
 	border-radius: calc(calc(var(--height) + 10px) / 2);
 	z-index: 1;
@@ -152,7 +152,7 @@ onMounted(() => {
 .chanName {
 	width: auto;
 	padding-left: 15px;
-	font-family: 'Orbitron', sans-serif;
+	font-family: "Orbitron", sans-serif;
 	font-size: 0.9rem;
 	font-weight: 500;
 	color: black;
@@ -195,7 +195,7 @@ onMounted(() => {
 	padding: 0 8px;
 	outline: none;
 	width: 200px;
-	font-family: 'Orbitron', sans-serif;
+	font-family: "Orbitron", sans-serif;
 	font-size: 0.8rem;
 }
 .invalidPsw {
@@ -229,10 +229,10 @@ onMounted(() => {
 
 .banWarnCont {
 	/* position: fixed;
-  height: 800px;
-  width: 400px; */
+	height: 800px;
+	width: 400px; */
 	/* position: fixed;
-  height: v-bind("chanViewPos.height");
-  width: v-bind("chanViewPos.width"); */
+	height: v-bind("chanViewPos.height");
+	width: v-bind("chanViewPos.width"); */
 }
 </style>

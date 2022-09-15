@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import Field from './objects/Field';
 import Ball from './objects/Ball';
 import Wall from './objects/Wall';
