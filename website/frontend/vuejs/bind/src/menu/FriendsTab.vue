@@ -2,16 +2,9 @@
 	<div>
 		<div class="center column">
 			<div class="search_groupe center row">
-				<input
-					type="text"
-					placeholder="Recherche"
-					id="search"
-					ref="search"
-				/>
+				<input type="text" placeholder="Recherche" id="search" ref="search" />
 				<button>
-					<span class="material-symbols-outlined icon_search">
-						search
-					</span>
+					<span class="material-symbols-outlined icon_search"> search </span>
 				</button>
 			</div>
 			<!-- <SearchItem @change="searchChange" :search="search.value"/> -->
@@ -23,10 +16,7 @@
 					v-bind:key="friend.name"
 					class="row center"
 				>
-					<div
-						v-if="user.friends.includes(friend.name)"
-						class="center column"
-					>
+					<div v-if="user.friends.includes(friend.name)" class="center column">
 						<FriendItem :friend="friend" />
 					</div>
 					<!-- </div> -->
@@ -51,23 +41,24 @@
 </template>
 
 <script setup lang="ts">
-import axios from "axios";
-import { inject, onMounted, ref } from "vue";
-import FriendItem from "@/components/FriendItem.vue";
-import SearchItem from "@/components/SearchItem.vue";
-import { FQDN } from "../../.env.json";
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import axios from 'axios';
+import { inject, onMounted, ref } from 'vue';
+import FriendItem from '@/components/FriendItem.vue';
+import SearchItem from '@/components/SearchItem.vue';
+import { FQDN } from '../../.env.json';
 
-let define = inject("colors");
+let define = inject('colors');
 
 let find = false;
 
-const search = ref("");
+const search = ref('');
 onMounted(() => {
-	let input = document.getElementById("search");
-	if (input == null) console.log("error");
-	input?.addEventListener("input", (str) => {
+	let input = document.getElementById('search');
+	if (input == null) console.log('error');
+	input?.addEventListener('input', (str) => {
 		if (input.value == null) {
-			search.value = "";
+			search.value = '';
 			return;
 		}
 		search.value = input.value;
@@ -75,21 +66,21 @@ onMounted(() => {
 });
 let options: {
 	minimizable: false;
-	playerSize: "standard";
-	backgroundColor: "#fff";
-	backgroundStyle: "color";
+	playerSize: 'standard';
+	backgroundColor: '#fff';
+	backgroundStyle: 'color';
 	theme: {
-		controlsView: "standard";
-		active: "light";
+		controlsView: 'standard';
+		active: 'light';
 		light: {
-			color: "#3D4852";
-			backgroundColor: "#fff";
-			opacity: "0.7";
+			color: '#3D4852';
+			backgroundColor: '#fff';
+			opacity: '0.7';
 		};
 		dark: {
-			color: "#fff";
-			backgroundColor: "#202020";
-			opacity: "0.7";
+			color: '#fff';
+			backgroundColor: '#202020';
+			opacity: '0.7';
 		};
 	};
 };
@@ -97,21 +88,21 @@ let options: {
 // 	users.forEach((u) => u.name == str);
 // }
 let user = {
-	name: "zeus",
-	level: "1000",
-	avatar: require("@/assets/avatars/(2).jpg"),
-	friends: ["Jane", "John", "Jacksdfgtertwdsfadfsafdertert"],
+	name: 'zeus',
+	level: '1000',
+	avatar: require('@/assets/avatars/(2).jpg'),
+	friends: ['Jane', 'John', 'Jacksdfgtertwdsfadfsafdertert'],
 };
 function post(url: string, args: any) {
 	let data;
 	axios
-		.post(FQDN + ":3000/api/v1/" + url, args)
+		.post(FQDN + ':3000/api/v1/' + url, args)
 		.then((response) => {
 			data = response.data;
-			console.log(url + ": ", data);
+			console.log(url + ': ', data);
 		})
 		.catch((error) => {
-			console.log(url + ": failed request.\nargs: " + args);
+			console.log(url + ': failed request.\nargs: ' + args);
 			console.log(error);
 		});
 	return data;
@@ -124,53 +115,53 @@ function post(url: string, args: any) {
 // });
 let users = [
 	{
-		name: "John",
-		level: "25",
-		avatar: require("@/assets/avatars/(1).jpg"),
-		friends: ["Jane"],
-		status: "offline",
-		rank: "1st",
-		ratiov: "10",
-		ratiod: "5",
+		name: 'John',
+		level: '25',
+		avatar: require('@/assets/avatars/(1).jpg'),
+		friends: ['Jane'],
+		status: 'offline',
+		rank: '1st',
+		ratiov: '10',
+		ratiod: '5',
 	},
 	{
-		name: "Jane",
-		level: "24",
-		avatar: require("@/assets/avatars/(2).jpg"),
-		friends: ["Jill"],
-		status: "online",
-		rank: "2st",
-		ratiov: "10",
-		ratiod: "5",
+		name: 'Jane',
+		level: '24',
+		avatar: require('@/assets/avatars/(2).jpg'),
+		friends: ['Jill'],
+		status: 'online',
+		rank: '2st',
+		ratiov: '10',
+		ratiod: '5',
 	},
 	{
-		name: "Jacksdfgtertwdsfadfsafdertert",
-		level: "2365464654654654646546546545",
-		avatar: require("@/assets/avatars/(3).jpg"),
-		status: "in game",
-		rank: "3st",
-		ratiov: "10",
-		ratiod: "5",
+		name: 'Jacksdfgtertwdsfadfsafdertert',
+		level: '2365464654654654646546546545',
+		avatar: require('@/assets/avatars/(3).jpg'),
+		status: 'in game',
+		rank: '3st',
+		ratiov: '10',
+		ratiod: '5',
 	},
 	{
-		name: "Jill",
-		level: "2",
-		avatar: require("@/assets/avatars/(4).jpg"),
-		friends: ["Jane", "Jacksdfgtertwdsfadfsafdertert"],
-		status: "online",
-		rank: "4st",
-		ratiov: "10",
-		ratiod: "5",
+		name: 'Jill',
+		level: '2',
+		avatar: require('@/assets/avatars/(4).jpg'),
+		friends: ['Jane', 'Jacksdfgtertwdsfadfsafdertert'],
+		status: 'online',
+		rank: '4st',
+		ratiov: '10',
+		ratiod: '5',
 	},
 	{
-		name: "Joe",
-		level: "21",
-		avatar: require("@/assets/avatars/(5).jpg"),
-		friends: ["Jane", "Jacksdfgtertwdsfadfsafdertert"],
-		status: "online",
-		rank: "5st",
-		ratiov: "10",
-		ratiod: "5",
+		name: 'Joe',
+		level: '21',
+		avatar: require('@/assets/avatars/(5).jpg'),
+		friends: ['Jane', 'Jacksdfgtertwdsfadfsafdertert'],
+		status: 'online',
+		rank: '5st',
+		ratiov: '10',
+		ratiod: '5',
 	},
 ];
 </script>

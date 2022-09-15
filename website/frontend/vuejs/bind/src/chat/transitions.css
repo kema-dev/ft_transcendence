@@ -1,11 +1,11 @@
 /* .myFade-enter-active,
 .myFade-leave-active {
-  transition: opacity 0.5s ease;
+	transition: opacity 0.5s ease;
 }
 
 .myFade-enter-from,
 .myFade-leave-to {
-  opacity: 0;
+	opacity: 0;
 } */
 
 
@@ -24,7 +24,7 @@
 
 .myFade-leave-active {
 	position: absolute;
-  transition: opacity 0.5s ease-out;
+	transition: opacity 0.5s ease-out;
 }
 .myFade-leave-to {
 	position: absolute;
@@ -36,7 +36,7 @@
 
 .mySlide-leave-active,
 .mySlide-enter-active {
-  transition: 1s;
+	transition: 1s;
 }
 .mySlide-leave-to,
 .mySlide-enter-from {

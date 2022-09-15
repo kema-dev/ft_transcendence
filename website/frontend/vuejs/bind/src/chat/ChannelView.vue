@@ -1,65 +1,142 @@
 <template>
 	<div id="channel_view" class="center column stack">
 		<div class="option_private center raw">
-			<SearchItem v-model:search="search"/>
+			<SearchItem v-model:search="search" />
 			<!-- <div v-if="newChannel" class="newChannelTitle">Create a new Channel</div> -->
 			<div v-if="newChannel" class="newChannelTitle center">
 				<span class="newChannelTitleText">Create a new Channel</span>
 			</div>
 			<div class="option_buttons space-around raw stack">
-				<button v-if="!newChannel" @click="findChannelFn()" class="button_cont center">
+				<button
+					v-if="!newChannel"
+					@click="findChannelFn()"
+					class="button_cont center"
+				>
 					<span v-if="!findChannel" class="infoButtonText">Join channel</span>
-					<img v-if="!findChannel" src="~@/assets/logo_search.svg" alt="New message" class="button_img">
+					<img
+						v-if="!findChannel"
+						src="~@/assets/logo_search.svg"
+						alt="New message"
+						class="button_img"
+					/>
 					<span v-if="findChannel" class="infoButtonText">Back</span>
-					<img v-if="findChannel" src="~@/assets/undo_logo.svg" alt="New message" class="button_img">
+					<img
+						v-if="findChannel"
+						src="~@/assets/undo_logo.svg"
+						alt="New message"
+						class="button_img"
+					/>
 				</button>
-				<button v-if="!findChannel" @click="newChannelFn()" class="button_cont center">
+				<button
+					v-if="!findChannel"
+					@click="newChannelFn()"
+					class="button_cont center"
+				>
 					<span v-if="!newChannel" class="infoButtonText">Create channel</span>
-					<img v-if="!newChannel" src="~@/assets/add_logo.svg" alt="New message" class="button_img">
+					<img
+						v-if="!newChannel"
+						src="~@/assets/add_logo.svg"
+						alt="New message"
+						class="button_img"
+					/>
 					<span v-if="newChannel" class="infoButtonText">Back</span>
-					<img v-if="newChannel" src="~@/assets/undo_logo.svg" alt="New message" class="button_img">
+					<img
+						v-if="newChannel"
+						src="~@/assets/undo_logo.svg"
+						alt="New message"
+						class="button_img"
+					/>
 				</button>
 			</div>
 		</div>
 		<div v-if="!findChannel && !newChannel" class="myChannels center column">
 			<div v-for="(data, i) in chansFiltred" :key="i" class="center">
-				<ConversationTab v-if="data.messages.length > 0" :name-conv="data.name" :avatar="data.avatar" :message="data.messages.at(-1)!.msg" :date="data.messages.at(-1)!.date" :last-msg-user="data.messages.at(-1)!.user" :read="data.readed" :chan="true" class="center"/>
-				<ConversationTab v-else :name-conv="data.name" :avatar="data.avatar" :date="data.creation" :chan="true" class="center"/>
+				<ConversationTab
+					v-if="data.messages.length > 0"
+					:name-conv="data.name"
+					:avatar="data.avatar"
+					:message="data.messages.at(-1)!.msg"
+					:date="data.messages.at(-1)!.date"
+					:last-msg-user="data.messages.at(-1)!.user"
+					:read="data.readed"
+					:chan="true"
+					class="center"
+				/>
+				<ConversationTab
+					v-else
+					:name-conv="data.name"
+					:avatar="data.avatar"
+					:date="data.creation"
+					:chan="true"
+					class="center"
+				/>
 				<!-- <ConversationTab v-else :name-conv="data.name" :avatar="data.avatar" :date="data.creation" :chan="true" class="center"/> -->
 			</div>
 			<h2 v-if="chansRef.length == 0" class="no_results">No conversations</h2>
-			<h2 v-else-if="chansFiltred!.length == 0" class="no_results">No results</h2>
+			<h2 v-else-if="chansFiltred!.length == 0" class="no_results">
+				No results
+			</h2>
 		</div>
-		<div v-if="findChannel && serverChans.length > 0" class="findChannelResults left column">
+		<div
+			v-if="findChannel && serverChans.length > 0"
+			class="findChannelResults left column"
+		>
 			<!-- <div v-if="search.length > 0 && serverChans.length > 0" class="left column"> -->
-				<ChannelTab v-for="(data, i) in serverChans" :key="i" :infos="data"/>
+			<ChannelTab v-for="(data, i) in serverChans" :key="i" :infos="data" />
 		</div>
 		<h2 v-else-if="findChannel && serverChans.length == 0">No results</h2>
 		<!-- </div> -->
-		<form v-if="newChannel" @submit.prevent="submitChannel" id="channelForm" class="channelForm left column">
+		<form
+			v-if="newChannel"
+			@submit.prevent="submitChannel"
+			id="channelForm"
+			class="channelForm left column"
+		>
 			<div class="elemForm_cont left column">
 				<label for="name" class="labelForm">Channel name</label>
-				<input type="text" name="name" required id="name" class="inputForm">
+				<input type="text" name="name" required id="name" class="inputForm" />
 			</div>
 			<div class="elemForm_cont left column">
 				<div class="left_center raw">
 					<label for="pswCheckbox" class="labelForm">Password ?</label>
-					<input v-model="pswCheck" type="checkbox" name="pswCheckbox" id="pswCheckbox" value="psw required">
+					<input
+						v-model="pswCheck"
+						type="checkbox"
+						name="pswCheckbox"
+						id="pswCheckbox"
+						value="psw required"
+					/>
 				</div>
-				<input type="text" name="pswInput" id="pswInput" class="inputForm" :disabled="!pswCheck" :required="pswCheck">
+				<input
+					type="text"
+					name="pswInput"
+					id="pswInput"
+					class="inputForm"
+					:disabled="!pswCheck"
+					:required="pswCheck"
+				/>
 			</div>
 			<!-- <div class="elemForm_cont left column">
 				<label for="users" class="labelForm">User to invite in channel</label>
 				<input type="text" name="usersChann" id="usersChann" class="inputForm">
 			</div> -->
-			<input type="submit" value="Create" id="submitButton">
+			<input type="submit" value="Create" id="submitButton" />
 		</form>
 	</div>
 </template>
 
 <script setup lang="ts">
 /* eslint @typescript-eslint/no-var-requires: "off" */
-import { inject, onMounted, onBeforeUnmount, ref, Ref, nextTick, watch } from "vue";
+import {
+	inject,
+	onMounted,
+	onBeforeUnmount,
+	ref,
+	Ref,
+	nextTick,
+	watch,
+} from "vue";
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import ConversationTab from "@/chat/ConversationTab.vue";
 import HTTP from "../components/axios";
 import ChannelTab from "@/chat/ChannelTab.vue";
@@ -68,14 +145,14 @@ import { ChannelDto } from "@/chat/dto/ChannelDto";
 import { ChannelTabDto } from "@/chat/dto/ChannelTabDto ";
 import { Message } from "@/chat/dto/MessageDto";
 import { BasicUserDto } from "@/chat/dto/BasicUserDto";
-import { chansRef, printChans }  from "@/globals"
+import { chansRef, printChans } from "@/globals";
 
 let colors = inject("colors");
-let me : string = inject("me")!;
+let me: string = inject("me")!;
 let apiPath: string = inject("apiPath")!;
 
-let chansFiltred : Ref<ChannelDto[]> = ref(chansRef.value);
-let serverChans : Ref<ChannelTabDto[]> = ref([]);
+let chansFiltred: Ref<ChannelDto[]> = ref(chansRef.value);
+let serverChans: Ref<ChannelTabDto[]> = ref([]);
 const newMsg = ref(false);
 let userServReqDone = ref(false);
 
@@ -95,39 +172,40 @@ printChans(chansRef.value);
 
 watch(search, () => {
 	userServReqDone.value = false;
-	chansFiltred.value = chansRef.value?.filter(function(chan) {
+	chansFiltred.value = chansRef.value?.filter(function (chan) {
 		return chan.name.toUpperCase().startsWith(search.value.toUpperCase());
 	});
-	if (newMsg.value && search.value != "")
-		getServerChans();
-})
+	if (newMsg.value && search.value != "") getServerChans();
+});
 
 function getServerChans() {
 	HTTP.get(apiPath + "chat/getServerUsersFiltred/" + me + "/" + search.value)
-			.then(res => {
-				let chansTmp : ChannelTabDto[] = [];
-				res.data.forEach((chan : ChannelTabDto) => {
-					chansTmp.push(new ChannelTabDto(chan.name, chan.nbUsers, chan.psw, chan.ban));
-				});
-				serverChans.value = chansTmp;
-				filterServerUsers();
-				userServReqDone.value = true;	
-			})
-			.catch(e => console.log(e));
+		.then((res) => {
+			let chansTmp: ChannelTabDto[] = [];
+			res.data.forEach((chan: ChannelTabDto) => {
+				chansTmp.push(
+					new ChannelTabDto(chan.name, chan.nbUsers, chan.psw, chan.ban)
+				);
+			});
+			serverChans.value = chansTmp;
+			filterServerUsers();
+			userServReqDone.value = true;
+		})
+		.catch((e) => console.log(e));
 }
 
 function filterServerUsers() {
 	serverChans.value = serverChans.value!.filter((chan, i) => {
 		let isAlreadyKnow = true;
 		for (let chanKnown of chansFiltred.value) {
-			if (chanKnown.name == chan.name){
+			if (chanKnown.name == chan.name) {
 				isAlreadyKnow = false;
 				break;
 			}
 		}
 		return isAlreadyKnow;
-		// ========== AJOUTER FRIENDS =========== 
-	})
+		// ========== AJOUTER FRIENDS ===========
+	});
 }
 
 // function knownPeople() : Channel[] {
@@ -150,7 +228,7 @@ function findChannelFn() {
 	searchKey.value += 1;
 	nextTick(() => {
 		document.getElementById("search")?.focus();
-	})
+	});
 }
 function newChannelFn() {
 	newChannel.value = !newChannel.value;
@@ -161,27 +239,23 @@ function submitChannel() {
 	const data = new FormData(form);
 	if (data.get("pswInput") as string) {
 		// conversations.push(new Channel(data.get('name') as string, [me], data.get("pswInput") as string));
-	}
-	else {
+	} else {
 		// conversations.push(new Channel(data.get('name') as string, [me]));
 	}
 	// convsFiltred.value = conversations;
 	newChannel.value = false;
-	console.log(data.get('name') as string);
+	console.log(data.get("name") as string);
 }
 
 onMounted(() => {
-	const box = document.getElementById('channelsTabText');
-	if (box != null)
-		box.classList.add("chatTabActive");
-})
+	const box = document.getElementById("channelsTabText");
+	if (box != null) box.classList.add("chatTabActive");
+});
 
 onBeforeUnmount(() => {
-	const box = document.getElementById('channelsTabText');
-	if (box != null)
-		box.classList.remove("chatTabActive");
-})
-
+	const box = document.getElementById("channelsTabText");
+	if (box != null) box.classList.remove("chatTabActive");
+});
 </script>
 
 <style scoped>
@@ -193,15 +267,14 @@ onBeforeUnmount(() => {
 	margin-top: 1rem;
 }
 
-
-
 .option_buttons {
 	width: 25%;
 }
 .button_img {
 	width: 30px;
 	height: 30px;
-	filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg) brightness(86%) contrast(83%);
+	filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg)
+		brightness(86%) contrast(83%);
 }
 .button_cont {
 	border-radius: 50%;
@@ -216,15 +289,15 @@ onBeforeUnmount(() => {
 .infoButtonText {
 	visibility: hidden;
 	font-size: 0.8rem;
-  width: auto;
-  background-color: rgba(0,0,0,0.6);
-  color: #fff;
-  text-align: center;
-  padding: 5px 0;
-  border-radius: 6px;
-  position: absolute;
-  z-index: 1;
-  bottom: 110%;
+	width: auto;
+	background-color: rgba(0, 0, 0, 0.6);
+	color: #fff;
+	text-align: center;
+	padding: 5px 0;
+	border-radius: 6px;
+	position: absolute;
+	z-index: 1;
+	bottom: 110%;
 	right: 0;
 	/* transform: translate(50%); */
 }
@@ -243,18 +316,6 @@ onBeforeUnmount(() => {
 		opacity: 1;
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 /* .buttons_cont{
 	width: 20%;
@@ -277,15 +338,15 @@ onBeforeUnmount(() => {
 	visibility: hidden;
 	opacity:0;
 	font-size: 0.8rem;
-  width: auto;
-  background-color: rgba(0,0,0,0.6);
-  color: #fff;
-  text-align: center;
-  padding: 5px;
-  border-radius: 6px;
-  position: absolute;
-  z-index: 1;
-  bottom: 100%;
+	width: auto;
+	background-color: rgba(0,0,0,0.6);
+	color: #fff;
+	text-align: center;
+	padding: 5px;
+	border-radius: 6px;
+	position: absolute;
+	z-index: 1;
+	bottom: 100%;
 }
 .button_cont:hover .infoButtonText {
 	visibility: visible;
@@ -296,17 +357,8 @@ onBeforeUnmount(() => {
 }
 @keyframes displayButtonInfo {
 	from { opacity: 0; }
-  to { opacity: 1; }
+	to { opacity: 1; }
 } */
-
-
-
-
-
-
-
-
-
 
 .findChannelResults {
 	margin-top: 10px;
@@ -367,11 +419,11 @@ onBeforeUnmount(() => {
 
 /* .myFade-enter-active,
 .myFade-leave-active {
-  transition: opacity 3s ease;
+	transition: opacity 3s ease;
 }
 
 .myFade-enter-from,
 .myFade-leave-to {
-  opacity: 0;
+	opacity: 0;
 } */
 </style>

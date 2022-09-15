@@ -1,8 +1,8 @@
 <template>
 	<div id="blockAdvert_view" class="center">
 		<div class="blockAdvert center column">
-			<img :src="img" alt="Warning" class="warning_img">
-			<span class="blockAdvertText">{{msg}}</span>
+			<img :src="img" alt="Warning" class="warning_img" />
+			<span class="blockAdvertText">{{ msg }}</span>
 			<slot name="buttons"></slot>
 		</div>
 	</div>
@@ -12,7 +12,6 @@
 import { inject } from "vue";
 
 let colors = inject("colors");
-
 </script>
 
 <style>
@@ -27,7 +26,7 @@ let colors = inject("colors");
 	z-index: 2;
 }
 .blockAdvert {
-	width : 80%;
+	width: 80%;
 	height: auto;
 	padding: 15px;
 	background-color: #fff;

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
 	Body,
 	Req,
@@ -20,10 +21,10 @@ export class UsersController {
 	constructor(private readonly usersService: UsersService) {}
 
 	@Get('getBasicUser/:login')
-	async getBasicUser(@Param() params : {login: string}) {
-		let user = await this.usersService.getByLogin(params.login);
+	async getBasicUser(@Param() params: { login: string }) {
+		const user = await this.usersService.getByLogin(params.login);
 		return new BasicUserDto(user.login);
-  }
+	}
 
 	// @UseGuards(JwtAuthenticationGuard) FIXME
 	@Post('getUser')

@@ -1,35 +1,44 @@
 <template>
-	<div
-		class="friend_case space-between row"
-	>
+	<div class="friend_case space-between row">
 		<div class="center row">
-			<router-link :to="{name: 'player', params: {name: friend.name}}"><img :src="friend.avatar" class="avatar" alt="avatar" /></router-link>
+			<router-link :to="{ name: 'player', params: { name: friend.name } }"
+				><img :src="friend.avatar" class="avatar" alt="avatar"
+			/></router-link>
 			<div class="center column">
 				<div class="space-between left row">
 					<div class="left column">
-						<router-link :to="{name: 'player', params: {name: friend.name}}"><h2 class="name">{{ friend.name }}</h2></router-link>
+						<router-link :to="{ name: 'player', params: { name: friend.name } }"
+							><h2 class="name">{{ friend.name }}</h2></router-link
+						>
 						<h3 class="text">level {{ friend.level }}</h3>
 					</div>
 					<div class="right column">
-						<button
-							class="action"
-							v-on:click="remove_friend(friend.name)"
-						>
+						<button class="action" v-on:click="remove_friend(friend.name)">
 							X
 						</button>
-						<h3 class="status" v-if="user.friends.includes(friend.name)">{{ friend.status }}</h3>
+						<h3 class="status" v-if="user.friends.includes(friend.name)">
+							{{ friend.status }}
+						</h3>
 					</div>
 				</div>
 				<div class="space-between row">
-				<!-- <div class="left row"> -->
-					<h2 class="score">{{friend.rank}}</h2>
+					<!-- <div class="left row"> -->
+					<h2 class="score">{{ friend.rank }}</h2>
 					<!-- <h2 class="score">{{friend.ratiov}} | {{friend.ratiod}}</h2> -->
-				<!-- </div> -->
-				<div class="right row">
-					<button class="action" v-on:click="add_friend(friend.name)" v-if="!user.friends.includes(friend.name)">add friend</button>
-					<button class="action">invit</button>
-					<button class="action" v-if="user.friends.includes(friend.name)">chat</button>
-				</div>
+					<!-- </div> -->
+					<div class="right row">
+						<button
+							class="action"
+							v-on:click="add_friend(friend.name)"
+							v-if="!user.friends.includes(friend.name)"
+						>
+							add friend
+						</button>
+						<button class="action">invit</button>
+						<button class="action" v-if="user.friends.includes(friend.name)">
+							chat
+						</button>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -37,9 +46,10 @@
 </template>
 
 <script setup lang="ts">
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { inject, defineProps } from "vue";
 let define = inject("colors");
-const props = defineProps(['friend'])
+const props = defineProps(["friend"]);
 
 let user = {
 	name: "zeus",
@@ -111,4 +121,5 @@ function remove_friend(name: string) {
 	text-overflow: ellipsis;
 	width: 7rem;
 	text-align: left;
-}</style>
+}
+</style>

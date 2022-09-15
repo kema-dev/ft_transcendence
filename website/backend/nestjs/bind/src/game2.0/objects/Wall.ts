@@ -1,6 +1,6 @@
-import Vector from "./Vector"
-import Racket from "./Racket"
-import Profile from "./Profile"
+import Vector from './Vector';
+import Racket from './Racket';
+import Profile from './Profile';
 
 export default class Wall {
 	vector: Vector;
@@ -13,7 +13,14 @@ export default class Wall {
 	index: number;
 	racket?: Racket;
 	profile?: Profile;
-	constructor(width: number, vector: Vector, side: boolean, coordonate: Vector, index: number, nbrWall: number) {
+	constructor(
+		width: number,
+		vector: Vector,
+		side: boolean,
+		coordonate: Vector,
+		index: number,
+		nbrWall: number,
+	) {
 		this.vector = vector;
 		this.width = 7;
 		this.height = width;
@@ -23,7 +30,7 @@ export default class Wall {
 		this.y = coordonate.y;
 		this.angle = index * (360 / nbrWall);
 		if (this.side) {
-			this.racket = new Racket(this)
+			this.racket = new Racket(this);
 		}
 	}
 	getRacket() {

@@ -50,10 +50,8 @@ let match = {
 
 let size = ref(0);
 function open() {
-	if (size.value)
-		size.value = 0;
-	else
-		size.value = match.nbrPlayer;
+	if (size.value) size.value = 0;
+	else size.value = match.nbrPlayer;
 }
 
 function witch_rank(login: string, match: any) {

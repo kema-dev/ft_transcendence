@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Module } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import {UserEntity} from './user.entity';
+import { UserEntity } from './user.entity';
 import { UsersController } from './user.controller';
 import { ChatService } from '../chat/chat.service';
 
