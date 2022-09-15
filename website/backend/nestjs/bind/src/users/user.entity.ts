@@ -11,7 +11,7 @@ export class UserEntity extends TimestampEntites {
 		super();
 		this.level = 0;
 		this.nbrGame = 0;
-		this.ratio = 0.5;
+		this.ratio = "0.5";
 		this.status = "offline";
 		this.avatar = avatars[Math.floor(Math.random() * 5)];
 	}
@@ -40,7 +40,7 @@ export class UserEntity extends TimestampEntites {
 	public nbrGame: number;
 
 	@Column({ nullable: true })
-	public ratio: number;
+	public ratio: string;
 
 	@ManyToMany(type => UserEntity, (user) => user.friends, {
 		onDelete: 'SET NULL'

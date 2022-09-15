@@ -1,18 +1,14 @@
 <template>
-	<div class="column center">
+	<div class="column center" id="test">
+		<div class="stack avatar-stack">
+		<div id="bar"></div>
 		<div v-on:click="change_avatar" id="avatar">
 			<img :src="me?.avatar" id="img" />
-		</div>
+		</div></div>
 		<input id="none" type="file" />
 		<h2 class="info">{{ user.rank }}</h2>
 		<h1 id="name">{{ me?.login }}</h1>
-		<h2 class="info">level {{ me?.level }}</h2>
-		<!-- <h3 id="ratio">{{ user.ratiov }} | {{ user.ratiod }}</h3> -->
-		<!-- <h2 style="margin-top: 10px">ratio</h2>
-		<div class="stack ratio-stack" style="margin-bottom: 50px">
-			<div class="background-ratio"></div>
-			<div class="ratio"></div>
-		</div> -->
+		<h2 class="info" style="margin-bottom: 40px;">level {{ me?.level }}</h2>
 		<h2>Match history</h2>
 		<div v-for="match in user.history" :key="match.adversary">
 			<!-- <ScoreItem :player="user.name" :adversary="match.adversary" :points1="match.points1" :points2="match.points2"/> -->
@@ -64,7 +60,6 @@ onMounted(() => {
 		const reader = new FileReader();
 		reader.addEventListener("load", () => {
 			let image = reader.result;
-			console.log(image);
 			document.querySelector("#img").src = `${image}`;
 			socket.emit("changeAvatar", {
 				login: me.value.login,
@@ -73,15 +68,14 @@ onMounted(() => {
 		});
 		reader.readAsDataURL(input.files[0]);
 	});
-	var line = new ProgressBar.Circle("#avatar", {
+	var bar = new ProgressBar.Circle("#bar", {
 		color: define.color2,
 		strokeWidth: 4,
 		trailWidth: 0,
 		easing: "easeInOut",
 		duration: 1400,
-
 	});
-	line.animate(0.5);
+	bar.animate(1 - me?.value?.ratio);
 });
 function change_avatar() {
 	let input = document.querySelector("#none");
@@ -95,14 +89,20 @@ function avatar() {
 </script>
 
 <style scoped>
+.avatar-stack {
+	margin-top: 50px;
+	width: 200px;
+	margin-bottom: 250px;
+}
 #avatar {
+	position: absolute;
 	width: 200px;
 	height: 200px;
 	border-radius: 50%;
 	box-shadow: 0px 2px 5px #333;
 	cursor: pointer;
 	vertical-align: middle;
-	margin: 30px;
+	margin: 7.5px;
 	/* background-image: url("@/assets/avatars/(1).jpg"); */
 	/* background-size: 100%; */
 	/* height: 40%; */
@@ -115,6 +115,11 @@ function avatar() {
 	height: 100%;
 	border-radius: 50%;
 }
+#bar {
+	position: absolute;
+	width: 215px;
+	height: 215px;
+}
 #none {
 	display: none;
 }
@@ -125,26 +130,5 @@ function avatar() {
 }
 .info {
 	font-size: 100%;
-}
-#ratio {
-	margin-bottom: 60px;
-}
-.ratio-stack {
-	width: 60%;
-}
-.background-ratio {
-	position: absolute;
-	width: 100%;
-	height: 20px;
-	background-color: v-bind("define.color0");
-	border: 1px solid v-bind("define.color2");
-	border-radius: 10px;
-}
-.ratio {
-	position: absolute;
-	width: v-bind("(1 - me?.ratio) * 100 + '%'");
-	height: 20px;
-	background-color: v-bind("define.color2");
-	border-radius: 10px 0px 0px 10px;
 }
 </style>

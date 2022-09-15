@@ -153,7 +153,7 @@
 								<h2 class="score">{{ user.rank }}</h2>
 								<!-- <h2 class="score">{{user.ratiov}} | {{user.ratiod}}</h2> -->
 								<!-- </div> -->
-								<div class="right row">
+								<div class="right row" style="margin-right: 15px">
 									<button
 										class="action"
 										@click="add_friend(user.login)"

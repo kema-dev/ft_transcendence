@@ -105,6 +105,11 @@ export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGateway
     let user = await this.userService.getByLogin(payload.login, {requestFriend: true, friends: true});
     this.server.emit('userUpdate', new ProfileUserDto(user));
   }
+  @SubscribeMessage('getUserByLogin')
+  async getUserByLogin(client: Socket, payload: any): Promise<void> {
+    const user = await this.userService.getByLogin(payload.login);
+    client.emit("getUserByLogin", new ProfileUserDto(user));
+  }
   @SubscribeMessage('addFriend')
   addFriend(client: Socket, payload: any): void {
     this.userService.sendFriendRequest(payload.sender, payload.receiver, this.server)
