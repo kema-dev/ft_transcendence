@@ -4,7 +4,7 @@
 			<ul class="dropdown">
 				<li class="drop"><a>LOBBIES</a>
 					<ul class="sub_menu">
-						<li v-for="lobby in lobbies" v-bind:key="lobby.id" v-on:click="join(lobby.id)"><a>{{ lobby.id }}</a></li>
+						<li v-for="lobby in lobbies" v-bind:key="lobby.lobby_name" v-on:click="join(lobby.lobby_name)"><a>{{ lobby.lobby_name }}</a></li>
 					</ul>
 				</li>
 			</ul>
@@ -24,6 +24,7 @@ let socket: Socket = inject("socket")!;
 const $cookies = inject<VueCookies>('$cookies'); 
 
 let lobbies = ref([]);
+let lobby_name = ref($cookies.get("login") + "'s lobby");
 
 onMounted(() => {
 	socket.emit("lobby_list");
@@ -32,13 +33,13 @@ onMounted(() => {
 	});
 });
 
-function join(name: string) {
-	socket.emit("join_lobby", {username: $cookies.get("login"), lobby: name});
+function join(id: string) {
+	socket.emit("join_lobby", {username: $cookies.get("login"), lobby: id});
 	socket.on("join_lobby", (data: any) => {
 		if (data.status == "ok") {
-			toast.success("You've joined the lobby " + name);
+			toast.success("You've joined the lobby " + id);
 		} else {
-			toast.error("Unable to join the lobby " + name);
+			toast.error("Unable to join the lobby " + id);
 		}
 	});
 }

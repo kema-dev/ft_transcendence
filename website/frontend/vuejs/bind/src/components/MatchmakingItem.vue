@@ -50,7 +50,7 @@ let remount = ref(false);
 let nbrPlayer = ref(6);
 let nbrBall = ref(3);
 let players = ref([$cookies.get("login")]);
-let lobby_name = ref($cookies.get("login"));
+let lobby_name = ref($cookies.get("login") + "'s lobby");
 const owner = ref($cookies.get("login"));
 
 function update_game() {

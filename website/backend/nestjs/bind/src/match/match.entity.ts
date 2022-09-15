@@ -17,7 +17,7 @@ export class MatchEntity {
 	@Column()
 	public start: boolean;
 
-	@Column()
+	@Column({ unique: true })
 	public lobby_name: string;
 
 	@Column()
