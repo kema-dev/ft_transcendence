@@ -23,24 +23,24 @@ import { VueCookies } from "vue-cookies";
 import { FQDN } from "../../.env.json";
 import { Socket } from "socket.io-client";
 import HTTP from "../components/axios";
-import { PrivConv } from "@/chat/objects/PrivConv"
-import Message from "@/chat/objects/Message";
-import BasicUser from "@/chat/dto/BasicUserDto";
-// import { FQDN } from "@/.env.json";
+import { PrivConvDto } from "@/chat/dto/PrivConvDto"
+import { ChannelDto } from "@/chat/dto/ChannelDto"
+import { MessageDto } from "@/chat/dto/MessageDto";
+import { BasicUserDto } from "@/chat/dto/BasicUserDto";
+import { chansRef } from "@/globals";
 
-// let define = inject("colors");
 
-// COOKIES + APIPATCH
+//  ========== COOKIES + APIPATCH
 const $cookies = inject<VueCookies>('$cookies')!;
 const apiPath = FQDN + ":3000/api/v1/";
 provide("apiPath", apiPath);
 
-// GET MY NAME + AVATAR
+//	========== GET MY NAME + AVATAR
 const me : string = $cookies.get('login');
 provide("me", me);
 console.log(`I am '${me}'`)
 
-// CREATE SOCKET
+//	========== CREATE SOCKET
 let socket = io(FQDN + ':3000', {query: {login: me}});
 provide("socket", socket);
 
@@ -56,16 +56,18 @@ provide("socket", socket);
 // 	privs.value = privsTmp;
 // })
 
-// RESIZE WINDOW
+//	========== RESIZE WINDOW
 let reload = ref(0)
 onMounted(() => {
 	window.addEventListener("resize", () => {
 		reload.value++;
 	})
 });
+
+//	===================== CHAT =====================
 	
-// GET PRIVS 
-let privsRef : Ref<PrivConv[]> = ref([]);
+//	========== GET PRIVS 
+let privsRef : Ref<PrivConvDto[]> = ref([]);
 let nbPrivNR : Ref<number[]> = ref([]);
 function resetNbPrivNR() {
 	nbPrivNR.value = [];
@@ -93,13 +95,13 @@ function getPrivsRequest() {
 			privsRef.value = [];
 		else {
 			// privs.value = res.data;
-			let privsTmp : PrivConv[] = [];
-			res.data.forEach((priv : PrivConv) => {
-				let msgsTmp : Message[] = [];
+			let privsTmp : PrivConvDto[] = [];
+			res.data.forEach((priv : PrivConvDto) => {
+				let msgsTmp : MessageDto[] = [];
 				priv.messages.forEach((msg, j) => {
-					msgsTmp.push(new Message(msg.user, msg.msg, new Date(msg.date)))
+					msgsTmp.push(new MessageDto(msg.user, msg.msg, new Date(msg.date)))
 				});
-				privsTmp.push(new PrivConv(new BasicUser(priv.user.login), msgsTmp, priv.readed, priv.id));
+				privsTmp.push(new PrivConvDto(new BasicUserDto(priv.user.login), msgsTmp, priv.readed, priv.id));
 				if (priv.readed == false && priv.messages.at(-1)?.user != me)
 					nbPrivNR.value.push(priv.id);
 			});
@@ -119,8 +121,8 @@ function getPrivsRequest() {
 
 
 
-// CREATE SOCKET LISTENERS 
-socket.on('newPrivConv', (data: PrivConv) => {
+//	========== CREATE SOCKET LISTENERS 
+socket.on('newPrivConv', (data: PrivConvDto) => {
 	console.log(`New private created`)
 	// let privTmp = privsRef.value!;
 	// let msg = new Message(data.messages[0].user, data.messages[0].msg, new Date (data.messages[0].date));
@@ -133,15 +135,16 @@ socket.on('newPrivConv', (data: PrivConv) => {
 	// privsRef.value.push(new PrivConv(new BasicUser(data.user.login), [msg], data.readed, data.id));
 	// ==============
 	let newPriv = data;
-	newPriv.user = new BasicUser(newPriv.user.login);
+	newPriv.user = new BasicUserDto(newPriv.user.login);
 	newPriv.messages.forEach(msg => msg.date = new Date(msg.date));
 	privsRef.value.unshift(data);
-	nbPrivNR.value.push(data.id);
+	if (data.messages[0].user != me)
+		nbPrivNR.value.push(data.id);
 
 	// console.log(`privsRef : `);
 	// printPrivs(privsRef.value);
 })
-socket.on('newPrivMsg', (data: {msg: Message, id: number}) => {
+socket.on('newPrivMsg', (data: {msg: MessageDto, id: number}) => {
 	console.log(`New message received : ${data.msg.msg}`)
 	// let privsTmp = privsRef.value!;
 	// let priv = privsTmp.find(priv => priv.id == data.id);
@@ -152,7 +155,7 @@ socket.on('newPrivMsg', (data: {msg: Message, id: number}) => {
 	// priv?.messages.push(data.msg);
 	// // ==============
 	let i = privsRef.value.findIndex(priv => priv.id == data.id);
-	privsRef.value[i].messages.push(new Message(data.msg.user, data.msg.msg, new Date(data.msg.date)));
+	privsRef.value[i].messages.push(new MessageDto(data.msg.user, data.msg.msg, new Date(data.msg.date)));
 	privsRef.value[i].readed = false;
 	if (data.msg.user != me && !nbPrivNR.value.includes(privsRef.value[i].id))
 		nbPrivNR.value.push(privsRef.value[i].id);
@@ -172,7 +175,7 @@ function putPrivFirst(index: number) {
 		return [privsRef.value[0], privsRef.value[1]] = [privsRef.value[1], privsRef.value[0]];
 	console.log(`index = ${index}`);
 		let privTmp1 = privsRef.value[0];
-	let privTmp2 : PrivConv;
+	let privTmp2 : PrivConvDto;
 	privsRef.value[0] = privsRef.value[index];
 	for(let i = 1; i <= index && i < privsRef.value.length; i++) {
 		privTmp2 = privsRef.value[i];
@@ -181,14 +184,37 @@ function putPrivFirst(index: number) {
 	}
 }
 
-function printPriv(priv: PrivConv) {
+function printPriv(priv: PrivConvDto) {
 	priv.messages.forEach((msg) => console.log(`${msg.msg}`));
 }
 
-function printPrivs(privs: PrivConv[]) {
-	privs.forEach((priv : PrivConv) => {
+function printPrivs(privs: PrivConvDto[]) {
+	privs.forEach((priv : PrivConvDto) => {
 		console.log(`user = ${priv.user.login}`);
 		printPriv(priv);
+	});
+}
+
+//	========== GET CHANNELS
+
+// let test = new ChannelDto("first Channel", [new BasicUser(me)]);
+
+// console.log(`Before push`);
+// printChans(chansRef.value);
+// chansRef.value.push(test);
+// console.log(`After push`);
+// printChans(chansRef.value);
+
+
+
+function printChan(chan: ChannelDto) {
+	chan.messages.forEach((msg) => console.log(`${msg.msg}`));
+}
+
+function printChans(chans: ChannelDto[]) {
+	chans.forEach((chan : ChannelDto) => {
+		console.log(`channelName = ${chan.name}`);
+		printChan(chan);
 	});
 }
 

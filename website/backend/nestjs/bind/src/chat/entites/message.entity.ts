@@ -2,6 +2,7 @@ import { Column, Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 't
 import TimestampEntites from '../../utils/timestamp.enties';
 import { UserEntity } from '../../users/user.entity';
 import { PrivateEntity } from './private.entity';
+import { ChannelEntity } from './channel.entity';
 
 
 @Entity("message")
@@ -16,12 +17,18 @@ export class MessageEntity extends TimestampEntites{
 	@JoinColumn()
 	user: UserEntity;
 	
-	@ManyToOne( type => PrivateEntity, (privateEntity) => privateEntity.messages, {
-		// cascade: true,
-		// onUpdate: 'CASCADE',
+	@ManyToOne( type => PrivateEntity, (priv) => priv.messages, {
 		onDelete: 'CASCADE',
+		nullable: true,
 	})
 	@JoinColumn()
-	convers: PrivateEntity;
+	priv: PrivateEntity;
+
+	@ManyToOne( type => ChannelEntity, (chan) => chan.messages, {
+		onDelete: 'CASCADE',
+		nullable: true,
+	})
+	@JoinColumn()
+	chan: ChannelEntity;
 }
 

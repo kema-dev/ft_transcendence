@@ -1,6 +1,4 @@
-import User from "./User";
-
-export default class Message {
+export class MessageDto {
     user: string;
     msg: string;
     date: Date;

@@ -32,7 +32,7 @@ const props = defineProps({
   },
   message: {
     type: String,
-    required: true,
+    required: false,
   },
   date: {
     type: Date,
@@ -40,11 +40,11 @@ const props = defineProps({
   },
   lastMsgUser: {
     type: String,
-    required: true,
+    required: false,
   },
   read: {
     type: Boolean,
-    required: true,
+    required: false,
   },
 
   avatar: String,

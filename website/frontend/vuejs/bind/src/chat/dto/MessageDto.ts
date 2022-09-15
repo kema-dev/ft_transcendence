@@ -1,4 +1,4 @@
-export default class MessageDto {
+export class MessageDto {
     user: string;
     msg: string;
     date: Date;

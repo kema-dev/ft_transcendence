@@ -1,24 +1,24 @@
 <template>
 	<!-- <div v-if="initReqDone" id="private_view" class="center column"> -->
 	<div v-if="privDone" id="private_view" class="center column">
-		<div class="option_private center raw">
+		<div class="toBarCont center raw stack">
 			<!-- <SearchItem @searchInput="searchChange" :key="searchKey" /> -->
 			<SearchItem v-model:search="search"/>
-			<div class="buttons_cont space-around raw">
-				<button @click="createNewMsg()" class="button_cont center column">
+			<div class="option_buttons space-around raw stack">
+				<button @click="createNewMsg()" class="button_cont center">
 					<span v-if="!newMsg" class="infoButtonText">New message</span>
 					<img
 						v-if="!newMsg"
 						src="~@/assets/new_msg.svg"
 						alt="New message"
-						class="new_msg_img"
+						class="button_img"
 					/>
 					<span v-if="newMsg" class="infoButtonText">Back</span>
 					<img
 						v-if="newMsg"
 						src="~@/assets/undo_logo.svg"
 						alt="New message"
-						class="new_msg_img"
+						class="button_img"
 					/>
 				</button>
 			</div>
@@ -51,7 +51,7 @@
 				>
 					<BasicProfil  :avatar="data.user.avatar" :login="data.user.login"/>
 				</router-link>
-			</div> -->
+			</div>
 			<div
 				v-if="userServReqDone && search.length > 0 && serverUsers?.length"
 				class="otherPeople left column"
@@ -84,10 +84,10 @@ import { inject, onMounted, ref, Ref, nextTick, onBeforeUnmount, watch, onUpdate
 import ConversationTab from "@/chat/ConversationTab.vue";
 import BasicProfil from "@/components/BasicProfilItem.vue";
 import SearchItem from "@/components/SearchItem.vue";
-import { BasicUser } from "@/chat/objects/BasicUser"
+import { BasicUserDto } from "@/chat/dto/BasicUserDto"
 import { Socket } from "socket.io-client";
 import HTTP from "../components/axios";
-import { PrivConv } from "@/chat/objects/PrivConv";
+import { PrivConvDto } from "@/chat/dto/PrivConvDto";
 
 
 // INJECTS
@@ -95,13 +95,13 @@ let colors = inject("colors");
 let me: string = inject("me")!;
 let mySocket: Socket = inject("socket")!;
 let apiPath: string = inject("apiPath")!;
-let privs : Ref<PrivConv[]> = inject("privs")!;
+let privs : Ref<PrivConvDto[]> = inject("privs")!;
 let nbPrivNR : { n: Ref<number[]>, reset: () => void} = inject("nbPrivNR")!;
 let privsFiltred = ref(privs.value);
 const privDone: Ref<boolean> = inject("privDone")!;
 
 // let knownPeople = ref<BasicUser[]>();
-let serverUsers = ref<BasicUser[]>();
+let serverUsers = ref<BasicUserDto[]>();
 const search = ref("");
 const newMsg = ref(false);
 const searchKey = ref(0);
@@ -134,32 +134,74 @@ watch(search, () => {
 	// }
 	if (newMsg.value) {
 		if (search.value != "") {
-			HTTP.get(apiPath + "chat/getUsersByLoginFiltred/" + me + "/" + search.value)
+			getServerUsers();
+			// HTTP.get(apiPath + "chat/getServerUsersFiltred/" + me + "/" + search.value)
+			// .then(res => {
+			// 	let usersTmp : BasicUser[] = [];
+			// 	res.data.forEach((user : BasicUser) => {
+			// 		usersTmp.push(new BasicUser(user.login));
+			// 	});
+			// 	serverUsers.value = usersTmp;
+
+			// 	serverUsers.value = serverUsers.value.filter((user, i) => {
+			// 		let isAlreadyKnow = true;
+			// 		for (let priv of privsFiltred.value) {
+			// 			if (priv.user.login == user.login){
+			// 				isAlreadyKnow = false;
+			// 				break;
+			// 			}
+			// 		}
+			// 		return isAlreadyKnow;
+			// 		// ========== AJOUTER FRIENDS =========== 
+			// 	})
+
+			// 	userServReqDone.value = true;	
+			// })
+			// .catch(e => console.log(e));
+		}
+	}
+})
+
+function getServerUsers() {
+	HTTP.get(apiPath + "chat/getServerUsersFiltred/" + me + "/" + search.value)
 			.then(res => {
-				let usersTmp : BasicUser[] = [];
-				res.data.forEach((user : BasicUser) => {
-					usersTmp.push(new BasicUser(user.login));
+				let usersTmp : BasicUserDto[] = [];
+				res.data.forEach((user : BasicUserDto) => {
+					usersTmp.push(new BasicUserDto(user.login));
 				});
 				serverUsers.value = usersTmp;
 
-				serverUsers.value = serverUsers.value.filter((user, i) => {
-					let isAlreadyKnow = true;
-					for (let priv of privsFiltred.value) {
-						if (priv.user.login == user.login){
-							isAlreadyKnow = false;
-							break;
-						}
-					}
-					return isAlreadyKnow;
-					// ========== AJOUTER FRIENDS =========== 
-				})
+				filterServerUsers();
+				// serverUsers.value = serverUsers.value.filter((user, i) => {
+				// 	let isAlreadyKnow = true;
+				// 	for (let priv of privsFiltred.value) {
+				// 		if (priv.user.login == user.login){
+				// 			isAlreadyKnow = false;
+				// 			break;
+				// 		}
+				// 	}
+				// 	return isAlreadyKnow;
+				// 	// ========== AJOUTER FRIENDS =========== 
+				// })
 
 				userServReqDone.value = true;	
 			})
 			.catch(e => console.log(e));
+}
+
+function filterServerUsers() {
+	serverUsers.value = serverUsers.value!.filter((user, i) => {
+		let isAlreadyKnow = true;
+		for (let priv of privsFiltred.value) {
+			if (priv.user.login == user.login){
+				isAlreadyKnow = false;
+				break;
+			}
 		}
-	}
-})
+		return isAlreadyKnow;
+		// ========== AJOUTER FRIENDS =========== 
+	})
+}
 
 // function knownPeople(): User[] {
 // 	let res: User[] = [];
@@ -205,7 +247,7 @@ onBeforeUnmount(() => {
 
 </script>
 
-<style>
+<style scoped>
 #private_view {
 	height: calc(100vh - 180px);
 	justify-content: flex-start;
@@ -213,40 +255,43 @@ onBeforeUnmount(() => {
 .no_results {
 	margin-top: 1rem;
 }
-.buttons_cont {
-	width: 20%;
+
+/* ============= BUTTONS TOPBAR ============= */
+.option_buttons {
+	width: 25%;
+}
+.button_img {
+	width: 30px;
+	height: 30px;
+	filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg) brightness(86%) contrast(83%);
 }
 .button_cont {
 	border-radius: 50%;
 	padding: 5px;
-	position: relative;
+	/* position: static; */
 }
 .button_cont:hover {
 	background-color: white;
 	box-shadow: 0px 0px 4px #aaa;
 }
-.new_msg_img {
-	height: 28px;
-	width: 28px;
-	/* border-radius: 50%; */
-	filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg)
-		brightness(86%) contrast(83%);
-}
+
 .infoButtonText {
-	opacity: 0;
+	visibility: hidden;
 	font-size: 0.8rem;
-	width: auto;
-	background-color: rgba(0, 0, 0, 0.6);
-	color: #fff;
-	text-align: center;
-	padding: 5px;
-	border-radius: 6px;
-	position: absolute;
-	z-index: 1;
-	bottom: 100%;
-	/* right: 50%; */
+  width: auto;
+  background-color: rgba(0,0,0,0.6);
+  color: #fff;
+  text-align: center;
+  padding: 5px 0;
+  border-radius: 6px;
+  position: absolute;
+  z-index: 1;
+  bottom: 110%;
+	right: 0;
+	/* transform: translate(50%); */
 }
 .button_cont:hover .infoButtonText {
+	visibility: visible;
 	opacity: 0;
 	animation: displayButtonInfo 0.3s;
 	animation-delay: 0.3s;
@@ -260,6 +305,8 @@ onBeforeUnmount(() => {
 		opacity: 1;
 	}
 }
+
+
 
 .newMsgResults {
 	width: 90%;
