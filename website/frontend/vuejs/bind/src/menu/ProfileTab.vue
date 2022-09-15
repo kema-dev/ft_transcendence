@@ -7,7 +7,12 @@
 		<h2 class="info">{{ user.rank }}</h2>
 		<h1 id="name">{{ me?.login }}</h1>
 		<h2 class="info">level {{ me?.level }}</h2>
-		<h3 id="ratio">{{ user.ratiov }} | {{ user.ratiod }}</h3>
+		<!-- <h3 id="ratio">{{ user.ratiov }} | {{ user.ratiod }}</h3> -->
+		<!-- <h2 style="margin-top: 10px">ratio</h2>
+		<div class="stack ratio-stack" style="margin-bottom: 50px">
+			<div class="background-ratio"></div>
+			<div class="ratio"></div>
+		</div> -->
 		<h2>Match history</h2>
 		<div v-for="match in user.history" :key="match.adversary">
 			<!-- <ScoreItem :player="user.name" :adversary="match.adversary" :points1="match.points1" :points2="match.points2"/> -->
@@ -23,6 +28,8 @@ import MatchItem from "@/components/MatchItem.vue";
 let define = inject("colors");
 let me = inject("user")!;
 let socket = inject("socket")!;
+
+var ProgressBar = require("progressbar.js");
 
 let user = {
 	name: "zeus",
@@ -57,6 +64,7 @@ onMounted(() => {
 		const reader = new FileReader();
 		reader.addEventListener("load", () => {
 			let image = reader.result;
+			console.log(image);
 			document.querySelector("#img").src = `${image}`;
 			socket.emit("changeAvatar", {
 				login: me.value.login,
@@ -65,10 +73,24 @@ onMounted(() => {
 		});
 		reader.readAsDataURL(input.files[0]);
 	});
+	var line = new ProgressBar.Circle("#avatar", {
+		color: define.color2,
+		strokeWidth: 4,
+		trailWidth: 0,
+		easing: "easeInOut",
+		duration: 1400,
+
+	});
+	line.animate(0.5);
 });
 function change_avatar() {
 	let input = document.querySelector("#none");
 	input.click();
+}
+function avatar() {
+	if (me.value) {
+		return window.btoa(me.value.avatar);
+	}
 }
 </script>
 
@@ -106,5 +128,23 @@ function change_avatar() {
 }
 #ratio {
 	margin-bottom: 60px;
+}
+.ratio-stack {
+	width: 60%;
+}
+.background-ratio {
+	position: absolute;
+	width: 100%;
+	height: 20px;
+	background-color: v-bind("define.color0");
+	border: 1px solid v-bind("define.color2");
+	border-radius: 10px;
+}
+.ratio {
+	position: absolute;
+	width: v-bind("(1 - me?.ratio) * 100 + '%'");
+	height: 20px;
+	background-color: v-bind("define.color2");
+	border-radius: 10px 0px 0px 10px;
 }
 </style>

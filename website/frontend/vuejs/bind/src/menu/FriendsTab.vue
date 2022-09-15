@@ -40,10 +40,16 @@
 										<h3 class="text">level {{ friend.level }}</h3>
 									</div>
 									<div class="center row">
-										<button class="request-button" @click="acceptFriend(friend.login)">
+										<button
+											class="request-button"
+											@click="acceptFriend(friend.login)"
+										>
 											Accept
 										</button>
-										<button class="request-button" @click="declineFriend(friend.login)">
+										<button
+											class="request-button"
+											@click="declineFriend(friend.login)"
+										>
 											Decline
 										</button>
 									</div>
@@ -53,7 +59,9 @@
 					</div>
 				</div>
 				<!-- <div class="center column"> -->
-				<h2 v-if="me?.friends.length == 0" class="group_name">No friends</h2>
+				<h2 v-if="me?.friends.length == 0" class="group_name">
+					No friends
+				</h2>
 				<h2 v-else class="group_name">Friends</h2>
 				<div
 					v-for="friend of me?.friends"
@@ -79,11 +87,19 @@
 									<div class="right column">
 										<button
 											class="action"
+											style="margin-right: 10px"
 											@click="remove_friend(friend.login)"
 										>
 											X
 										</button>
-										<h3 class="status">
+										<h3
+											class="status"
+											:style="
+												'background-color: ' +
+												statusColor[friend.status] +
+												';'
+											"
+										>
 											{{ friend.status }}
 										</h3>
 									</div>
@@ -93,7 +109,11 @@
 									<h2 class="score">{{ friend.rank }}</h2>
 									<!-- <h2 class="score">{{friend.ratiov}} | {{friend.ratiod}}</h2> -->
 									<!-- </div> -->
-									<div class="right row">
+									<div class="right row" style="margin-right: 7px">
+										<button
+											v-if="friend.status == 'in game'" class="action">
+											watch game
+										</button>
 										<button class="action">invit</button>
 										<button class="action">chat</button>
 									</div>
@@ -161,6 +181,11 @@ let define = inject("colors");
 let me = inject("user")!;
 let socket: Socket = inject("socket")!;
 let users = ref([]);
+let statusColor = {
+	online: "green",
+	offline: "red",
+	"in game": "orange",
+};
 const search = ref("");
 function add_friend(name: string) {
 	socket.emit("addFriend", { sender: me.value.login, receiver: name });
@@ -233,6 +258,9 @@ onUnmounted(() => {
 }
 .status {
 	margin: 0 9px;
+	color: white;
+	padding: 0 5px;
+	border-radius: 5px;
 }
 .score {
 	font-weight: 500;

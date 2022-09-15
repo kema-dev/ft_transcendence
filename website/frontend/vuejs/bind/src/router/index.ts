@@ -100,7 +100,6 @@ const routes: Array<RouteRecordRaw> = [
 			},
 			{
 				name: 'player',
-				// path: '/home/player',
 				path: '/home/player/:name',
 				components: { menu: Player },
 			},

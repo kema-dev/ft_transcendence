@@ -61,7 +61,7 @@ let userRef = ref();
 socket.on("userUpdate", (data: any) => {
 	if (data && data.login == me) {
 		userRef.value = data;
-		console.log('userr'+userRef.value.requestFriend.length);
+		console.log(userRef.value);
 		// provide("user", userRef);
 	}
 });

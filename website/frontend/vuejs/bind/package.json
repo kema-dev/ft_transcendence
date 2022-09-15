@@ -19,6 +19,7 @@
     "axios": "^0.27.2",
     "core-js": "^3.24.1",
     "konva": "^8.3.2",
+    "progressbar.js": "^1.1.0",
     "qrcode.vue": "^3.3.3",
     "scss-tokenizer": "^0.4.3",
     "socket.io-client": "^4.5.1",

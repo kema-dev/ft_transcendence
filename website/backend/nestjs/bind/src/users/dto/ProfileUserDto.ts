@@ -7,6 +7,7 @@ export class ProfileUserDto {
 		this.level = user.level;
 		this.avatar = user.avatar;
 		this.status = user.status;
+		this.ratio = 0.5;
 		this.requestFriend = [];
 		this.friends = [];
 		for (let i in user.friends) {
@@ -20,6 +21,7 @@ export class ProfileUserDto {
 	level: number;
 	avatar: string;
 	status: string;
+	ratio: number;
 	requestFriend: ResumUserDto[];
 	friends: ResumUserDto[];
 }

@@ -3,14 +3,17 @@ import { Column, Entity, PrimaryGeneratedColumn, OneToMany, ManyToMany, JoinTabl
 import { MessageEntity } from '../chat/entites/message.entity';
 import { PrivateEntity } from '../chat/entites/private.entity';
 import TimestampEntites from '../utils/timestamp.enties';
+import { avatars } from 'src/users/avatars';
 
 @Entity("user")
 export class UserEntity extends TimestampEntites {
 	constructor() {
 		super();
 		this.level = 0;
+		this.nbrGame = 0;
+		this.ratio = 0.5;
 		this.status = "offline";
-		// this.avatar = require('/public/avatars/1.jpg');
+		this.avatar = avatars[Math.floor(Math.random() * 5)];
 	}
 	@PrimaryGeneratedColumn()
 	public id?: number;
@@ -32,6 +35,12 @@ export class UserEntity extends TimestampEntites {
 
 	@Column({ nullable: true })
 	public status: string;
+
+	@Column({ nullable: true })
+	public nbrGame: number;
+
+	@Column({ nullable: true })
+	public ratio: number;
 
 	@ManyToMany(type => UserEntity, (user) => user.friends, {
 		onDelete: 'SET NULL'
