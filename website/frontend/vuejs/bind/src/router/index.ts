@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
 import Home from '@/views/HomeView.vue';
 import LogpageView from '@/views/LogpageView.vue';
@@ -15,10 +14,9 @@ import ChannelConv from '@/chat/ChannelConvItem.vue';
 import Settings from '@/menu/SettingsTab.vue';
 import Profile from '@/menu/ProfileTab.vue';
 import Player from '@/menu/PlayerTab.vue';
-import axios from 'axios';
+import API from '../components/axios';
 import { useCookies } from 'vue3-cookies';
 import { useToast } from 'vue-toastification';
-import API from '../components/axios';
 
 const data = require('../../.env');
 
@@ -122,11 +120,11 @@ const router = createRouter({
 
 // router.afterEach((to, from) => {
 // 	const toDepth = to.path.split('/').length;
-//   const fromDepth = from.path.split('/').length;
+// 	const fromDepth = from.path.split('/').length;
 // 	const prev = to.path.split('/').pop();
 // 	// console.log(prev);
-//   to.meta.transitionName = toDepth < fromDepth ? 'slide-right' : 'slide-left';
-// })
+// 	to.meta.transitionName = toDepth < fromDepth ? 'slide-right' : 'slide-left';
+// });
 
 router.beforeEach(async (to, from) => {
 	if (to.path === '/backend_down') {

@@ -64,6 +64,108 @@ onMounted(() => {
 	});
 });
 
+//	===================== CHAT =====================
+
+//	========== GET PRIVS
+let privsRef: Ref<PrivConvDto[]> = ref([]);
+let nbPrivNR: Ref<number[]> = ref([]);
+function resetNbPrivNR() {
+	nbPrivNR.value = [];
+}
+let privDone = ref(false);
+function markReaded(index: number, readed: boolean) {
+	privsRef.value[index].readed = readed;
+}
+getPrivsRequest();
+provide('privs', privsRef);
+// provide('nbPrivNR', {nbPrivMsg: nbPrivNR, editNbPrivMsg: editNbPrivNR});
+provide('nbPrivNR', { n: nbPrivNR, reset: resetNbPrivNR });
+
+provide('markReaded', markReaded);
+provide('privDone', privDone);
+
+function getPrivsRequest() {
+	// console.log(`avant getPrivsRequest()`);
+	HTTP.get(apiPath + 'chat/getPrivs/' + me)
+		.then((res) => {
+			// console.log(`privsConvDto : `);
+			// printPrivs(res.data);
+			if (!res.data) privsRef.value = [];
+			else {
+				// privs.value = res.data;
+				let privsTmp: PrivConvDto[] = [];
+				res.data.forEach((priv: PrivConvDto) => {
+					let msgsTmp: MessageDto[] = [];
+					priv.messages.forEach((msg, j) => {
+						msgsTmp.push(new MessageDto(msg.user, msg.msg, new Date(msg.date)));
+					});
+					privsTmp.push(
+						new PrivConvDto(
+							new BasicUserDto(priv.user.login),
+							msgsTmp,
+							priv.readed,
+							priv.id,
+						),
+					);
+					if (priv.readed == false && priv.messages.at(-1)?.user != me)
+						nbPrivNR.value.push(priv.id);
+				});
+				// privs.value = privsTmp;
+				// privs = privsTmp;
+				privsRef.value = privsTmp;
+			}
+
+			privDone.value = true;
+			// console.log(`getPrivsRequest Done`);
+
+			// printPrivs(privsRef.value);
+		})
+		.catch((e) => console.log(e));
+}
+
+//	========== CREATE SOCKET LISTENERS
+socket.on('newPrivConv', (data: PrivConvDto) => {
+	console.log(`New private created`);
+	// let privTmp = privsRef.value!;
+	// let msg = new Message(data.messages[0].user, data.messages[0].msg, new Date (data.messages[0].date));
+	// privTmp.push(new PrivConv(new BasicUser(data.user.login), [msg], data.readed, data.id));
+	// privsRef.value = privTmp;
+	// ==============
+	// privs.push(data);
+	// ==============
+	// let msg = new Message(data.messages[0].user, data.messages[0].msg, new Date (data.messages[0].date));
+	// privsRef.value.push(new PrivConv(new BasicUser(data.user.login), [msg], data.readed, data.id));
+	// ==============
+	let newPriv = data;
+	newPriv.user = new BasicUserDto(newPriv.user.login);
+	newPriv.messages.forEach((msg) => (msg.date = new Date(msg.date)));
+	privsRef.value.unshift(data);
+	if (data.messages[0].user != me) nbPrivNR.value.push(data.id);
+
+	// console.log(`privsRef : `);
+	// printPrivs(privsRef.value);
+});
+socket.on('newPrivMsg', (data: { msg: MessageDto; id: number }) => {
+	console.log(`New message received : ${data.msg.msg}`);
+	// let privsTmp = privsRef.value!;
+	// let priv = privsTmp.find(priv => priv.id == data.id);
+	// priv?.messages.push(new Message(data.msg.user, data.msg.msg, new Date(data.msg.date)));
+	// privsRef.value = privsTmp;
+	// ==============
+	// let priv = privs.find(priv => priv.id == data.id);
+	// priv?.messages.push(data.msg);
+	// // ==============
+	let i = privsRef.value.findIndex((priv) => priv.id == data.id);
+	privsRef.value[i].messages.push(
+		new MessageDto(data.msg.user, data.msg.msg, new Date(data.msg.date)),
+	);
+	privsRef.value[i].readed = false;
+	if (data.msg.user != me && !nbPrivNR.value.includes(privsRef.value[i].id))
+		nbPrivNR.value.push(privsRef.value[i].id);
+	// console.log(`nbr Priv Mesage Not Read = ${nbPrivNR.value}`)
+	if (i != 0) putPrivFirst(i);
+});
+
 // watch(privsRef, () => {
 // 	console.log(`privs changed in homeview`);
 // })

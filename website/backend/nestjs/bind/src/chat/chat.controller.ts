@@ -16,7 +16,7 @@ import { BasicUserDto } from './dto/BasicUserDto';
 export class ChatController {
 	constructor(private readonly chatService: ChatService) {}
 
-	@UseGuards(AuthGuard)
+	// @UseGuards(AuthGuard)
 	@Get('getPrivs/:login')
 	async getPrivs(@Param() params: { login: string }) {
 		console.log(`getPrivs for user ${params.login}`);
@@ -25,7 +25,7 @@ export class ChatController {
 		return await this.chatService.createPrivsDto(params.login, privs);
 	}
 
-	@UseGuards(AuthGuard)
+	// @UseGuards(AuthGuard)
 	@Get('getServerUsersFiltred/:login/:filter')
 	async getServerUsersFiltred(
 		@Param() params: { login: string; filter: string },
@@ -36,21 +36,21 @@ export class ChatController {
 		);
 	}
 
-	@UseGuards(AuthGuard)
+	// @UseGuards(AuthGuard)
 	@Post('message')
 	postMessage() {
 		console.log('Add a message from message list');
 		return 'Add Message';
 	}
 
-	@UseGuards(AuthGuard)
+	// @UseGuards(AuthGuard)
 	@Delete('message')
 	deleteMessage() {
 		console.log('Supress a message from message list');
 		return 'Delete Message';
 	}
 
-	@UseGuards(AuthGuard)
+	// @UseGuards(AuthGuard)
 	@Put('message')
 	putMessage() {
 		console.log('Modify a message from message list');
