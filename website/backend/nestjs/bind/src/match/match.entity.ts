@@ -22,4 +22,7 @@ export class MatchEntity {
 
 	@Column()
 	public open: boolean;
+
+	@Column()
+	public owner: string;
 }

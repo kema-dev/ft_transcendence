@@ -77,6 +77,7 @@ export class AppGateway
 			start: false,
 			lobby_name: payload.lobby_name,
 			open: true,
+			owner: payload.owner,
 		});
 		this.game = new Game(
 			match_db.nbrPlayer,
@@ -150,5 +151,20 @@ export class AppGateway
 		}
 		console.log(basicInfos);
 		client.emit('getUsersByLoginFiltred', basicInfos);
+	}
+
+	@SubscribeMessage('lobby_list')
+	async getLobbyList(@ConnectedSocket() client: Socket) {
+		const lobby_list = await this.matchService.get_lobby_list();
+		client.emit('lobby_list', lobby_list);
+	}
+
+	@SubscribeMessage('join_lobby')
+	async joinLobby(
+		@MessageBody() data: { username: string; lobby: string },
+		@ConnectedSocket() client: Socket,
+	) {
+		const lobby = await this.matchService.join_lobby(data.username, data.lobby);
+		client.emit('join_lobby', lobby);
 	}
 }

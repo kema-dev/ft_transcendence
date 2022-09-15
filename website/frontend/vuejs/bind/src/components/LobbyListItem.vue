@@ -2,20 +2,9 @@
 	<div class="wrap">
 		<nav>
 			<ul class="dropdown">
-				<li class="drop"><a href="#">LOBBIES</a>
+				<li class="drop"><a>LOBBIES</a>
 					<ul class="sub_menu">
-						<li><a href="#">Lorem</a></li>
-						<li><a href="#">Ipsum</a></li>
-						<li><a href="#">Dolor</a></li>
-						<li><a href="#">Lipsum</a></li>
-						<li><a href="#">Consectetur </a></li>
-						<li><a href="#">Duis</a></li>
-						<li><a href="#">Sed</a></li>
-						<li><a href="#">Natus</a></li>
-						<li><a href="#">Excepteur</a></li>
-						<li><a href="#">Voluptas</a></li>
-						<li><a href="#">Voluptate</a></li>
-						<li><a href="#">Malorum</a></li>
+						<li v-for="lobby in lobbies" v-bind:key="lobby.id" v-on:click="join(lobby.id)"><a>{{ lobby.id }}</a></li>
 					</ul>
 				</li>
 			</ul>
@@ -34,17 +23,12 @@ let define = inject("colors");
 let socket: Socket = inject("socket")!;
 const $cookies = inject<VueCookies>('$cookies'); 
 
-const test_lobby = {
-	name: "test",
-	players: ["test1", "test2", "test3"],
-}
-
-let lobbies = ref([test_lobby]);
+let lobbies = ref([]);
 
 onMounted(() => {
-	socket.emit("lobby_list", {username: $cookies.get("login")});
+	socket.emit("lobby_list");
 	socket.on("lobby_list", (data: any) => {
-		lobbies.value = data.lobbies;
+		lobbies.value = data;
 	});
 });
 
@@ -97,7 +81,7 @@ function join(name: string) {
 	padding: 0;
 	position: absolute;
 	display: none;
-	background: #16638d81;
+	background: #16638dd7;
 	border-radius: 0 0 5px 5px;
 	overflow: scroll;
 	height: calc(100vh - 65px);

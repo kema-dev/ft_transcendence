@@ -23,6 +23,7 @@ let props = defineProps<{
   players: Array<string>;
   lobby_name: string;
   start: boolean;
+  owner: string;
 }>();
 
 // let balls: Array<Ball> = [];
@@ -42,6 +43,7 @@ async function update() {
     nbrPlayer: props.nbrPlayer,
     players: props.players,
     lobby_name: props.lobby_name,
+    owner: props.owner,
   });
   socket.on(props.lobby_name, (game: string) => {
     // console.log(game)
