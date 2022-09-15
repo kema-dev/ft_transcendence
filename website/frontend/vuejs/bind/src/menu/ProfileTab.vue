@@ -2,7 +2,7 @@
 	<div class="column center" id="test">
 		<div class="stack avatar-stack">
 		<div id="bar"></div>
-		<div v-on:click="change_avatar" id="avatar">
+		<div v-on:click="change_avatar()" id="avatar">
 			<img :src="me?.avatar" id="img" />
 		</div></div>
 		<input id="none" type="file" />
@@ -75,16 +75,12 @@ onMounted(() => {
 		easing: "easeInOut",
 		duration: 1400,
 	});
-	bar.animate(1 - me?.value?.ratio);
+	if (me.value && me.value.ratio)
+		bar.animate(1 - me.value.ratio);
 });
 function change_avatar() {
 	let input = document.querySelector("#none");
 	input.click();
-}
-function avatar() {
-	if (me.value) {
-		return window.btoa(me.value.avatar);
-	}
 }
 </script>
 
