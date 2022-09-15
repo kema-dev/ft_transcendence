@@ -46,7 +46,7 @@
 					:key="i"
 					:to="{ name: 'PrivConv', params: { conv_name: data.login } }"
 				>
-					<BasicProfil :avatar="data.avatar" :login="data.login"/>
+					<BasicProfil :avatar="data.avatar" :login="data.login" />
 				</router-link>
 			</div>
 			<div
@@ -59,74 +59,69 @@
 					:key="i"
 					:to="{ name: 'PrivConv', params: { conv_name: data.login } }"
 				>
-					<BasicProfil :avatar="data.avatar" :login="data.login"/>
+					<BasicProfil :avatar="data.avatar" :login="data.login" />
 				</router-link>
 			</div>
-			<h2 v-if="knownPeople().length == 0 && !serverUsers">
-				No results
-			</h2>
+			<h2 v-if="knownPeople().length == 0 && !serverUsers">No results</h2>
 		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
 /* eslint @typescript-eslint/no-var-requires: "off" */
-import { inject, onMounted, defineEmits, ref, nextTick } from "vue";
-import ConversationTab from "@/chat/ConversationTab.vue";
-import BasicProfil from "@/components/BasicProfilItem.vue";
-import SearchItem from "@/components/SearchItem.vue";
-import Private from "@/chat/Private";
-import User from "@/chat/User";
-import Message from "@/chat/Message";
-import BasicUser from "@/chat/dto/BasicUser"
-import { Socket } from "socket.io-client";
-let define = inject("colors");
-let me: User = inject("me")!;
+import { inject, onMounted, defineEmits, ref, nextTick } from 'vue';
+import ConversationTab from '@/chat/ConversationTab.vue';
+import BasicProfil from '@/components/BasicProfilItem.vue';
+import SearchItem from '@/components/SearchItem.vue';
+import Private from '@/chat/Private';
+import User from '@/chat/User';
+import Message from '@/chat/Message';
+import BasicUser from '@/chat/dto/BasicUser';
+import { Socket } from 'socket.io-client';
+let define = inject('colors');
+let me: User = inject('me')!;
 
-let mySocket: Socket = inject("socket")!;
+let mySocket: Socket = inject('socket')!;
 let serverUsers = ref<BasicUser[]>();
-mySocket.on("getUsersByLoginFiltred", (data : [{login: string}]) => {
-	let tmp : BasicUser[] = [];
-	for(let i = 0; i < data.length; i++) {
+mySocket.on('getUsersByLoginFiltred', (data: [{ login: string }]) => {
+	let tmp: BasicUser[] = [];
+	for (let i = 0; i < data.length; i++) {
 		tmp.push(new BasicUser(data[i].login));
 	}
 	serverUsers.value = tmp;
-	console.log("serverUsers = ", serverUsers.value);
+	console.log('serverUsers = ', serverUsers.value);
 });
 
-const search = ref("");
+const search = ref('');
 const newMsg = ref(false);
 const searchKey = ref(0);
 // const searchCompRef = ref<InstanceType<typeof SearchItem>>();
 
-
-
-
-let user1 = new User("Totolosa", require("@/assets/avatars/(1).jpg"));
-let user2 = new User("Ocean", require("@/assets/avatars/(2).jpg"));
-let user3 = new User("Patrick la trick", require("@/assets/avatars/(3).jpg"));
-let user4 = new User("Jeanjean", require("@/assets/avatars/(4).jpg"));
-let user5 = new User("Totofake", require("@/assets/avatars/(5).jpg"));
+let user1 = new User('Totolosa', require('@/assets/avatars/(1).jpg'));
+let user2 = new User('Ocean', require('@/assets/avatars/(2).jpg'));
+let user3 = new User('Patrick la trick', require('@/assets/avatars/(3).jpg'));
+let user4 = new User('Jeanjean', require('@/assets/avatars/(4).jpg'));
+let user5 = new User('Totofake', require('@/assets/avatars/(5).jpg'));
 // let user6 = new User("Patrick la trick", require("@/assets/avatars/(6).jpg"));
 
 let msg1 = new Message(
 	user1,
 	"Salut frere rwf;jnavionra'mrv'aomfgifsivbdfvndfnvjsdglbjgb;fgklb;s;bg",
-	new Date("July 17, 2022 03:24:00")
+	new Date('July 17, 2022 03:24:00'),
 );
-let msg2 = new Message(user2, "Salut poto", new Date("July 22, 2022 03:25:12"));
-let msg3 = new Message(user3, "Game?", new Date("July 18, 2022 12:45:45"));
+let msg2 = new Message(user2, 'Salut poto', new Date('July 22, 2022 03:25:12'));
+let msg3 = new Message(user3, 'Game?', new Date('July 18, 2022 12:45:45'));
 let msg4 = new Message(
 	user1,
 	"Non je dois finir de faire le front, et wallah c'est chaud",
-	new Date("July 18, 2022 12:47:55")
+	new Date('July 18, 2022 12:47:55'),
 );
 let msg5 = new Message(
 	user1,
-	"dsaibciauwncopneejvnjnfcoamsdomvcafosnvonsvonoans",
-	new Date()
+	'dsaibciauwncopneejvnjnfcoamsdomvcafosnvonsvonoans',
+	new Date(),
 );
-let msg6 = new Message(user2, "Mais tu sais pas parler en fait", new Date());
+let msg6 = new Message(user2, 'Mais tu sais pas parler en fait', new Date());
 
 let conv1 = new Private(user2, [msg1, msg2]);
 let conv2 = new Private(user3, [msg3, msg4]);
@@ -161,19 +156,19 @@ conversations.sort(function (x, y) {
 
 function searchChange(value: string) {
 	search.value = value;
-	convsFiltred.value = conversations.filter(function(value) {
-		return value.user.login.toUpperCase().startsWith(search.value.toUpperCase());
+	convsFiltred.value = conversations.filter(function (value) {
+		return value.user.login
+			.toUpperCase()
+			.startsWith(search.value.toUpperCase());
 	});
 	if (newMsg.value) {
-		friendsFiltred.value = me.friends.filter(function(value) {
+		friendsFiltred.value = me.friends.filter(function (value) {
 			return value.login.toUpperCase().startsWith(search.value.toUpperCase());
 		});
 	}
-	if (search.value != "") {
+	if (search.value != '') {
 		mySocket.emit('getUsersByLoginFiltred', search.value);
 	}
-
-
 }
 
 function knownPeople(): User[] {
@@ -191,7 +186,7 @@ function knownPeople(): User[] {
 
 function otherPeople(): User[] {
 	let others = [user4, user5];
-	return others.filter(function(value) {
+	return others.filter(function (value) {
 		return value.login.toUpperCase().startsWith(search.value.toUpperCase());
 	});
 }
@@ -200,7 +195,7 @@ function createNewMsg() {
 	newMsg.value = !newMsg.value;
 	searchKey.value += 1;
 	nextTick(() => {
-		document.getElementById("search")?.focus();
+		document.getElementById('search')?.focus();
 	});
 }
 </script>

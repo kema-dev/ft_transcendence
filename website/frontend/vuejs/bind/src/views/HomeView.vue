@@ -4,7 +4,7 @@
 		<!-- <router-link to="/">Log out</router-link> -->
 		<div id="game" class="center">
 			<!-- <div id="field"> -->
-				<MatchmakingItem />
+			<MatchmakingItem />
 			<!-- <GameItem /> -->
 			<!-- </div> -->
 		</div>
@@ -13,38 +13,35 @@
 </template>
 
 <script setup lang="ts">
-import NavbarItem from "@/components/NavbarItem.vue";
-import NavmenuItem from "@/components/NavmenuItem.vue";
-import { onMounted, provide } from "vue";
-import { inject, ref } from "vue";
+import NavbarItem from '@/components/NavbarItem.vue';
+import NavmenuItem from '@/components/NavmenuItem.vue';
+import { onMounted, provide } from 'vue';
+import { inject, ref } from 'vue';
 import MatchmakingItem from '@/components/MatchmakingItem.vue';
-import io from "socket.io-client"
-import { FQDN } from "../../.env.json";
+import io from 'socket.io-client';
+import { FQDN } from '../../.env.json';
 
-let define = inject("colors");
-let reload = ref(0)
+let define = inject('colors');
+let reload = ref(0);
 onMounted(() => {
-	window.addEventListener("resize", () => {
+	window.addEventListener('resize', () => {
 		reload.value++;
-	})
+	});
 });
 
 let socket = io(FQDN + ':3000');
-provide("socket", socket);
+provide('socket', socket);
 
 socket.on('connect', () => {
-	console.log("client-side connected");
-})
+	console.log('client-side connected');
+});
 
-socket.on('message', function(id, data) {
-	console.log(`Server message : ${id}: ${data}`, );
-})
+socket.on('message', function (id, data) {
+	console.log(`Server message : ${id}: ${data}`);
+});
 socket.on('getMsgs', (data) => {
 	console.log(data);
-})
-
-
-
+});
 </script>
 
 <style>

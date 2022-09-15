@@ -1,22 +1,21 @@
 <template>
 	<div id="blockAdvert_view" class="center">
 		<div class="blockAdvert center column">
-			<img :src="img" alt="Warning" class="warning_img">
-			<span class="blockAdvertText">{{msg}}</span>
+			<img :src="img" alt="Warning" class="warning_img" />
+			<span class="blockAdvertText">{{ msg }}</span>
 			<slot name="buttons"></slot>
 		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { anyTypeAnnotation } from "@babel/types";
-import { inject, defineProps } from "vue";
-let define = inject("colors");
+import { anyTypeAnnotation } from '@babel/types';
+import { inject, defineProps } from 'vue';
+let define = inject('colors');
 let props = defineProps({
 	img: String,
 	msg: String,
-})
-
+});
 </script>
 
 <style>
@@ -31,7 +30,7 @@ let props = defineProps({
 	z-index: 2;
 }
 .blockAdvert {
-	width : 80%;
+	width: 80%;
 	height: auto;
 	padding: 15px;
 	background-color: #fff;
@@ -50,7 +49,7 @@ let props = defineProps({
 	padding: 5px;
 	margin: 0 5px;
 	color: #fff;
-	background-color: v-bind("define.color2");
+	background-color: v-bind('define.color2');
 	border-radius: 10px;
 	z-index: 3;
 }

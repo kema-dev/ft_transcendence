@@ -19,21 +19,21 @@
 
 <script setup lang="ts">
 /* eslint @typescript-eslint/no-var-requires: "off" */
-import { inject, defineProps, onMounted, ref } from "vue";
+import { inject, defineProps, onMounted, ref } from 'vue';
 // import Conversation from '@/chat/Conversation';
-import User from "@/chat/User";
-import Message from "@/chat/Message";
+import User from '@/chat/User';
+import Message from '@/chat/Message';
 
-let colors = inject("colors");
-let me: User = inject("me")!;
+let colors = inject('colors');
+let me: User = inject('me')!;
 const props = defineProps({
 	message: Message,
 });
 
 function getDateMsg(): string {
 	let ret =
-		props.message!.date.getHours() + ":" + props.message!.date.getMinutes();
-	ret += "\n" + props.message!.date.toLocaleDateString("fr");
+		props.message!.date.getHours() + ':' + props.message!.date.getMinutes();
+	ret += '\n' + props.message!.date.toLocaleDateString('fr');
 	return ret;
 }
 </script>
@@ -53,7 +53,7 @@ function getDateMsg(): string {
 	padding: 8px;
 	border-radius: 10px;
 	margin: 10px;
-	background-color: v-bind("colors.color2");
+	background-color: v-bind('colors.color2');
 	white-space: pre-line;
 	overflow-wrap: break-word;
 }

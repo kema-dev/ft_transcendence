@@ -25,8 +25,8 @@ export class GameDto {
 	clone(): GameDto {
 		let rs = new GameDto(this.nbrPlayer, this.nbrBall);
 		rs.start = this.start;
-		rs.balls = this.balls.map(x => Object.assign({}, x));
-		rs.walls = this.walls.map(x => Object.assign({}, x));
+		rs.balls = this.balls.map((x) => Object.assign({}, x));
+		rs.walls = this.walls.map((x) => Object.assign({}, x));
 		return rs;
 	}
 }

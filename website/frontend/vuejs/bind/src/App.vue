@@ -6,23 +6,22 @@
 
 <script setup lang="ts">
 /* eslint @typescript-eslint/no-var-requires: "off" */
-import { onMounted, provide, ref } from "vue";
-import User from "@/chat/User";
+import { onMounted, provide, ref } from 'vue';
+import User from '@/chat/User';
 import Socket from '@/utils/Socket';
-import { FQDN } from "../.env.json";
+import { FQDN } from '../.env.json';
 
-let me = new User("tdayde", require("@/assets/avatars/(1).jpg"));
-me.friends.push(new User("Myfriend", require("@/assets/avatars/(6).jpg")));
+let me = new User('tdayde', require('@/assets/avatars/(1).jpg'));
+me.friends.push(new User('Myfriend', require('@/assets/avatars/(6).jpg')));
 // provide('socket', new Socket(FQDN + ':3000'))
-provide("me", me);
-provide("playing", false);
-provide("colors", {
-	color0: "#fff",
-	color1: "#000",
-	color2: "#16638D",
-	color3: "#E5F4FB",
+provide('me', me);
+provide('playing', false);
+provide('colors', {
+	color0: '#fff',
+	color1: '#000',
+	color2: '#16638D',
+	color3: '#E5F4FB',
 });
-
 </script>
 
 <style>
@@ -51,21 +50,21 @@ div {
 	align-items: center;
 }
 h1 {
-	font-family: "Orbitron", sans-serif;
+	font-family: 'Orbitron', sans-serif;
 	font-size: 2rem;
 }
 h2 {
-	font-family: "Orbitron", sans-serif;
+	font-family: 'Orbitron', sans-serif;
 	font-size: 1rem;
 }
 h3 {
-	font-family: "Orbitron", sans-serif;
+	font-family: 'Orbitron', sans-serif;
 	font-size: 0.8rem;
 }
 button {
 	cursor: pointer;
 	background: none;
-	font-family: "Orbitron", sans-serif;
+	font-family: 'Orbitron', sans-serif;
 	font-size: 1rem;
 }
 a {

@@ -11,56 +11,56 @@
 		<h2>Match history</h2>
 		<div v-for="match in user.history" :key="match.adversary">
 			<!-- <ScoreItem :player="user.name" :adversary="match.adversary" :points1="match.points1" :points2="match.points2"/> -->
-			<MatchItem index=""/>
+			<MatchItem index="" />
 		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, inject } from "vue";
-import ScoreItem from "../components/ScoreItem.vue";
+import { onMounted, inject } from 'vue';
+import ScoreItem from '../components/ScoreItem.vue';
 import MatchItem from '@/components/MatchItem.vue';
-let define = inject('colors')
+let define = inject('colors');
 let user = {
-	name: "zeus",
-	level: "1000",
-	avatar: require("@/assets/avatars/(2).jpg"),
-	friends: ["Jane", "John", "Jacksdfgtertwdsfadfsafdertert"],
-	status: "offline",
-	rank: "1st",
-	ratiov: "10",
-	ratiod: "5",
+	name: 'zeus',
+	level: '1000',
+	avatar: require('@/assets/avatars/(2).jpg'),
+	friends: ['Jane', 'John', 'Jacksdfgtertwdsfadfsafdertert'],
+	status: 'offline',
+	rank: '1st',
+	ratiov: '10',
+	ratiod: '5',
 	history: [
 		{
-			adversary: "John",
+			adversary: 'John',
 			points1: 10,
 			points2: 5,
 		},
 		{
-			adversary: "Jacksdfgtertwdsfadfsafdertert",
+			adversary: 'Jacksdfgtertwdsfadfsafdertert',
 			points1: 7,
 			points2: 5,
 		},
 		{
-			adversary: "John",
+			adversary: 'John',
 			points1: 3,
 			points2: 5,
 		},
 	],
 };
 onMounted(() => {
-	let input = document.querySelector("#none");
-	input?.addEventListener("change", () => {
+	let input = document.querySelector('#none');
+	input?.addEventListener('change', () => {
 		const reader = new FileReader();
-		reader.addEventListener("load", () => {
+		reader.addEventListener('load', () => {
 			const uploaded_image = reader.result;
-			document.querySelector("#img").src = `${uploaded_image}`;
+			document.querySelector('#img').src = `${uploaded_image}`;
 		});
 		reader.readAsDataURL(input.files[0]);
 	});
 });
 function change_avatar() {
-	let input = document.querySelector("#none");
+	let input = document.querySelector('#none');
 	input.click();
 }
 </script>

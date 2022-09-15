@@ -10,32 +10,31 @@
 </template>
 
 <script setup lang="ts">
-import API from "../components/axios";
-import { useToast } from "vue-toastification";
-import { onMounted, ref } from "vue";
-import { useRouter } from "vue-router";
-import { FQDN } from "../../.env.json";
+import API from '../components/axios';
+import { useToast } from 'vue-toastification';
+import { onMounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { FQDN } from '../../.env.json';
 
 const router = useRouter();
 
-let apiPath = FQDN + ":3000/api/v1/";
+let apiPath = FQDN + ':3000/api/v1/';
 
 let BACKEND_DOWN_MESSAGE =
-	"🖱️ Backend is down, please authorize our self-signed certificate manually by clicking this text";
+	'🖱️ Backend is down, please authorize our self-signed certificate manually by clicking this text';
 
-let BACKEND_UP_MESSAGE = "😊 Backend is up, you can now login";
+let BACKEND_UP_MESSAGE = '😊 Backend is up, you can now login';
 
 let backend_status = ref(false);
 
 const toast = useToast();
 
 onMounted(() => {
-	API
-		.get("auth/status")
+	API.get('auth/status')
 		.then(() => {
 			backend_status.value = true;
 			toast.info(BACKEND_UP_MESSAGE);
-			router.replace("/");
+			router.replace('/');
 		})
 		.catch(() => {
 			setTimeout(() => {
@@ -45,7 +44,6 @@ onMounted(() => {
 		});
 });
 </script>
-
 
 <style>
 .box {
@@ -100,7 +98,7 @@ onMounted(() => {
 
 .input_box {
 	text-align: center;
-	font-family: "Orbitron", sans-serif;
+	font-family: 'Orbitron', sans-serif;
 	font-size: 1rem;
 	/* display: flex;
 	flex-direction: column;
@@ -109,13 +107,13 @@ onMounted(() => {
 
 .ft_button {
 	text-align: center;
-	font-family: "Orbitron", sans-serif;
+	font-family: 'Orbitron', sans-serif;
 	font-size: 1rem;
 }
 
 .log_button {
 	text-align: center;
-	font-family: "Orbitron", sans-serif;
+	font-family: 'Orbitron', sans-serif;
 	font-size: 1rem;
 	background-color: #fff;
 }
@@ -146,11 +144,11 @@ body span.switcher input:after {
 	color: #fff;
 }
 body span.switcher input:before {
-	content: "Register";
+	content: 'Register';
 	left: 1.65rem;
 }
 body span.switcher input:after {
-	content: "Login";
+	content: 'Login';
 	right: 2.15rem;
 }
 body span.switcher label {

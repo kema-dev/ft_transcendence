@@ -14,7 +14,7 @@
 				:key="remount"
 			/>
 		</div>
-		<div class="center column" id="settings" v-show="!start" >
+		<div class="center column" id="settings" v-show="!start">
 			<h1>{{ nbrPlayer }}</h1>
 			<h2 class="title">Players</h2>
 			<div class="center row">
@@ -32,26 +32,26 @@
 </template>
 
 <script setup lang="ts">
-import { inject, onMounted, provide, ref } from "vue";
-import GameItem from "@/components/GameItem.vue";
-import LobbyListItem from "@/components/LobbyListItem.vue";
-import { Socket } from "socket.io-client";
-import { VueCookies } from "vue-cookies";
-import { useToast } from "vue-toastification";
+import { inject, onMounted, provide, ref } from 'vue';
+import GameItem from '@/components/GameItem.vue';
+import LobbyListItem from '@/components/LobbyListItem.vue';
+import { Socket } from 'socket.io-client';
+import { VueCookies } from 'vue-cookies';
+import { useToast } from 'vue-toastification';
 const toast = useToast();
 
-let define = inject("colors");
+let define = inject('colors');
 let start = ref(false);
-provide("playing", start);
-let socket: Socket = inject("socket")!;
-const $cookies = inject<VueCookies>('$cookies'); 
+provide('playing', start);
+let socket: Socket = inject('socket')!;
+const $cookies = inject<VueCookies>('$cookies');
 let remount = ref(false);
 
 let nbrPlayer = ref(6);
 let nbrBall = ref(3);
-let players = ref([$cookies.get("login")]);
-let lobby_name = ref($cookies.get("login") + "'s lobby");
-const owner = ref($cookies.get("login"));
+let players = ref([$cookies.get('login')]);
+let lobby_name = ref($cookies.get('login') + "'s lobby");
+const owner = ref($cookies.get('login'));
 
 socket.on('player_update', (data: any) => {
 	console.log('player_update: ' + data);
@@ -62,7 +62,7 @@ socket.on('player_update', (data: any) => {
 
 function update_game() {
 	remount.value = !remount.value;
-	console.log("updated settings");
+	console.log('updated settings');
 }
 function launch() {
 	start.value = !start.value;
@@ -103,9 +103,9 @@ function decrBall() {
 	}
 }
 onMounted(() => {
-	let game = document.getElementById("container");
-	let settings = document.getElementById("settings");
-	if (game && settings) settings.style.height = game.offsetHeight + "px";
+	let game = document.getElementById('container');
+	let settings = document.getElementById('settings');
+	if (game && settings) settings.style.height = game.offsetHeight + 'px';
 	// window.addEventListener("resize", () => {
 	// 	reload++;
 	// })
@@ -139,9 +139,9 @@ onMounted(() => {
 .start {
 	/* margin-top: 10px; */
 	/* margin-bottom: 95px; */
-	background-color: v-bind("define.color2");
+	background-color: v-bind('define.color2');
 	border-radius: 10px;
-	color: v-bind("define.color0");
+	color: v-bind('define.color0');
 	width: 4.5rem;
 	height: 1.5rem;
 }

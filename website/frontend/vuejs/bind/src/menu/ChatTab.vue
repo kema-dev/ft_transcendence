@@ -4,13 +4,12 @@
 			<!-- <router-link to="/home/chat/in-game" class="chat_item">
 				<h2 id="ingameTabText" class="chat_item_text">IN-GAME</h2>
 			</router-link> -->
-			<router-link to="/home/chat/private" class="chat_item" >
+			<router-link to="/home/chat/private" class="chat_item">
 				<h2 id="privateTabText" class="chat_item_text">PRIVATE</h2>
 			</router-link>
 			<router-link to="/home/chat/channels" class="chat_item">
 				<h2 id="channelsTabText" class="chat_item_text">CHANNELS</h2>
 			</router-link>
-
 		</div>
 		<div class="content">
 			<!-- <router-view name="chat_menu" v-slot="{ Component, route }">
@@ -23,20 +22,18 @@
 					<component :is="Component" />
 				</transition>
 			</router-view> -->
-			<router-view name="chat_menu"/>
+			<router-view name="chat_menu" />
 		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { inject } from "vue";
+import { inject } from 'vue';
 
-let define = inject("colors");
-
+let define = inject('colors');
 </script>
 
 <style>
-
 #chat_bar {
 	height: 60px;
 }
@@ -49,8 +46,8 @@ let define = inject("colors");
 }
 
 .router-link-active > .chat_item_text {
-	border-bottom: 2px solid v-bind("define.color2");
-	color: v-bind("define.color2");
+	border-bottom: 2px solid v-bind('define.color2');
+	color: v-bind('define.color2');
 	font-weight: 500;
 }
 
@@ -66,5 +63,4 @@ let define = inject("colors");
 .myFade-leave-to {
   opacity: 0;
 } */
-
 </style>

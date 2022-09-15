@@ -22,16 +22,16 @@
 </template>
 
 <script setup lang="ts">
-import { inject } from "vue";
+import { inject } from 'vue';
 
-let define = inject("colors");
+let define = inject('colors');
 </script>
 
 <style scoped>
 #menu {
 	height: calc(100vh - 60px);
 	width: 30vw;
-	background: v-bind("define.color3");
+	background: v-bind('define.color3');
 	box-shadow: -4px 0px 4px rgba(0, 0, 0, 0.25);
 	margin-top: 60px;
 }
@@ -45,7 +45,7 @@ let define = inject("colors");
 	height: 60px;
 	justify-content: space-around;
 	align-items: center;
-	background-color: v-bind("define.color0");
+	background-color: v-bind('define.color0');
 	box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
 }
 .pipe {
