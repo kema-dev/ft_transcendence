@@ -5,19 +5,19 @@ import { UserEntity } from '../../users/user.entity';
 
 
 @Entity("private")
-export class PrivateEntity extends TimestampEntites{
+export class PrivateEntity extends TimestampEntites {
 	@PrimaryGeneratedColumn()
 	id: number;
 
 	@Column()
 	readed: boolean;
 
-	@ManyToMany( type => UserEntity, (user) => user.privates, {
+	@ManyToMany(type => UserEntity, (user) => user.privates, {
 		onDelete: 'CASCADE'
 	})
 	users: [UserEntity, UserEntity];
 
-	@OneToMany( type => MessageEntity, (message) => message.convers, {
+	@OneToMany(type => MessageEntity, (message) => message.convers, {
 		cascade: true,
 	})
 	messages: MessageEntity[];

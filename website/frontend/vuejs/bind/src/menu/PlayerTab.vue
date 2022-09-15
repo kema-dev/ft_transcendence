@@ -1,13 +1,14 @@
 <template>
 	<div class="column center" id="test">
 		<div class="stack avatar-stack">
-		<div id="bar"></div>
-		<div id="avatar">
-			<img :src="user?.avatar" id="img" />
-		</div></div>
+			<div id="bar"></div>
+			<div id="avatar">
+				<img :src="user?.avatar" id="img" />
+			</div>
+		</div>
 		<h2 class="info">{{ user?.rank }}</h2>
 		<h1 id="name">{{ user?.login }}</h1>
-		<h2 class="info" style="margin-bottom: 40px;">level {{ user?.level }}</h2>
+		<h2 class="info" style="margin-bottom: 40px">level {{ user?.level }}</h2>
 		<h2>Match history</h2>
 		<div v-for="match in user?.history" :key="match.adversary">
 			<MatchItem index="" />
@@ -16,20 +17,20 @@
 </template>
 
 <script setup lang="ts">
-import { inject, onMounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
-import MatchItem from '@/components/MatchItem.vue';
+import { inject, onMounted, ref } from "vue";
+import { useRoute } from "vue-router";
+import MatchItem from "@/components/MatchItem.vue";
 
-let socket = inject('socket')!;
-let define = inject('colors');
+let socket = inject("socket")!;
+let define = inject("colors");
 const route = useRoute();
 let user = ref();
 let bar: any;
-socket.on('getUserByLogin', (data: any) => {
+socket.on("getUserByLogin", (data: any) => {
 	user.value = data;
 	bar.animate(1 - Number(user?.value?.ratio));
-})
-socket.emit('getUserByLogin', {login: route.params.name});
+});
+socket.emit("getUserByLogin", { login: route.params.name });
 var ProgressBar = require("progressbar.js");
 onMounted(() => {
 	bar = new ProgressBar.Circle("#bar", {
@@ -39,7 +40,7 @@ onMounted(() => {
 		easing: "easeInOut",
 		duration: 1400,
 	});
-})
+});
 </script>
 
 <style scoped>

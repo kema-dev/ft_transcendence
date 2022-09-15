@@ -18,7 +18,7 @@ import axios from 'axios'
 import { useCookies } from "vue3-cookies";
 import { useToast } from "vue-toastification";
 
-const data =  require('../../.env')
+const data = require('../../.env')
 
 document.title = "pong.io"
 const { cookies } = useCookies();
@@ -43,7 +43,7 @@ const routes: Array<RouteRecordRaw> = [
 	{
 		name: 'home',
 		path: '/home',
-		components: {default: Home},
+		components: { default: Home },
 		redirect: '/home/chat/private',
 		children: [
 			{
@@ -65,25 +65,25 @@ const routes: Array<RouteRecordRaw> = [
 					{
 						name: 'private',
 						path: '/home/chat/private',
-						components: {chat_menu: Private},
+						components: { chat_menu: Private },
 						meta: { transition: 'myFade' },
 					},
 					{
 						name: 'channels',
 						path: '/home/chat/channels',
-						components: {chat_menu: Channels},
+						components: { chat_menu: Channels },
 						meta: { transition: 'myFade' },
 					},
 					{
 						name: 'PrivConv',
 						path: '/home/chat/private/:conv_name',
-						components: {chat_menu: PrivateConv},
+						components: { chat_menu: PrivateConv },
 						meta: { transition: 'mySlide' },
 					},
 					{
 						name: 'ChannelConv',
 						path: '/home/chat/channel/:conv_name',
-						components: {chat_menu: ChannelConv},
+						components: { chat_menu: ChannelConv },
 						meta: { transition: 'mySlide' },
 					}
 				],
@@ -125,12 +125,12 @@ router.beforeEach(async (to, from) => {
 		return true;
 	} else {
 		await axios.get(data.FQDN + ':3000/api/v1/auth/status')
-		.catch(() => {
-			// backend is down
-			console.log('backend is down')
-			router.replace('/backend_down')
-			return false;
-		})
+			.catch(() => {
+				// backend is down
+				console.log('backend is down')
+				router.replace('/backend_down')
+				return false;
+			})
 	}
 	// backend is up
 	if (cookies.get('session') == null) {
@@ -142,36 +142,36 @@ router.beforeEach(async (to, from) => {
 	} else {
 		// token: check validity
 		await axios
-		.post(data.FQDN + ':3000/api/v1/auth/validate_token', {
-			login: cookies.get('login'),
-			token: cookies.get('session'),
-		})
-		.then(() => {
-			return true;
-		}).catch((error) => {
-			if (error.response.data.message == 'E_NO_SESSION') {
-				toast.warning('📝 Your session token has been lost. Please log in again.')
-			} else if (error.response.data.message == 'E_SESSION_MISMATCH') {
-				cookies.remove('login');
-				cookies.remove('session');
-				toast.warning('📝 Your session is invalid. Please log in again.')
-			} else if (error.response.data.message == 'E_USER_NOT_FOUND') {
-				toast.warning('📝 Your session is invalid. Please log in again.')
-				cookies.remove('login');
-				cookies.remove('session');
-			} else if (error.response.data.message == 'E_SESSION_EXPIRED') {
-				toast.warning('📝 Your session is expired. Please log in again.')
-				cookies.remove('login');
-				cookies.remove('session');
-			} else {
-				toast.error('😥 Unknown error, we are sorry for that')
-			}
-			if (to.path !== '/') {
-				toast.info('📝 You are not logged in, please log in');
-				router.replace('/')
-			}
-			return false;
-		});
+			.post(data.FQDN + ':3000/api/v1/auth/validate_token', {
+				login: cookies.get('login'),
+				token: cookies.get('session'),
+			})
+			.then(() => {
+				return true;
+			}).catch((error) => {
+				if (error.response.data.message == 'E_NO_SESSION') {
+					toast.warning('📝 Your session token has been lost. Please log in again.')
+				} else if (error.response.data.message == 'E_SESSION_MISMATCH') {
+					cookies.remove('login');
+					cookies.remove('session');
+					toast.warning('📝 Your session is invalid. Please log in again.')
+				} else if (error.response.data.message == 'E_USER_NOT_FOUND') {
+					toast.warning('📝 Your session is invalid. Please log in again.')
+					cookies.remove('login');
+					cookies.remove('session');
+				} else if (error.response.data.message == 'E_SESSION_EXPIRED') {
+					toast.warning('📝 Your session is expired. Please log in again.')
+					cookies.remove('login');
+					cookies.remove('session');
+				} else {
+					toast.error('😥 Unknown error, we are sorry for that')
+				}
+				if (to.path !== '/') {
+					toast.info('📝 You are not logged in, please log in');
+					router.replace('/')
+				}
+				return false;
+			});
 	}
 })
 

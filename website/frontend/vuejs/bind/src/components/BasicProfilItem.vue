@@ -1,9 +1,9 @@
 <template>
 	<div class="basicProfil center row">
 		<div class="avatar_cont center">
-			<img :src="avatar" class="avatar" alt="avatar">
+			<img :src="avatar" class="avatar" alt="avatar" />
 		</div>
-		<div class="login">{{login}}</div>
+		<div class="login">{{ login }}</div>
 	</div>
 </template>
 
@@ -15,16 +15,15 @@ import { stringifyQuery } from "vue-router";
 
 let define = inject("colors");
 const props = defineProps({
-  avatar: {
+	avatar: {
 		type: String,
-		required: true
+		required: true,
 	},
-  login: {
+	login: {
 		type: String,
-		required: true
-	}
-})
-
+		required: true,
+	},
+});
 </script>
 
 <style scoped>

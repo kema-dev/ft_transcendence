@@ -9,21 +9,21 @@ import { PrivConv } from './dto/PrivConv';
 
 @Controller('chat')
 export class ChatController {
-	constructor(private readonly chatService: ChatService){}
+	constructor(private readonly chatService: ChatService) { }
 
 	@Get('getPrivs/:login')
-	async getPrivs(@Param() params : {login: string}) {
-		console.log(`getPrivs for user ${params.login }`);
+	async getPrivs(@Param() params: { login: string }) {
+		console.log(`getPrivs for user ${params.login}`);
 		const privs = await this.chatService.getUserPrivs(params.login);
 		// await this.chatService.printPrivs(privs);
 		privs.sort(function (x, y) {
-			if ( x.messages[x.messages.length - 1].createdAt.getTime() 
-				< y.messages[y.messages.length - 1].createdAt.getTime()) 
+			if (x.messages[x.messages.length - 1].createdAt.getTime()
+				< y.messages[y.messages.length - 1].createdAt.getTime())
 				return 1;
 			return -1;
 		});
 		// await this.chatService.printPrivs(privs);
-		let privsDto : PrivConv[] = [];
+		let privsDto: PrivConv[] = [];
 		privs.forEach(priv => {
 			let login: string;
 			if (priv.users[0].login == params.login)
@@ -32,7 +32,7 @@ export class ChatController {
 				login = priv.users[0].login;
 			let user = new BasicUser(login);
 			let read = priv.readed;
-			let msgs : Message[] = [];
+			let msgs: Message[] = [];
 			let id = priv.id;
 			priv.messages.forEach((msg) => msgs.push(new Message(msg.user.login, msg.message, msg.createdAt)))
 			privsDto.push(new PrivConv(user, msgs, read, id));
@@ -42,7 +42,7 @@ export class ChatController {
 			// privsTabDto.push(new PrivConv(login, msg, date, lastMsgUser, read));
 		});
 		return privsDto;
-		// privsTabDto.forEach(priv => console.log(`priv = 
+		// privsTabDto.forEach(priv => console.log(`priv =
 		// 	login = ${priv.login}
 		// 	message = ${priv.message}
 		// 	date = ${priv.date}
@@ -54,18 +54,18 @@ export class ChatController {
 	}
 
 	@Get('getUsersByLoginFiltred/:login/:filter')
-	async getUserFiltred(@Param() params : {login: string, filter: string}) {
+	async getUserFiltred(@Param() params: { login: string, filter: string }) {
 		return await this.chatService.
 			getUsersByLoginFiltred(params.login, params.filter);
-  }
+	}
 
 	@Get('getPriv/:user1/:user2')
-	async getPrivMsg(@Param() params : {user1: string, user2: string}) {
+	async getPrivMsg(@Param() params: { user1: string, user2: string }) {
 		const priv = await this.chatService.getPrivMsg(params.user1, params.user2);
 		if (priv) {
-			const messages : Message[] = [];
+			const messages: Message[] = [];
 			priv.messages.forEach(msg => {
-				messages.push(new Message(msg.user.login, msg.message,msg.createdAt));
+				messages.push(new Message(msg.user.login, msg.message, msg.createdAt));
 			});
 			return new PrivateConvDto(params.user2, messages);
 		}
@@ -74,7 +74,7 @@ export class ChatController {
 		// const ret = new PrivateConvDto(params.user2, messages);
 		// console.log("ret = ", ret);
 		// return ret;
-  }
+	}
 
 	@Post('message')
 	postMessage() {

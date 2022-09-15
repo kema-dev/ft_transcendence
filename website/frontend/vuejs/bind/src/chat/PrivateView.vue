@@ -24,18 +24,17 @@
 		</div>
 		<div v-if="!newMsg" class="myConversations center column">
 			<ConversationTab
-				v-for="(data, i) in privsFiltred" :key="i"
+				v-for="(data, i) in privsFiltred"
+				:key="i"
 				:name-conv="data.user.login"
-				:message="data.messages[data.messages.length-1].msg"
-				:date="new Date(data.messages[data.messages.length-1].date)"
-				:last-msg-user="data.messages[data.messages.length-1].user"
+				:message="data.messages[data.messages.length - 1].msg"
+				:date="new Date(data.messages[data.messages.length - 1].date)"
+				:last-msg-user="data.messages[data.messages.length - 1].user"
 				:read="data.readed"
 				:avatar="data.user.avatar"
 				class="center"
 			/>
-			<h2 v-if="privs!.length == 0" class="no_results">
-				No conversations
-			</h2>
+			<h2 v-if="privs!.length == 0" class="no_results">No conversations</h2>
 			<h2 v-else-if="privsFiltred!.length == 0" class="no_results">
 				No results
 			</h2>
@@ -61,7 +60,7 @@
 					:key="i"
 					:to="{ name: 'PrivConv', params: { conv_name: data.login } }"
 				>
-					<BasicProfil :avatar="data.avatar" :login="data.login"/>
+					<BasicProfil :avatar="data.avatar" :login="data.login" />
 				</router-link>
 			</div>
 			<!-- <h2 v-if="knownPeople().length == 0 && !serverUsers">
@@ -76,30 +75,37 @@
 
 <script setup lang="ts">
 /* eslint @typescript-eslint/no-var-requires: "off" */
-import { inject, onMounted, defineEmits, ref, Ref, nextTick, onBeforeMount, onUnmounted, watch } from "vue";
+import {
+	inject,
+	onMounted,
+	defineEmits,
+	ref,
+	Ref,
+	nextTick,
+	onBeforeMount,
+	onUnmounted,
+	watch,
+} from "vue";
 import ConversationTab from "@/chat/ConversationTab.vue";
 import BasicProfil from "@/components/BasicProfilItem.vue";
 import SearchItem from "@/components/SearchItem.vue";
-import PrivateTabDto from "@/chat/dto/PrivateTabDto"
+import PrivateTabDto from "@/chat/dto/PrivateTabDto";
 import User from "@/chat/objects/User";
 import Message from "@/chat/objects/Message";
-import BasicUserDto from "@/chat/dto/BasicUserDto"
+import BasicUserDto from "@/chat/dto/BasicUserDto";
 import { Socket } from "socket.io-client";
 import HTTP from "../components/axios";
 import { baseCompile } from "@vue/compiler-core";
 import { PrivConv } from "@/chat/objects/PrivConv";
-
 
 // INJECTS
 let colors = inject("colors");
 let me: string = inject("me")!;
 let mySocket: Socket = inject("socket")!;
 let apiPath: string = inject("apiPath")!;
-let privs : Ref<PrivConv[]> = inject("privs")!;
+let privs: Ref<PrivConv[]> = inject("privs")!;
 let privsFiltred = ref(privs.value);
 const privDone: Ref<boolean> = inject("privDone")!;
-
-
 
 // let privsFiltred = ref<PrivConv[]>();
 let serverUsers = ref<BasicUserDto[]>();
@@ -120,7 +126,7 @@ watch(privDone, () => {
 	// 	// 	date = ${msg.date}`
 	// 	// ));
 	// });
-})
+});
 
 // function getPrivsRequest() {
 // 	HTTP.get(apiPath + "chat/getPrivs/" + me)
@@ -135,7 +141,7 @@ watch(privDone, () => {
 // 		privs.value = privsTmp;
 // 		privsFiltred.value = privs.value;
 // 		initReqDone.value = true;
-		
+
 // 	})
 // 	.catch(e => console.log(e));
 // }
@@ -152,10 +158,6 @@ watch(privDone, () => {
 // 	serverUsers.value = tmp;
 // 	// console.log("serverUsers = ", serverUsers.value);
 // });
-
-
-
-
 
 // conversations.sort(function (x, y) {
 // 	if (
@@ -177,8 +179,10 @@ function searchChange(value: string) {
 	userServReqDone.value = false;
 	search.value = value;
 	// console.log("privs = ", privsFiltred.value);
-	privsFiltred.value = privs.value?.filter(function(value) {
-		return value.user.login.toUpperCase().startsWith(search.value.toUpperCase());
+	privsFiltred.value = privs.value?.filter(function (value) {
+		return value.user.login
+			.toUpperCase()
+			.startsWith(search.value.toUpperCase());
 	});
 	// if (newMsg.value) {
 	// 	friendsFiltred.value = me.friends.filter(function(value) {
@@ -186,20 +190,21 @@ function searchChange(value: string) {
 	// 	});
 	// }
 	if (newMsg.value) {
-		if (search.value == ""){
+		if (search.value == "") {
 			// serverUsers.value = [];
-		}
-		else {
-			HTTP.get(apiPath + "chat/getUsersByLoginFiltred/" + me + "/" + search.value)
-			.then(res => {
-				let usersTmp : BasicUserDto[] = [];
-				res.data.forEach((user : BasicUserDto) => {
-					usersTmp.push(new BasicUserDto(user.login));
-				});
-				serverUsers.value = usersTmp;
-				userServReqDone.value = true;	
-			})
-			.catch(e => console.log(e));
+		} else {
+			HTTP.get(
+				apiPath + "chat/getUsersByLoginFiltred/" + me + "/" + search.value
+			)
+				.then((res) => {
+					let usersTmp: BasicUserDto[] = [];
+					res.data.forEach((user: BasicUserDto) => {
+						usersTmp.push(new BasicUserDto(user.login));
+					});
+					serverUsers.value = usersTmp;
+					userServReqDone.value = true;
+				})
+				.catch((e) => console.log(e));
 		}
 	}
 
@@ -214,13 +219,13 @@ function searchChange(value: string) {
 	// 			serverUsers.value = usersTmp;
 	// 		})
 	// 		.catch(e => console.log(e));
-		
+
 	// 	// serverUsers.value = (await HTTP.get(
 	// 	// 	apiPath + "chat/getUsersByLoginFiltred/" + me + "/" + search.value)).data;
-	// 	userServReqDone.value = true;	
+	// 	userServReqDone.value = true;
 	// }
 
-		// HTTP.get(apiPath + "chat/getUsersByLoginFiltred/" + me).then(res => serverUsers.value = res);
+	// HTTP.get(apiPath + "chat/getUsersByLoginFiltred/" + me).then(res => serverUsers.value = res);
 }
 
 // function knownPeople(): User[] {
@@ -254,7 +259,6 @@ function createNewMsg() {
 // onUnmounted(() => {
 // 	mySocket.off("newPrivMsg");
 // })
-
 </script>
 
 <style>

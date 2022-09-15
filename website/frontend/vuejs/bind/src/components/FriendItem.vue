@@ -1,7 +1,10 @@
 <template>
 	<div class="friend_case space-between row">
 		<div class="center row">
-			<router-link class="center" :to="{ name: 'player', params: { name: friend.login } }">
+			<router-link
+				class="center"
+				:to="{ name: 'player', params: { name: friend.login } }"
+			>
 				<img :src="friend.avatar" class="avatar" alt="avatar" />
 			</router-link>
 			<div class="center column">

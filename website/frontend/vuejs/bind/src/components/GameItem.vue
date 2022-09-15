@@ -15,7 +15,7 @@ let socket: Socket = inject("socket")!;
 let props = defineProps(["nbrPlayer", "nbrBall", "start"]);
 let run = true;
 // let nbrPlayer = ref(props.nbrPlayer)
-let me : User = inject("me")!;
+let me: User = inject("me")!;
 let rotation = 0;
 let gameDto: GameDto | undefined = undefined;
 
@@ -145,18 +145,18 @@ onMounted(async () => {
 		} else {
 			return;
 		}
-		socket.emit("setMov", {mov: mov, login: me.login});
+		socket.emit("setMov", { mov: mov, login: me.login });
 		e.preventDefault();
 	});
 	container.addEventListener("keyup", function (e: any) {
 		if (e.key == "ArrowLeft") {
-			if (mov <= 0) mov = 0;  
+			if (mov <= 0) mov = 0;
 		} else if (e.key == "ArrowRight") {
 			if (mov >= 0) mov = 0;
 		} else {
 			return;
 		}
-		socket.emit("setMov", {mov: mov, login: me.login});
+		socket.emit("setMov", { mov: mov, login: me.login });
 		e.preventDefault();
 	});
 });

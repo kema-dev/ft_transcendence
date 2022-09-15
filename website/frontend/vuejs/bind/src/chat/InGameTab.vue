@@ -2,7 +2,9 @@
 	<div id="ingame_view">
 		<div v-if="playing == false" class="center column not_playing">
 			<h3>Not actually playing ...</h3>
-			<button class="button_ingame" @click="create_room">Create a new room</button>
+			<button class="button_ingame" @click="create_room">
+				Create a new room
+			</button>
 			<button class="button_ingame" @click="join_room">Join a room</button>
 		</div>
 	</div>
@@ -21,7 +23,6 @@ function create_room() {
 function join_room() {
 	console.log("Join a room");
 }
-
 </script>
 
 <style>
@@ -46,5 +47,4 @@ function join_room() {
 	height: 1.5rem;
 	margin-top: 1rem;
 }
-
 </style>

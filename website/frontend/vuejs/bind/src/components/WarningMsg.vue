@@ -1,8 +1,8 @@
 <template>
 	<div id="blockAdvert_view" class="center">
 		<div class="blockAdvert center column">
-			<img :src="img" alt="Warning" class="warning_img">
-			<span class="blockAdvertText">{{msg}}</span>
+			<img :src="img" alt="Warning" class="warning_img" />
+			<span class="blockAdvertText">{{ msg }}</span>
 			<slot name="buttons"></slot>
 		</div>
 	</div>
@@ -15,8 +15,7 @@ let define = inject("colors");
 let props = defineProps({
 	img: String,
 	msg: String,
-})
-
+});
 </script>
 
 <style>
@@ -31,7 +30,7 @@ let props = defineProps({
 	z-index: 2;
 }
 .blockAdvert {
-	width : 80%;
+	width: 80%;
 	height: auto;
 	padding: 15px;
 	background-color: #fff;

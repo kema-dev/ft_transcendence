@@ -65,7 +65,7 @@ socket.on("userUpdate", (data: any) => {
 		// provide("user", userRef);
 	}
 });
-socket.emit('userUpdate', {login: me});
+socket.emit("userUpdate", { login: me });
 provide("user", userRef);
 provide("me", me);
 
@@ -130,13 +130,9 @@ function getPrivsRequest() {
 				res.data.forEach((priv: PrivConv) => {
 					let msgsTmp: Message[] = [];
 					priv.messages.forEach((msg, j) => {
-						msgsTmp.push(
-							new Message(msg.user, msg.msg, new Date(msg.date))
-						);
+						msgsTmp.push(new Message(msg.user, msg.msg, new Date(msg.date)));
 					});
-					privsTmp.push(
-						new PrivConv(priv.user, msgsTmp, priv.readed, priv.id)
-					);
+					privsTmp.push(new PrivConv(priv.user, msgsTmp, priv.readed, priv.id));
 					console.log(`readed = ${priv.readed}`);
 				});
 				// privs.value = privsTmp;

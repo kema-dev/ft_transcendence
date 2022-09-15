@@ -5,18 +5,18 @@ import { PrivateEntity } from './private.entity';
 
 
 @Entity("message")
-export class MessageEntity extends TimestampEntites{
+export class MessageEntity extends TimestampEntites {
 	@PrimaryGeneratedColumn()
 	id: number;
 
 	@Column()
 	message: string;
 
-	@ManyToOne( type => UserEntity, (user) => user.messages)
+	@ManyToOne(type => UserEntity, (user) => user.messages)
 	@JoinColumn()
 	user: UserEntity;
-	
-	@ManyToOne( type => PrivateEntity, (privateEntity) => privateEntity.messages, {
+
+	@ManyToOne(type => PrivateEntity, (privateEntity) => privateEntity.messages, {
 		// cascade: true,
 		// onUpdate: 'CASCADE',
 		onDelete: 'CASCADE',

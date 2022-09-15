@@ -9,8 +9,8 @@ import { UsersService } from "../users/users.service";
 
 @Module({
 	imports: [TypeOrmModule.forFeature([UserEntity, PrivateEntity, MessageEntity])],
-	exports:[ChatService],
-	providers:[ChatService, UsersService],
-	controllers:[ChatController],
+	exports: [ChatService],
+	providers: [ChatService, UsersService],
+	controllers: [ChatController],
 })
-export class ChatModule {}
+export class ChatModule { }

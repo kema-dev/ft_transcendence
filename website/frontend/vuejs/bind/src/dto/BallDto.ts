@@ -1,4 +1,4 @@
-import {VectorDto} from './VectorDto';
+import { VectorDto } from './VectorDto';
 
 export class BallDto {
 	x: number;

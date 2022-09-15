@@ -21,7 +21,7 @@ export class AuthenticationService {
 		private readonly configService: ConfigService,
 		private readonly jwtService: JwtService,
 		private httpService: HttpService,
-	) {}
+	) { }
 
 	public async register(registrationData: RegisterDto) {
 		console.log('register: starting for login: ' + registrationData.login);
@@ -94,10 +94,10 @@ export class AuthenticationService {
 			if (error?.code === PostgresErrorCode.UniqueViolation) {
 				console.error(
 					'register: email: ' +
-						registrationData.email +
-						' and/or login: ' +
-						registrationData.login +
-						' already exists, returning ✘',
+					registrationData.email +
+					' and/or login: ' +
+					registrationData.login +
+					' already exists, returning ✘',
 				);
 				throw new HttpException(
 					'E_EMAIL_OR_LOGIN_ALREADY_EXISTS',
@@ -142,8 +142,8 @@ export class AuthenticationService {
 				if (mfa_check == false) {
 					console.error(
 						'getAuthenticatedUser: ' +
-							name +
-							' totp code check failed, returning ✘',
+						name +
+						' totp code check failed, returning ✘',
 					);
 					throw new HttpException('E_TOTP_FAIL', HttpStatus.BAD_REQUEST);
 				}
@@ -155,8 +155,8 @@ export class AuthenticationService {
 			await this.verifyPassword(password, user.password);
 			console.log(
 				'getAuthenticatedUser: ' +
-					user.login +
-					' authenticated successfully, returning ✔',
+				user.login +
+				' authenticated successfully, returning ✔',
 			);
 			return { login: user.login, success: true };
 		} catch (error) {

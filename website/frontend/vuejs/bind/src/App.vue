@@ -17,7 +17,6 @@ provide("colors", {
 	color2: "#16638D",
 	color3: "#E5F4FB",
 });
-
 </script>
 
 <style>

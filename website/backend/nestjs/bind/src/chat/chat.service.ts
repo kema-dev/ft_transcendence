@@ -24,7 +24,7 @@ export class ChatService {
 		private readonly userService: UsersService,
 		// private readonly dataSource: DataSource,
 		// private httpService: HttpService,
-	) {}
+	) { }
 
 	// async getMessages() {
 	// 	console.log("getMessages ChatService used")
@@ -57,18 +57,18 @@ export class ChatService {
 
 	async getUsersByLoginFiltred(login: string, filter: string) {
 		const users = await this.userService.getByLoginFiltred(filter);
-    let basicInfos : BasicUser[] = [];
-    for(let i = 0; i < users.length; i++) {
-      if (login != users[i].login)
-        basicInfos.push(new BasicUser(users[i].login));
-    }
+		let basicInfos: BasicUser[] = [];
+		for (let i = 0; i < users.length; i++) {
+			if (login != users[i].login)
+				basicInfos.push(new BasicUser(users[i].login));
+		}
 		return basicInfos;
 	}
 
 	async getUserPrivs(login: string) {
 		const user = await this.userRepository.findOne({
-			relations: {privates : {users: true, messages: {user: true}}},
-			where: {login: login},
+			relations: { privates: { users: true, messages: { user: true } } },
+			where: { login: login },
 			// order: {privates: {updatedAt: 'DESC'}},
 			order: {
 				privates: {
@@ -77,7 +77,7 @@ export class ChatService {
 					}
 				}
 			}
-	});
+		});
 
 		// const userId = (await this.userService.getByLogin(login)).id;
 		// const user = await this.privateRepository.findBy({
@@ -113,13 +113,13 @@ export class ChatService {
 
 	}
 
-	async addPrivMsg(data : NewPrivMsgDto) {
+	async addPrivMsg(data: NewPrivMsgDto) {
 		console.log(`addPrivMsg Chatservice, msg = '${data.message}'`);
 		// Find users
 		const userSend = await this.userService.getByLogin(data.userSend);
 		const userReceive = await this.userService.getByLogin(data.userReceive);
 		// Create and save Msg
-		const msg = this.msgRepository.create({user: userSend, message: data.message});
+		const msg = this.msgRepository.create({ user: userSend, message: data.message });
 		await this.msgRepository.save(msg).catch(e => console.log("Save msg error"));
 		// Check if PrivConv exist
 		const priv = await this.getPrivWithUserIds([userSend.id, userReceive.id]);
@@ -147,7 +147,7 @@ export class ChatService {
 		}
 	}
 
-	async markPrivReaded(priv : PrivateEntity) {
+	async markPrivReaded(priv: PrivateEntity) {
 		priv.readed = true;
 		this.privateRepository.save(priv);
 		return priv;
@@ -167,7 +167,7 @@ export class ChatService {
 				}
 			},
 			order: {
-				messages : {
+				messages: {
 					createdAt: 'ASC',
 				}
 			}

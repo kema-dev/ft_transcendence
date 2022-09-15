@@ -1,14 +1,15 @@
 <template>
 	<div class="column center" id="test">
 		<div class="stack avatar-stack">
-		<div id="bar"></div>
-		<div v-on:click="change_avatar()" id="avatar">
-			<img :src="me?.avatar" id="img" />
-		</div></div>
+			<div id="bar"></div>
+			<div v-on:click="change_avatar()" id="avatar">
+				<img :src="me?.avatar" id="img" />
+			</div>
+		</div>
 		<input id="none" type="file" />
 		<h2 class="info">{{ user.rank }}</h2>
 		<h1 id="name">{{ me?.login }}</h1>
-		<h2 class="info" style="margin-bottom: 40px;">level {{ me?.level }}</h2>
+		<h2 class="info" style="margin-bottom: 40px">level {{ me?.level }}</h2>
 		<h2>Match history</h2>
 		<div v-for="match in user.history" :key="match.adversary">
 			<!-- <ScoreItem :player="user.name" :adversary="match.adversary" :points1="match.points1" :points2="match.points2"/> -->
@@ -75,8 +76,7 @@ onMounted(() => {
 		easing: "easeInOut",
 		duration: 1400,
 	});
-	if (me.value && me.value.ratio)
-		bar.animate(1 - me.value.ratio);
+	if (me.value && me.value.ratio) bar.animate(1 - me.value.ratio);
 });
 function change_avatar() {
 	let input = document.querySelector("#none");

@@ -1,11 +1,7 @@
 <template>
 	<div class="stack" id="page">
 		<div id="game_pos">
-			<GameItem
-				:nbrPlayer="nbrPlayer"
-				:nbrBall="nbrBall"
-				:start="start"
-			/>
+			<GameItem :nbrPlayer="nbrPlayer" :nbrBall="nbrBall" :start="start" />
 		</div>
 		<div class="center column" id="settings">
 			<h1 v-if="!start">{{ nbrPlayer }}</h1>
@@ -36,7 +32,7 @@ let nbrPlayer = 4;
 let nbrBall = 1;
 function launch() {
 	start.value = !start.value;
-	socket.emit('start');
+	socket.emit("start");
 }
 function incr() {
 	if (nbrPlayer + 1 <= 7) {

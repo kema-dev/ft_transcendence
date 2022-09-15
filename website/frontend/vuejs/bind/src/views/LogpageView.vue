@@ -58,7 +58,8 @@
 									placeholder="password"
 									type="password"
 								/>
-								<input v-if="totp_enabled"
+								<input
+									v-if="totp_enabled"
 									class="input_box"
 									v-model="totp_val"
 									placeholder="mfa code"
@@ -128,14 +129,15 @@ let E_CODE_IN_USE =
 let E_USER_IS_FT =
 	"📝 You registered with a 42 account, please login with your 42 account";
 let E_USER_NOT_FOUND = "📝 This email / login does not exist, please try again";
-let E_USER_HAS_TOTP = "📝 You have enabled 2FA, please login with your 2FA code";
+let E_USER_HAS_TOTP =
+	"📝 You have enabled 2FA, please login with your 2FA code";
 let E_TOTP_FAIL = "📝 2FA code is not valid, please try again";
 let E_EMPTY_FIELD = "📝 At least one field is empty, please fill all of them";
 
 provide("defaultState", switch_value);
 
 const toast = useToast();
-const $cookies = inject<VueCookies>('$cookies'); 
+const $cookies = inject<VueCookies>("$cookies");
 
 function register() {
 	if (
@@ -157,7 +159,7 @@ function register() {
 		.then((response) => {
 			console.log(response);
 			$cookies.set(response.data.key, response.data.value);
-			$cookies.set('login', response.data.login);
+			$cookies.set("login", response.data.login);
 			toast.success(
 				"Registration success, welcome " + response.data.login + " !"
 			);
@@ -200,7 +202,7 @@ function auth() {
 		.then((response) => {
 			console.log(response);
 			$cookies.set(response.data.key, response.data.value);
-			$cookies.set('login', response.data.login);
+			$cookies.set("login", response.data.login);
 			toast.success(
 				"Authentication success, welcome " + response.data.login + " !"
 			);
@@ -239,7 +241,7 @@ onMounted(() => {
 			.then((response) => {
 				console.log(response);
 				$cookies.set(response.data.key, response.data.value);
-				$cookies.set('login', response.data.login);
+				$cookies.set("login", response.data.login);
 				toast.success(
 					"Authentication success, welcome " + response.data.login + " !"
 				);
@@ -258,10 +260,9 @@ onMounted(() => {
 					console.error(error);
 				}
 			});
-		}
-	});
+	}
+});
 </script>
-
 
 <style>
 .box {

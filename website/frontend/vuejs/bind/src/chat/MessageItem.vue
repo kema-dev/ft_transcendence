@@ -28,27 +28,26 @@ import { inject, defineProps, onMounted, ref } from "vue";
 let colors = inject("colors");
 let me: string = inject("me")!;
 const props = defineProps({
-  userAvatar: {
-    type: String,
-    required: true,
-  },
-  userLogin: {
-    type: String,
-    required: true,
-  },
-  message: {
-    type: String,
-    required: true,
-  },
-  date: {
-    type: Date,
-    required: true,
-  },
+	userAvatar: {
+		type: String,
+		required: true,
+	},
+	userLogin: {
+		type: String,
+		required: true,
+	},
+	message: {
+		type: String,
+		required: true,
+	},
+	date: {
+		type: Date,
+		required: true,
+	},
 });
 
 function getDateMsg(): string {
-	let ret =
-		props.date.getHours() + ":" + props.date.getMinutes();
+	let ret = props.date.getHours() + ":" + props.date.getMinutes();
 	ret += "\n" + props.date.toLocaleDateString("fr");
 	return ret;
 }

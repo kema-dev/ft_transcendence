@@ -24,10 +24,10 @@ export class UsersController {
 	constructor(private readonly usersService: UsersService) { }
 
 	@Get('getBasicUser/:login')
-	async getBasicUser(@Param() params : {login: string}) {
+	async getBasicUser(@Param() params: { login: string }) {
 		let user = await this.usersService.getByLogin(params.login);
 		return new BasicUserDto(user.login);
-  }
+	}
 
 	// @UseGuards(JwtAuthenticationGuard) FIXME
 	@Post('getUser')

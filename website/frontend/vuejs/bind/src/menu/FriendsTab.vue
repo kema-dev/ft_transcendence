@@ -59,9 +59,7 @@
 					</div>
 				</div>
 				<!-- <div class="center column"> -->
-				<h2 v-if="me?.friends.length == 0" class="group_name">
-					No friends
-				</h2>
+				<h2 v-if="me?.friends.length == 0" class="group_name">No friends</h2>
 				<h2 v-else class="group_name">Friends</h2>
 				<div
 					v-for="friend of me?.friends"
@@ -80,12 +78,7 @@
 			</div>
 			<div v-else class="center column">
 				<h2 v-if="users.length == 0">No user</h2>
-				<div
-					v-else
-					v-for="user of users"
-					:key="user.login"
-					class="row center"
-				>
+				<div v-else v-for="user of users" :key="user.login" class="row center">
 					<FriendItem :friend="user">
 						<template v-if="myFriend(user.login)" #content>
 							<div class="space-between left row">
@@ -108,10 +101,7 @@
 								<!-- <h2 class="score">{{user.ratiov}} | {{user.ratiod}}</h2> -->
 								<!-- </div> -->
 								<div class="right row" style="margin-right: 15px">
-									<button
-										class="action"
-										@click="add_friend(user.login)"
-									>
+									<button class="action" @click="add_friend(user.login)">
 										add friend
 									</button>
 									<button class="action">invit</button>

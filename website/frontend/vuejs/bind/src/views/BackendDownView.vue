@@ -46,7 +46,6 @@ onMounted(() => {
 });
 </script>
 
-
 <style>
 .box {
 	text-align: center;

@@ -2,11 +2,7 @@
 	<nav>
 		<div class="center space-between" style="height: 100%">
 			<div class="nav-icon">
-				<img
-					src="@/assets/logo_white.png"
-					alt="pong.io logo"
-					class="logo"
-				/>
+				<img src="@/assets/logo_white.png" alt="pong.io logo" class="logo" />
 				<h1 class="text_logo">PONG.IO</h1>
 			</div>
 			<div style="height: 100%" class="center row right">
@@ -21,7 +17,8 @@
 					speed="2"
 					hover
 					class="icon"
-				/> <!-- TODO jjourdan logout -->
+				/>
+				<!-- TODO jjourdan logout -->
 				<!-- <lottie-player
 					:src="require('@/assets/json/home.json')"
 					speed="2"
