@@ -1,5 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Socket } from 'socket.io';
 import { Repository } from 'typeorm';
 import { MatchEntity } from './match.entity';
 import { MatchDto } from './objects/match.dto';
@@ -26,6 +27,7 @@ export class MatchService {
 	async create_match(match: MatchDto) {
 		console.log('createMatch: Starting');
 		await this.flush_user_lobby(match.owner);
+		console.log('createMatch: User flushed, creating match: ', match);
 		const newMatch = await this.matchRepository.create(match);
 		await this.matchRepository.save(newMatch);
 		console.log('createMatch: Match created succssfuly, returning ✔');
@@ -70,11 +72,12 @@ export class MatchService {
 		return match;
 	}
 
-	async join_lobby(user: string, lobby: string) {
+	async join_lobby(user: string, lobby: string, client: Socket) {
 		console.log('joinLobby: Starting for user ' + user + ' in lobby ' + lobby);
 		const match = await this.matchRepository.findOne({
 			where: { lobby_name: lobby },
 		});
+		console.log('new match: ', match);
 		if (!match) {
 			throw new HttpException('Match not found', HttpStatus.NOT_FOUND);
 		} else if (match.players.length >= 7) {
@@ -82,8 +85,13 @@ export class MatchService {
 		} else if (match.players.includes(user)) {
 			throw new HttpException('User already in lobby', HttpStatus.NOT_FOUND);
 		}
+		this.flush_user_lobby(user);
 		match.players.push(user);
+		console.log('match: ', match);
 		await this.matchRepository.save(match);
+		for (let i = 0; i < match.players.length; i++) {
+			client.to(match.players[i]).emit('player_update', match.players);
+		}
 		console.log('joinLobby: Match joined, returning ✔');
 		return match;
 	}

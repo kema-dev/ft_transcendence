@@ -8,6 +8,7 @@
 * make `start` false when the game is over
 * make a join button in lobbies list
 * make a play again button
+* do not flush user lobbies on update
 
 ## later
 

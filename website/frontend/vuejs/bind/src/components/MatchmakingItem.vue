@@ -53,6 +53,13 @@ let players = ref([$cookies.get("login")]);
 let lobby_name = ref($cookies.get("login") + "'s lobby");
 const owner = ref($cookies.get("login"));
 
+socket.on('player_update', (data: any) => {
+	console.log('player_update: ' + data);
+	players.value = data;
+	console.log('players: ' + players.value);
+	update_game();
+});
+
 function update_game() {
 	remount.value = !remount.value;
 	console.log("updated settings");

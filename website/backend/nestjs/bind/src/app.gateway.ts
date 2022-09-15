@@ -166,7 +166,7 @@ export class AppGateway
 	) {
 		let lobby;
 		try {
-			lobby = await this.matchService.join_lobby(data.username, data.lobby);
+			lobby = await this.matchService.join_lobby(data.username, data.lobby, client);
 		} catch (err) {
 			console.log(err.message);
 			if (err.message === 'User already in lobby') {
