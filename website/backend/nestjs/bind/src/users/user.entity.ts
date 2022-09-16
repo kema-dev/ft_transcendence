@@ -11,9 +11,18 @@ import { MessageEntity } from '../chat/entites/message.entity';
 import { PrivateEntity } from '../chat/entites/private.entity';
 import { ChannelEntity } from '../chat/entites/channel.entity';
 import TimestampEntites from '../utils/timestamp.enties';
+import { avatars } from 'src/users/avatars';
 
-@Entity('user')
+@Entity("user")
 export class UserEntity extends TimestampEntites {
+	constructor() {
+		super();
+		this.level = 0;
+		this.nbrGame = 0;
+		this.ratio = "0.5";
+		this.status = "offline";
+		this.avatar = avatars[Math.floor(Math.random() * 5)];
+	}
 	@PrimaryGeneratedColumn()
 	public id?: number;
 
@@ -31,17 +40,33 @@ export class UserEntity extends TimestampEntites {
 
 	@Column({ nullable: true })
 	public avatar: string;
-	// @Column()
-	// public avatar: string;
-
-	// @Column()
-	// public friends: [User];
 
 	@Column({ nullable: true })
-	socketId: string;
+	public status: string;
+
+	@Column({ nullable: true })
+	public nbrGame: number;
+
+	@Column({ nullable: true })
+	public ratio: string;
+
+	@ManyToMany(type => UserEntity, (user) => user.friends, {
+		onDelete: 'SET NULL'
+	})
+	@JoinTable()
+	public friends: UserEntity[];
+
+	@ManyToMany(type => UserEntity, {
+		onDelete: 'SET NULL'
+	})
+	@JoinTable()
+	public requestFriend: UserEntity[];
 
 	@Column()
 	public ft_code: string;
+
+	@Column({ nullable: true })
+	socketId: string;
 
 	@Column()
 	public ft_accessToken: string;
@@ -70,18 +95,14 @@ export class UserEntity extends TimestampEntites {
 	@Column({ nullable: true })
 	public session_expiration: Date;
 
-	// ===================== CHAT =====================
-
-	@OneToMany((type) => MessageEntity, (message) => message.user, {
+	@OneToMany(type => MessageEntity, (message) => message.user, {
 		cascade: true,
 		nullable: true,
 		onDelete: 'SET NULL',
 	})
 	messages: MessageEntity[];
 
-	// ======== PRIVS
-
-	@ManyToMany((type) => PrivateEntity, (priv) => priv.users, {
+	@ManyToMany(type => PrivateEntity, (priv) => priv.users, {
 		cascade: true,
 		nullable: true,
 		onDelete: 'SET NULL',
@@ -123,3 +144,4 @@ export class UserEntity extends TimestampEntites {
 	@JoinTable()
 	mutes: ChannelEntity[];
 }
+

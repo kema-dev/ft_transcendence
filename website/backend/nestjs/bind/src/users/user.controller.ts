@@ -9,17 +9,18 @@ import {
 	Get,
 	UseGuards,
 	Param,
+	Logger,
 } from '@nestjs/common';
 import { AuthGuard } from '../authentication/auth.guard';
-import { get } from 'http';
-import { BasicUserDto } from '../chat/dto/BasicUserDto';
-import UserDto from './dto/user.dto';
+import ProfileUserDto from 'src/users/dto/ProfileUserDto';
 
 import { UsersService } from './users.service';
+import BasicUserDto from 'src/chat/dto/BasicUserDto';
 
 @Controller('user')
 export class UsersController {
-	constructor(private readonly usersService: UsersService) {}
+	private logger: Logger = new Logger('UsersController');
+	constructor(private readonly usersService: UsersService) { }
 
 	@UseGuards(AuthGuard)
 	@Get('getBasicUser/:login')
@@ -31,7 +32,15 @@ export class UsersController {
 	// @UseGuards(JwtAuthenticationGuard) FIXME
 	@Post('getUser')
 	async getUser(@Body() params: any) {
-		return this.usersService.getByLogin(params.login);
+		console.log('getUser: starting for ' + params.login);
+		let test = new ProfileUserDto(await this.usersService.getByLogin(params.login))
+		this.logger.log('getUser: ' + test.login);
+		return test;
+	}
+	@Post('getUsers')
+	async getUsers(@Body() str: string) {
+		this.logger.log('getUsers: starting for ' + str.toString());
+		return this.usersService.getByLoginFiltred(str);
 	}
 	// @Post('getAnyByLogin')
 	// async getAnyByLogin(@Body() params: any) {

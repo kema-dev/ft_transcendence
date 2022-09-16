@@ -40,4 +40,4 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 	controllers: [],
 	providers: [AppGateway, MatchModule, MatchService],
 })
-export class AppModule {}
+export class AppModule { }

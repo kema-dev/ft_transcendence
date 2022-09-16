@@ -1,4 +1,4 @@
-export class BasicUserDto {
+export default class BasicUserDto {
 	// avatar: any;
 	// login: string;
 	// constructor(avatar: any, login: string) {

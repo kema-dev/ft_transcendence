@@ -42,7 +42,7 @@
 							<div v-if="checkDate(i)" class="date">
 								{{displayDate(message.date, i)}}
 							</div>
-							<MessageItem 
+							<MessageItem
 								:userAvatar="receiver.avatar"
 								:userLogin="message.user"
 								:message="message.msg"

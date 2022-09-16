@@ -1,15 +1,12 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import Field from './objects/Field';
-import Ball from './objects/Ball';
-import Wall from './objects/Wall';
-import Racket from './objects/Racket';
-import Vector from './objects/Vector';
+import Field from "./objects/Field";
+import Ball from "./objects/Ball";
+import Wall from "./objects/Wall";
+import Racket from "./objects/Racket";
 import { Logger } from '@nestjs/common';
 import { GameDto } from './dto/GameDto';
 import { BallDto } from './dto/BallDto';
 import { WallDto } from './dto/WallDto';
 import { RacketDto } from './dto/RacketDto';
-import ProfileDto from './dto/ProfileDto';
 import Profile from './objects/Profile';
 
 export default class Game {
@@ -27,13 +24,8 @@ export default class Game {
 	rackets: Racket[];
 	profiles: Profile[];
 	players: string[];
-	constructor(
-		nbrPlayer: number,
-		nbrBall: number,
-		private server: any,
-		players: string[],
-		lobby_name: string,
-	) {
+	avatars: string[];
+	constructor(nbrPlayer: number, nbrBall: number, private server: any, players: string[], lobby_name: string, avatars?: string[]) {
 		this.start = false;
 		this.lobby_name = lobby_name;
 		this.run = true;
@@ -46,6 +38,13 @@ export default class Game {
 		this.profiles = [];
 		this.players = players;
 		this.logger = new Logger();
+		if (avatars)
+			this.avatars = avatars;
+		else {
+			this.avatars = [];
+			for (let i = 0; i < this.nbrPlayer; ++i)
+				this.avatars.push('https://i.imgur.com/2QV7Kj5.png');
+		}
 		this.dto = new GameDto(nbrPlayer, nbrBall);
 		this.init();
 		this.setDto();
@@ -69,7 +68,7 @@ export default class Game {
 		this.walls.forEach((wall) => {
 			this.objects.push(wall);
 			if (wall.side) {
-				const tmp = new Profile(this.players[i], 10 - this.nbrPlayer, wall);
+				let tmp = new Profile(this.players[i], this.avatars[i], 10 - this.nbrPlayer, wall);
 				this.profiles.push(tmp);
 				wall.profile = tmp;
 				const tmp2 = wall.getRacket();
@@ -126,7 +125,16 @@ export default class Game {
 				return;
 			}
 	}
-	stop() {
+	getScores() {
+		let scores = [];
+		for (let p of this.profiles)
+			scores.push(p.score);
+		return scores;
+	}
+	isEnd() {
+		return !this.run;
+	}
+	destructor() {
 		this.run = false;
 	}
 	async loop() {

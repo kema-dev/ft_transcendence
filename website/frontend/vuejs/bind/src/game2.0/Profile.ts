@@ -94,7 +94,7 @@ export default class Profile {
 		});
 		const imageObj = new Image();
 		imageObj.onload = function () {
-			const yoda = new Konva.Image({
+			const img = new Konva.Image({
 				width: h,
 				height: w,
 				offsetX: h / 2,
@@ -104,9 +104,9 @@ export default class Profile {
 				image: imageObj,
 				rotation: 90,
 			});
-			pp.add(yoda);
+			pp.add(img);
 		};
 		this.konva.add(pp);
-		imageObj.src = require('../assets/avatars/(5).jpg');
+		imageObj.src = profile.avatar;
 	}
 }

@@ -1,6 +1,6 @@
 // import User from '@/chat/objects/User';
 import { MessageDto } from './MessageDto';
-import { BasicUserDto } from './BasicUserDto';
+import BasicUserDto from './BasicUserDto';
 
 export class ChannelDto {
 	name: string;

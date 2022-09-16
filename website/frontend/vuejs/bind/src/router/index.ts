@@ -18,7 +18,7 @@ import API from '../components/axios';
 import { useCookies } from 'vue3-cookies';
 import { useToast } from 'vue-toastification';
 
-const data = require('../../.env');
+const data = require('../../.env')
 
 document.title = 'pong.io';
 const { cookies } = useCookies();
@@ -100,7 +100,6 @@ const routes: Array<RouteRecordRaw> = [
 			},
 			{
 				name: 'player',
-				// path: '/home/player',
 				path: '/home/player/:name',
 				components: { menu: Player },
 			},

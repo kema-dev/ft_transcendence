@@ -19,8 +19,10 @@ import { BallDto } from './game2.0/dto/BallDto';
 import { NewPrivMsgDto } from './chat/dto/NewPrivMsgDto';
 import { MatchService } from './match/match.service';
 import { PrivConvDto } from './chat/dto/PrivConvDto';
-import { BasicUserDto } from './chat/dto/BasicUserDto';
 import { MessageDto } from './chat/dto/MessageDto';
+import ProfileUserDto from 'src/users/dto/ProfileUserDto';
+import ResumUserDto from 'src/users/dto/ResumUserDto';
+import BasicUserDto from 'src/chat/dto/BasicUserDto';
 
 @WebSocketGateway({
 	cors: {
@@ -38,30 +40,28 @@ export class AppGateway
 		private readonly chatService: ChatService,
 		private readonly userService: UsersService,
 		private readonly matchService: MatchService,
-	) {}
+	) { }
 
 	// =========================== GENERAL ==================================
 
 	// Connection
 	async handleConnection(@ConnectedSocket() client: Socket) {
-		const login = client.handshake.query.login as string;
-		this.logger.log(`Client '${login}' connected : ${client.id}`);
+		console.log(`Client connected : ${client.id}`);
+		console.log("query = ", client.handshake.query.login);
+		let login = client.handshake.query.login as string;
 		await this.userService.saveSocket(login, client.id);
 		// handleConnection(@ConnectedSocket() client: Socket, login: string) {
 		// console.log(`Client connected : ${client.id}, login = ${login}`);
 	}
 	// Disconnection
-	handleDisconnect(client: Socket) {
-		const login = client.handshake.query.login as string;
-		this.logger.log(`Client '${login}' disconnected: ${client.id}`);
-		if (this.game) this.game.stop();
+	async handleDisconnect(client: Socket) {
+		this.logger.log(`Client disconnected: ${client.id}`);
+		// console.log("query = ", client.handshake.query.login);
+		if (this.game)
+			this.game.destructor();
 		delete this.game;
 	}
 
-	@SubscribeMessage('connection')
-	saveSocket(@ConnectedSocket() client: Socket, ...args: any[]) {
-		console.log('debut saveSocket');
-	}
 	// ============================ GAME =====================================
 
 	@SubscribeMessage('getBallPos')
@@ -70,7 +70,7 @@ export class AppGateway
 		this.logger.log(`Message: ${payload}`);
 		return this.game.balls;
 	}
-	@SubscribeMessage('setMov')
+		@SubscribeMessage('setMov')
 	setMov(client: Socket, args: any): void {
 		this.game.setMov(args.mov, args.login);
 	}
@@ -80,7 +80,7 @@ export class AppGateway
 		// var game = new Game(payload.nbrPlayer, payload.nbrBall, this.server)
 		// );
 		if (this.game) {
-			this.game.stop();
+			this.game.destructor();
 			delete this.game;
 		}
 		const match_db = await this.matchService.create_match({
@@ -114,6 +114,56 @@ export class AppGateway
 	}
 	afterInit(server: Server) {
 		this.logger.log('Init');
+	}
+
+	// ============================ USER =====================================
+
+	@SubscribeMessage('userUpdate')
+	async userUpdate(client: Socket, payload: any): Promise<void> {
+		let user = await this.userService.getByLogin(payload.login, { requestFriend: true, friends: true });
+		this.server.emit('userUpdate', new ProfileUserDto(user));
+	}
+	@SubscribeMessage('getUserByLogin')
+	async getUserByLogin(client: Socket, payload: any): Promise<void> {
+		const user = await this.userService.getByLogin(payload.login);
+		client.emit("getUserByLogin", new ProfileUserDto(user));
+	}
+	@SubscribeMessage('addFriend')
+	addFriend(client: Socket, payload: any): void {
+		this.userService.sendFriendRequest(payload.sender, payload.receiver, this.server)
+	}
+	@SubscribeMessage('removeFriend')
+	removeFriend(client: Socket, payload: any): void {
+		this.userService.removeFriend(payload.sender, payload.receiver, this.server)
+	}
+	@SubscribeMessage('getByLoginFiltred')
+	async getByLoginFiltred(@MessageBody() data: string, @ConnectedSocket() client: Socket) {
+		const users = await this.userService.getByLoginFiltred(data);
+		let UsersDto: ResumUserDto[] = [];
+		for (let i = 0; i < users.length; i++) {
+			UsersDto.push(new ResumUserDto(users[i]));
+		}
+		console.log(UsersDto);
+		client.emit("getUsersByLoginFiltred", UsersDto);
+	}
+	@SubscribeMessage('acceptFriend')
+	acceptFriend(client: Socket, payload: any): void {
+		this.userService.addFriend(payload.sender, payload.receiver, this.server);
+	}
+	@SubscribeMessage('declineFriend')
+	declineFriend(client: Socket, payload: any): void {
+		this.userService.declineFriendRequest(payload.sender, payload.receiver, this.server);
+	}
+	@SubscribeMessage('changeAvatar')
+	changeAvatar(client: Socket, payload: any): void {
+		this.logger.log('change avatar');
+		this.userService.changeAvatar(payload.login, payload.avatar);
+	}
+
+
+	@SubscribeMessage('connection')
+	saveSocket(@ConnectedSocket() client: Socket, ...args: any[]) {
+		console.log('debut saveSocket');
 	}
 
 	// ============================ CHAT =====================================

@@ -13,8 +13,8 @@
 		</div>
 		<div class="mfa_input">
 			<button @click="get_totp_url">GET TOTP URL</button>
-			<input type="text" v-model="test_mail" placeholder="email"  />
-			<input type="text" v-model="test_code" placeholder="TOTP Code"  />
+			<input type="text" v-model="test_mail" placeholder="email" />
+			<input type="text" v-model="test_code" placeholder="TOTP Code" />
 			<button @click="verify">VERIFY TOTP</button>
 		</div>
 		<div class="debug">

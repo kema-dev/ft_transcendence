@@ -34,4 +34,4 @@ import { AuthenticationService } from '../authentication/authentication.service'
 	exports: [UsersService],
 	controllers: [UsersController],
 })
-export class UsersModule {}
+export class UsersModule { }

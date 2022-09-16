@@ -157,7 +157,7 @@ function register() {
 		.then((response) => {
 			console.log(response);
 			$cookies.set(response.data.key, response.data.value);
-			$cookies.set('login', response.data.login);
+			$cookies.set("login", response.data.login);
 			toast.success(
 				'Registration success, welcome ' + response.data.login + ' !',
 			);
@@ -199,7 +199,7 @@ async function auth() {
 		.then((response) => {
 			// console.log(response);
 			$cookies.set(response.data.key, response.data.value);
-			$cookies.set('login', response.data.login);
+			$cookies.set("login", response.data.login);
 			toast.success(
 				'Authentication success, welcome ' + response.data.login + ' !',
 			);

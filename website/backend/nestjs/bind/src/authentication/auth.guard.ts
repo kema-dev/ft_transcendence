@@ -9,7 +9,7 @@ export class AuthGuard implements CanActivate {
 	constructor(
 		private readonly authenticationService: AuthenticationService,
 		private readonly jwtService: JwtService,
-	) {}
+	) { }
 	canActivate(
 		context: ExecutionContext,
 	): boolean | Promise<boolean> | Observable<boolean> {

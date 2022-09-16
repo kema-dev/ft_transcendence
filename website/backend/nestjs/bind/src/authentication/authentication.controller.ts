@@ -17,7 +17,7 @@ import { AuthGuard } from './auth.guard';
 
 @Controller('auth')
 export class AuthenticationController {
-	constructor(private readonly authenticationService: AuthenticationService) {}
+	constructor(private readonly authenticationService: AuthenticationService) { }
 
 	@UseGuards(AuthGuard)
 	@Get('debug')
