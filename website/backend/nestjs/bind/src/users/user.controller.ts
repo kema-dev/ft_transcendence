@@ -22,11 +22,17 @@ export class UsersController {
 	private logger: Logger = new Logger('UsersController');
 	constructor(private readonly usersService: UsersService) { }
 
-	@UseGuards(AuthGuard)
+	// @UseGuards(AuthGuard)
 	@Get('getBasicUser/:login')
 	async getBasicUser(@Param() params: { login: string }) {
 		const user = await this.usersService.getByLogin(params.login);
 		return new BasicUserDto(user.login);
+	}
+
+	@Get('getEmail/:login')
+	async getEmail(@Param() params: { login: string }) {
+		const user = await this.usersService.getByLogin(params.login);
+		return user.email;
 	}
 
 	// @UseGuards(JwtAuthenticationGuard) FIXME
