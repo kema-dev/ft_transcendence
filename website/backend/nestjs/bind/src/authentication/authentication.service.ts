@@ -377,6 +377,45 @@ export class AuthenticationService {
 		return { url: url };
 	}
 
+	public async set_tmp_totp(name: string) {
+		console.log('set_tmp_totp: starting');
+		if (!name) {
+			console.error(
+				'set_tmp_totp: ' + 'no email / login provided, returning ✘',
+			);
+			throw new HttpException('E_NO_MAIL_PROVIDED', HttpStatus.BAD_REQUEST);
+		}
+		const user = await this.usersService.getByAny(name);
+		if (!user) {
+			console.error('set_tmp_totp: ' + 'email / login not found, returning ✘');
+			throw new HttpException('E_USER_NOT_FOUND', HttpStatus.BAD_REQUEST);
+		}
+		const secret = crypto.randomBytes(16).toString('hex').toUpperCase();
+		this.usersService.change_tmp_totp_code(user, secret);
+		let url = '';
+		await axios
+			.post('https://www.authenticatorapi.com/api.asmx/Pair', {
+				appName: 'pong.io',
+				appInfo: user.email,
+				secretCode: secret,
+			})
+			.then((response) => {
+				const elem = response.data.d.Html;
+				url = /chl=(.*?)["']/.exec(elem)[1];
+			})
+			.catch(() => {
+				console.error(
+					'set_tmp_totp: ' + "error with Google's TOTP API, returning ✘",
+				);
+				throw new HttpException(
+					'E_GOOGLE_API',
+					HttpStatus.INTERNAL_SERVER_ERROR,
+				);
+			});
+		console.log('set_tmp_totp: ' + 'code computed, returning ✔');
+		return { url: url };
+	}
+
 	public async verify_totp(request: TotpDto) {
 		console.log('verify_totp: starting for ' + request.name);
 		if (!request.name) {
@@ -403,6 +442,43 @@ export class AuthenticationService {
 			}
 		}
 		console.error('verify_totp: ' + 'code mismatch, returning ✘');
+		throw new HttpException(
+			'E_TOTP_MISMATCH',
+			HttpStatus.INTERNAL_SERVER_ERROR,
+		);
+	}
+
+	public async verify_tmp_totp(request: TotpDto) {
+		console.log('verify_tmp_totp: starting for ' + request.name);
+		if (!request.name) {
+			console.error(
+				'verify_tmp_totp: ' + 'no email / login provided, returning ✘',
+			);
+			throw new HttpException('E_NO_NAME', HttpStatus.BAD_REQUEST);
+		} else if (!request.code) {
+			console.error('verify_tmp_totp: ' + 'no code provided, returning ✘');
+			throw new HttpException('E_NO_TOTP_PROVIDED', HttpStatus.BAD_REQUEST);
+		}
+		try {
+			if (
+				(await this.check_tmp_totp_code(request.name, request.code)) === true
+			) {
+				console.log('verify_tmp_totp: ' + 'code match, returning ✔');
+				this.validate_totp(request.name);
+				return { success: true };
+			}
+		} catch (error) {
+			if (error.message === 'E_GOOGLE_API') {
+				console.error(
+					'verify_tmp_totp: ' + "error with Google's TOTP API, returning ✘",
+				);
+				throw new HttpException(
+					'E_GOOGLE_API',
+					HttpStatus.INTERNAL_SERVER_ERROR,
+				);
+			}
+		}
+		console.error('verify_tmp_totp: ' + 'code mismatch, returning ✘');
 		throw new HttpException(
 			'E_TOTP_MISMATCH',
 			HttpStatus.INTERNAL_SERVER_ERROR,
@@ -437,5 +513,47 @@ export class AuthenticationService {
 		}
 		console.log('check_totp_code: ' + 'code mismatch, returning ✘');
 		return false;
+	}
+
+	private async check_tmp_totp_code(name: string, code: string) {
+		console.log('check_tmp_totp_code: starting');
+		const usr = await this.usersService.getByAny(name);
+		let truth;
+		await axios
+			.post('https://www.authenticatorapi.com/api.asmx/ValidatePin', {
+				pin: code,
+				secretCode: usr.tmp_totp_code,
+			})
+			.then((response) => {
+				const elem = response.data.d;
+				truth = /true/.exec(elem) !== null;
+			})
+			.catch((error) => {
+				console.error(
+					'check_tmp_totp_code: ' +
+						'unexpected error : ' +
+						error +
+						', returning ✘',
+				);
+				throw new HttpException(
+					'E_GOOGLE_API',
+					HttpStatus.INTERNAL_SERVER_ERROR,
+				);
+			});
+		if (truth === true) {
+			console.log('check_tmp_totp_code: ' + 'code match, returning ✔');
+			return true;
+		}
+		console.log('check_tmp_totp_code: ' + 'code mismatch, returning ✘');
+		return false;
+	}
+
+	public async validate_totp(name: string) {
+		console.log('validate_totp: starting');
+		const usr = await this.usersService.getByAny(name);
+		usr.totp_code = usr.tmp_totp_code;
+		usr.tmp_totp_code = null;
+		await this.usersService.validate_totp(usr.login);
+		console.log('validate_totp: ' + 'totp validated, returning ✔');
 	}
 }

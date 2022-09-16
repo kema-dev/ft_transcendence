@@ -39,10 +39,7 @@ let email = ref('');
 let code = ref('');
 
 function get_totp_url() {
-	document.getElementById('qrcode').style.height = '20vh';
-	document.getElementById('qr_img').style.filter = 'opacity(1)';
-	document.getElementById('qr_text').style.filter = 'opacity(1)';
-	API.post('auth/set_totp', {
+	API.post('auth/set_tmp_totp', {
 		email: email.value,
 	})
 		.then((response) => {
@@ -68,13 +65,15 @@ function debug() {
 
 function verify() {
 	console.log(email.value, code.value);
-	API.post('auth/verify_totp', {
+	API.post('auth/verify_tmp_totp', {
 		name: email.value,
 		code: code.value,
 	})
 		.then((response) => {
 			console.log(response);
-			toast.success('TOTP Verified ! You can now login with your email and TOTP code');
+			toast.success(
+				'TOTP Verified ! You can now login with your email and TOTP code',
+			);
 		})
 		.catch((error) => {
 			console.error(error);
@@ -88,15 +87,18 @@ async function get_infos() {
 			login: $cookies.get('login'),
 		},
 	})
-	.then((response) => {
-		email.value = response.data;
-	})
-	.catch((error) => {
-		console.error(error);
-	});
+		.then((response) => {
+			email.value = response.data;
+		})
+		.catch((error) => {
+			console.error(error);
+		});
 }
 
 onMounted(() => {
+	document.getElementById('qrcode').style.height = '20vh';
+	document.getElementById('qr_img').style.filter = 'opacity(1)';
+	document.getElementById('qr_text').style.filter = 'opacity(1)';
 	get_infos();
 });
 </script>

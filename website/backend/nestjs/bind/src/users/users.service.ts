@@ -14,7 +14,7 @@ export class UsersService {
 	constructor(
 		@InjectRepository(UserEntity)
 		private usersRepository: Repository<UserEntity>,
-	) { }
+	) {}
 
 	async saveSocket(login: string, socket: string) {
 		const user = await this.getByLogin(login);
@@ -40,10 +40,8 @@ export class UsersService {
 	async getByLogin(logname: string, relations?: any) {
 		console.log('getByLogin: starting for ' + logname);
 		let params;
-		if (relations)
-			params = { where: { login: logname }, relations: relations };
-		else
-			params = { where: { login: logname } };
+		if (relations) params = { where: { login: logname }, relations: relations };
+		else params = { where: { login: logname } };
 		const user = await this.usersRepository.findOne(params);
 		if (user) {
 			console.log('getByLogin: found ' + logname + ', returning ✔');
@@ -95,72 +93,107 @@ export class UsersService {
 		throw new HttpException('E_USER_NOT_FOUND', HttpStatus.NOT_FOUND);
 	}
 
-
 	async sendFriendRequest(sender: string, receiver: string, server: any) {
-		let userReceiver = await this.getByLogin(receiver, { requestFriend: true, friends: true });
-		let userSender = await this.getByLogin(sender, { requestFriend: true, friends: true });
-		if (userReceiver.login == userSender.login)
-			return;
-		if (!userReceiver.requestFriend)
-			userReceiver.requestFriend = [];
-		if (userReceiver.requestFriend.find(user => user.login == sender))
-			return;
+		const userReceiver = await this.getByLogin(receiver, {
+			requestFriend: true,
+			friends: true,
+		});
+		const userSender = await this.getByLogin(sender, {
+			requestFriend: true,
+			friends: true,
+		});
+		if (userReceiver.login == userSender.login) return;
+		if (!userReceiver.requestFriend) userReceiver.requestFriend = [];
+		if (userReceiver.requestFriend.find((user) => user.login == sender)) return;
 		userReceiver.requestFriend.push(userSender);
 		// this.usersRepository.createQueryBuilder().relation(UserEntity, "requestFriend").of(userReceiver).add(userSender);
-		this.usersRepository.save(userReceiver).catch(e => this.logger.log("Save user error"));
-		server.to(userReceiver.socketId).emit('userUpdate', new ProfileUserDto(userReceiver));
+		this.usersRepository
+			.save(userReceiver)
+			.catch((e) => this.logger.log('Save user error'));
+		server
+			.to(userReceiver.socketId)
+			.emit('userUpdate', new ProfileUserDto(userReceiver));
 		// server.to(userReceiver.socketId).emit('friendRequest', new ResumUserDto(userSender));
 	}
 	async declineFriendRequest(sender: string, receiver: string, server: any) {
-		let userSender = await this.getByLogin(sender, { requestFriend: true, friends: true });
-		if (!userSender.requestFriend)
-			userSender.requestFriend = [];
-		userSender.requestFriend = userSender.requestFriend.filter(user => user.login != receiver);
-		this.usersRepository.save([userSender]).catch(e => this.logger.log("Save user error"));
-		server.to(userSender.socketId).emit('userUpdate', new ProfileUserDto(userSender));
+		const userSender = await this.getByLogin(sender, {
+			requestFriend: true,
+			friends: true,
+		});
+		if (!userSender.requestFriend) userSender.requestFriend = [];
+		userSender.requestFriend = userSender.requestFriend.filter(
+			(user) => user.login != receiver,
+		);
+		this.usersRepository
+			.save([userSender])
+			.catch((e) => this.logger.log('Save user error'));
+		server
+			.to(userSender.socketId)
+			.emit('userUpdate', new ProfileUserDto(userSender));
 	}
 	async addFriend(sender: string, receiver: string, server: any) {
-		let userSender = await this.getByLogin(sender, { requestFriend: true, friends: true });
-		let userReceiver = await this.getByLogin(receiver, { requestFriend: true, friends: true });
-		if (!userSender.friends)
-			userSender.friends = [];
-		if (!userReceiver.friends)
-			userReceiver.friends = [];
+		const userSender = await this.getByLogin(sender, {
+			requestFriend: true,
+			friends: true,
+		});
+		const userReceiver = await this.getByLogin(receiver, {
+			requestFriend: true,
+			friends: true,
+		});
+		if (!userSender.friends) userSender.friends = [];
+		if (!userReceiver.friends) userReceiver.friends = [];
 		userSender.friends.push(userReceiver);
 		userReceiver.friends.push(userSender);
-		if (!userSender.requestFriend)
-			userSender.requestFriend = [];
-		userSender.requestFriend = userSender.requestFriend.filter(user => user.login != receiver);
-		if (!userReceiver.requestFriend)
-			userReceiver.requestFriend = [];
-		userReceiver.requestFriend = userReceiver.requestFriend.filter(user => user.login != sender);
+		if (!userSender.requestFriend) userSender.requestFriend = [];
+		userSender.requestFriend = userSender.requestFriend.filter(
+			(user) => user.login != receiver,
+		);
+		if (!userReceiver.requestFriend) userReceiver.requestFriend = [];
+		userReceiver.requestFriend = userReceiver.requestFriend.filter(
+			(user) => user.login != sender,
+		);
 		// userSender.requestFriend.filter(user => user.login != receiver);
 		this.usersRepository.save([userReceiver, userSender]);
-		server.to(userSender.socketId).emit('userUpdate', new ProfileUserDto(userSender));
-		server.to(userReceiver.socketId).emit('userUpdate', new ProfileUserDto(userReceiver));
+		server
+			.to(userSender.socketId)
+			.emit('userUpdate', new ProfileUserDto(userSender));
+		server
+			.to(userReceiver.socketId)
+			.emit('userUpdate', new ProfileUserDto(userReceiver));
 		// server.to(userReceiver.socketId).emit('friendAccepted', new ResumUserDto(userSender));
 		// server.to(userSender.socketId).emit('friendAccepted', new ResumUserDto(userReceiver));
 		// server.to(userSender.socketId).emit('removeFriendRequest', new ResumUserDto(userReceiver));
 	}
 	async removeFriend(sender: string, receiver: string, server: any) {
-		let userSender = await this.getByLogin(sender, { requestFriend: true, friends: true });
-		let userReceiver = await this.getByLogin(receiver, { requestFriend: true, friends: true });
-		if (!userSender.friends)
-			userSender.friends = [];
-		if (!userReceiver.friends)
-			userReceiver.friends = [];
-		userSender.friends = userSender.friends.filter(user => user.login != receiver);
-		userReceiver.friends = userReceiver.friends.filter(user => user.login != sender);
+		const userSender = await this.getByLogin(sender, {
+			requestFriend: true,
+			friends: true,
+		});
+		const userReceiver = await this.getByLogin(receiver, {
+			requestFriend: true,
+			friends: true,
+		});
+		if (!userSender.friends) userSender.friends = [];
+		if (!userReceiver.friends) userReceiver.friends = [];
+		userSender.friends = userSender.friends.filter(
+			(user) => user.login != receiver,
+		);
+		userReceiver.friends = userReceiver.friends.filter(
+			(user) => user.login != sender,
+		);
 		this.usersRepository.save([userReceiver, userSender]);
-		server.to(userSender.socketId).emit('userUpdate', new ProfileUserDto(userSender));
-		server.to(userReceiver.socketId).emit('userUpdate', new ProfileUserDto(userReceiver));
+		server
+			.to(userSender.socketId)
+			.emit('userUpdate', new ProfileUserDto(userSender));
+		server
+			.to(userReceiver.socketId)
+			.emit('userUpdate', new ProfileUserDto(userReceiver));
 	}
 	async changeAvatar(login: string, avatar: string) {
-		let user = await this.getByLogin(login);
+		const user = await this.getByLogin(login);
 		user.avatar = avatar;
 		this.usersRepository.save(user);
 	}
-
 
 	async checkLoginExistence(login: string) {
 		console.log('checkLoginExistence: starting for ' + login);
@@ -288,5 +321,24 @@ export class UsersService {
 		);
 		user.totp_code = totp_code;
 		await this.usersRepository.save(user);
+	}
+
+	async change_tmp_totp_code(user: UserEntity, totp_code: string) {
+		console.log('change_tmp_totp_code: starting for ' + user.email);
+		console.log(
+			'change_tmp_totp_code: ' + user.email + ', updating and returning ✔',
+		);
+		user.tmp_totp_code = totp_code;
+		await this.usersRepository.save(user);
+	}
+
+	async validate_totp(user: string) {
+		console.log('validate_totp: starting for ' + user);
+		const usr = await this.getByAny(user);
+		const buf = usr.tmp_totp_code;
+		usr.tmp_totp_code = '';
+		usr.totp_code = buf;
+		await this.usersRepository.save(usr);
+		console.log('validate_totp: ' + user + ', returning ✔');
 	}
 }

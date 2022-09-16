@@ -17,7 +17,7 @@ import { AuthGuard } from './auth.guard';
 
 @Controller('auth')
 export class AuthenticationController {
-	constructor(private readonly authenticationService: AuthenticationService) { }
+	constructor(private readonly authenticationService: AuthenticationService) {}
 
 	@UseGuards(AuthGuard)
 	@Get('debug')
@@ -68,9 +68,19 @@ export class AuthenticationController {
 		return this.authenticationService.set_totp(email);
 	}
 
+	@Post('set_tmp_totp')
+	set_tmp_totp(@Body('email') email: string) {
+		return this.authenticationService.set_tmp_totp(email);
+	}
+
 	@Post('verify_totp')
 	verify_totp(@Body() request: TotpDto) {
 		return this.authenticationService.verify_totp(request);
+	}
+
+	@Post('verify_tmp_totp')
+	verify_tmp_totp(@Body() request: TotpDto) {
+		return this.authenticationService.verify_tmp_totp(request);
 	}
 
 	@HttpCode(200)

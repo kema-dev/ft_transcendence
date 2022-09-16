@@ -89,6 +89,9 @@ export class UserEntity extends TimestampEntites {
 	@Column()
 	public totp_code: string;
 
+	@Column()
+	public tmp_totp_code: string;
+
 	@Column({ nullable: true })
 	public session_token: string;
 
