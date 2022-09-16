@@ -44,16 +44,16 @@ console.log(`I am '${me}'`);
 let socket = io(FQDN + ':3000', { query: { login: me } });
 provide('socket', socket);
 
-function post(url: string, args: any, fct: any) {
-	let data;
-	axios
-		.post(FQDN + ":3000/api/v1/" + url, args)
-		.then(fct)
-		.catch((error) => {
-			console.log(url + ": failed request.\nargs: " + args);
-			console.log(error);
-		});
-}
+// function post(url: string, args: any, fct: any) {
+// 	let data;
+// 	axios
+// 		.post(FQDN + ":3000/api/v1/" + url, args)
+// 		.then(fct)
+// 		.catch((error) => {
+// 			console.log(url + ": failed request.\nargs: " + args);
+// 			console.log(error);
+// 		});
+// }
 let userRef = ref();
 // post('user/getUser', {login: me}, (data: any) => {
 // 	userRef.value = data.data;

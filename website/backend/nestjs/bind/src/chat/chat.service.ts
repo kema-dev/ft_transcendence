@@ -8,7 +8,7 @@ import { ChannelEntity } from './entites/channel.entity';
 import { UserEntity } from '../users/user.entity';
 import { UsersService } from '../users/users.service';
 import { NewPrivMsgDto } from './dto/NewPrivMsgDto';
-import { BasicUserDto } from './dto/BasicUserDto';
+import BasicUserDto from './dto/BasicUserDto';
 import { MessageDto } from './dto/MessageDto';
 import { PrivConvDto } from './dto/PrivConvDto';
 import { HttpService } from '@nestjs/axios';

@@ -7,7 +7,6 @@ import { GameDto } from './dto/GameDto';
 import { BallDto } from './dto/BallDto';
 import { WallDto } from './dto/WallDto';
 import { RacketDto } from './dto/RacketDto';
-import ProfileDto from './dto/ProfileDto';
 import Profile from './objects/Profile';
 
 export default class Game {
@@ -26,7 +25,7 @@ export default class Game {
 	profiles: Profile[];
 	players: string[];
 	avatars: string[];
-	constructor(nbrPlayer: number, nbrBall: number, private server: any, players: string[], avatars?: string[]) {
+	constructor(nbrPlayer: number, nbrBall: number, private server: any, players: string[], lobby_name: string, avatars?: string[]) {
 		this.start = false;
 		this.lobby_name = lobby_name;
 		this.run = true;

@@ -1,5 +1,5 @@
 import { MessageDto } from './MessageDto';
-import { BasicUserDto } from './BasicUserDto';
+import BasicUserDto from './BasicUserDto';
 
 export class PrivConvDto {
 	user: BasicUserDto;

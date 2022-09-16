@@ -10,7 +10,6 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '../authentication/auth.guard';
 import { ChatService } from './chat.service';
-import { BasicUserDto } from './dto/BasicUserDto';
 
 @Controller('chat')
 export class ChatController {

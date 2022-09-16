@@ -12,13 +12,10 @@ import {
 	Logger,
 } from '@nestjs/common';
 import { AuthGuard } from '../authentication/auth.guard';
-import { get } from 'http';
 import ProfileUserDto from 'src/users/dto/ProfileUserDto';
-import ResumUserDto from 'src/users/dto/ResumUserDto';
-import BasicUserDto from '../chat/dto/BasicUserDto';
-import UserDto from './dto/user.dto';
 
 import { UsersService } from './users.service';
+import BasicUserDto from 'src/chat/dto/BasicUserDto';
 
 @Controller('user')
 export class UsersController {
