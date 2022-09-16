@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { AuthenticationService } from './authentication.service';
@@ -13,12 +14,9 @@ export class AuthGuard implements CanActivate {
 		context: ExecutionContext,
 	): boolean | Promise<boolean> | Observable<boolean> {
 		console.log('AuthGuard: Starting');
-		const request = context.switchToHttp().getRequest();
-		console.log(
-			'AuthGuard: decoded:',
-			this.jwtService.decode(request.headers.token),
-		);
-		const check = this.jwtService.verify(request.headers.token);
+		const cookies = context.switchToHttp().getRequest().cookies;
+		console.log('AuthGuard: decoded:', this.jwtService.decode(cookies.session));
+		const check = this.jwtService.verify(cookies.session);
 		console.log('AuthGuard: Returning:', check);
 		return check;
 	}

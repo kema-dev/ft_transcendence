@@ -1,8 +1,8 @@
-import { createApp } from 'vue'
-import App from './App.vue'
-import router from './router'
-import Toast, { PluginOptions } from "vue-toastification";
-import "vue-toastification/dist/index.css";
+import { createApp } from 'vue';
+import App from './App.vue';
+import router from './router';
+import Toast, { PluginOptions } from 'vue-toastification';
+import 'vue-toastification/dist/index.css';
 import VueCookies from 'vue-cookies';
 
 const toast_options: PluginOptions = {
@@ -15,8 +15,18 @@ const toast_options: PluginOptions = {
 	showCloseButtonOnHover: false,
 	hideProgressBar: true,
 	closeButton: false,
-	icon: "fas fa-rocket",
-	rtl: false
+	icon: 'fas fa-rocket',
+	rtl: false,
 };
 
-createApp(App).use(router).use(Toast, toast_options).use(VueCookies, { expires: '1d', path: '/', domain: '', secure: '', sameSite: 'Lax' }).mount('#app')
+createApp(App)
+	.use(router)
+	.use(Toast, toast_options)
+	.use(VueCookies, {
+		expires: '1d',
+		path: '/',
+		domain: '',
+		secure: '',
+		sameSite: 'Lax',
+	})
+	.mount('#app');

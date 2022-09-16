@@ -41,7 +41,7 @@ let score = (props.points1 / total) * 100;
 	text-overflow: ellipsis;
 }
 .bar {
-	background-color: v-bind("define.color0");
+	background-color: v-bind('define.color0');
 	border-radius: 10px;
 	height: 20px;
 	width: 100%;
@@ -50,7 +50,7 @@ let score = (props.points1 / total) * 100;
 	position: absolute;
 	top: 0;
 	left: 0;
-	background-color: v-bind("define.color2");
+	background-color: v-bind('define.color2');
 	border-top-left-radius: 10px;
 	box-shadow: 0px 1px 3px #333;
 	border-bottom-left-radius: 10px;

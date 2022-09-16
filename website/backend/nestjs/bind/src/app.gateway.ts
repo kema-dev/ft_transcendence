@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
 	SubscribeMessage,
 	WebSocketGateway,
@@ -15,21 +16,22 @@ import Game from './game2.0/Game';
 import { ChatService } from './chat/chat.service';
 import { UsersService } from './users/users.service';
 import { BallDto } from './game2.0/dto/BallDto';
-import { NewPrivMsgDto } from "./chat/dto/NewPrivMsgDto";
-import { PrivConv } from './chat/dto/PrivConv';
-import BasicUser from './chat/dto/BasicUser';
-import { Message } from './chat/dto/PrivateConvDto';
-// import { PrivMsgDto as NewPrivMsgDto } from '../../../../shared/dto/PrivMsgDto';
-import UserDto from 'src/users/dto/user.dto';
-import ResumUserDto from 'src/users/dto/ResumUserDto';
+import { NewPrivMsgDto } from './chat/dto/NewPrivMsgDto';
+import { MatchService } from './match/match.service';
+import { PrivConvDto } from './chat/dto/PrivConvDto';
+import { MessageDto } from './chat/dto/MessageDto';
 import ProfileUserDto from 'src/users/dto/ProfileUserDto';
+import ResumUserDto from 'src/users/dto/ResumUserDto';
+import BasicUserDto from 'src/chat/dto/BasicUserDto';
 
 @WebSocketGateway({
 	cors: {
 		origin: '*',
 	},
 })
-export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+export class AppGateway
+	implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+{
 	@WebSocketServer() server: Server;
 	game: Game;
 	private logger: Logger = new Logger('AppGateway');
@@ -37,6 +39,7 @@ export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGateway
 	constructor(
 		private readonly chatService: ChatService,
 		private readonly userService: UsersService,
+		private readonly matchService: MatchService,
 	) { }
 
 	// =========================== GENERAL ==================================
@@ -51,17 +54,12 @@ export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGateway
 		// console.log(`Client connected : ${client.id}, login = ${login}`);
 	}
 	// Disconnection
-	handleDisconnect(client: Socket) {
+	async handleDisconnect(client: Socket) {
 		this.logger.log(`Client disconnected: ${client.id}`);
 		// console.log("query = ", client.handshake.query.login);
 		if (this.game)
 			this.game.destructor();
 		delete this.game;
-	}
-
-	@SubscribeMessage('connection')
-	saveSocket(@ConnectedSocket() client: Socket, ...args: any[]) {
-		console.log("debut saveSocket");
 	}
 
 	// ============================ GAME =====================================
@@ -72,17 +70,35 @@ export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGateway
 		this.logger.log(`Message: ${payload}`);
 		return this.game.balls;
 	}
-	@SubscribeMessage('setMov')
+		@SubscribeMessage('setMov')
 	setMov(client: Socket, args: any): void {
 		this.game.setMov(args.mov, args.login);
 	}
 	@SubscribeMessage('newRoom')
-	newRoom(client: Socket, payload: any): void {
+	async newRoom(client: Socket, payload: any): Promise<void> {
 		// this.gameService.games.push(
 		// var game = new Game(payload.nbrPlayer, payload.nbrBall, this.server)
 		// );
-		if (!this.game)
-			this.game = new Game(4, 3, this.server, ['tdayde', 'oc8', 'zeus', 'Jj']);
+		if (this.game) {
+			this.game.destructor();
+			delete this.game;
+		}
+		const match_db = await this.matchService.create_match({
+			nbrPlayer: payload.nbrPlayer,
+			nbrBall: payload.nbrBall,
+			players: payload.players,
+			start: false,
+			lobby_name: payload.lobby_name,
+			open: true,
+			owner: payload.owner,
+		});
+		this.game = new Game(
+			match_db.nbrPlayer,
+			match_db.nbrBall,
+			this.server,
+			match_db.players,
+			payload.lobby_name,
+		);
 	}
 	@SubscribeMessage('start')
 	start(client: Socket, payload: any): void {
@@ -90,7 +106,9 @@ export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGateway
 		// var game = new Game(payload.nbrPlayer, payload.nbrBall, this.server)
 		// );
 		if (this.game) {
-			console.log("startback")
+			console.log('Game: Starting');
+			this.matchService.start_match(payload.lobby_name);
+			console.log(payload);
 			this.game.start = true;
 		}
 	}
@@ -143,72 +161,108 @@ export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGateway
 	}
 
 
+	@SubscribeMessage('connection')
+	saveSocket(@ConnectedSocket() client: Socket, ...args: any[]) {
+		console.log('debut saveSocket');
+	}
+
 	// ============================ CHAT =====================================
 
 	// @SubscribeMessage('message')
-	// handleMessage(@MessageBody() data:string, @ConnectedSocket() client: Socket) {
-	//   console.log(`Client message : ${data}`, )
-	//   this.server.emit('message', client.id, data);
+	// handleMessage(
+	// 	@MessageBody() data: string,
+	// 	@ConnectedSocket() client: Socket,
+	// ) {
+	// 	console.log(`Client message : ${data}`);
+	// 	this.server.emit('message', client.id, data);
 	// }
 
-	// @SubscribeMessage("getMsgs")
-	// async getMsgs(@ConnectedSocket() client: Socket)  {
-	//   this.chatService.getMessages().then(res => {
-	//     console.log(res);
-	//     client.emit("getMsgs", res);
-	//   })
+	// @SubscribeMessage('getMsgs')
+	// async getMsgs(@ConnectedSocket() client: Socket) {
+	// 	this.chatService.getMessages().then((res) => {
+	// 		console.log(res);
+	// 		client.emit('getMsgs', res);
+	// 	});
 	// }
 
-	// @SubscribeMessage("getPrivConvs")
-	// async getPrivConvs(@ConnectedSocket() client: Socket)  {
-	//   this.chatService.getPrivConvs().then(res => {
-	//     console.log(res);
-	//     client.emit("getMsgs", res);
-	//   })
+	// @SubscribeMessage('getPrivConvs')
+	// async getPrivConvs(@ConnectedSocket() client: Socket) {
+	// 	this.chatService.getPrivConvs().then((res) => {
+	// 		console.log(res);
+	// 		client.emit('getMsgs', res);
+	// 	});
 	// }
 
 	@SubscribeMessage('newPrivMsg')
-	async NewPrivMsg(@MessageBody() data: NewPrivMsgDto, @ConnectedSocket() client: Socket) {
+	async NewPrivMsg(
+		@MessageBody() data: NewPrivMsgDto,
+		@ConnectedSocket() client: Socket,
+	) {
 		// console.log(`controller newPrivMsg:  userSend = ${data.userSend}, userReceive = ${data.userReceive}`)
 		const priv = await this.chatService.addPrivMsg(data);
 		// console.log("ici");
-		const sendSocketId = (await this.userService.getByLogin(data.userSend)).socketId;
-		const receiveSocketId = (await this.userService.getByLogin(data.userReceive)).socketId;
-		const msg = new Message(data.userSend, data.message, new Date(data.date));
+		const sendSocketId = (await this.userService.getByLogin(data.userSend))
+			.socketId;
+		const receiveSocketId = (
+			await this.userService.getByLogin(data.userReceive)
+		).socketId;
+		const msg = new MessageDto(
+			data.userSend,
+			data.message,
+			new Date(data.date),
+		);
 		// console.log(`sendId = ${sendSocketId}\nreceiveId = ${receiveSocketId}`);
 		if (priv.messages.length == 1) {
-			const userSend = new BasicUser(data.userSend);
-			const userReceive = new BasicUser(data.userReceive);
-			const newPrivSenderDto = new PrivConv(userSend, [msg], false, priv.id);
-			const newPrivReceiverDto = new PrivConv(userReceive, [msg], false, priv.id);
-			this.server.to(receiveSocketId).emit("newPrivConv", newPrivSenderDto);
-			this.server.to(sendSocketId).emit("newPrivConv", newPrivReceiverDto);
-		}
-		else {
-			this.server.to(receiveSocketId).emit("newPrivMsg", { msg: msg, id: priv.id });
-			this.server.to(sendSocketId).emit("newPrivMsg", { msg: msg, id: priv.id });
+			const userSend = new BasicUserDto(data.userSend);
+			const userReceive = new BasicUserDto(data.userReceive);
+			const newPrivSenderDto = new PrivConvDto(userSend, [msg], false, priv.id);
+			const newPrivReceiverDto = new PrivConvDto(
+				userReceive,
+				[msg],
+				false,
+				priv.id,
+			);
+			this.server.to(receiveSocketId).emit('newPrivConv', newPrivSenderDto);
+			this.server.to(sendSocketId).emit('newPrivConv', newPrivReceiverDto);
+		} else {
+			this.server
+				.to(receiveSocketId)
+				.emit('newPrivMsg', { msg: msg, id: priv.id });
+			this.server
+				.to(sendSocketId)
+				.emit('newPrivMsg', { msg: msg, id: priv.id });
 			// console.log(`newPrivMsg '${data.message}' emited`)
 		}
 	}
 
-	@SubscribeMessage("getUsersByLoginFiltred")
-	async getUserFiltred(@MessageBody() data: { filter: string, login: string }, @ConnectedSocket() client: Socket) {
+	@SubscribeMessage('getUsersByLoginFiltred')
+	async getUserFiltred(
+		@MessageBody() data: { filter: string; login: string },
+		@ConnectedSocket() client: Socket,
+	) {
 		const users = await this.userService.getByLoginFiltred(data.filter);
-		let basicInfos: { login: string }[] = [];
+		const basicInfos: { login: string }[] = [];
 		for (let i = 0; i < users.length; i++) {
 			if (data.login != users[i].login)
 				basicInfos.push({ login: users[i].login });
 		}
-		client.emit("getUsersByLoginFiltred", basicInfos);
+		client.emit('getUsersByLoginFiltred', basicInfos);
 	}
 
-	@SubscribeMessage("privReaded")
-	async privReaded(@MessageBody() data: { userSend: string, userReceive: string }, @ConnectedSocket() client: Socket) {
-		console.log(`privReaded AppGateway , socketid = ${client.id}`);
+	@SubscribeMessage('privReaded')
+	async privReaded(
+		@MessageBody() data: { userSend: string; userReceive: string },
+		@ConnectedSocket() client: Socket,
+	) {
+		console.log(
+			`privReaded AppGateway , sender = ${data.userSend}, receiver = ${data.userReceive}`,
+		);
 		// console.log(`userSend = ${data.userSend}, userReceive = ${data.userReceive}`);
-		let priv = await this.chatService.getPrivMsg(data.userSend, data.userReceive);
-		if (!priv)
-			return console.log(`Error privReaded`);
-		return await this.chatService.markPrivReaded(priv);
+		const priv = await this.chatService.getPriv([
+			data.userSend,
+			data.userReceive,
+		]);
+		if (!priv) return console.log(`Error privReaded`);
+		await this.chatService.markPrivReaded(priv);
 	}
 }

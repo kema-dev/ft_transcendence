@@ -36,19 +36,28 @@
 			</div>
 		</div>
 		<div v-if="!info" class="conversation_content stack">
-			<div id="messages_cont" class="messages">
-				<MessageItem
-					v-for="(message, i) in conv.messages"
-					:key="i"
-					:message="message"
-				/>
+			<div id="messages_cont" ref="msgsCont" class="messages">
+				<!-- <div v-if="chanDone && selectPriv()">
+						<div v-for="(message, i) in selectPriv()!.messages" :key="i" class="center column">
+							<div v-if="checkDate(i)" class="date">
+								{{displayDate(message.date, i)}}
+							</div>
+							<MessageItem
+								:userAvatar="receiver.avatar"
+								:userLogin="message.user"
+								:message="message.msg"
+								:date="message.date"
+							/>
+						</div>
+					</div> -->
 			</div>
 			<div class="sendbox_cont">
 				<input
+					v-model="myMsg"
+					@keydown.enter="sendMsg()"
 					type="text"
 					placeholder="Aa..."
 					id="sendbox"
-					v-model="myMsg"
 					class="sendbox"
 				/>
 			</div>
@@ -136,89 +145,62 @@
 
 <script setup lang="ts">
 /* eslint @typescript-eslint/no-var-requires: "off" */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { inject, onMounted, ref, onBeforeUnmount, watch } from "vue";
 import { useRoute } from "vue-router";
+import { Socket } from "socket.io-client";
 import MessageItem from "@/chat/MessageItem.vue";
-import Private from "@/chat/objects/PrivConv";
-import User from "@/chat/objects/User";
-import Message from "@/chat/objects/Message";
 import BlockAdvert from "@/components/BlockItem.vue";
+import { Message } from "@/chat/dto/MessageDto";
+import { NewChanMsgDto } from "@/chat/dto/NewChanMsgDto";
 
 const route = useRoute();
-let define = inject("colors");
-let me: User = inject("me")!;
+let chanName = route.params.conv_name as string;
+let colors = inject("colors");
+let mySocket: Socket = inject("socket")!;
+let me: string = inject("me")!;
 let myMsg = ref("");
 let info = ref(false);
 let password = ref("");
 let showSettings = ref(false);
 
-let user1 = new User("Totolosa", require("@/assets/avatars/(1).jpg"));
-let user2 = new User("Ocean", require("@/assets/avatars/(2).jpg"));
-let user3 = new User("Patrick la trick", require("@/assets/avatars/(3).jpg"));
+// let user1 = new User("Totolosa", require("@/assets/avatars/(1).jpg"));
+// let user2 = new User("Ocean", require("@/assets/avatars/(2).jpg"));
+// let user3 = new User("Patrick la trick", require("@/assets/avatars/(3).jpg"));
 
-let msg1 = new Message(
-	user1,
-	"Salut frere ce fait graaaaave longtemps ca fais plaisr! Tu deviens quoi l'ami?",
-	new Date("July 17, 2022 03:24:00")
-);
-let msg2 = new Message(user2, "Salut poto", new Date("July 22, 2022 03:25:12"));
-let msg3 = new Message(user1, "Game?", new Date("July 18, 2022 12:45:45"));
-let msg4 = new Message(
-	user3,
-	"Non je dois finir de faire le front, et wallah c'est chaud",
-	new Date("July 18, 2022 12:47:55")
-);
-let msg5 = new Message(
-	user1,
-	"dsaibciauwncopneejvnjn fcoamsdomvcafosnvonsvonoans",
-	new Date()
-);
-let msg6 = new Message(user2, "Mais tu sais pas parler en fait", new Date());
+// let msg1 = new Message(user1, "Salut frere ce fait graaaaave longtemps ca fais plaisr! Tu deviens quoi l'ami?", new Date('July 17, 2022 03:24:00'));
+// let msg2 = new Message(user2, "Salut poto", new Date('July 22, 2022 03:25:12'));
+// let msg3 = new Message(user1, "Game?", new Date('July 18, 2022 12:45:45'));
+// let msg4 = new Message(user3, "Non je dois finir de faire le front, et wallah c'est chaud", new Date('July 18, 2022 12:47:55'));
+// let msg5 = new Message(user1, "dsaibciauwncopneejvnjn fcoamsdomvcafosnvonsvonoans", new Date());
+// let msg6 = new Message(user2, "Mais tu sais pas parler en fait", new Date());
 
-let conv = ref(new Private(user2, [msg1, msg2, msg3, msg5, msg6]));
-// let conv2 = new Conversation(false, [user1, user2, user3], [msg1, msg2]);
+// let conv = ref(new Private(user2, [msg1, msg2, msg3, msg5, msg6]));
+// // let conv2 = new Conversation(false, [user1, user2, user3], [msg1, msg2]);
 
-function blockUser() {
-	let advert = document.getElementById("blockAdvert_view");
-	if (advert != null) {
-		advert.style.setProperty("visibility", "visible");
-	}
+function sendMsg() {
+	mySocket.emit("newPrivMsg", new NewChanMsgDto(me, chanName, myMsg.value));
+	myMsg.value = "";
 }
 
-watch(
-	conv.value.messages,
-	(newMsg) => {
-		let msgs = document.getElementById("messages_cont");
-		msgs!.scrollTop = msgs!.scrollHeight;
-	},
-	{ flush: "post" }
-);
+// function blockUser () {
+// 	let advert = document.getElementById("blockAdvert_view");
+// 	if (advert != null) {
+// 		advert.style.setProperty('visibility', 'visible');
+// 	}
+// }
 
 onMounted(() => {
+	// ((msgsCont.value!) as HTMLElement).scrollTop =
+	// ((msgsCont.value!) as HTMLElement).scrollHeight;
+	document.getElementById("sendbox")?.focus();
 	const box = document.getElementById("privateTabText");
-	if (box != null) {
-		box.style.setProperty("border-bottom", "2px solid #16638D");
-		box.style.setProperty("color", "#16638D");
-		box.style.setProperty("font-weight", "500");
-	}
-	let input = document.getElementById("sendbox");
-	input!.addEventListener("keydown", function (e) {
-		if (e.key === "Enter") {
-			e.preventDefault();
-			let newMsg = new Message(me, myMsg.value, new Date());
-			conv.value.messages.push(newMsg);
-			myMsg.value = "";
-		}
-	});
+	if (box != null) box.classList.add("chatTabActive");
 });
 
 onBeforeUnmount(() => {
 	const box = document.getElementById("privateTabText");
-	if (box != null) {
-		box.style.removeProperty("border-bottom");
-		box.style.removeProperty("color");
-		box.style.removeProperty("font-weight");
-	}
+	if (box != null) box.classList.remove("chatTabActive");
 });
 </script>
 
@@ -255,7 +237,7 @@ onBeforeUnmount(() => {
 	text-overflow: ellipsis;
 }
 .login:hover {
-	color: v-bind("define.color2");
+	color: v-bind("colors.color2");
 }
 .option_buttons {
 	width: auto;
@@ -330,7 +312,7 @@ onBeforeUnmount(() => {
 	margin-left: 20px;
 }
 .infoText {
-	font-family: "Orbitron", sans-serif;
+	font-family: 'Orbitron', sans-serif;
 	width: auto;
 	white-space: nowrap;
 	margin: 0 10px;
@@ -358,7 +340,7 @@ onBeforeUnmount(() => {
 }
 .settingsBtn,
 .extendSettingsCont {
-	border: solid 1px v-bind("define.color2");
+	border: solid 1px v-bind("colors.color2");
 	border-radius: 13px;
 	position: absolute;
 	background-color: #fff;
@@ -377,7 +359,7 @@ onBeforeUnmount(() => {
 
 /* .mySlide-leave-active,
 .mySlide-enter-active {
-  transition: 1s;
+	transition: 1s;
 }
 .mySlide-leave-to,
 .mySlide-enter-from {

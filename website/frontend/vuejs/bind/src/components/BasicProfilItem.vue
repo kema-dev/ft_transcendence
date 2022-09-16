@@ -8,12 +8,13 @@
 </template>
 
 <script setup lang="ts">
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { inject, defineProps, onMounted, ref } from "vue";
-import Conversation from "@/chat/objects/PrivConv";
+// import Conversation from "@/chat/objects/PrivConv";
 import User from "@/chat/objects/User";
 import { stringifyQuery } from "vue-router";
 
-let define = inject("colors");
+let define = inject('colors');
 const props = defineProps({
 	avatar: {
 		type: String,
@@ -46,7 +47,7 @@ const props = defineProps({
 }
 .login {
 	padding-left: 10px;
-	font-family: "Orbitron", sans-serif;
+	font-family: 'Orbitron', sans-serif;
 	font-size: 0.9rem;
 	overflow: hidden;
 	white-space: nowrap;

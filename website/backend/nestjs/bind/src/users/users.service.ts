@@ -17,10 +17,11 @@ export class UsersService {
 	) { }
 
 	async saveSocket(login: string, socket: string) {
-		let user = await this.getByLogin(login);
+		const user = await this.getByLogin(login);
 		user.socketId = socket;
-		await this.usersRepository.save(user)
-			.catch(e => console.log("Save saveSocket error"));
+		await this.usersRepository
+			.save(user)
+			.catch((e) => console.log('Save saveSocket error'));
 	}
 
 	async getByEmail(mail: string) {
@@ -53,12 +54,12 @@ export class UsersService {
 	}
 
 	async getByLoginFiltred(filter: string) {
-		let maxUsers = 15;
-		console.log('getByLoginFiltred: starting for \'' + filter + '\'');
+		const maxUsers = 20;
+		console.log("getByLoginFiltred: starting for '" + filter + "'");
 		const users = await this.usersRepository.find({
-			where: { login: Like(filter + "%") },
-			take: maxUsers
-		})
+			where: { login: Like(filter + '%') },
+			take: maxUsers,
+		});
 		return users;
 	}
 

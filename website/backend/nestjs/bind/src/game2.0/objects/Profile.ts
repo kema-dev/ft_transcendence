@@ -20,10 +20,8 @@ export default class Profile {
 		this.avatar = avatar;
 		this.rotation = 0;
 		this.red = false;
-		if (login)
-			this.login = login;
-		else
-			this.login = 'search...';
+		if (login) this.login = login;
+		else this.login = 'searching...';
 		this.score = score;
 	}
 }

@@ -1,9 +1,9 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { CreateDateColumn, UpdateDateColumn, DeleteDateColumn } from 'typeorm';
-
 
 export default class TimestampEntites {
 	@CreateDateColumn({
-		update: false
+		update: false,
 	})
 	createdAt: Date;
 
@@ -11,7 +11,7 @@ export default class TimestampEntites {
 	updatedAt: Date;
 
 	@DeleteDateColumn({
-		update: false
+		update: false,
 	})
 	deletedAt: Date;
 }

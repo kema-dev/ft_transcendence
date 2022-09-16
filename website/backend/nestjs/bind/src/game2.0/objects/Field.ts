@@ -1,16 +1,16 @@
 import Vector from './Vector';
-import Wall from "./Wall"
+import Wall from './Wall';
 
 export default class Field {
 	nbrPlayer: number;
-	nbrWall: number
-	walls: Array<Wall>
-	angleBase: number
-	radius: number
+	nbrWall: number;
+	walls: Array<Wall>;
+	angleBase: number;
+	radius: number;
 	constructor(nbrPlayer: number) {
 		this.nbrPlayer = nbrPlayer;
-		this.nbrWall = nbrPlayer * 2
-		this.angleBase = Math.PI * 2 / this.nbrWall
+		this.nbrWall = nbrPlayer * 2;
+		this.angleBase = (Math.PI * 2) / this.nbrWall;
 		this.radius = 410;
 		const centerPos = new Vector(this.radius, this.radius);
 		this.walls = []

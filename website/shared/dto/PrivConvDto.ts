@@ -1,4 +1,4 @@
-import { Message } from "../object/Message"
+import { Message } from "../object/Message";
 
 export class PrivateConvDto {
 	user: string;

@@ -1,5 +1,5 @@
 import ProfileDto from '@/dto/ProfileDto';
-import Konva from "konva";
+import Konva from 'konva';
 
 export default class Profile {
 	konvaScore: Konva.Text;
@@ -15,17 +15,16 @@ export default class Profile {
 		let w = 100;
 		let h = 60;
 		this.konva.add(
-			this.konvaBackground = new Konva.Rect({
+			(this.konvaBackground = new Konva.Rect({
 				width: h,
 				height: w,
 				offsetX: h / 2,
 				offsetY: w / 2,
 				strokeWidth: 3,
-				stroke: "#16638D",
-				fill: "#E5F4FB",
+				stroke: '#16638D',
+				fill: '#E5F4FB',
 				cornerRadius: 100,
-			})
-
+			})),
 		);
 		// this.konvaFilter = new Konva.Rect({
 		// 	width: h,
@@ -39,21 +38,21 @@ export default class Profile {
 		w = 60;
 		h = 60;
 		this.konva.add(
-			this.konvaRound = new Konva.Rect({
+			(this.konvaRound = new Konva.Rect({
 				width: h,
 				height: w,
 				offsetX: h / 2,
 				offsetY: w / 2,
 				y: -20,
 				strokeWidth: 3,
-				stroke: "#16638D",
+				stroke: '#16638D',
 				cornerRadius: 100,
-			})
+			})),
 		);
 		w = 25;
 		h = 25;
 		this.konva.add(
-			this.konvaScore = new Konva.Text({
+			(this.konvaScore = new Konva.Text({
 				width: h,
 				height: w,
 				offsetX: h / 2,
@@ -61,12 +60,12 @@ export default class Profile {
 				y: 28,
 				text: profile.score.toString(),
 				fontSize: 25,
-				fontFamily: "Orbitron",
-				fontStyle: "bold",
-				fill: "#16638D",
-				align: "center",
+				fontFamily: 'Orbitron',
+				fontStyle: 'bold',
+				fill: '#16638D',
+				align: 'center',
 				rotation: 90,
-			})
+			})),
 		);
 		w = 20;
 		h = 80;
@@ -79,12 +78,12 @@ export default class Profile {
 				x: 40,
 				text: profile.login,
 				fontSize: 18,
-				fontFamily: "Orbitron",
-				fontStyle: "bold",
-				fill: "#16638D",
-				align: "center",
+				fontFamily: 'Orbitron',
+				fontStyle: 'bold',
+				fill: '#16638D',
+				align: 'center',
 				rotation: 90,
-			})
+			}),
 		);
 		w = 58;
 		h = 58;

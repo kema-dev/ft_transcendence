@@ -23,10 +23,10 @@ export class GameDto {
 		this.angleBase = 0;
 	}
 	clone(): GameDto {
-		let rs = new GameDto(this.nbrPlayer, this.nbrBall);
+		const rs = new GameDto(this.nbrPlayer, this.nbrBall);
 		rs.start = this.start;
-		rs.balls = this.balls.map(x => Object.assign({}, x));
-		rs.walls = this.walls.map(x => Object.assign({}, x));
+		rs.balls = this.balls.map((x) => Object.assign({}, x));
+		rs.walls = this.walls.map((x) => Object.assign({}, x));
 		return rs;
 	}
 }

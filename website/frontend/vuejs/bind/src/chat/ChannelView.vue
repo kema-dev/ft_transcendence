@@ -1,66 +1,64 @@
 <template>
 	<div id="channel_view" class="center column stack">
 		<div class="option_private center raw">
-			<SearchItem
-				v-if="!newChannel"
-				@searchInput="searchChange"
-				:key="searchKey"
-			/>
+			<SearchItem v-model:search="search" />
 			<!-- <div v-if="newChannel" class="newChannelTitle">Create a new Channel</div> -->
 			<div v-if="newChannel" class="newChannelTitle center">
 				<span class="newChannelTitleText">Create a new Channel</span>
 			</div>
-			<div class="buttons_cont space-around raw">
+			<div class="option_buttons space-around raw stack">
 				<button
 					v-if="!newChannel"
 					@click="findChannelFn()"
-					class="button_cont center column"
+					class="button_cont center"
 				>
 					<span v-if="!findChannel" class="infoButtonText">Join channel</span>
 					<img
 						v-if="!findChannel"
 						src="~@/assets/logo_search.svg"
 						alt="New message"
-						class="new_msg_img"
+						class="button_img"
 					/>
 					<span v-if="findChannel" class="infoButtonText">Back</span>
 					<img
 						v-if="findChannel"
 						src="~@/assets/undo_logo.svg"
 						alt="New message"
-						class="new_msg_img"
+						class="button_img"
 					/>
 				</button>
 				<button
 					v-if="!findChannel"
 					@click="newChannelFn()"
-					class="button_cont center column"
+					class="button_cont center"
 				>
 					<span v-if="!newChannel" class="infoButtonText">Create channel</span>
 					<img
 						v-if="!newChannel"
 						src="~@/assets/add_logo.svg"
 						alt="New message"
-						class="new_msg_img"
+						class="button_img"
 					/>
 					<span v-if="newChannel" class="infoButtonText">Back</span>
 					<img
 						v-if="newChannel"
 						src="~@/assets/undo_logo.svg"
 						alt="New message"
-						class="new_msg_img"
+						class="button_img"
 					/>
 				</button>
 			</div>
 		</div>
 		<div v-if="!findChannel && !newChannel" class="myChannels center column">
-			<div v-for="(data, i) in convsFiltred" :key="i" class="center">
+			<div v-for="(data, i) in chansFiltred" :key="i" class="center">
 				<ConversationTab
 					v-if="data.messages.length > 0"
 					:name-conv="data.name"
 					:avatar="data.avatar"
-					:message="data.messages[data.messages.length - 1]"
-					:date="data.messages[data.messages.length - 1].date"
+					:message="data.messages.at(-1)!.msg"
+					:date="data.messages.at(-1)!.date"
+					:last-msg-user="data.messages.at(-1)!.user"
+					:read="data.readed"
 					:chan="true"
 					class="center"
 				/>
@@ -72,22 +70,21 @@
 					:chan="true"
 					class="center"
 				/>
+				<!-- <ConversationTab v-else :name-conv="data.name" :avatar="data.avatar" :date="data.creation" :chan="true" class="center"/> -->
 			</div>
-			<h2 v-if="conversations.length == 0" class="no_results">
-				No conversations
-			</h2>
-			<h2 v-else-if="convsFiltred!.length == 0" class="no_results">
+			<h2 v-if="chansRef.length == 0" class="no_results">No conversations</h2>
+			<h2 v-else-if="chansFiltred!.length == 0" class="no_results">
 				No results
 			</h2>
 		</div>
 		<div
-			v-if="findChannel && othersChans.length > 0"
+			v-if="findChannel && serverChans.length > 0"
 			class="findChannelResults left column"
 		>
-			<!-- <div v-if="search.length > 0 && othersChans.length > 0" class="left column"> -->
-			<ChannelTab v-for="(data, i) in othersChans" :key="i" :channel="data" />
+			<!-- <div v-if="search.length > 0 && serverChans.length > 0" class="left column"> -->
+			<ChannelTab v-for="(data, i) in serverChans" :key="i" :infos="data" />
 		</div>
-		<h2 v-else-if="findChannel && othersChans.length == 0">No results</h2>
+		<h2 v-else-if="findChannel && serverChans.length == 0">No results</h2>
 		<!-- </div> -->
 		<form
 			v-if="newChannel"
@@ -130,105 +127,84 @@
 
 <script setup lang="ts">
 /* eslint @typescript-eslint/no-var-requires: "off" */
-import { inject, onMounted, defineEmits, ref, nextTick } from "vue";
+import {
+	inject,
+	onMounted,
+	onBeforeUnmount,
+	ref,
+	Ref,
+	nextTick,
+	watch,
+} from "vue";
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import ConversationTab from "@/chat/ConversationTab.vue";
+import HTTP from "../components/axios";
 import ChannelTab from "@/chat/ChannelTab.vue";
 import SearchItem from "@/components/SearchItem.vue";
-import Channel from "@/chat/objects/Channel";
-import User from "@/chat/objects/User";
-import Message from "@/chat/objects/Message";
-let define = inject("colors");
-let me: User = inject("me")!;
-// const emit = defineEmits(['searchInputChild']);
+import { ChannelDto } from "@/chat/dto/ChannelDto";
+import { ChannelTabDto } from "@/chat/dto/ChannelTabDto ";
+import { Message } from "@/chat/dto/MessageDto";
+import { BasicUserDto } from "@/chat/dto/BasicUserDto";
+import { chansRef, printChans } from "@/globals";
+
+let colors = inject("colors");
+let me: string = inject("me")!;
+let apiPath: string = inject("apiPath")!;
+
+let chansFiltred: Ref<ChannelDto[]> = ref(chansRef.value);
+let serverChans: Ref<ChannelTabDto[]> = ref([]);
+const newMsg = ref(false);
+let userServReqDone = ref(false);
 
 const search = ref("");
 const findChannel = ref(false);
 const newChannel = ref(false);
 const searchKey = ref(0);
 const pswCheck = ref(false);
-// const searchCompRef = ref<InstanceType<typeof SearchItem>>();
 
-let user1 = new User("Totolosa", require("@/assets/avatars/(1).jpg"));
-let user2 = new User("Ocean", require("@/assets/avatars/(2).jpg"));
-let user3 = new User("Patrick la trick", require("@/assets/avatars/(3).jpg"));
-let user4 = new User("Jeanjean", require("@/assets/avatars/(4).jpg"));
-let user5 = new User("Totofake", require("@/assets/avatars/(5).jpg"));
-// let user6 = new User("Patrick la trick", require("@/assets/avatars/(6).jpg"));
+let test = new ChannelDto("second Channel", [new BasicUserDto(me)]);
 
-let msg1 = new Message(
-	user1,
-	"Salut frere rwf;jnavionra'mrv'aomfgifsivbdfvndfnvjsdglbjgb;fgklb;s;bg",
-	new Date("July 17, 2022 03:24:00")
-);
-let msg2 = new Message(user2, "Salut poto", new Date("July 22, 2022 03:25:12"));
-let msg3 = new Message(user3, "Game?", new Date("July 18, 2022 12:45:45"));
-let msg4 = new Message(
-	user1,
-	"Non je dois finir de faire le front, et wallah c'est chaud",
-	new Date("July 18, 2022 12:47:55")
-);
-let msg5 = new Message(
-	user1,
-	"dsaibciauwncopneejvnjnfcoamsdomvcafosnvonsvonoans",
-	new Date()
-);
-let msg6 = new Message(user2, "Mais tu sais pas parler en fait", new Date());
+console.log(`Before push`);
+printChans(chansRef.value);
+chansRef.value.push(test);
+console.log(`After push`);
+printChans(chansRef.value);
 
-// let conv1 = new Conversation(false, [user2], [msg1, msg2]);
-// let conv2 = new Conversation(false, [user3], [msg3, msg4]);
-// let conv3 = new Conversation(false, [user1], [msg5, msg6]);
-let conv4 = new Channel(
-	"My channel",
-	[me],
-	undefined,
-	[user1, user2, user3],
-	[msg1, msg2, msg3, msg4, msg5, msg6]
-);
-let conv5 = new Channel(
-	"Other channel, psw toto",
-	[user2],
-	"toto",
-	[user1, user2, user3],
-	[msg1, msg2, msg3, msg4]
-);
-
-const conversations = [conv4, conv5];
-const convsFiltred = ref(conversations);
-
-let chanServ4 = new Channel("First!", [user2], undefined, [
-	user3,
-	user3,
-	user4,
-]);
-let chanServ1 = new Channel("DEBILES de 42", [user3], "psw");
-chanServ1.addBan(me, user3);
-let chanServ2 = new Channel("Cracks de 42", [user2], undefined, [
-	user3,
-	user3,
-	user4,
-]);
-let chanServ3 = new Channel("Sportifs de 42", [user4], "psw", [user1, user2]);
-let chansServ = [chanServ4, chanServ1, chanServ2, chanServ3];
-const othersChans = ref(chansServ);
-
-// conversations.sort(function(x,y) {
-// 	if (x.messages[x.messages.length - 1].date < y.messages[y.messages.length - 1].date) {
-// 		return 1;
-//     }
-//     if (x.messages[x.messages.length - 1].date > y.messages[y.messages.length - 1].date) {
-//         return -1;
-//     }
-//     return 0;
-// });
-
-function searchChange(value: string) {
-	search.value = value;
-	convsFiltred.value = conversations.filter(function (value) {
-		return value.name.toUpperCase().startsWith(search.value.toUpperCase());
+watch(search, () => {
+	userServReqDone.value = false;
+	chansFiltred.value = chansRef.value?.filter(function (chan) {
+		return chan.name.toUpperCase().startsWith(search.value.toUpperCase());
 	});
-	// FAIRE APPEL BACK POUR CHANNELS DISPO
-	othersChans.value = chansServ.filter(function (value) {
-		return value.name.toUpperCase().startsWith(search.value.toUpperCase());
+	if (newMsg.value && search.value != "") getServerChans();
+});
+
+function getServerChans() {
+	HTTP.get(apiPath + "chat/getServerUsersFiltred/" + me + "/" + search.value)
+		.then((res) => {
+			let chansTmp: ChannelTabDto[] = [];
+			res.data.forEach((chan: ChannelTabDto) => {
+				chansTmp.push(
+					new ChannelTabDto(chan.name, chan.nbUsers, chan.psw, chan.ban)
+				);
+			});
+			serverChans.value = chansTmp;
+			filterServerUsers();
+			userServReqDone.value = true;
+		})
+		.catch((e) => console.log(e));
+}
+
+function filterServerUsers() {
+	serverChans.value = serverChans.value!.filter((chan, i) => {
+		let isAlreadyKnow = true;
+		for (let chanKnown of chansFiltred.value) {
+			if (chanKnown.name == chan.name) {
+				isAlreadyKnow = false;
+				break;
+			}
+		}
+		return isAlreadyKnow;
+		// ========== AJOUTER FRIENDS ===========
 	});
 }
 
@@ -259,26 +235,30 @@ function newChannelFn() {
 }
 
 function submitChannel() {
-	let form = document.getElementById("channelForm") as HTMLFormElement;
+	let form = document.getElementById('channelForm') as HTMLFormElement;
 	const data = new FormData(form);
 	if (data.get("pswInput") as string) {
-		conversations.push(
-			new Channel(
-				data.get("name") as string,
-				[me],
-				data.get("pswInput") as string
-			)
-		);
+		// conversations.push(new Channel(data.get('name') as string, [me], data.get("pswInput") as string));
 	} else {
-		conversations.push(new Channel(data.get("name") as string, [me]));
+		// conversations.push(new Channel(data.get('name') as string, [me]));
 	}
-	convsFiltred.value = conversations;
+	// convsFiltred.value = conversations;
 	newChannel.value = false;
 	console.log(data.get("name") as string);
 }
+
+onMounted(() => {
+	const box = document.getElementById("channelsTabText");
+	if (box != null) box.classList.add("chatTabActive");
+});
+
+onBeforeUnmount(() => {
+	const box = document.getElementById("channelsTabText");
+	if (box != null) box.classList.remove("chatTabActive");
+});
 </script>
 
-<style>
+<style scoped>
 #channel_view {
 	height: calc(100vh - 180px);
 	justify-content: flex-start;
@@ -286,41 +266,40 @@ function submitChannel() {
 .no_results {
 	margin-top: 1rem;
 }
-.buttons_cont {
-	width: 20%;
+
+.option_buttons {
+	width: 25%;
+}
+.button_img {
+	width: 30px;
+	height: 30px;
+	filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg)
+		brightness(86%) contrast(83%);
 }
 .button_cont {
 	border-radius: 50%;
-	width: 40px;
-	/* display: inline-block; */
 	padding: 5px;
-	position: relative;
+	/* position: static; */
 }
 .button_cont:hover {
 	background-color: white;
 	box-shadow: 0px 0px 4px #aaa;
 }
-.new_msg_img {
-	height: 28px;
-	width: 28px;
-	/* border-radius: 50%; */
-	filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg)
-		brightness(86%) contrast(83%);
-}
+
 .infoButtonText {
 	visibility: hidden;
-	opacity: 0;
 	font-size: 0.8rem;
 	width: auto;
 	background-color: rgba(0, 0, 0, 0.6);
 	color: #fff;
 	text-align: center;
-	padding: 5px;
+	padding: 5px 0;
 	border-radius: 6px;
 	position: absolute;
 	z-index: 1;
-	bottom: 100%;
-	/* right: 50%; */
+	bottom: 110%;
+	right: 0;
+	/* transform: translate(50%); */
 }
 .button_cont:hover .infoButtonText {
 	visibility: visible;
@@ -338,6 +317,49 @@ function submitChannel() {
 	}
 }
 
+/* .buttons_cont{
+	width: 20%;
+}
+.button_cont {
+	border-radius: 50%;
+	margin: 5px;
+	position: static;
+}
+.button_cont:hover {
+	background-color: white;
+	box-shadow: 0px 0px 4px #aaa;
+}
+.new_msg_img {
+	height: 28px;
+	width: 28px;
+	filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg) brightness(86%) contrast(83%);
+}
+.infoButtonText {
+	visibility: hidden;
+	opacity: 0;
+	font-size: 0.8rem;
+	width: auto;
+	background-color: rgba(0,0,0,0.6);
+	color: #fff;
+	text-align: center;
+	padding: 5px;
+	border-radius: 6px;
+	position: absolute;
+	z-index: 1;
+	bottom: 100%;
+}
+.button_cont:hover .infoButtonText {
+	visibility: visible;
+	opacity: 0;
+	animation: displayButtonInfo 0.3s;
+	animation-delay: 0.3s;
+	animation-fill-mode: forwards;
+}
+@keyframes displayButtonInfo {
+	from { opacity: 0; }
+	to { opacity: 1; }
+} */
+
 .findChannelResults {
 	margin-top: 10px;
 	width: 90%;
@@ -354,8 +376,8 @@ function submitChannel() {
 .newChannelTitleText {
 	font-size: 1.15rem;
 	font-weight: 500;
-	color: v-bind("define.color2");
-	border-bottom: 2px solid v-bind("define.color2");
+	color: v-bind("colors.color2");
+	border-bottom: 2px solid v-bind("colors.color2");
 	font-family: "Orbitron", sans-serif;
 	padding-bottom: 10px;
 }
@@ -379,12 +401,12 @@ function submitChannel() {
 	margin-left: 10px;
 }
 #submitButton {
-	background-color: v-bind("define.color2");
+	background-color: v-bind("colors.color2");
 	color: #fff;
 	border-radius: 5px;
 	margin-top: 10px;
 	padding: 5px;
-	font-family: "Orbitron", sans-serif;
+	font-family: 'Orbitron', sans-serif;
 }
 #submitButton:hover {
 	/* font-weight: 500; */
@@ -397,11 +419,11 @@ function submitChannel() {
 
 /* .myFade-enter-active,
 .myFade-leave-active {
-  transition: opacity 3s ease;
+	transition: opacity 3s ease;
 }
 
 .myFade-enter-from,
 .myFade-leave-to {
-  opacity: 0;
+	opacity: 0;
 } */
 </style>

@@ -29,35 +29,35 @@ let socket = inject("socket")!;
 var ProgressBar = require("progressbar.js");
 
 let user = {
-	name: "zeus",
-	level: "1000",
-	avatar: require("@/assets/avatars/(2).jpg"),
-	friends: ["Jane", "John", "Jacksdfgtertwdsfadfsafdertert"],
-	status: "offline",
-	rank: "1st",
-	ratiov: "10",
-	ratiod: "5",
+	name: 'zeus',
+	level: '1000',
+	avatar: require('@/assets/avatars/(2).jpg'),
+	friends: ['Jane', 'John', 'Jacksdfgtertwdsfadfsafdertert'],
+	status: 'offline',
+	rank: '1st',
+	ratiov: '10',
+	ratiod: '5',
 	history: [
 		{
-			adversary: "John",
+			adversary: 'John',
 			points1: 10,
 			points2: 5,
 		},
 		{
-			adversary: "Jacksdfgtertwdsfadfsafdertert",
+			adversary: 'Jacksdfgtertwdsfadfsafdertert',
 			points1: 7,
 			points2: 5,
 		},
 		{
-			adversary: "John",
+			adversary: 'John',
 			points1: 3,
 			points2: 5,
 		},
 	],
 };
 onMounted(() => {
-	let input = document.querySelector("#none");
-	input?.addEventListener("change", () => {
+	let input = document.querySelector('#none');
+	input?.addEventListener('change', () => {
 		const reader = new FileReader();
 		reader.addEventListener("load", () => {
 			let image = reader.result;
@@ -79,7 +79,7 @@ onMounted(() => {
 	if (me.value && me.value.ratio) bar.animate(1 - me.value.ratio);
 });
 function change_avatar() {
-	let input = document.querySelector("#none");
+	let input = document.querySelector('#none');
 	input.click();
 }
 </script>

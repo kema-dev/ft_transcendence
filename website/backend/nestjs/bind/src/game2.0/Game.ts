@@ -14,10 +14,11 @@ export default class Game {
 	nbrPlayer: number;
 	nbrBall: number;
 	start: boolean;
+	lobby_name: string;
 	run: boolean;
 	balls: Array<Ball>;
 	walls: Wall[];
-	objects: Array<any>
+	objects: Array<any>;
 	deltaTime: number;
 	logger: Logger;
 	dto: GameDto;
@@ -27,6 +28,7 @@ export default class Game {
 	avatars: string[];
 	constructor(nbrPlayer: number, nbrBall: number, private server: any, players: string[], avatars?: string[]) {
 		this.start = false;
+		this.lobby_name = lobby_name;
 		this.run = true;
 		this.nbrBall = nbrBall;
 		this.nbrPlayer = nbrPlayer;
@@ -50,15 +52,15 @@ export default class Game {
 		this.loop();
 	}
 	init() {
-		let radius = 410;
-		let field = new Field(this.nbrPlayer);
+		const radius = 410;
+		const field = new Field(this.nbrPlayer);
 		for (let i = 0; i < this.nbrBall; ++i) {
 			if (i % 2 == 1)
 				this.balls.push(new Ball(radius, radius + (-i / 2) * 30 - 7.5));
 			else this.balls.push(new Ball(radius, radius + (i / 2) * 30 + 7.5));
 		}
 		this.walls = field.walls;
-		let fieldPoints: Array<number> = [];
+		const fieldPoints: Array<number> = [];
 		this.walls.forEach((wall) => {
 			fieldPoints.push(wall.x);
 			fieldPoints.push(wall.y);
@@ -70,7 +72,7 @@ export default class Game {
 				let tmp = new Profile(this.players[i], this.avatars[i], 10 - this.nbrPlayer, wall);
 				this.profiles.push(tmp);
 				wall.profile = tmp;
-				let tmp2 = wall.getRacket();
+				const tmp2 = wall.getRacket();
 				this.objects.push(tmp2);
 				this.rackets.push(tmp2);
 				i++;
@@ -81,15 +83,13 @@ export default class Game {
 		let i = 0;
 		this.dto.start = this.start;
 		for (i = 0; i < this.balls.length; ++i) {
-			if (!this.dto.balls[i])
-				this.dto.balls[i] = new BallDto();
+			if (!this.dto.balls[i]) this.dto.balls[i] = new BallDto();
 			this.dto.balls[i].x = this.balls[i].x;
 			this.dto.balls[i].y = this.balls[i].y;
 		}
 		i = 0;
 		this.walls.forEach((wall) => {
-			if (!this.dto.walls[i])
-				this.dto.walls[i] = new WallDto();
+			if (!this.dto.walls[i]) this.dto.walls[i] = new WallDto();
 			this.dto.walls[i].x = wall.x;
 			this.dto.walls[i].y = wall.y;
 			this.dto.walls[i].w = wall.width;
@@ -97,9 +97,8 @@ export default class Game {
 			this.dto.walls[i].rotation = wall.angle;
 			++i;
 		});
-		for (let i in this.rackets) {
-			if (!this.dto.rackets[i])
-				this.dto.rackets[i] = new RacketDto();
+		for (const i in this.rackets) {
+			if (!this.dto.rackets[i]) this.dto.rackets[i] = new RacketDto();
 			this.dto.rackets[i].x = this.rackets[i].x;
 			this.dto.rackets[i].y = this.rackets[i].y;
 			this.dto.rackets[i].rotation = this.rackets[i].angle;
@@ -114,16 +113,16 @@ export default class Game {
 			this.dto.balls[i].x = this.balls[i].x;
 			this.dto.balls[i].y = this.balls[i].y;
 		}
-		for (let i in this.rackets) {
+		for (const i in this.rackets) {
 			this.dto.rackets[i].x = this.rackets[i].x;
 			this.dto.rackets[i].y = this.rackets[i].y;
 		}
 		this.dto.profiles = this.profiles;
 	}
 	setMov(value: number, login: string) {
-		for (let p of this.profiles)
+		for (const p of this.profiles)
 			if (p.login == login) {
-				p.mov = value * this.walls[0].height / 100 * this.rackets[0].speed;
+				p.mov = ((value * this.walls[0].height) / 100) * this.rackets[0].speed;
 				return;
 			}
 	}
@@ -143,20 +142,19 @@ export default class Game {
 		let start = await performance.now();
 		while (this.run) {
 			if (this.start)
-				for (let ball of this.balls) {
+				for (const ball of this.balls) {
 					if (ball.detectCollision(this.objects)) {
 						this.run = false;
-					};
+					}
 					ball.x = ball.x + ball.v.x * ball.speed * this.deltaTime;
 					ball.y = ball.y + ball.v.y * ball.speed * this.deltaTime;
 				}
-			for (let i in this.profiles) {
-				let mov = this.profiles[i].mov;
-				if (mov == 0)
-					continue;
-				let rack = this.rackets[i];
-				let x = rack.x + -rack.vector.y * (this.deltaTime * mov);
-				let y = rack.y + rack.vector.x * (this.deltaTime * mov);
+			for (const i in this.profiles) {
+				const mov = this.profiles[i].mov;
+				if (mov == 0) continue;
+				const rack = this.rackets[i];
+				const x = rack.x + -rack.vector.y * (this.deltaTime * mov);
+				const y = rack.y + rack.vector.x * (this.deltaTime * mov);
 				// this.logger.log(rack.vector.y)
 				// this.logger.log(rack.angle)
 				// this.logger.log("x: " + x)
@@ -186,8 +184,8 @@ export default class Game {
 				// }
 			}
 			await this.setMinimumDto();
-			this.server.emit('game', JSON.stringify(this.dto));
-			let end = await performance.now();
+			this.server.emit(this.lobby_name, JSON.stringify(this.dto));
+			const end = await performance.now();
 			this.deltaTime = end - start;
 			this.deltaTime /= 1000;
 			this.deltaTime *= 60;

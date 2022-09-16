@@ -39,8 +39,8 @@ services:
       PGADMIN_DEFAULT_PASSWORD: 'pgadmin_pass'
       GUNICORN_ACCESS_LOGFILE: '/dev/null'
       PGADMIN_CONFIG_UPGRADE_CHECK_ENABLED: 'False'
-    logging: 
-      driver: none
+    # logging: 
+    #   driver: none
 
   s_nestjs:
     build:

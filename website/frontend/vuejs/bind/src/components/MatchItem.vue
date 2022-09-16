@@ -24,25 +24,25 @@
 </template>
 
 <script setup lang="ts">
-import { inject, ref } from "vue";
-let define = inject("colors");
+import { inject, ref } from 'vue';
+let define = inject('colors');
 
-let login = "zeus";
+let login = 'zeus';
 
 let match = {
 	nbrPlayer: 3,
 	nbrBall: 2,
 	players: [
 		{
-			login: "toto",
+			login: 'toto',
 			score: -2,
 		},
 		{
-			login: "test",
+			login: 'test',
 			score: -1,
 		},
 		{
-			login: "zeus",
+			login: 'zeus',
 			score: 0,
 		},
 	],
@@ -73,9 +73,9 @@ function witch_rank(login: string, match: any) {
 	height: 60px;
 	width: 100%;
 	border-radius: 100px;
-	border: 3px v-bind("define.color2") solid;
+	border: 3px v-bind('define.color2') solid;
 	border-left: 0;
-	background-color: v-bind("define.color0");
+	background-color: v-bind('define.color0');
 	z-index: 10;
 	margin-bottom: v-bind("size * 50 + 'px'");
 	cursor: pointer;
@@ -86,7 +86,7 @@ function witch_rank(login: string, match: any) {
 	border-radius: 100%;
 	height: 60px;
 	width: 60px;
-	border: 4px v-bind("define.color2") solid;
+	border: 4px v-bind('define.color2') solid;
 }
 .info {
 	width: calc(100% - 60px);
@@ -97,9 +97,9 @@ function witch_rank(login: string, match: any) {
 	z-index: 1;
 	top: 0;
 	height: v-bind("size * 50 + 60 + 'px'");
-	border: 3px v-bind("define.color2") solid;
+	border: 3px v-bind('define.color2') solid;
 	border-radius: 30px;
-	background-color: v-bind("define.color2");
+	background-color: v-bind('define.color2');
 	transition: all ease-in-out 0.2s;
 }
 .number {

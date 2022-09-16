@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
 	Body,
 	Req,
@@ -10,6 +11,7 @@ import {
 	Param,
 	Logger,
 } from '@nestjs/common';
+import { AuthGuard } from '../authentication/auth.guard';
 import { get } from 'http';
 import ProfileUserDto from 'src/users/dto/ProfileUserDto';
 import ResumUserDto from 'src/users/dto/ResumUserDto';
@@ -23,9 +25,10 @@ export class UsersController {
 	private logger: Logger = new Logger('UsersController');
 	constructor(private readonly usersService: UsersService) { }
 
+	@UseGuards(AuthGuard)
 	@Get('getBasicUser/:login')
 	async getBasicUser(@Param() params: { login: string }) {
-		let user = await this.usersService.getByLogin(params.login);
+		const user = await this.usersService.getByLogin(params.login);
 		return new BasicUserDto(user.login);
 	}
 

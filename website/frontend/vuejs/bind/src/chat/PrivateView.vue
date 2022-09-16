@@ -1,23 +1,24 @@
 <template>
 	<!-- <div v-if="initReqDone" id="private_view" class="center column"> -->
 	<div v-if="privDone" id="private_view" class="center column">
-		<div class="option_private center raw">
-			<SearchItem @searchInput="searchChange" :key="searchKey" />
-			<div class="buttons_cont space-around raw">
-				<button @click="createNewMsg()" class="button_cont center column">
+		<div class="toBarCont center raw stack">
+			<!-- <SearchItem @searchInput="searchChange" :key="searchKey" /> -->
+			<SearchItem v-model:search="search" />
+			<div class="option_buttons space-around raw stack">
+				<button @click="createNewMsg()" class="button_cont center">
 					<span v-if="!newMsg" class="infoButtonText">New message</span>
 					<img
 						v-if="!newMsg"
 						src="~@/assets/new_msg.svg"
 						alt="New message"
-						class="new_msg_img"
+						class="button_img"
 					/>
 					<span v-if="newMsg" class="infoButtonText">Back</span>
 					<img
 						v-if="newMsg"
 						src="~@/assets/undo_logo.svg"
 						alt="New message"
-						class="new_msg_img"
+						class="button_img"
 					/>
 				</button>
 			</div>
@@ -40,16 +41,16 @@
 			</h2>
 		</div>
 		<div v-if="newMsg" class="newMsgResults">
-			<!-- <div v-if="knownPeople().length > 0" class="knownPeople left column">
+			<div v-if="privsFiltred.length > 0" class="knownPeople left column">
 				<h2 class="typeUsers">Friends/conversations</h2>
 				<router-link
-					v-for="(data, i) in knownPeople()"
+					v-for="(data, i) in privsFiltred.slice(0, 5)"
 					:key="i"
-					:to="{ name: 'PrivConv', params: { conv_name: data.login } }"
+					:to="{ name: 'PrivConv', params: { conv_name: data.user.login } }"
 				>
-					<BasicProfil :avatar="data.avatar" :login="data.login"/>
+					<BasicProfil :avatar="data.user.avatar" :login="data.user.login" />
 				</router-link>
-			</div> -->
+			</div>
 			<div
 				v-if="userServReqDone && search.length > 0 && serverUsers?.length"
 				class="otherPeople left column"
@@ -63,9 +64,12 @@
 					<BasicProfil :avatar="data.avatar" :login="data.login" />
 				</router-link>
 			</div>
-			<!-- <h2 v-if="knownPeople().length == 0 && !serverUsers">
+			<!-- <h2 v-if="privsFiltred.length == 0 && !serverUsers">
 				No results
 			</h2> -->
+			<h2 v-if="privsFiltred.length == 0 && search.length == 0">
+				No conversation yet, search for a new one !
+			</h2>
 			<h2 v-if="userServReqDone && search.length > 0 && !serverUsers?.length">
 				No results
 			</h2>
@@ -78,107 +82,55 @@
 import {
 	inject,
 	onMounted,
-	defineEmits,
 	ref,
 	Ref,
 	nextTick,
-	onBeforeMount,
-	onUnmounted,
+	onBeforeUnmount,
 	watch,
+	onUpdated,
 } from "vue";
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import ConversationTab from "@/chat/ConversationTab.vue";
 import BasicProfil from "@/components/BasicProfilItem.vue";
 import SearchItem from "@/components/SearchItem.vue";
-import PrivateTabDto from "@/chat/dto/PrivateTabDto";
-import User from "@/chat/objects/User";
-import Message from "@/chat/objects/Message";
-import BasicUserDto from "@/chat/dto/BasicUserDto";
+import { BasicUserDto } from "@/chat/dto/BasicUserDto";
 import { Socket } from "socket.io-client";
 import HTTP from "../components/axios";
-import { baseCompile } from "@vue/compiler-core";
-import { PrivConv } from "@/chat/objects/PrivConv";
+import { PrivConvDto } from "@/chat/dto/PrivConvDto";
 
 // INJECTS
 let colors = inject("colors");
 let me: string = inject("me")!;
 let mySocket: Socket = inject("socket")!;
 let apiPath: string = inject("apiPath")!;
-let privs: Ref<PrivConv[]> = inject("privs")!;
+let privs: Ref<PrivConvDto[]> = inject("privs")!;
+let nbPrivNR: { n: Ref<number[]>; reset: () => void } = inject("nbPrivNR")!;
 let privsFiltred = ref(privs.value);
 const privDone: Ref<boolean> = inject("privDone")!;
 
-// let privsFiltred = ref<PrivConv[]>();
+// let knownPeople = ref<BasicUser[]>();
 let serverUsers = ref<BasicUserDto[]>();
 const search = ref("");
 const newMsg = ref(false);
 const searchKey = ref(0);
 let userServReqDone = ref(false);
 
+if (privs.value.length) {
+	nbPrivNR.reset();
+}
+
 watch(privDone, () => {
-	console.log(`privDone = ${privDone.value}`);
+	// console.log(`privDone = ${privDone.value}`);
 	privsFiltred.value = privs.value;
-	// privs.value!.forEach(priv => {
-	// 	console.log(`user = ${priv.user.login}`);
-	// 	priv.messages.forEach((msg) => console.log(`${msg.msg}`));
-	// 	// priv.messages.forEach((msg) => console.log(
-	// 	// 	`msg = '${msg.msg}',
-	// 	// 	user = ${msg.user},
-	// 	// 	date = ${msg.date}`
-	// 	// ));
-	// });
+	nbPrivNR.reset();
 });
 
-// function getPrivsRequest() {
-// 	HTTP.get(apiPath + "chat/getPrivs/" + me)
-// 	.then(res => {
-// 		// console.log(`privConvDto = ${res.data}`);
-// 		let privsTmp : PrivateTabDto[] = [];
-// 		res.data.forEach((priv : PrivateTabDto) => {
-// 			privsTmp.push(new PrivateTabDto(priv.login, priv.message
-// 				, new Date(priv.date), priv.lastMsgUser, priv.readed));
-// 			console.log(`readed = ${priv.readed}`);
-// 		});
-// 		privs.value = privsTmp;
-// 		privsFiltred.value = privs.value;
-// 		initReqDone.value = true;
+onUpdated(() => {
+	if (nbPrivNR.n.value.length) nbPrivNR.reset();
+});
 
-// 	})
-// 	.catch(e => console.log(e));
-// }
-// mySocket.on("newPrivMsg", () => {
-// 	getPrivsRequest();
-// });
-// getPrivsRequest();
-
-// mySocket.on("getUsersByLoginFiltred", (data : [{login: string}]) => {
-// 	let tmp : BasicUser[] = [];
-// 	for(let i = 0; i < data.length; i++) {
-// 		tmp.push(new BasicUser(data[i].login));
-// 	}
-// 	serverUsers.value = tmp;
-// 	// console.log("serverUsers = ", serverUsers.value);
-// });
-
-// conversations.sort(function (x, y) {
-// 	if (
-// 		x.messages[x.messages.length - 1].date <
-// 		y.messages[y.messages.length - 1].date
-// 	) {
-// 		return 1;
-// 	}
-// 	if (
-// 		x.messages[x.messages.length - 1].date >
-// 		y.messages[y.messages.length - 1].date
-// 	) {
-// 		return -1;
-// 	}
-// 	return 0;
-// });
-
-function searchChange(value: string) {
+watch(search, () => {
 	userServReqDone.value = false;
-	search.value = value;
-	// console.log("privs = ", privsFiltred.value);
 	privsFiltred.value = privs.value?.filter(function (value) {
 		return value.user.login
 			.toUpperCase()
@@ -190,42 +142,74 @@ function searchChange(value: string) {
 	// 	});
 	// }
 	if (newMsg.value) {
-		if (search.value == "") {
-			// serverUsers.value = [];
-		} else {
-			HTTP.get(
-				apiPath + "chat/getUsersByLoginFiltred/" + me + "/" + search.value
-			)
-				.then((res) => {
-					let usersTmp: BasicUserDto[] = [];
-					res.data.forEach((user: BasicUserDto) => {
-						usersTmp.push(new BasicUserDto(user.login));
-					});
-					serverUsers.value = usersTmp;
-					userServReqDone.value = true;
-				})
-				.catch((e) => console.log(e));
+		if (search.value != "") {
+			getServerUsers();
+			// HTTP.get(apiPath + "chat/getServerUsersFiltred/" + me + "/" + search.value)
+			// .then(res => {
+			// 	let usersTmp : BasicUser[] = [];
+			// 	res.data.forEach((user : BasicUser) => {
+			// 		usersTmp.push(new BasicUser(user.login));
+			// 	});
+			// 	serverUsers.value = usersTmp;
+
+			// 	serverUsers.value = serverUsers.value.filter((user, i) => {
+			// 		let isAlreadyKnow = true;
+			// 		for (let priv of privsFiltred.value) {
+			// 			if (priv.user.login == user.login){
+			// 				isAlreadyKnow = false;
+			// 				break;
+			// 			}
+			// 		}
+			// 		return isAlreadyKnow;
+			// 		// ========== AJOUTER FRIENDS ===========
+			// 	})
+
+			// 	userServReqDone.value = true;
+			// })
+			// .catch(e => console.log(e));
 		}
 	}
+});
 
-	// if (search.value != "" && newMsg.value){
-	// 	// userServReqDone.value = false;
-	// 	HTTP.get(apiPath + "chat/getUsersByLoginFiltred/" + me + "/" + search.value)
-	// 		.then(res => {
-	// 			let usersTmp : BasicUserDto[] = [];
-	// 			res.data.forEach((user : BasicUserDto) => {
-	// 				usersTmp.push(new BasicUserDto(user.login));
-	// 			});
-	// 			serverUsers.value = usersTmp;
-	// 		})
-	// 		.catch(e => console.log(e));
+function getServerUsers() {
+	HTTP.get(apiPath + "chat/getServerUsersFiltred/" + me + "/" + search.value)
+		.then((res) => {
+			let usersTmp: BasicUserDto[] = [];
+			res.data.forEach((user: BasicUserDto) => {
+				usersTmp.push(new BasicUserDto(user.login));
+			});
+			serverUsers.value = usersTmp;
 
-	// 	// serverUsers.value = (await HTTP.get(
-	// 	// 	apiPath + "chat/getUsersByLoginFiltred/" + me + "/" + search.value)).data;
-	// 	userServReqDone.value = true;
-	// }
+			filterServerUsers();
+			// serverUsers.value = serverUsers.value.filter((user, i) => {
+			// 	let isAlreadyKnow = true;
+			// 	for (let priv of privsFiltred.value) {
+			// 		if (priv.user.login == user.login){
+			// 			isAlreadyKnow = false;
+			// 			break;
+			// 		}
+			// 	}
+			// 	return isAlreadyKnow;
+			// 	// ========== AJOUTER FRIENDS ===========
+			// })
 
-	// HTTP.get(apiPath + "chat/getUsersByLoginFiltred/" + me).then(res => serverUsers.value = res);
+			userServReqDone.value = true;
+		})
+		.catch((e) => console.log(e));
+}
+
+function filterServerUsers() {
+	serverUsers.value = serverUsers.value!.filter((user, i) => {
+		let isAlreadyKnow = true;
+		for (let priv of privsFiltred.value) {
+			if (priv.user.login == user.login) {
+				isAlreadyKnow = false;
+				break;
+			}
+		}
+		return isAlreadyKnow;
+		// ========== AJOUTER FRIENDS ===========
+	});
 }
 
 // function knownPeople(): User[] {
@@ -249,19 +233,26 @@ function searchChange(value: string) {
 // }
 
 function createNewMsg() {
+	search.value = "";
 	newMsg.value = !newMsg.value;
-	searchKey.value += 1;
+	// searchKey.value += 1;
 	nextTick(() => {
-		document.getElementById("search")?.focus();
+		document.getElementById('search')?.focus();
 	});
 }
 
-// onUnmounted(() => {
-// 	mySocket.off("newPrivMsg");
-// })
+onMounted(() => {
+	const box = document.getElementById("privateTabText");
+	if (box != null) box.classList.add("chatTabActive");
+});
+
+onBeforeUnmount(() => {
+	const box = document.getElementById("privateTabText");
+	if (box != null) box.classList.remove("chatTabActive");
+});
 </script>
 
-<style>
+<style scoped>
 #private_view {
 	height: calc(100vh - 180px);
 	justify-content: flex-start;
@@ -269,40 +260,44 @@ function createNewMsg() {
 .no_results {
 	margin-top: 1rem;
 }
-.buttons_cont {
-	width: 20%;
+
+/* ============= BUTTONS TOPBAR ============= */
+.option_buttons {
+	width: 25%;
+}
+.button_img {
+	width: 30px;
+	height: 30px;
+	filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg)
+		brightness(86%) contrast(83%);
 }
 .button_cont {
 	border-radius: 50%;
 	padding: 5px;
-	position: relative;
+	/* position: static; */
 }
 .button_cont:hover {
 	background-color: white;
 	box-shadow: 0px 0px 4px #aaa;
 }
-.new_msg_img {
-	height: 28px;
-	width: 28px;
-	/* border-radius: 50%; */
-	filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg)
-		brightness(86%) contrast(83%);
-}
+
 .infoButtonText {
-	opacity: 0;
+	visibility: hidden;
 	font-size: 0.8rem;
 	width: auto;
 	background-color: rgba(0, 0, 0, 0.6);
 	color: #fff;
 	text-align: center;
-	padding: 5px;
+	padding: 5px 0;
 	border-radius: 6px;
 	position: absolute;
 	z-index: 1;
-	bottom: 100%;
-	/* right: 50%; */
+	bottom: 110%;
+	right: 0;
+	/* transform: translate(50%); */
 }
 .button_cont:hover .infoButtonText {
+	visibility: visible;
 	opacity: 0;
 	animation: displayButtonInfo 0.3s;
 	animation-delay: 0.3s;
@@ -329,11 +324,11 @@ function createNewMsg() {
 
 /* .myFade-enter-active,
 .myFade-leave-active {
-  transition: opacity 3s ease;
+	transition: opacity 3s ease;
 }
 
 .myFade-enter-from,
 .myFade-leave-to {
-  opacity: 0;
+	opacity: 0;
 } */
 </style>

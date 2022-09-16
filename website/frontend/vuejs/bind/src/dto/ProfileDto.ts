@@ -10,7 +10,7 @@ export default class ProfileDto {
 		this.x = 0;
 		this.y = 0;
 		this.rotation = 0;
-		this.login = 'search...';
+		this.login = 'searching...';
 		this.score = 10;
 		this.red = false;
 		this.avatar = '';

@@ -9,9 +9,7 @@
 					ref="search"
 				/>
 				<button>
-					<span class="material-symbols-outlined icon_search">
-						search
-					</span>
+					<span class="material-symbols-outlined icon_search"> search </span>
 				</button>
 			</div> -->
 			<!-- <SearchItem v-model="search"/> -->
@@ -156,7 +154,7 @@ onMounted(() => {
 	if (input == null) console.log("error");
 	input?.addEventListener("input", (str) => {
 		if (input.value == null) {
-			search.value = "";
+			search.value = '';
 			return;
 		}
 		search.value = input.value;

@@ -11,17 +11,17 @@
 </template>
 
 <script setup lang="ts">
-import { inject } from "vue";
+import { inject } from 'vue';
 
-let define = inject("colors");
-let playing = inject("playing");
+let define = inject('colors');
+let playing = inject('playing');
 
 function create_room() {
-	console.log("create a new room");
+	console.log('create a new room');
 }
 
 function join_room() {
-	console.log("Join a room");
+	console.log('Join a room');
 }
 </script>
 
@@ -39,9 +39,9 @@ function join_room() {
 }
 
 .button_ingame {
-	background-color: v-bind("define.color2");
+	background-color: v-bind('define.color2');
 	border-radius: 10px;
-	color: v-bind("define.color0");
+	color: v-bind('define.color0');
 	padding-left: 0.5rem;
 	padding-right: 0.5rem;
 	height: 1.5rem;
