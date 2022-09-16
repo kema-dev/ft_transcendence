@@ -102,6 +102,12 @@ export class AuthenticationController {
 	}
 
 	@HttpCode(200)
+	@Post('logout')
+	async logOut(@Body() body: { login: string }) {
+		return this.authenticationService.logOut(body.login);
+	}
+
+	@HttpCode(200)
 	@Post('login42')
 	public async create(@Body('code') code: string) {
 		let usr;

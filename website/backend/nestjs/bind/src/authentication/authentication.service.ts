@@ -241,6 +241,13 @@ export class AuthenticationService {
 		return true;
 	}
 
+	public async logOut(login: string) {
+		console.log('logOut: starting for login: ' + login);
+		await this.usersService.update_session(login, '');
+		console.log('logOut: ' + 'session deleted successfully, returning ✔');
+		return true;
+	}
+
 	// public async getCookieFromJwt(userId: number) {
 	// 	console.log('getCookieFromJwt: starting for userId: ' + userId);
 	// 	const jwtPayload = { userId };

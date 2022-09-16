@@ -10,11 +10,12 @@
 * make `start` false when the game is over
 * make a join button in lobbies list
 * make a play again button
-* do not flush user lobbies on update
+* do not flush user lobbies on page refresh (no `onMounted`)
+* clean up warnings in containers creations
 
 ## later
 
-* make players shown on hover and a join button
+* make players shown on hover
 * check identity of users istead of just checking if they are logged in (send session + login and check login against decoded session)
 * make a refresh token function in backend and frontend (for frontend, ask for a refresh if $date + x > expiration\\_date$)
 * fix "depends_on" directive in docker-compose.yml (use healthcheck)
