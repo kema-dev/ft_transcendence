@@ -2,6 +2,7 @@
 
 ## ongoing
 
+* fix duplicate entries in `lobby_name` table (maybe flush more often)
 * do not let non-owner players to change settings / start the game
 * sync players in lobbies (existing players, new players in lobby, player leaving lobby)
 * make `start` false when the game is over
