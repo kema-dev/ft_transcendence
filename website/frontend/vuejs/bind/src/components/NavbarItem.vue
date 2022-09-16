@@ -19,7 +19,6 @@
 					class="icon"
 					@click="logout"
 				/>
-				<!-- TODO jjourdan logout -->
 				<!-- <lottie-player
 					:src="require('@/assets/json/home.json')"
 					speed="2"
