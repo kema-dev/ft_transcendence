@@ -119,11 +119,13 @@ export default class Game {
 		this.dto.profiles = this.profiles;
 	}
 	setMov(value: number, login: string) {
-		for (const p of this.profiles)
+		for (const p of this.profiles) {
+			this.logger.log('p.login', p.login + ' l' + login);
 			if (p.login == login) {
 				p.mov = ((value * this.walls[0].height) / 100) * this.rackets[0].speed;
 				return;
 			}
+		}
 	}
 	getScores() {
 		let scores = [];
@@ -146,7 +148,7 @@ export default class Game {
 						this.run = false;
 					}
 					ball.x = ball.x + ball.v.x * ball.speed * this.deltaTime;
-					ball.y = ball.y + ball.v.y * ball.speed * this.deltaTime;
+					ball.y = ball.y + ball.v.y * ball.speed * this.deltaTime; 
 				}
 			for (const i in this.profiles) {
 				const mov = this.profiles[i].mov;
