@@ -17,10 +17,4 @@ import { MatchDto } from './objects/match.dto';
 @Controller('match')
 export class MatchController {
 	constructor(private readonly matchService: MatchService) {}
-
-	// @UseGuards(AuthGuard)
-	// @Post()
-	// async createMatch(@Body() MatchParams: MatchDto) {
-	// 	return await this.matchService.createMatch(MatchParams);
-	// }
 }

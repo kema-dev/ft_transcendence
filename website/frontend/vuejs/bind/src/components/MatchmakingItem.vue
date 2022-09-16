@@ -53,12 +53,15 @@ let players = ref([$cookies.get('login')]);
 let lobby_name = ref($cookies.get('login') + "'s lobby");
 const owner = ref($cookies.get('login'));
 
-socket.on('player_update', (data: any) => {
-	console.log('player_update: ' + data);
-	players.value = data;
-	console.log('players: ' + players.value);
-	update_game();
-});
+function players_update() {
+	socket.off('player_update');
+	socket.on('player_update', (data: any) => {
+		console.log('player_update: ' + data);
+		players.value = data;
+		console.log('players: ' + players.value);
+		update_game();
+	});
+}
 
 function update_game() {
 	remount.value = !remount.value;
@@ -103,6 +106,7 @@ function decrBall() {
 	}
 }
 onMounted(() => {
+	players_update();
 	let game = document.getElementById('container');
 	let settings = document.getElementById('settings');
 	if (game && settings) settings.style.height = game.offsetHeight + 'px';

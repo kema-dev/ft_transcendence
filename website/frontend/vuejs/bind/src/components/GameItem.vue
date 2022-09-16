@@ -93,7 +93,7 @@ async function update() {
 		await delay(100);
 	}
 	for (let player of gameDto.profiles) {
-		if (me.login == player.login) break;
+		if (me == player.login) break;
 		rotation -= 360 / gameDto.nbrPlayer;
 	}
 	game.rotation(rotation - 90);
@@ -160,7 +160,7 @@ async function update() {
 		} else {
 			return;
 		}
-		socket.emit("setMov", { mov: mov, login: me.login });
+		socket.emit("setMov", { mov: mov, login: me });
 		e.preventDefault();
 	});
 	container.addEventListener("keyup", function (e: any) {
@@ -171,7 +171,7 @@ async function update() {
 		} else {
 			return;
 		}
-		socket.emit("setMov", { mov: mov, login: me.login });
+		socket.emit("setMov", { mov: mov, login: me });
 		e.preventDefault();
 	});
 }

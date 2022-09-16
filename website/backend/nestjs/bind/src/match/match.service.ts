@@ -4,12 +4,14 @@ import { Socket } from 'socket.io';
 import { Repository } from 'typeorm';
 import { MatchEntity } from './match.entity';
 import { MatchDto } from './objects/match.dto';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class MatchService {
 	constructor(
 		@InjectRepository(MatchEntity)
 		private matchRepository: Repository<MatchEntity>,
+		private usersService: UsersService,
 	) {}
 
 	async flush_user_lobby(user: string) {
@@ -85,12 +87,14 @@ export class MatchService {
 		} else if (match.players.includes(user)) {
 			throw new HttpException('User already in lobby', HttpStatus.NOT_FOUND);
 		}
-		this.flush_user_lobby(user);
+		await this.flush_user_lobby(user);
 		match.players.push(user);
 		console.log('match: ', match);
 		await this.matchRepository.save(match);
 		for (let i = 0; i < match.players.length; i++) {
-			client.to(match.players[i]).emit('player_update', match.players);
+			const usr = await this.usersService.getByAny(match.players[i]);
+			console.log('usr: ', usr.login);
+			client.to(usr.socketId).emit('player_update', match.players);
 		}
 		console.log('joinLobby: Match joined, returning ✔');
 		return match;

@@ -2,19 +2,16 @@
 
 ## ongoing
 
-* fix backend crash when user in `login` cookie is not in database
-* fix lobbies list listing
-* find about `lobby_name` to group players (how to make a player join a lobby / socket.io rooms)
 * do not let non-owner players to change settings / start the game
 * sync players in lobbies (existing players, new players in lobby, player leaving lobby)
 * make `start` false when the game is over
-* make a join button in lobbies list
 * make a play again button
 * do not flush user lobbies on page refresh (no `onMounted`)
-* clean up warnings in containers creations
+* make user join conditionally (if the lobby is not full)
 
 ## later
 
+* clean up warnings in containers creations
 * make players shown on hover
 * check identity of users istead of just checking if they are logged in (send session + login and check login against decoded session)
 * make a refresh token function in backend and frontend (for frontend, ask for a refresh if $date + x > expiration\\_date$)
