@@ -15,6 +15,18 @@ export class ChatController {
 		return await this.chatService.createPrivsDto(params.login, privs);
 	}
 
+	@Get('getChans/:login')
+	async getChans(@Param() params : {login: string}) {
+		console.log(`getChans for user ${params.login }`);
+		const chans = await this.chatService.getUserChans(params.login);
+		// console.log(`chans = ${chans}`);
+		// await this.chatService.printChansDto(chans);
+		if (chans.length) {
+			await this.chatService.sortChans(chans);
+		}
+		return await this.chatService.createChansDto(params.login, chans);
+	}
+
 	@Get('getServerUsersFiltred/:login/:filter')
 	async getServerUsersFiltred(@Param() params : {login: string, filter: string}) {
 		return await this.chatService.

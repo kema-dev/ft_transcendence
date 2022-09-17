@@ -13,21 +13,23 @@
 </template>
 
 <script setup lang="ts">
-import NavbarItem from "@/components/NavbarItem.vue";
-import NavmenuItem from "@/components/NavmenuItem.vue";
 import { onMounted, Ref, provide, watch } from "vue";
 import { inject, ref } from "vue";
-import MatchmakingItem from '@/components/MatchmakingItem.vue';
 import io from "socket.io-client"
 import { VueCookies } from "vue-cookies";
-import { FQDN } from "../../.env.json";
 import { Socket } from "socket.io-client";
+
 import HTTP from "../components/axios";
+import { FQDN } from "../../.env.json";
+import MatchmakingItem from '@/components/MatchmakingItem.vue';
+import NavbarItem from "@/components/NavbarItem.vue";
+import NavmenuItem from "@/components/NavmenuItem.vue";
 import { PrivConvDto } from "@/chat/dto/PrivConvDto"
 import { ChannelDto } from "@/chat/dto/ChannelDto"
 import { MessageDto } from "@/chat/dto/MessageDto";
 import { BasicUserDto } from "@/chat/dto/BasicUserDto";
-import { chansRef } from "@/globals";
+import { processExpression } from "@vue/compiler-core";
+// import { chansRef } from "@/globals";
 
 
 //  ========== COOKIES + APIPATCH
@@ -73,7 +75,7 @@ function resetNbPrivNR() {
 	nbPrivNR.value = [];
 }
 let privDone = ref(false);
-function markReaded(index : number, readed: boolean) {
+function privReaded(index : number, readed: boolean) {
 	privsRef.value[index].readed = readed;
 }
 getPrivsRequest();
@@ -81,7 +83,7 @@ provide('privs', privsRef);
 // provide('nbPrivNR', {nbPrivMsg: nbPrivNR, editNbPrivMsg: editNbPrivNR});
 provide('nbPrivNR', {n: nbPrivNR, reset: resetNbPrivNR});
 
-provide('markReaded', markReaded);
+provide('markReaded', privReaded);
 provide('privDone', privDone);
 
 
@@ -91,9 +93,9 @@ function getPrivsRequest() {
 	.then(res => {
 		// console.log(`privsConvDto : `);
 		// printPrivs(res.data);
-		if (!res.data)
+		if (!res.data) {	
 			privsRef.value = [];
-		else {
+		} else {
 			// privs.value = res.data;
 			let privsTmp : PrivConvDto[] = [];
 			res.data.forEach((priv : PrivConvDto) => {
@@ -113,7 +115,7 @@ function getPrivsRequest() {
 		privDone.value = true;
 		// console.log(`getPrivsRequest Done`);
 
-		// printPrivs(privsRef.value);
+		printPrivs(privsRef.value);
 	})
 	.catch(e => console.log(e));
 }
@@ -195,25 +197,81 @@ function printPrivs(privs: PrivConvDto[]) {
 	});
 }
 
+
 //	========== GET CHANNELS
 
-// let test = new ChannelDto("first Channel", [new BasicUser(me)]);
+const chansRef : Ref<ChannelDto[]> = ref([]);
+const nbChanNR : Ref<string[]> = ref([]);
+function resetNbChanNR() {
+	nbChanNR.value = [];
+}
+const chanDone = ref(false);
+function chanReaded(index : number, readed: boolean) {
+	chansRef.value[index].readed = readed;
+}
 
-// console.log(`Before push`);
-// printChans(chansRef.value);
-// chansRef.value.push(test);
-// console.log(`After push`);
-// printChans(chansRef.value);
+getChansRequest();
+provide('chans', chansRef);
+provide('nbChanNR', {n: nbChanNR, reset: resetNbChanNR});
+provide('chanReaded', chanReaded);
+provide('chanDone', chanDone);
 
+
+function getChansRequest() {
+	// console.log(`avant getPrivsRequest()`);
+	HTTP.get(apiPath + "chat/getChans/" + me)
+	.then(res => {
+		// console.log(`privsConvDto : `);
+		printChans(res.data);
+		if (!res.data)
+			chansRef.value = [];
+		else {
+			chansRef.value = (res.data) as ChannelDto[];
+			chansRef.value.forEach(chan => {
+				chan.messages.forEach(msg => msg.date = new Date(msg.date));
+			})
+
+
+			// let chansTmp : ChannelDto[] = [];
+			// res.data.forEach((chan : ChannelDto) => {
+			// 	let msgsTmp : MessageDto[] = [];
+			// 	chan.messages.forEach((msg, j) => {
+			// 		msgsTmp.push(new MessageDto(msg.user, msg.msg, new Date(msg.date)))
+			// 	});
+			// 	// chansTmp.push(new ChannelDto(new BasicUserDto(chan.user.login), msgsTmp, chan.readed, chan.id));
+			// 	if (chan.readed == false && chan.messages.at(-1)?.user != me)
+			// 		nbChanNR.value.push(chan.name);
+			// });
+			// chansRef.value = chansTmp;
+		}
+
+		chanDone.value = true;
+
+		printChans(chansRef.value);
+	})
+	.catch(e => console.log(e));
+}
 
 
 function printChan(chan: ChannelDto) {
+	console.log(`psw = ${chan.psw}`);
+	console.log(`creation = ${chan.creation}`);
+	console.log(`readed = ${chan.readed}`);
+	console.log(` admins = ${chan.admins.map(admin => admin.login + ', ')}`);
+	// chan.admins.forEach((elem) => console.log(`${elem.login}`));
+	// chan.admins.forEach((elem) => console.log(`${elem.login}`));
+	
+
 	chan.messages.forEach((msg) => console.log(`${msg.msg}`));
 }
 
 function printChans(chans: ChannelDto[]) {
+	console.log(`printChan :`);
+	if (!chans.length) {
+			return console.log(`No channels`);
+		}
 	chans.forEach((chan : ChannelDto) => {
-		console.log(`channelName = ${chan.name}`);
+		console.log(`PrintChan : ${chan.name}`);
 		printChan(chan);
 	});
 }

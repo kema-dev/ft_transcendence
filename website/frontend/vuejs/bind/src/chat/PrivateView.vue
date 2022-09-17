@@ -95,16 +95,16 @@ let colors = inject("colors");
 let me: string = inject("me")!;
 let mySocket: Socket = inject("socket")!;
 let apiPath: string = inject("apiPath")!;
+
 let privs : Ref<PrivConvDto[]> = inject("privs")!;
 let nbPrivNR : { n: Ref<number[]>, reset: () => void} = inject("nbPrivNR")!;
 let privsFiltred = ref(privs.value);
 const privDone: Ref<boolean> = inject("privDone")!;
-
-// let knownPeople = ref<BasicUser[]>();
 let serverUsers = ref<BasicUserDto[]>();
+// let knownPeople = ref<BasicUser[]>();
+
 const search = ref("");
 const newMsg = ref(false);
-const searchKey = ref(0);
 let userServReqDone = ref(false);
 
 if (privs.value.length) {

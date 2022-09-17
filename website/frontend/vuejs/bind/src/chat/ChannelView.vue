@@ -1,7 +1,7 @@
 <template>
 	<div id="channel_view" class="center column stack">
 		<div class="option_private center raw">
-			<SearchItem v-model:search="search"/>
+			<SearchItem v-if="!newChannel" v-model:search="search"/>
 			<!-- <div v-if="newChannel" class="newChannelTitle">Create a new Channel</div> -->
 			<div v-if="newChannel" class="newChannelTitle center">
 				<span class="newChannelTitleText">Create a new Channel</span>
@@ -21,7 +21,7 @@
 				</button>
 			</div>
 		</div>
-		<div v-if="!findChannel && !newChannel" class="myChannels center column">
+		<div v-if="chanDone && !findChannel && !newChannel" class="myChannels center column">
 			<div v-for="(data, i) in chansFiltred" :key="i" class="center">
 				<ConversationTab v-if="data.messages.length > 0" :name-conv="data.name" :avatar="data.avatar" :message="data.messages.at(-1)!.msg" :date="data.messages.at(-1)!.date" :last-msg-user="data.messages.at(-1)!.user" :read="data.readed" :chan="true" class="center"/>
 				<ConversationTab v-else :name-conv="data.name" :avatar="data.avatar" :date="data.creation" :chan="true" class="center"/>
@@ -62,20 +62,28 @@
 import { inject, onMounted, onBeforeUnmount, ref, Ref, nextTick, watch } from "vue";
 import ConversationTab from "@/chat/ConversationTab.vue";
 import HTTP from "../components/axios";
+import { Socket } from "socket.io-client";
 import ChannelTab from "@/chat/ChannelTab.vue";
 import SearchItem from "@/components/SearchItem.vue";
 import { ChannelDto } from "@/chat/dto/ChannelDto";
 import { ChannelTabDto } from "@/chat/dto/ChannelTabDto ";
-import { Message } from "@/chat/dto/MessageDto";
+import { MessageDto } from "@/chat/dto/MessageDto";
 import { BasicUserDto } from "@/chat/dto/BasicUserDto";
-import { chansRef, printChans }  from "@/globals"
-
+// import { chansRef, printChans }  from "@/globals"
+	
+	
+	
 let colors = inject("colors");
 let me : string = inject("me")!;
+let mySocket: Socket = inject("socket")!;
 let apiPath: string = inject("apiPath")!;
 
+let chansRef : Ref<ChannelDto[]> = inject("privs")!;
 let chansFiltred : Ref<ChannelDto[]> = ref(chansRef.value);
+const chanDone: Ref<boolean> = inject("privDone")!;
+
 let serverChans : Ref<ChannelTabDto[]> = ref([]);
+
 const newMsg = ref(false);
 let userServReqDone = ref(false);
 
@@ -85,13 +93,6 @@ const newChannel = ref(false);
 const searchKey = ref(0);
 const pswCheck = ref(false);
 
-let test = new ChannelDto("second Channel", [new BasicUserDto(me)]);
-
-console.log(`Before push`);
-printChans(chansRef.value);
-chansRef.value.push(test);
-console.log(`After push`);
-printChans(chansRef.value);
 
 watch(search, () => {
 	userServReqDone.value = false;

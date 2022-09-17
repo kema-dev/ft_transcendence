@@ -12,8 +12,8 @@ export class ChannelEntity extends TimestampEntites{
 	@Column()
 	name: string;
 
-	// @Column({ nullable: true })
-	// avatar: any;
+	@Column({ nullable: true })
+	avatar: string;
 
 	@Column({ nullable: true })
 	password: string;
@@ -21,7 +21,7 @@ export class ChannelEntity extends TimestampEntites{
 	@Column()
 	readed: boolean;
 
-	@ManyToMany( type => UserEntity, (user) => user.chanAdmins, {
+	@ManyToMany( type => UserEntity, (user) => user.chansAdmin, {
 		onDelete: 'SET NULL'
 	})
 	admins: UserEntity[];

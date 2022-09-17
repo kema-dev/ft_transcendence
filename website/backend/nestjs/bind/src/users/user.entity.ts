@@ -89,7 +89,7 @@ export class UserEntity extends TimestampEntites{
 		onDelete: 'SET NULL',
 	})
 	@JoinTable()
-	chanAdmins: ChannelEntity[];
+	chansAdmin: ChannelEntity[];
 	
 	@ManyToMany(type => ChannelEntity, (chan) => chan.users ,{
 		cascade: true,
