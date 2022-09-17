@@ -4,7 +4,7 @@
 		<!-- <router-link to="/">Log out</router-link> -->
 		<div id="game" class="center">
 			<!-- <div id="field"> -->
-				<MatchmakingItem />
+			<MatchmakingItem />
 			<!-- <GameItem /> -->
 			<!-- </div> -->
 		</div>
@@ -34,17 +34,42 @@ import { processExpression } from "@vue/compiler-core";
 
 //  ========== COOKIES + APIPATCH
 const $cookies = inject<VueCookies>('$cookies')!;
-const apiPath = FQDN + ":3000/api/v1/";
-provide("apiPath", apiPath);
+const apiPath = FQDN + ':3000/api/v1/';
+provide('apiPath', apiPath);
 
 //	========== GET MY NAME + AVATAR
-const me : string = $cookies.get('login');
-provide("me", me);
-console.log(`I am '${me}'`)
+const me: string = $cookies.get('login');
+provide('me', me);
+console.log(`I am '${me}'`);
 
 //	========== CREATE SOCKET
-let socket = io(FQDN + ':3000', {query: {login: me}});
-provide("socket", socket);
+let socket = io(FQDN + ':3000', { query: { login: me } });
+provide('socket', socket);
+
+// function post(url: string, args: any, fct: any) {
+// 	let data;
+// 	axios
+// 		.post(FQDN + ":3000/api/v1/" + url, args)
+// 		.then(fct)
+// 		.catch((error) => {
+// 			console.log(url + ": failed request.\nargs: " + args);
+// 			console.log(error);
+// 		});
+// }
+let userRef = ref();
+// post('user/getUser', {login: me}, (data: any) => {
+// 	userRef.value = data.data;
+// });
+socket.on("userUpdate", (data: any) => {
+	if (data && data.login == me) {
+		userRef.value = data;
+		console.log(userRef.value);
+		// provide("user", userRef);
+	}
+});
+socket.emit("userUpdate", { login: me });
+provide("user", userRef);
+provide("me", me);
 
 // socket.on('newPrivConv', (data: PrivConv) => {
 // 	let privTmp = privs.value!;
@@ -59,18 +84,18 @@ provide("socket", socket);
 // })
 
 //	========== RESIZE WINDOW
-let reload = ref(0)
+let reload = ref(0);
 onMounted(() => {
-	window.addEventListener("resize", () => {
+	window.addEventListener('resize', () => {
 		reload.value++;
-	})
+	});
 });
 
 //	===================== CHAT =====================
-	
-//	========== GET PRIVS 
-let privsRef : Ref<PrivConvDto[]> = ref([]);
-let nbPrivNR : Ref<number[]> = ref([]);
+
+//	========== GET PRIVS
+let privsRef: Ref<PrivConvDto[]> = ref([]);
+let nbPrivNR: Ref<number[]> = ref([]);
 function resetNbPrivNR() {
 	nbPrivNR.value = [];
 }
@@ -81,11 +106,10 @@ function privReaded(index : number, readed: boolean) {
 getPrivsRequest();
 provide('privs', privsRef);
 // provide('nbPrivNR', {nbPrivMsg: nbPrivNR, editNbPrivMsg: editNbPrivNR});
-provide('nbPrivNR', {n: nbPrivNR, reset: resetNbPrivNR});
+provide('nbPrivNR', { n: nbPrivNR, reset: resetNbPrivNR });
 
 provide('markReaded', privReaded);
 provide('privDone', privDone);
-
 
 function getPrivsRequest() {
 	// console.log(`avant getPrivsRequest()`);
@@ -121,11 +145,9 @@ function getPrivsRequest() {
 }
 
 
-
-
-//	========== CREATE SOCKET LISTENERS 
+//	========== CREATE SOCKET LISTENERS
 socket.on('newPrivConv', (data: PrivConvDto) => {
-	console.log(`New private created`)
+	console.log(`New private created`);
 	// let privTmp = privsRef.value!;
 	// let msg = new Message(data.messages[0].user, data.messages[0].msg, new Date (data.messages[0].date));
 	// privTmp.push(new PrivConv(new BasicUser(data.user.login), [msg], data.readed, data.id));
@@ -138,16 +160,15 @@ socket.on('newPrivConv', (data: PrivConvDto) => {
 	// ==============
 	let newPriv = data;
 	newPriv.user = new BasicUserDto(newPriv.user.login);
-	newPriv.messages.forEach(msg => msg.date = new Date(msg.date));
+	newPriv.messages.forEach((msg) => (msg.date = new Date(msg.date)));
 	privsRef.value.unshift(data);
-	if (data.messages[0].user != me)
-		nbPrivNR.value.push(data.id);
+	if (data.messages[0].user != me) nbPrivNR.value.push(data.id);
 
 	// console.log(`privsRef : `);
 	// printPrivs(privsRef.value);
-})
-socket.on('newPrivMsg', (data: {msg: MessageDto, id: number}) => {
-	console.log(`New message received : ${data.msg.msg}`)
+});
+socket.on('newPrivMsg', (data: { msg: MessageDto; id: number }) => {
+	console.log(`New message received : ${data.msg.msg}`);
 	// let privsTmp = privsRef.value!;
 	// let priv = privsTmp.find(priv => priv.id == data.id);
 	// priv?.messages.push(new Message(data.msg.user, data.msg.msg, new Date(data.msg.date)));
@@ -156,15 +177,16 @@ socket.on('newPrivMsg', (data: {msg: MessageDto, id: number}) => {
 	// let priv = privs.find(priv => priv.id == data.id);
 	// priv?.messages.push(data.msg);
 	// // ==============
-	let i = privsRef.value.findIndex(priv => priv.id == data.id);
-	privsRef.value[i].messages.push(new MessageDto(data.msg.user, data.msg.msg, new Date(data.msg.date)));
+	let i = privsRef.value.findIndex((priv) => priv.id == data.id);
+	privsRef.value[i].messages.push(
+		new MessageDto(data.msg.user, data.msg.msg, new Date(data.msg.date)),
+	);
 	privsRef.value[i].readed = false;
 	if (data.msg.user != me && !nbPrivNR.value.includes(privsRef.value[i].id))
 		nbPrivNR.value.push(privsRef.value[i].id);
 	// console.log(`nbr Priv Mesage Not Read = ${nbPrivNR.value}`)
-	if (i != 0)
-		putPrivFirst(i);
-})
+	if (i != 0) putPrivFirst(i);
+});
 
 // watch(privsRef, () => {
 // 	console.log(`privs changed in homeview`);
@@ -174,12 +196,15 @@ function putPrivFirst(index: number) {
 	// if(privsRef.value.length == 1)
 	// 	return;
 	if (privsRef.value.length == 2)
-		return [privsRef.value[0], privsRef.value[1]] = [privsRef.value[1], privsRef.value[0]];
+		return ([privsRef.value[0], privsRef.value[1]] = [
+			privsRef.value[1],
+			privsRef.value[0],
+		]);
 	console.log(`index = ${index}`);
-		let privTmp1 = privsRef.value[0];
-	let privTmp2 : PrivConvDto;
+	let privTmp1 = privsRef.value[0];
+	let privTmp2: PrivConvDto;
 	privsRef.value[0] = privsRef.value[index];
-	for(let i = 1; i <= index && i < privsRef.value.length; i++) {
+	for (let i = 1; i <= index && i < privsRef.value.length; i++) {
 		privTmp2 = privsRef.value[i];
 		privsRef.value[i] = privTmp1;
 		privTmp1 = privTmp2;
@@ -191,7 +216,7 @@ function printPriv(priv: PrivConvDto) {
 }
 
 function printPrivs(privs: PrivConvDto[]) {
-	privs.forEach((priv : PrivConvDto) => {
+	privs.forEach((priv: PrivConvDto) => {
 		console.log(`user = ${priv.user.login}`);
 		printPriv(priv);
 	});
@@ -275,7 +300,6 @@ function printChans(chans: ChannelDto[]) {
 		printChan(chan);
 	});
 }
-
 </script>
 
 <style>

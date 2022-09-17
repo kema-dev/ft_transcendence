@@ -2,11 +2,7 @@
 	<nav>
 		<div class="center space-between" style="height: 100%">
 			<div class="nav-icon">
-				<img
-					src="@/assets/logo_white.png"
-					alt="pong.io logo"
-					class="logo"
-				/>
+				<img src="@/assets/logo_white.png" alt="pong.io logo" class="logo" />
 				<h1 class="text_logo">PONG.IO</h1>
 			</div>
 			<div style="height: 100%" class="center row right">
@@ -21,7 +17,8 @@
 					speed="2"
 					hover
 					class="icon"
-				/> <!-- TODO jjourdan logout -->
+				/>
+				<!-- TODO jjourdan logout -->
 				<!-- <lottie-player
 					:src="require('@/assets/json/home.json')"
 					speed="2"
@@ -34,9 +31,9 @@
 </template>
 
 <script setup lang="ts">
-import { inject } from "vue";
+import { inject } from 'vue';
 
-let define = inject("colors");
+let define = inject('colors');
 </script>
 
 <style>
@@ -50,7 +47,7 @@ nav {
 	justify-content: space-between;
 	padding: 5px 10px 5px 20px;
 	width: 100%;
-	background-color: v-bind("define.color2");
+	background-color: v-bind('define.color2');
 	transition: all 0.3s;
 	box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
 }
@@ -67,14 +64,14 @@ nav {
 .text_logo {
 	font-size: 35px;
 	font-weight: 900;
-	color: v-bind("define.color0");
+	color: v-bind('define.color0');
 }
 .shadow_nav {
 	box-shadow: 0px 10px 50px rgba(0, 0, 0, 0.25);
 	transition: all 0.3s;
 }
 .material-symbols-outlined {
-	font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 48;
+	font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 48;
 	font-size: 50px;
 }
 .icon {

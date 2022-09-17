@@ -1,14 +1,21 @@
 <template>
 	<div class="stack" id="page">
+		<div id="lobbies_menu">
+			<LobbyListItem />
+		</div>
 		<div id="game_pos">
 			<GameItem
 				:nbrPlayer="nbrPlayer"
 				:nbrBall="nbrBall"
+				:players="players"
+				:lobby_name="lobby_name"
 				:start="start"
+				:owner="owner"
+				:key="remount"
 			/>
 		</div>
-		<div class="center column" id="settings">
-			<h1 v-if="!start">{{ nbrPlayer }}</h1>
+		<div class="center column" id="settings" v-show="!start">
+			<h1>{{ nbrPlayer }}</h1>
 			<h2 class="title">Players</h2>
 			<div class="center row">
 				<button class="button" v-on:click="decr">LESS</button>
@@ -19,49 +26,86 @@
 				<button class="button" v-on:click="decrBall">LESS</button>
 				<button class="button" v-on:click="incrBall">MORE</button>
 			</div>
-			<button class="start" v-on:click="launch" v-if="!start">start</button>
+			<button class="start" v-on:click="launch">start</button>
 		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { inject, onMounted, provide, ref } from "vue";
-import GameItem from "@/components/GameItem.vue";
-import { Socket } from "socket.io-client";
-let define = inject("colors");
+import { inject, onMounted, provide, ref } from 'vue';
+import GameItem from '@/components/GameItem.vue';
+import LobbyListItem from '@/components/LobbyListItem.vue';
+import { Socket } from 'socket.io-client';
+import { VueCookies } from 'vue-cookies';
+import { useToast } from 'vue-toastification';
+const toast = useToast();
+
+let define = inject('colors');
 let start = ref(false);
-provide("playing", start);
-let socket: Socket = inject("socket")!;
-let nbrPlayer = 4;
-let nbrBall = 1;
+provide('playing', start);
+let socket: Socket = inject('socket')!;
+const $cookies = inject<VueCookies>('$cookies');
+let remount = ref(false);
+
+let nbrPlayer = ref(6);
+let nbrBall = ref(3);
+let players = ref([$cookies.get('login')]);
+let lobby_name = ref($cookies.get('login') + "'s lobby");
+const owner = ref($cookies.get('login'));
+
+socket.on('player_update', (data: any) => {
+	console.log('player_update: ' + data);
+	players.value = data;
+	console.log('players: ' + players.value);
+	update_game();
+});
+
+function update_game() {
+	remount.value = !remount.value;
+	console.log('updated settings');
+}
 function launch() {
 	start.value = !start.value;
-	socket.emit('start');
+	socket.emit('start', {
+		lobby_name: lobby_name.value,
+	});
 }
 function incr() {
-	if (nbrPlayer + 1 <= 7) {
-		nbrPlayer++;
+	if (nbrPlayer.value + 1 <= 7) {
+		nbrPlayer.value++;
+		update_game();
+	} else {
+		toast.warning('7 players maximum');
 	}
 }
 function decr() {
-	if (nbrPlayer - 1 >= 2) {
-		nbrPlayer--;
+	if (nbrPlayer.value - 1 >= 2) {
+		nbrPlayer.value--;
+		update_game();
+	} else {
+		toast.warning('2 players minimum');
 	}
 }
 function incrBall() {
-	if (nbrBall + 1 <= 3) {
-		nbrBall++;
+	if (nbrBall.value + 1 <= 3) {
+		nbrBall.value++;
+		update_game();
+	} else {
+		toast.warning('3 balls maximum');
 	}
 }
 function decrBall() {
-	if (nbrBall - 1 >= 1) {
-		nbrBall--;
+	if (nbrBall.value - 1 >= 1) {
+		nbrBall.value--;
+		update_game();
+	} else {
+		toast.warning('1 balls minimum');
 	}
 }
 onMounted(() => {
-	let game = document.getElementById("container");
-	let settings = document.getElementById("settings");
-	if (game && settings) settings.style.height = game.offsetHeight + "px";
+	let game = document.getElementById('container');
+	let settings = document.getElementById('settings');
+	if (game && settings) settings.style.height = game.offsetHeight + 'px';
 	// window.addEventListener("resize", () => {
 	// 	reload++;
 	// })
@@ -75,13 +119,12 @@ onMounted(() => {
 	/* padding: 0 calc(); */
 }
 #settings {
-	position: relative;
+	position: absolute;
+	top: 0;
 	z-index: 10;
-	/* height: 500px; */
 }
 #game_pos {
-	position: absolute;
-	z-index: 1;
+	position: relative;
 	top: 0;
 	left: 0;
 }
@@ -96,9 +139,9 @@ onMounted(() => {
 .start {
 	/* margin-top: 10px; */
 	/* margin-bottom: 95px; */
-	background-color: v-bind("define.color2");
+	background-color: v-bind('define.color2');
 	border-radius: 10px;
-	color: v-bind("define.color0");
+	color: v-bind('define.color0');
 	width: 4.5rem;
 	height: 1.5rem;
 }

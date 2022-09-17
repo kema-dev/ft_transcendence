@@ -6,18 +6,20 @@
 
 <script setup lang="ts">
 /* eslint @typescript-eslint/no-var-requires: "off" */
-import { onMounted, provide, ref } from "vue";
-import { FQDN } from "../.env.json";
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { onMounted, provide, ref } from 'vue';
+import User from '@/chat/User';
+import Socket from '@/utils/Socket';
+import { FQDN } from '../.env.json';
 
-provide("apiPath", FQDN + ":3000/api/v1/");
-provide("playing", false);
-provide("colors", {
-	color0: "#fff",
-	color1: "#000",
-	color2: "#16638D",
-	color3: "#E5F4FB",
+provide('apiPath', FQDN + ':3000/api/v1/');
+provide('playing', false);
+provide('colors', {
+	color0: '#fff',
+	color1: '#000',
+	color2: '#16638D',
+	color3: '#E5F4FB',
 });
-
 </script>
 
 <style>
@@ -46,21 +48,21 @@ div {
 	align-items: center;
 }
 h1 {
-	font-family: "Orbitron", sans-serif;
+	font-family: 'Orbitron', sans-serif;
 	font-size: 2rem;
 }
 h2 {
-	font-family: "Orbitron", sans-serif;
+	font-family: 'Orbitron', sans-serif;
 	font-size: 1rem;
 }
 h3 {
-	font-family: "Orbitron", sans-serif;
+	font-family: 'Orbitron', sans-serif;
 	font-size: 0.8rem;
 }
 button {
 	cursor: pointer;
 	background: none;
-	font-family: "Orbitron", sans-serif;
+	font-family: 'Orbitron', sans-serif;
 	font-size: 1rem;
 }
 a {

@@ -4,16 +4,15 @@
 			<!-- <router-link to="/home/chat/in-game" class="chat_item">
 				<h2 id="ingameTabText" class="chat_item_text">IN-GAME</h2>
 			</router-link> -->
-			<router-link to="/home/chat/private" class="chat_item stack" >
+			<router-link to="/home/chat/private" class="chat_item stack">
 				<h2 id="privateTabText" class="chat_item_text">PRIVATE</h2>
 				<div v-if="nbPrivNR.n.value.length" class="notifMsgCont center">
-					<div class="notifMsgNumber">{{nbPrivNR.n.value.length}}</div>
+					<div class="notifMsgNumber">{{ nbPrivNR.n.value.length }}</div>
 				</div>
 			</router-link>
 			<router-link to="/home/chat/channels" class="chat_item">
 				<h2 id="channelsTabText" class="chat_item_text">CHANNELS</h2>
 			</router-link>
-
 		</div>
 		<div class="content">
 			<!-- <router-view name="chat_menu" v-slot="{ Component, route }">
@@ -26,22 +25,19 @@
 					<component :is="Component" />
 				</transition>
 			</router-view> -->
-			<router-view name="chat_menu"/>
+			<router-view name="chat_menu" />
 		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { inject, Ref } from "vue";
+import { inject, Ref } from 'vue';
 
-let colors = inject("colors");
-let nbPrivNR : { n: Ref<number[]>, reset: () => void} = inject("nbPrivNR")!;
-
-
+let colors = inject('colors');
+let nbPrivNR: { n: Ref<number[]>; reset: () => void } = inject('nbPrivNR')!;
 </script>
 
 <style>
-
 #chat_bar {
 	height: 60px;
 }
@@ -54,12 +50,12 @@ let nbPrivNR : { n: Ref<number[]>, reset: () => void} = inject("nbPrivNR")!;
 }
 
 .chatTabActive {
-	border-bottom: 2px solid v-bind("colors.color2");
-	color: v-bind("colors.color2");
+	border-bottom: 2px solid v-bind('colors.color2');
+	color: v-bind('colors.color2');
 	font-weight: 500;
 }
 
-.notifMsgCont{
+.notifMsgCont {
 	position: absolute;
 	right: -20px;
 	top: 0px;
@@ -67,18 +63,18 @@ let nbPrivNR : { n: Ref<number[]>, reset: () => void} = inject("nbPrivNR")!;
 	width: 18px;
 	border-radius: 9px;
 	/* background-color: rgb(255, 69, 69); */
-	background-color: v-bind("colors.color2");
+	background-color: v-bind('colors.color2');
 }
-.notifMsgNumber{
+.notifMsgNumber {
 	color: white;
 	font-size: 0.8rem;
-	font-family: "Orbitron", sans-serif;
+	font-family: 'Orbitron', sans-serif;
 	font-weight: bold;
 }
 
 /* ROUTER VUE TRANSITION  */
 
-@import '~@/chat/transitions.css';
+@import "~@/chat/transitions.css";
 /* .myFade-enter-active,
 .myFade-leave-active {
   transition: opacity 0.5s ease;
@@ -88,5 +84,4 @@ let nbPrivNR : { n: Ref<number[]>, reset: () => void} = inject("nbPrivNR")!;
 .myFade-leave-to {
   opacity: 0;
 } */
-
 </style>

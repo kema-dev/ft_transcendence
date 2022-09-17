@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Module } from '@nestjs/common';
-import { HttpModule } from '@nestjs/axios'
+import { HttpModule } from '@nestjs/axios';
 import { AuthenticationService } from './authentication.service';
 import { UsersModule } from '../users/users.module';
 import { AuthenticationController } from './authentication.controller';
@@ -28,4 +29,4 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 	providers: [AuthenticationService],
 	controllers: [AuthenticationController],
 })
-export class AuthenticationModule {}
+export class AuthenticationModule { }

@@ -58,7 +58,8 @@
 									placeholder="password"
 									type="password"
 								/>
-								<input v-if="totp_enabled"
+								<input
+									v-if="totp_enabled"
 									class="input_box"
 									v-model="totp_val"
 									placeholder="mfa code"
@@ -83,101 +84,100 @@
 </template>
 
 <script setup lang="ts">
-import axios from "axios";
-import { useToast } from "vue-toastification";
-import { inject, onMounted, provide, ref } from "vue";
-import { useRouter } from "vue-router";
-import { VueCookies } from "vue-cookies";
-import HTTP from "../components/axios";
-import { FQDN, API_42_UID, API_42_REDIRECT_URI } from "../../.env.json";
+import { useToast } from 'vue-toastification';
+import { inject, onMounted, provide, ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { VueCookies } from 'vue-cookies';
+import API from '../components/axios';
+import { FQDN, API_42_UID, API_42_REDIRECT_URI } from '../../.env.json';
 
 const router = useRouter();
 
-let apiPath = FQDN + ":3000/api/v1/";
+let apiPath = FQDN + ':3000/api/v1/';
 let api42Path =
-	"https://api.intra.42.fr/oauth/authorize?client_id=" +
+	'https://api.intra.42.fr/oauth/authorize?client_id=' +
 	API_42_UID +
-	"&redirect_uri=" +
+	'&redirect_uri=' +
 	API_42_REDIRECT_URI +
-	"&response_type=code";
-let email_register = ref("");
-let login_register = ref("");
-let password_register = ref("");
-let password_confirmation = ref("");
-let email_auth = ref("");
-let password_auth = ref("");
+	'&response_type=code';
+let email_register = ref('');
+let login_register = ref('');
+let password_register = ref('');
+let password_confirmation = ref('');
+let email_auth = ref('');
+let password_auth = ref('');
 let show = ref(false);
 let switch_value = ref(true);
 let totp_enabled = ref(false);
-let totp_val = ref("");
+let totp_val = ref('');
 
-let E_PASS_DIFFERS = "📝 Passwords do not match, please try again";
+let E_PASS_DIFFERS = '📝 Passwords do not match, please try again';
 let E_PASS_NOT_MEET_REQUIREMENTS =
-	"📝 Password must contain at least one lowercase letter, one uppercase letter, one digit, one special character (!@#$%^&*) and must be between 10 and 32 characters long, please try again";
-let E_MAIL_NOT_MEET_REQUIREMENTS = "📝 Email is not valid, please try again";
+	'📝 Password must contain at least one lowercase letter, one uppercase letter, one digit, one special character (!@#$%^&*) and must be between 10 and 32 characters long, please try again';
+let E_MAIL_NOT_MEET_REQUIREMENTS = '📝 Email is not valid, please try again';
 let E_LOGIN_NOT_MEET_REQUIREMENTS =
 	"📝 Login is not valid, must be between 1 and 25 characters long, using alphanumeric characters, '_' and '-' only, please try again";
-let E_UNEXPECTED_ERROR = "😥 Unknown error, we are sorry for that";
+let E_UNEXPECTED_ERROR = '😥 Unknown error, we are sorry for that';
 let E_EMAIL_OR_LOGIN_ALREADY_EXISTS =
-	"📝 User with that email and/or login already exists, please try again";
-let E_PASS_FAIL = "📝 Wrong credentials provided, please try again";
+	'📝 User with that email and/or login already exists, please try again';
+let E_PASS_FAIL = '📝 Wrong credentials provided, please try again';
 let E_NO_CODE_PROVIDED =
-	"❌ 42 API authentication: No code provided, please try again";
+	'❌ 42 API authentication: No code provided, please try again';
 let E_CODE_IN_USE =
-	"❌ 42 API authentication: Code already in use, please try again";
+	'❌ 42 API authentication: Code already in use, please try again';
 let E_USER_IS_FT =
-	"📝 You registered with a 42 account, please login with your 42 account";
-let E_USER_NOT_FOUND = "📝 This email / login does not exist, please try again";
-let E_USER_HAS_TOTP = "📝 You have enabled 2FA, please login with your 2FA code";
-let E_TOTP_FAIL = "📝 2FA code is not valid, please try again";
-let E_EMPTY_FIELD = "📝 At least one field is empty, please fill all of them";
+	'📝 You registered with a 42 account, please login with your 42 account';
+let E_USER_NOT_FOUND = '📝 This email / login does not exist, please try again';
+let E_USER_HAS_TOTP =
+	'📝 You have enabled 2FA, please login with your 2FA code';
+let E_TOTP_FAIL = '📝 2FA code is not valid, please try again';
+let E_EMPTY_FIELD = '📝 At least one field is empty, please fill all of them';
 
-provide("defaultState", switch_value);
+provide('defaultState', switch_value);
 
 const toast = useToast();
-const $cookies = inject<VueCookies>('$cookies'); 
+const $cookies = inject<VueCookies>('$cookies');
 
 function register() {
 	if (
-		email_register.value === "" ||
-		login_register.value === "" ||
-		password_register.value === "" ||
-		password_confirmation.value === ""
+		email_register.value === '' ||
+		login_register.value === '' ||
+		password_register.value === '' ||
+		password_confirmation.value === ''
 	) {
 		toast.warning(E_EMPTY_FIELD);
 		return;
 	}
-	axios
-		.post(apiPath + "auth/register", {
-			email: email_register.value,
-			login: login_register.value,
-			password: password_register.value,
-			password_confirmation: password_confirmation.value,
-		})
+	API.post('auth/register', {
+		email: email_register.value,
+		login: login_register.value,
+		password: password_register.value,
+		password_confirmation: password_confirmation.value,
+	})
 		.then((response) => {
 			console.log(response);
 			$cookies.set(response.data.key, response.data.value);
-			$cookies.set('login', response.data.login);
+			$cookies.set("login", response.data.login);
 			toast.success(
-				"Registration success, welcome " + response.data.login + " !"
+				'Registration success, welcome ' + response.data.login + ' !',
 			);
-			router.push("/home");
+			router.push('/home');
 		})
 		.catch((error) => {
-			if (error.response.data.message === "E_EMAIL_OR_LOGIN_ALREADY_EXISTS") {
+			if (error.response.data.message === 'E_EMAIL_OR_LOGIN_ALREADY_EXISTS') {
 				toast.warning(E_EMAIL_OR_LOGIN_ALREADY_EXISTS);
-			} else if (error.response.data.message === "E_PASS_DIFFERS") {
+			} else if (error.response.data.message === 'E_PASS_DIFFERS') {
 				toast.warning(E_PASS_DIFFERS);
 			} else if (
-				error.response.data.message === "E_PASS_NOT_MEET_REQUIREMENTS"
+				error.response.data.message === 'E_PASS_NOT_MEET_REQUIREMENTS'
 			) {
 				toast.warning(E_PASS_NOT_MEET_REQUIREMENTS);
 			} else if (
-				error.response.data.message === "E_MAIL_NOT_MEET_REQUIREMENTS"
+				error.response.data.message === 'E_MAIL_NOT_MEET_REQUIREMENTS'
 			) {
 				toast.warning(E_MAIL_NOT_MEET_REQUIREMENTS);
 			} else if (
-				error.response.data.message === "E_LOGIN_NOT_MEET_REQUIREMENTS"
+				error.response.data.message === 'E_LOGIN_NOT_MEET_REQUIREMENTS'
 			) {
 				toast.warning(E_LOGIN_NOT_MEET_REQUIREMENTS);
 			} else {
@@ -186,38 +186,37 @@ function register() {
 			}
 		});
 }
-function auth() {
-	if (email_auth.value === "" || password_auth.value === "") {
-		toast.warning("📝 At least one field is empty, please fill all of them");
+async function auth() {
+	if (email_auth.value === '' || password_auth.value === '') {
+		toast.warning('📝 At least one field is empty, please fill all of them');
 		return;
 	}
-	axios
-		.post(apiPath + "auth/login", {
-			email: email_auth.value,
-			password: password_auth.value,
-			mfa: totp_val.value,
-		})
+	API.post('auth/login', {
+		email: email_auth.value,
+		password: password_auth.value,
+		mfa: totp_val.value,
+	})
 		.then((response) => {
-			console.log(response);
+			// console.log(response);
 			$cookies.set(response.data.key, response.data.value);
-			$cookies.set('login', response.data.login);
+			$cookies.set("login", response.data.login);
 			toast.success(
-				"Authentication success, welcome " + response.data.login + " !"
+				'Authentication success, welcome ' + response.data.login + ' !',
 			);
-			router.push("/home");
+			router.push('/home');
 		})
 		.catch((error) => {
 			console.log(error);
-			if (error.response.data.message === "E_USER_HAS_TOTP") {
+			if (error.response.data.message === 'E_USER_HAS_TOTP') {
 				toast.warning(E_USER_HAS_TOTP);
 				totp_enabled.value = true;
-			} else if (error.response.data.message === "E_TOTP_FAIL") {
+			} else if (error.response.data.message === 'E_TOTP_FAIL') {
 				toast.warning(E_TOTP_FAIL);
-			} else if (error.response.data.message === "E_PASS_FAIL") {
+			} else if (error.response.data.message === 'E_PASS_FAIL') {
 				toast.warning(E_PASS_FAIL);
-			} else if (error.response.data.message === "E_USER_IS_FT") {
+			} else if (error.response.data.message === 'E_USER_IS_FT') {
 				toast.warning(E_USER_IS_FT);
-			} else if (error.response.data.message === "E_USER_NOT_FOUND") {
+			} else if (error.response.data.message === 'E_USER_NOT_FOUND') {
 				toast.warning(E_USER_NOT_FOUND);
 			} else {
 				toast.error(E_UNEXPECTED_ERROR);
@@ -226,31 +225,33 @@ function auth() {
 		});
 }
 onMounted(() => {
+	if ($cookies.get('session')) {
+		router.push('/home');
+	}
 	setTimeout(() => {
 		show.value = true;
 	}, 0.5);
 	let urlParams = new URLSearchParams(window.location.search);
-	let code = urlParams.get("code");
+	let code = urlParams.get('code');
 	if (code) {
-		axios
-			.post(apiPath + "auth/login42", {
-				code: code,
-			})
+		API.post('auth/login42', {
+			code: code,
+		})
 			.then((response) => {
 				console.log(response);
 				$cookies.set(response.data.key, response.data.value);
-				$cookies.set('login', response.data.login);
+							$cookies.set('login', response.data.login);
 				toast.success(
-					"Authentication success, welcome " + response.data.login + " !"
+					'Authentication success, welcome ' + response.data.login + ' !',
 				);
-				router.push("/home");
+				router.push('/home');
 			})
 			.catch((error) => {
-				if (error.response.data.message === "E_NO_CODE_PROVIDED") {
+				if (error.response.data.message === 'E_NO_CODE_PROVIDED') {
 					toast.warning(E_NO_CODE_PROVIDED);
-				} else if (error.response.data.message === "E_CODE_IN_USE") {
+				} else if (error.response.data.message === 'E_CODE_IN_USE') {
 					toast.warning(E_CODE_IN_USE);
-				} else if (error.response.data.message === "E_UNEXPECTED_ERROR") {
+				} else if (error.response.data.message === 'E_UNEXPECTED_ERROR') {
 					toast.error(E_UNEXPECTED_ERROR);
 					console.error(error);
 				} else {
@@ -258,10 +259,9 @@ onMounted(() => {
 					console.error(error);
 				}
 			});
-		}
-	});
+	}
+});
 </script>
-
 
 <style>
 .box {
@@ -316,7 +316,7 @@ onMounted(() => {
 
 .input_box {
 	text-align: center;
-	font-family: "Orbitron", sans-serif;
+	font-family: 'Orbitron', sans-serif;
 	font-size: 1rem;
 	/* display: flex;
 	flex-direction: column;
@@ -325,13 +325,13 @@ onMounted(() => {
 
 .ft_button {
 	text-align: center;
-	font-family: "Orbitron", sans-serif;
+	font-family: 'Orbitron', sans-serif;
 	font-size: 1rem;
 }
 
 .log_button {
 	text-align: center;
-	font-family: "Orbitron", sans-serif;
+	font-family: 'Orbitron', sans-serif;
 	font-size: 1rem;
 	background-color: #fff;
 }
@@ -362,11 +362,11 @@ body span.switcher input:after {
 	color: #fff;
 }
 body span.switcher input:before {
-	content: "Register";
+	content: 'Register';
 	left: 1.65rem;
 }
 body span.switcher input:after {
-	content: "Login";
+	content: 'Login';
 	right: 2.15rem;
 }
 body span.switcher label {

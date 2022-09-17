@@ -1,34 +1,48 @@
 <template>
-		<div id="channel_view" class="stack">
-			<div class="userTopBar center raw space-between">
-				<div class="avatar_cont center">
-					<img :src="conv.user.avatar" class="avatar" alt="avatar">
-				</div>
-				<span class="login">{{route.params.conv_name}}</span>
-				<div class="option_buttons center raw stack">
-					<!-- <button @click="inviteGame" class="button_cont infoButton center">
+	<div id="channel_view" class="stack">
+		<div class="userTopBar center raw space-between">
+			<div class="avatar_cont center">
+				<img :src="conv.user.avatar" class="avatar" alt="avatar" />
+			</div>
+			<span class="login">{{ route.params.conv_name }}</span>
+			<div class="option_buttons center raw stack">
+				<!-- <button @click="inviteGame" class="button_cont infoButton center">
 						<span class="infoButtonText">Invite in room</span>
 						<img src="~@/assets/play_button.png" alt="Invite game button" class="logo_img">
 					</button> -->
-					<button @click="info = !info" class="button_cont infoButton center">
-						<span class="infoButtonText">Info</span>
-						<img v-if="!info" src="~@/assets/info_logo.svg" alt="Info button" class="logo_img">
-						<img v-else src="~@/assets/undo_logo.svg" alt="Info button" class="logo_img">
-					</button>
-					<button onclick="history.back();" class="button_cont infoButton center">
-						<span class="infoButtonText">Close</span>
-						<img src="~@/assets/close_logo.svg" alt="Invite game button" class="logo_img">
-					</button>
-				</div>
+				<button @click="info = !info" class="button_cont infoButton center">
+					<span class="infoButtonText">Info</span>
+					<img
+						v-if="!info"
+						src="~@/assets/info_logo.svg"
+						alt="Info button"
+						class="logo_img"
+					/>
+					<img
+						v-else
+						src="~@/assets/undo_logo.svg"
+						alt="Info button"
+						class="logo_img"
+					/>
+				</button>
+				<button onclick="history.back();" class="button_cont infoButton center">
+					<span class="infoButtonText">Close</span>
+					<img
+						src="~@/assets/close_logo.svg"
+						alt="Invite game button"
+						class="logo_img"
+					/>
+				</button>
 			</div>
-			<div v-if="!info" class="conversation_content stack">
-				<div id="messages_cont" ref="msgsCont" class="messages ">
-					<!-- <div v-if="chanDone && selectPriv()">
+		</div>
+		<div v-if="!info" class="conversation_content stack">
+			<div id="messages_cont" ref="msgsCont" class="messages">
+				<!-- <div v-if="chanDone && selectPriv()">
 						<div v-for="(message, i) in selectPriv()!.messages" :key="i" class="center column">
 							<div v-if="checkDate(i)" class="date">
 								{{displayDate(message.date, i)}}
 							</div>
-							<MessageItem 
+							<MessageItem
 								:userAvatar="receiver.avatar"
 								:userLogin="message.user"
 								:message="message.msg"
@@ -36,42 +50,76 @@
 							/>
 						</div>
 					</div> -->
+			</div>
+			<div class="sendbox_cont">
+				<input
+					v-model="myMsg"
+					@keydown.enter="sendMsg()"
+					type="text"
+					placeholder="Aa..."
+					id="sendbox"
+					class="sendbox"
+				/>
+			</div>
+		</div>
+		<div v-else class="infoCont left column">
+			<div class="infoElemCont left column" id="passwordInfo">
+				<div class="infoElemHead left_center raw">
+					<div class="infoElemImgCont center">
+						<img src="~@/assets/key_logo.svg" alt="Password" class="infoImg" />
+					</div>
+					<span class="infoText">Password :</span>
+					<img
+						v-if="password == ''"
+						src="~@/assets/redcross.svg"
+						alt="No Password"
+						class="infoImg"
+					/>
+					<span v-else>{{ password }}</span>
+					<div class="settingsOptions left_center raw stack">
+						<button
+							@click="showSettings = !showSettings"
+							class="settingsBtn center"
+						>
+							<img
+								src="~@/assets/settings_logo.svg"
+								alt="Password"
+								class="infoImg"
+							/>
+						</button>
+						<div
+							v-if="showSettings"
+							class="extendSettingsCont right_center raw"
+						>
+							<button class="extendBtn center">
+								<img
+									src="~@/assets/add2_logo.svg"
+									alt="Add password"
+									class="infoImg"
+								/>
+							</button>
+							<button class="extendBtn center">
+								<img
+									src="~@/assets/edit_logo.svg"
+									alt="Edit password"
+									class="infoImg"
+								/>
+							</button>
+							<button class="extendBtn center">
+								<img
+									src="~@/assets/delete_logo.svg"
+									alt="Delete password"
+									class="infoImg"
+								/>
+							</button>
+						</div>
+					</div>
 				</div>
-				<div class="sendbox_cont">
-					<input v-model="myMsg" @keydown.enter="sendMsg()" type="text" placeholder="Aa..." id="sendbox" class="sendbox"/>
+				<div class="infoElemBody left">
+					<input type="text" class="passwordInput" />
 				</div>
 			</div>
-			<div v-else class="infoCont left column">
-				<div class="infoElemCont left column" id="passwordInfo">
-					<div class="infoElemHead left_center raw">
-						<div class="infoElemImgCont center">
-							<img src="~@/assets/key_logo.svg" alt="Password" class="infoImg">
-						</div>
-						<span class="infoText">Password :</span>
-						<img v-if="password == ''" src="~@/assets/redcross.svg" alt="No Password" class="infoImg">
-						<span v-else >{{password}}</span>
-						<div class="settingsOptions left_center raw stack">
-							<button @click="showSettings = !showSettings" class="settingsBtn center">
-								<img src="~@/assets/settings_logo.svg" alt="Password" class="infoImg">
-							</button>
-							<div v-if="showSettings" class="extendSettingsCont right_center raw">
-								<button class="extendBtn center">
-									<img src="~@/assets/add2_logo.svg" alt="Add password" class="infoImg">
-								</button>
-								<button class="extendBtn center">
-									<img src="~@/assets/edit_logo.svg" alt="Edit password" class="infoImg">
-								</button>
-								<button class="extendBtn center">
-									<img src="~@/assets/delete_logo.svg" alt="Delete password" class="infoImg">
-								</button>
-							</div>
-						</div>
-					</div>
-					<div class="infoElemBody left">
-						<input type="text" class="passwordInput">
-					</div>
-				</div>
-				<!-- <div class="infoElemCont center raw" id="AdministratorsInfo">
+			<!-- <div class="infoElemCont center raw" id="AdministratorsInfo">
 					<div class="infoImgCont">
 						<img src="~@/assets/crown_logo.svg" alt="Password" class="infoAvatar">
 					</div>
@@ -91,21 +139,20 @@
 						<img src="~@/assets/settings_logo.svg" alt="Password" class="infoAvatar">
 					</button>
 				</div> -->
-
-			</div>
 		</div>
+	</div>
 </template>
 
 <script setup lang="ts">
 /* eslint @typescript-eslint/no-var-requires: "off" */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { inject, onMounted, ref, onBeforeUnmount, watch } from "vue";
-import { useRoute } from 'vue-router';
+import { useRoute } from "vue-router";
 import { Socket } from "socket.io-client";
 import MessageItem from "@/chat/MessageItem.vue";
 import BlockAdvert from "@/components/BlockItem.vue";
 import { Message } from "@/chat/dto/MessageDto";
-import { NewChanMsgDto } from "@/chat/dto/NewChanMsgDto"
-
+import { NewChanMsgDto } from "@/chat/dto/NewChanMsgDto";
 
 const route = useRoute();
 let chanName = route.params.conv_name as string;
@@ -114,7 +161,7 @@ let mySocket: Socket = inject("socket")!;
 let me: string = inject("me")!;
 let myMsg = ref("");
 let info = ref(false);
-let password = ref('');
+let password = ref("");
 let showSettings = ref(false);
 
 // let user1 = new User("Totolosa", require("@/assets/avatars/(1).jpg"));
@@ -132,10 +179,9 @@ let showSettings = ref(false);
 // // let conv2 = new Conversation(false, [user1, user2, user3], [msg1, msg2]);
 
 function sendMsg() {
-	mySocket.emit('newPrivMsg', new NewChanMsgDto(me, chanName, myMsg.value));
+	mySocket.emit("newPrivMsg", new NewChanMsgDto(me, chanName, myMsg.value));
 	myMsg.value = "";
 }
-
 
 // function blockUser () {
 // 	let advert = document.getElementById("blockAdvert_view");
@@ -144,27 +190,23 @@ function sendMsg() {
 // 	}
 // }
 
-
 onMounted(() => {
-	// ((msgsCont.value!) as HTMLElement).scrollTop = 
+	// ((msgsCont.value!) as HTMLElement).scrollTop =
 	// ((msgsCont.value!) as HTMLElement).scrollHeight;
-	document.getElementById('sendbox')?.focus();
-	const box = document.getElementById('privateTabText');
-	if (box != null)
-		box.classList.add("chatTabActive");
-})
+	document.getElementById("sendbox")?.focus();
+	const box = document.getElementById("privateTabText");
+	if (box != null) box.classList.add("chatTabActive");
+});
 
 onBeforeUnmount(() => {
-	const box = document.getElementById('privateTabText');
-	if (box != null)
-		box.classList.remove("chatTabActive");
-})
-
+	const box = document.getElementById("privateTabText");
+	if (box != null) box.classList.remove("chatTabActive");
+});
 </script>
 
 <style scoped>
 * {
-  --height: 70px;
+	--height: 70px;
 }
 #channel_view {
 	height: calc(100vh - 180px);
@@ -178,21 +220,21 @@ onBeforeUnmount(() => {
 	box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.1), 0px -4px 4px rgba(0, 0, 0, 0.1);
 }
 .avatar_cont {
-  width: var(--height);
-  height: var(--height);
+	width: var(--height);
+	height: var(--height);
 }
 .avatar {
 	height: calc(var(--height) - 15px);
-  width: calc(var(--height) - 15px);
-  border-radius: 50%;
+	width: calc(var(--height) - 15px);
+	border-radius: 50%;
 }
 .login {
-  font-family: "Orbitron", sans-serif;
+	font-family: "Orbitron", sans-serif;
 	font-size: 1.2rem;
-  font-weight: bold;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+	font-weight: bold;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
 }
 .login:hover {
 	color: v-bind("colors.color2");
@@ -209,21 +251,22 @@ onBeforeUnmount(() => {
 .logo_img {
 	width: 30px;
 	height: 30px;
-	filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg) brightness(86%) contrast(83%);
+	filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg)
+		brightness(86%) contrast(83%);
 }
 
 .infoButtonText {
-	opacity:0;
+	opacity: 0;
 	font-size: 0.8rem;
-  width: 120px;
-  background-color: rgba(0,0,0,0.6);
-  color: #fff;
-  text-align: center;
-  padding: 5px 0;
-  border-radius: 6px;
-  position: absolute;
-  z-index: 1;
-  bottom: 100%;
+	width: 120px;
+	background-color: rgba(0, 0, 0, 0.6);
+	color: #fff;
+	text-align: center;
+	padding: 5px 0;
+	border-radius: 6px;
+	position: absolute;
+	z-index: 1;
+	bottom: 100%;
 	right: 50%;
 	transform: translate(50%);
 }
@@ -237,14 +280,14 @@ onBeforeUnmount(() => {
 	overflow-y: auto;
 	height: calc(100vh - 340px);
 	display: flex;
-  flex-direction: column;
+	flex-direction: column;
 	justify-content: flex-start;
 }
 
 .sendbox_cont {
 	position: absolute;
 	bottom: 1rem;
-	}
+}
 
 .sendbox {
 	width: 40%;
@@ -269,9 +312,9 @@ onBeforeUnmount(() => {
 	margin-left: 20px;
 }
 .infoText {
-	font-family: "Orbitron", sans-serif;
+	font-family: 'Orbitron', sans-serif;
 	width: auto;
-	white-space:nowrap;
+	white-space: nowrap;
 	margin: 0 10px;
 }
 .passwordInput {
@@ -283,16 +326,20 @@ onBeforeUnmount(() => {
 .settingsOptions {
 	margin-left: 20px;
 }
-.infoElemImgCont, .settingsBtn, .extendBtn {
+.infoElemImgCont,
+.settingsBtn,
+.extendBtn {
 	height: 26px;
 	width: 26px;
 }
 .infoImg {
 	height: 20px;
 	width: 20px;
-	filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg) brightness(86%) contrast(83%);
+	filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg)
+		brightness(86%) contrast(83%);
 }
-.settingsBtn, .extendSettingsCont {
+.settingsBtn,
+.extendSettingsCont {
 	border: solid 1px v-bind("colors.color2");
 	border-radius: 13px;
 	position: absolute;
@@ -308,19 +355,16 @@ onBeforeUnmount(() => {
 	transition: all 0.5 ease-in-out;
 }
 
-
-
 /* TRANSITION ROUTER VIEW */
 
 /* .mySlide-leave-active,
 .mySlide-enter-active {
-  transition: 1s;
+	transition: 1s;
 }
 .mySlide-leave-to,
 .mySlide-enter-from {
 	transform: translateY(100%);
 } */
-
 
 /* .mySlide-enter-from {
 	transform: translateY(100%);
@@ -328,5 +372,4 @@ onBeforeUnmount(() => {
 .mySlide-leave-to {
 	transform: translateY(-100%);
 } */
-
 </style>
