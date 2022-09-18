@@ -112,14 +112,14 @@ a {
 .stack {
 	position: relative;
 }
+.border {
+	border: 1px solid black;
+}
 .wrap {
 	display: flex;
 	justify-content: center;
 	align-items: center;
 	flex-direction: row;
-}
-.border {
-	border: 1px solid black;
 }
 @media screen and (max-width: 1000px) {
 	.wrap {
