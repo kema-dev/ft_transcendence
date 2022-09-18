@@ -67,7 +67,7 @@ function witch_rank(login: string, match: any) {
 <style scoped>
 .groupe {
 	margin: 10px 0;
-	width: clamp(18rem, 80%, 1000px);
+	width: clamp(18rem, 80%, 550px);
 }
 .match {
 	height: 60px;
