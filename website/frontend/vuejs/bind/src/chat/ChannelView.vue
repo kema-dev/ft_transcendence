@@ -137,27 +137,29 @@ import {
 	watch,
 } from "vue";
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import ConversationTab from "@/chat/ConversationTab.vue";
 import HTTP from "../components/axios";
 import { Socket } from "socket.io-client";
+import { useToast } from 'vue-toastification';
 import ChannelTab from "@/chat/ChannelTab.vue";
 import SearchItem from "@/components/SearchItem.vue";
+import ConversationTab from "@/chat/ConversationTab.vue";
 import { ChannelDto } from "@/chat/dto/ChannelDto";
 import { ChannelTabDto } from "@/chat/dto/ChannelTabDto ";
+import { NewChanDto } from "@/chat/dto/NewChanDto"
 import { MessageDto } from "@/chat/dto/MessageDto";
 import { BasicUserDto } from "@/chat/dto/BasicUserDto";
 // import { chansRef, printChans }  from "@/globals"
 	
 	
-	
+const toast = useToast();
 let colors = inject("colors");
 let me : string = inject("me")!;
 let mySocket: Socket = inject("socket")!;
 let apiPath: string = inject("apiPath")!;
 
-let chansRef : Ref<ChannelDto[]> = inject("privs")!;
+let chansRef : Ref<ChannelDto[]> = inject("chans")!;
 let chansFiltred : Ref<ChannelDto[]> = ref(chansRef.value);
-const chanDone: Ref<boolean> = inject("privDone")!;
+const chanDone: Ref<boolean> = inject("chanDone")!;
 
 let serverChans : Ref<ChannelTabDto[]> = ref([]);
 
@@ -170,6 +172,11 @@ const newChannel = ref(false);
 const searchKey = ref(0);
 const pswCheck = ref(false);
 
+watch(chanDone, () => {
+	// console.log(`chanDone = ${chanDone.value}`);
+	chansFiltred.value = chansRef.value;
+	// nbPrivNR.reset();
+});
 
 watch(search, () => {
 	userServReqDone.value = false;
@@ -238,14 +245,29 @@ function newChannelFn() {
 function submitChannel() {
 	let form = document.getElementById('channelForm') as HTMLFormElement;
 	const data = new FormData(form);
-	if (data.get("pswInput") as string) {
-		// conversations.push(new Channel(data.get('name') as string, [me], data.get("pswInput") as string));
-	} else {
-		// conversations.push(new Channel(data.get('name') as string, [me]));
-	}
-	// convsFiltred.value = conversations;
+	// if (data.get("pswInput") as string) {
+		
+	// 	// conversations.push(new Channel(data.get('name') as string, [me], data.get("pswInput") as string));
+	// 	// console.log(data.get("pswInput") as string);
+	// } else {
+	// 	// conversations.push(new Channel(data.get('name') as string, [me]));
+	// }
+	let chanName = data.get("name") as string;
+	let chanPsw = data.get("pswInput") as string;
+	console.log(`chanName = ${chanName}`);
+	console.log(`chanPsw = ${chanPsw}`);
+	HTTP.post(apiPath + "chat/CreateChan", new NewChanDto(chanName, me, chanPsw))
+	.then(res => {
+		let newChan = res.data as ChannelDto;
+		newChan.creation = new Date(newChan.creation);
+		chansRef.value.push(newChan);
+	})
+	.catch(e => {
+		if (e.response.data.message === 'CHAN_ALREADY_EXIST') {
+			toast.warning("This channel name already exist");
+		}
+	});
 	newChannel.value = false;
-	console.log(data.get("name") as string);
 }
 
 onMounted(() => {

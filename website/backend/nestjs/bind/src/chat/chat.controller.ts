@@ -7,9 +7,11 @@ import {
 	Post,
 	Put,
 	UseGuards,
+	Body,
 } from '@nestjs/common';
 import { AuthGuard } from '../authentication/auth.guard';
 import { ChatService } from './chat.service';
+import { NewChanDto } from './dto/NewChanDto';
 
 @Controller('chat')
 export class ChatController {
@@ -28,11 +30,11 @@ export class ChatController {
 	async getChans(@Param() params : {login: string}) {
 		console.log(`getChans for user ${params.login }`);
 		const chans = await this.chatService.getUserChans(params.login);
-		// console.log(`chans = ${chans}`);
-		// await this.chatService.printChansDto(chans);
+		// await this.chatService.printChans(chans);
 		if (chans.length) {
 			await this.chatService.sortChans(chans);
 		}
+		// await this.chatService.printChans(chans);
 		return await this.chatService.createChansDto(params.login, chans);
 	}
 
@@ -45,6 +47,14 @@ export class ChatController {
 			params.login,
 			params.filter,
 		);
+	}
+
+	// @UseGuards(AuthGuard)
+	@Post('CreateChan')
+	async createChan(
+		@Body() data: NewChanDto
+	) {
+		return await this.chatService.createNewChan(data);
 	}
 
 	// @UseGuards(AuthGuard)

@@ -14,6 +14,7 @@ import { PrivConvDto } from './dto/PrivConvDto';
 import { ChannelDto } from './dto/ChannelDto';
 import { HttpService } from '@nestjs/axios';
 import { timeStamp } from 'console';
+import { NewChanDto } from './dto/NewChanDto';
 
 @Injectable()
 export class ChatService {
@@ -22,7 +23,7 @@ export class ChatService {
 		private msgRepository: Repository<MessageEntity>,
 		@InjectRepository(PrivateEntity)
 		private privateRepository: Repository<PrivateEntity>,
-		@InjectRepository(PrivateEntity)
+		@InjectRepository(ChannelEntity)
 		private channelRepository: Repository<ChannelEntity>,
 		@InjectRepository(UserEntity)
 		private userRepository: Repository<UserEntity>,
@@ -176,8 +177,8 @@ export class ChatService {
 	async getUserChans(login: string) {
 		const user = await this.userRepository.findOne({
 			relations: {
-				chansAdmin : {users: true, messages: {user: true}},
-				chansUser : {users: true, messages: {user: true}},
+				chansAdmin : {admins: true, users: true, messages: {user: true}},
+				chansUser : {admins: true, users: true, messages: {user: true}},
 			},
 			where: {login: login},
 			order: {
@@ -218,35 +219,56 @@ export class ChatService {
 
 	async createChansDto(requestor: string, chans: ChannelEntity[]) {
 		let chansDto : ChannelDto[] = [];
-		chans.forEach(chan => {
-			let name: string;
+		// this.printChans(chans);
+		chans.forEach((chan, i) => {
+			// console.log(`boucle ${i}`)
+			let name = chan.name;
 			let psw = chan.password;
 			let creation = chan.createdAt;
 			let read = chan.readed;
 			let avatar = chan.avatar;
-			let admins = chan.admins.map(admin => new BasicUserDto(admin.login));
-			// let admins : BasicUserDto[];
-			// chan.admins.forEach(admin => admins.push(new BasicUserDto(admin.login)));
-			let users : BasicUserDto[];
-			chan.users.forEach(user => users.push(new BasicUserDto(user.login)));
-			let bans : BasicUserDto[];
-			chan.bans.forEach(ban => bans.push(new BasicUserDto(ban.login)));
-			let mutes : BasicUserDto[];
-			chan.mutes.forEach(mute => mutes.push(new BasicUserDto(mute.login)));
+			// let admins = chan.admins.map(admin => new BasicUserDto(admin.login));
+			let admins : BasicUserDto[] = [];
+			chan.admins.forEach(admin => admins.push(new BasicUserDto(admin.login)));
+			let users : BasicUserDto[] = [];
+			if (chan.users)
+				chan.users.forEach(user => users.push(new BasicUserDto(user.login)));
+			let bans : BasicUserDto[] = [];
+			if (chan.bans)
+				chan.bans.forEach(ban => bans.push(new BasicUserDto(ban.login)));
+			let mutes : BasicUserDto[] = [];
+			if (chan.mutes)
+				chan.mutes.forEach(mute => mutes.push(new BasicUserDto(mute.login)));
 			let msgs : MessageDto[] = [];
-			chan.messages.forEach((msg) => msgs.push(new MessageDto(msg.user.login, msg.message, msg.createdAt)))
+			if (chan.messages)
+				chan.messages.forEach((msg) => msgs.push(new MessageDto(msg.user.login, msg.message, msg.createdAt)))
+			// console.log(`ChanDto creation :\nname = ${name}, psw = ${psw}`)
+			// chansDto.push(new ChannelDto(name, avatar, creation, admins, psw, users, msgs, bans, mutes, read));
 			chansDto.push(new ChannelDto(name, avatar, creation, admins, psw, users, msgs, bans, mutes, read));
+			// console.log(`fin boucle`);
 		});
-		this.printChansDto(chansDto);
+		// this.printChansDto(chansDto);
 		return chansDto;
+	}
+
+	async createNewChan(data: NewChanDto) {
+		let chanAlreadyExist = await this.channelRepository.findOne({where: {name : data.chanName}});
+		console.log(chanAlreadyExist);
+		if (chanAlreadyExist){
+			throw new HttpException('CHAN_ALREADY_EXIST', HttpStatus.CONFLICT);
+		}
+		let admin = await this.userService.getByLogin(data.admin);
+		let newChan = this.channelRepository.create({name: data.chanName, admins: [admin], password: data.psw});
+		this.channelRepository.save(newChan);
+		return new ChannelDto(newChan.name, "test", new Date(), [new BasicUserDto(newChan.admins[0].login)]);
 	}
 
 	printChanDto(chan: ChannelDto) {
 		console.log(`psw = ${chan.psw}`);
 		console.log(`creation = ${chan.creation}`);
 		console.log(`readed = ${chan.readed}`);
-		console.log(` admins = ${chan.admins.map(admin => admin.login + ', ')}`);
-		// chan.admins.forEach((elem) => console.log(`${elem.login}`));
+		// console.log(` admins = ${chan.admins.map(admin => admin.login + ', ')}`);
+		chan.admins.forEach((elem) => console.log(`${elem.login}`));
 		// chan.admins.forEach((elem) => console.log(`${elem.login}`));
 		
 	
@@ -254,18 +276,21 @@ export class ChatService {
 	}
 	
 	printChansDto(chans: ChannelDto[]) {
-		console.log(`printChan :`);
+		console.log(`PrintChansDto :`);
 		if (!chans.length) {
 			return console.log(`No channels`);
 		}
 		chans.forEach((chan : ChannelDto) => {
-			console.log(`PrintChan : ${chan.name}`);
+			console.log(`PrintChanDto : ${chan.name}`);
 			this.printChanDto(chan);
 		});
 	}
 
 	async printChan(chan: ChannelEntity) {
-		console.log(`Chan info :\nusers = ${chan.users[0].login}, ${chan.users[1].login}`);
+		console.log(`Chan info :`);
+		console.log(`name : ${chan.name}`);
+		console.log(`admins : ${chan.admins.map(admin => admin.login + ', ')}`);
+		console.log(`users : ${chan.users.map(user => user.login + ', ')}`);
 		console.log("msgs :");
 		chan.messages.forEach(msg => {
 			console.log(`${msg.message}, created at ${msg.createdAt.toLocaleTimeString("fr")}}`)

@@ -247,12 +247,14 @@ function getChansRequest() {
 	HTTP.get(apiPath + "chat/getChans/" + me)
 	.then(res => {
 		// console.log(`privsConvDto : `);
-		printChans(res.data);
+		// printChans(res.data);
 		if (!res.data)
 			chansRef.value = [];
 		else {
 			chansRef.value = (res.data) as ChannelDto[];
+			chansRef.value
 			chansRef.value.forEach(chan => {
+				chan.creation = new Date(chan.creation);
 				chan.messages.forEach(msg => msg.date = new Date(msg.date));
 			})
 
@@ -272,7 +274,7 @@ function getChansRequest() {
 
 		chanDone.value = true;
 
-		printChans(chansRef.value);
+		// printChans(chansRef.value);
 	})
 	.catch(e => console.log(e));
 }

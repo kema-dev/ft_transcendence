@@ -46,8 +46,8 @@ export class AppGateway
 
 	// Connection
 	async handleConnection(@ConnectedSocket() client: Socket) {
-		console.log(`Client connected : ${client.id}`);
-		console.log("query = ", client.handshake.query.login);
+		console.log(`Client connected : ${client.handshake.query.login}, ${client.id}`);
+		// console.log("query = ", client.handshake.query.login);
 		let login = client.handshake.query.login as string;
 		await this.userService.saveSocket(login, client.id);
 		// handleConnection(@ConnectedSocket() client: Socket, login: string) {

@@ -10,19 +10,9 @@ export class ChannelDto {
     psw?: string;
     users: BasicUserDto[];
     messages: MessageDto[];
-    bans: BasicUserDto[] = [];
-    mutes: BasicUserDto[] = [];
+    bans: BasicUserDto[];
+    mutes: BasicUserDto[];
     readed: boolean;
-    // constructor(name: string, admins: BasicUserDto[], readed = false, users: BasicUserDto[] = [], psw?: string, messages: MessageDto[] = []) {
-    //     this.name = name;
-    //     this.admins = admins;
-    //     this.readed = readed;
-    //     this.users = users;
-    //     this.messages = messages;
-    //     if (psw) {
-    //         this.psw = psw;
-    //     }
-    // }
     constructor(
         name: string, 
         avatar: any,
@@ -34,7 +24,20 @@ export class ChannelDto {
         bans: BasicUserDto[] = [], 
         mutes: BasicUserDto[] = [], 
         readed = false, 
-    ) {}
+    ) {
+        this.name = name;
+        this.avatar = avatar;
+        this.creation = creation;
+        this.admins = admins;
+        if (psw) {
+            this.psw = psw;
+        }
+        this.users = users;
+        this.messages = messages;
+        this.bans = bans;
+        this.mutes = mutes;
+        this.readed = readed;
+    }
 
     // isAdmin(user: BasicUserDto) : boolean {
     //     if (this.admins.includes(user)) {

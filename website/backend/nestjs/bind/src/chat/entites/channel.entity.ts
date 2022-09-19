@@ -13,6 +13,16 @@ import { UserEntity } from '../../users/user.entity';
 
 @Entity('channel')
 export class ChannelEntity extends TimestampEntites {
+	constructor() {
+		super();
+		this.readed = true;
+		// this.avatar = avatars[Math.floor(Math.random() * 5)];
+
+		// this.messages = [];
+		// this.users = [];
+		// this.bans = [];
+		// this.mutes = [];
+	}
 	@PrimaryGeneratedColumn()
 	id: number;
 
@@ -29,27 +39,31 @@ export class ChannelEntity extends TimestampEntites {
 	readed: boolean;
 
 	@ManyToMany( type => UserEntity, (user) => user.chansAdmin, {
-		onDelete: 'SET NULL'
+		onDelete: 'CASCADE'
 	})
 	admins: UserEntity[];
 
 	@ManyToMany((type) => UserEntity, (user) => user.chansUser, {
-		onDelete: 'SET NULL',
+		onDelete: 'CASCADE',
+		nullable: true,
 	})
 	users: UserEntity[];
 
 	@OneToMany((type) => MessageEntity, (message) => message.chan, {
 		cascade: true,
+		nullable: true,
 	})
 	messages: MessageEntity[];
 
 	@ManyToMany((type) => UserEntity, (user) => user.bans, {
-		onDelete: 'SET NULL',
+		onDelete: 'CASCADE',
+		nullable: true,
 	})
 	bans: UserEntity[];
 
 	@ManyToMany((type) => UserEntity, (user) => user.mutes, {
-		onDelete: 'SET NULL',
+		onDelete: 'CASCADE',
+		nullable: true,
 	})
 	mutes: UserEntity[];
 }
