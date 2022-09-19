@@ -4,17 +4,17 @@
 	</div>
 </template>
 <script setup lang="ts">
-import { inject, onMounted, defineProps, onUnmounted, ref } from 'vue';
+import { inject, onMounted, defineProps, onUnmounted, ref, Ref } from 'vue';
 import Konva from 'konva';
 import { Socket } from 'socket.io-client';
 import { GameDto } from '@/dto/GameDto';
 import Profile from '@/game2.0/Profile';
-import User from '@/chat/User';
+import ProfileUserDto from '@/dto/ProfileUserDto';
 
 let socket: Socket = inject('socket')!;
 let run = true;
 // let nbrPlayer = ref(props.nbrPlayer)
-let me: User = inject('me')!;
+let me: Ref<ProfileUserDto> = inject("user")!;
 let rotation = 0;
 let gameDto: GameDto | undefined = undefined;
 
@@ -27,7 +27,6 @@ let props = defineProps<{
 	owner: string;
 }>();
 
-// let balls: Array<Ball> = [];
 var mov = 0;
 let rackets: Konva.Rect[] = [];
 let walls: Konva.Rect[] = [];
@@ -38,6 +37,9 @@ var container: any;
 onMounted(async () => {
 	update();
 });
+function focus() {
+	container.focus();
+}
 async function update() {
 	socket.emit('newRoom', {
 		nbrBall: props.nbrBall,
@@ -93,7 +95,7 @@ async function update() {
 		await delay(100);
 	}
 	for (let player of gameDto.profiles) {
-		if (me == player.login) break;
+		if (me?.value?.login == player.login) break;
 		rotation -= 360 / gameDto.nbrPlayer;
 	}
 	game.rotation(rotation - 90);
@@ -160,7 +162,7 @@ async function update() {
 		} else {
 			return;
 		}
-		socket.emit('setMov', { mov: mov, login: me });
+		socket.emit("setMov", { mov: mov, login: me?.value?.login });
 		e.preventDefault();
 	});
 	container.addEventListener('keyup', function (e: any) {
@@ -171,7 +173,7 @@ async function update() {
 		} else {
 			return;
 		}
-		socket.emit('setMov', { mov: mov, login: me });
+		socket.emit("setMov", { mov: mov, login: me?.value?.login });
 		e.preventDefault();
 	});
 }

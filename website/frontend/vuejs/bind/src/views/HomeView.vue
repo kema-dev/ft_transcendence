@@ -55,17 +55,16 @@ provide('socket', socket);
 // 		});
 // }
 let userRef = ref();
-// post('user/getUser', {login: me}, (data: any) => {
-// 	userRef.value = data.data;
-// });
+let notifs = ref(0);
 socket.on("userUpdate", (data: any) => {
 	if (data && data.login == me) {
 		userRef.value = data;
 		console.log(userRef.value);
-		// provide("user", userRef);
+		notifs.value = data.requestFriend.length;
 	}
 });
 socket.emit("userUpdate", { login: me });
+provide('notifs', notifs);
 provide("user", userRef);
 provide("me", me);
 
