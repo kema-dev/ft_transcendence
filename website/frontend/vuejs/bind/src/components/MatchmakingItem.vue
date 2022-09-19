@@ -55,6 +55,7 @@ const owner = ref($cookies.get('login'));
 
 function players_update() {
 	socket.off('player_update');
+	console.log('player_update started');
 	socket.on('player_update', (data: any) => {
 		console.log('player_update: ' + data);
 		players.value = data;

@@ -14,7 +14,7 @@ import User from '@/chat/User';
 let socket: Socket = inject('socket')!;
 let run = true;
 // let nbrPlayer = ref(props.nbrPlayer)
-let me: User = inject("me")!;
+let me: User = inject('me')!;
 let rotation = 0;
 let gameDto: GameDto | undefined = undefined;
 
@@ -46,7 +46,7 @@ async function update() {
 		lobby_name: props.lobby_name,
 		owner: props.owner,
 	});
-	socket.on(props.lobby_name, (game: string) => {
+	socket.on('update_game', (game: string) => {
 		// console.log(game)
 		gameDto = JSON.parse(game);
 		// console.log(gameDto);
@@ -160,18 +160,18 @@ async function update() {
 		} else {
 			return;
 		}
-		socket.emit("setMov", { mov: mov, login: me });
+		socket.emit('setMov', { mov: mov, login: me });
 		e.preventDefault();
 	});
-	container.addEventListener("keyup", function (e: any) {
-		if (e.key == "ArrowLeft") {
+	container.addEventListener('keyup', function (e: any) {
+		if (e.key == 'ArrowLeft') {
 			if (mov <= 0) mov = 0;
-		} else if (e.key == "ArrowRight") {
+		} else if (e.key == 'ArrowRight') {
 			if (mov >= 0) mov = 0;
 		} else {
 			return;
 		}
-		socket.emit("setMov", { mov: mov, login: me });
+		socket.emit('setMov', { mov: mov, login: me });
 		e.preventDefault();
 	});
 }
@@ -219,7 +219,7 @@ async function loop() {
 }
 onUnmounted(() => {
 	run = false;
-	socket.off(props.lobby_name);
+	socket.off('update_game');
 	// window.removeEventListener("resize", () => {});
 });
 const delay = (time: number) =>

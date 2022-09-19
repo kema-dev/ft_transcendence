@@ -183,7 +183,7 @@ export default class Game {
 				// }
 			}
 			await this.setMinimumDto();
-			this.server.emit(this.lobby_name, JSON.stringify(this.dto));
+			this.server.emit('update_game', JSON.stringify(this.dto));
 			const end = await performance.now();
 			this.deltaTime = end - start;
 			this.deltaTime /= 1000;

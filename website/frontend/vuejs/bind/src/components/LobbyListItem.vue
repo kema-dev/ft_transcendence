@@ -42,12 +42,9 @@ onMounted(() => {
 	socket.emit('lobby_list');
 });
 
-function join(lobby_name: string) {
+async function join(lobby_name: string) {
 	socket.emit('join_lobby', {
 		username: $cookies.get('login'),
-		lobby: lobby_name,
-	});
-	API.post('/match/update_lobby', {
 		lobby: lobby_name,
 	});
 }

@@ -70,7 +70,7 @@ export class AppGateway
 		this.logger.log(`Message: ${payload}`);
 		return this.game.balls;
 	}
-		@SubscribeMessage('setMov')
+	@SubscribeMessage('setMov')
 	setMov(client: Socket, args: any): void {
 		this.game.setMov(args.mov, args.login);
 	}
@@ -298,6 +298,6 @@ export class AppGateway
 			}
 			return;
 		}
-		// client.emit('join_lobby', lobby);
+		// client.emit('join_lobby_success', lobby);
 	}
 }
