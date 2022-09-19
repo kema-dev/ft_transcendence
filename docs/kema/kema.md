@@ -27,4 +27,4 @@
 ## on final server deployment
 
 * http to https redirection (via certificate)
-* set up elastic search for logs
+* update JWT secret (no MD5sum, use env file's provided variable)
