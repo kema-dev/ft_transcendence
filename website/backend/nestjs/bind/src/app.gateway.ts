@@ -70,7 +70,7 @@ export class AppGateway
 		this.logger.log(`Message: ${payload}`);
 		return this.game.balls;
 	}
-		@SubscribeMessage('setMov')
+	@SubscribeMessage('setMov')
 	setMov(client: Socket, args: any): void {
 		this.game.setMov(args.mov, args.login);
 	}
@@ -264,5 +264,40 @@ export class AppGateway
 		]);
 		if (!priv) return console.log(`Error privReaded`);
 		await this.chatService.markPrivReaded(priv);
+	}
+
+	@SubscribeMessage('lobby_list')
+	async getLobbyList(@ConnectedSocket() client: Socket) {
+		const lobby_list = await this.matchService.get_lobby_list();
+		for (let i = 0; i < lobby_list.length; i++) {
+			for (let j = 0; j < lobby_list[i].players.length; j++) {
+				if (lobby_list[i].players[j] == client.handshake.query.login) {
+					lobby_list.splice(i, 1);
+					break;
+				}
+			}
+		}
+		client.emit('lobby_list', lobby_list);
+	}
+	@SubscribeMessage('join_lobby')
+	async joinLobby(
+		@MessageBody() data: { username: string; lobby: string },
+		@ConnectedSocket() client: Socket,
+	) {
+		let lobby;
+		try {
+			lobby = await this.matchService.join_lobby(
+				data.username,
+				data.lobby,
+				client,
+			);
+		} catch (err) {
+			console.log(err.message);
+			if (err.message === 'User already in lobby') {
+				client.emit('join_lobby', { error: err.message });
+			}
+			return;
+		}
+		// client.emit('join_lobby_success', lobby);
 	}
 }
