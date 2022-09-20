@@ -17,6 +17,7 @@ import { ChatService } from './chat/chat.service';
 import { UsersService } from './users/users.service';
 import { BallDto } from './game2.0/dto/BallDto';
 import { NewPrivMsgDto } from './chat/dto/NewPrivMsgDto';
+import { NewChanMsgDto } from './chat/dto/NewChanMsgDto';
 import { MatchService } from './match/match.service';
 import { PrivConvDto } from './chat/dto/PrivConvDto';
 import { MessageDto } from './chat/dto/MessageDto';
@@ -198,9 +199,7 @@ export class AppGateway
 		@MessageBody() data: NewPrivMsgDto,
 		@ConnectedSocket() client: Socket,
 	) {
-		// console.log(`controller newPrivMsg:  userSend = ${data.userSend}, userReceive = ${data.userReceive}`)
 		const priv = await this.chatService.addPrivMsg(data);
-		// console.log("ici");
 		const sendSocketId = (await this.userService.getByLogin(data.userSend))
 			.socketId;
 		const receiveSocketId = (
@@ -211,7 +210,6 @@ export class AppGateway
 			data.message,
 			new Date(data.date),
 		);
-		// console.log(`sendId = ${sendSocketId}\nreceiveId = ${receiveSocketId}`);
 		if (priv.messages.length == 1) {
 			const userSend = new BasicUserDto(data.userSend);
 			const userReceive = new BasicUserDto(data.userReceive);
@@ -231,8 +229,30 @@ export class AppGateway
 			this.server
 				.to(sendSocketId)
 				.emit('newPrivMsg', { msg: msg, id: priv.id });
-			// console.log(`newPrivMsg '${data.message}' emited`)
 		}
+	}
+
+	@SubscribeMessage('newChanMsg')
+	async NewChanMsg(
+		@MessageBody() data: NewChanMsgDto,
+		@ConnectedSocket() client: Socket,
+	) {
+		const chan = await this.chatService.addChanMsg(data);
+		const sendSocketId = (await this.userService.getByLogin(data.userSend))
+			.socketId;
+		const msg = new MessageDto(
+			data.userSend,
+			data.message,
+			new Date(data.date),
+		);
+		for(let admin of chan.admins)
+			this.server
+			.to(admin.socketId)
+			.emit('newChanMsg', { msg: msg, name: chan.name });
+		for(let user of chan.users)
+			this.server
+			.to(user.socketId)
+			.emit('newChanMsg', { msg: msg, name: chan.name });
 	}
 
 	@SubscribeMessage('getUsersByLoginFiltred')

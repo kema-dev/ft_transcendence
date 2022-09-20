@@ -54,7 +54,6 @@
 				<ConversationTab
 					v-if="data.messages.length > 0"
 					:name-conv="data.name"
-					:avatar="data.avatar"
 					:message="data.messages.at(-1)!.msg"
 					:date="data.messages.at(-1)!.date"
 					:last-msg-user="data.messages.at(-1)!.user"
@@ -65,7 +64,6 @@
 				<ConversationTab
 					v-else
 					:name-conv="data.name"
-					:avatar="data.avatar"
 					:date="data.creation"
 					:chan="true"
 					class="center"

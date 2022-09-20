@@ -8,6 +8,7 @@ import { ChannelEntity } from './entites/channel.entity';
 import { UserEntity } from '../users/user.entity';
 import { UsersService } from '../users/users.service';
 import { NewPrivMsgDto } from './dto/NewPrivMsgDto';
+import { NewChanMsgDto } from './dto/NewChanMsgDto';
 import { BasicUserDto } from './dto/BasicUserDto';
 import { MessageDto } from './dto/MessageDto';
 import { PrivConvDto } from './dto/PrivConvDto';
@@ -196,6 +197,28 @@ export class ChatService {
 		// return user.chansAdmin.concat(user.chansUser);
 		return user.chansAdmin.concat(user.chansUser);
 	}
+
+	async getChan(chanName: string) {
+		const chan = await this.channelRepository.findOne({
+			where: {name : chanName},
+			relations: {
+				admins:true,
+				users: true,
+				bans: true,
+				mutes: true,
+				messages: {
+					user: true,
+				},
+			},
+			order: {
+				messages: {
+					createdAt: 'ASC',
+				},
+			},
+		});
+		return chan;
+	}
+
 	async sortChans(chans: ChannelEntity[]) {
 		console.log(`Sort Channels`)
 		chans.sort(function (x, y) {
@@ -263,6 +286,27 @@ export class ChatService {
 		return new ChannelDto(newChan.name, "test", new Date(), [new BasicUserDto(newChan.admins[0].login)]);
 	}
 
+	async addChanMsg(data: NewChanMsgDto) {
+		console.log(`addChanMsg Chatservice, msg = '${data.message}'`);
+		const userSend = await this.userService.getByLogin(data.userSend);
+		const msg = this.msgRepository.create({
+			user: userSend,
+			message: data.message,
+		});
+		await this.msgRepository
+			.save(msg)
+			.catch((e) => console.log('Save msg error'));
+		const chan = await this.getChan(data.chanName);
+		if (chan) {
+			chan.messages.push(msg);
+			chan.readed = false;
+			await this.channelRepository
+				.save(chan)
+				.catch((e) => console.log('Save chan error'));
+			return chan;
+		}
+	}
+
 	printChanDto(chan: ChannelDto) {
 		console.log(`psw = ${chan.psw}`);
 		console.log(`creation = ${chan.creation}`);
@@ -293,7 +337,7 @@ export class ChatService {
 		console.log(`users : ${chan.users.map(user => user.login + ', ')}`);
 		console.log("msgs :");
 		chan.messages.forEach(msg => {
-			console.log(`${msg.message}, created at ${msg.createdAt.toLocaleTimeString("fr")}}`)
+			console.log(`${msg.message}, created at ${msg.createdAt.toLocaleTimeString("fr")}`)
 		})
 	}
 

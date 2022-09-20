@@ -33,16 +33,19 @@ import { processExpression } from "@vue/compiler-core";
 
 
 //  ========== COOKIES + APIPATCH
+
 const $cookies = inject<VueCookies>('$cookies')!;
 const apiPath = FQDN + ':3000/api/v1/';
 provide('apiPath', apiPath);
 
 //	========== GET MY NAME + AVATAR
+
 const me: string = $cookies.get('login');
 provide('me', me);
 console.log(`I am '${me}'`);
 
 //	========== CREATE SOCKET
+
 let socket = io(FQDN + ':3000', { query: { login: me } });
 provide('socket', socket);
 
@@ -69,27 +72,17 @@ socket.on("userUpdate", (data: any) => {
 });
 socket.emit("userUpdate", { login: me });
 provide("user", userRef);
-provide("me", me);
 
-// socket.on('newPrivConv', (data: PrivConv) => {
-// 	let privTmp = privs.value!;
-// 	privTmp.push(data);
-// 	privs.value = privTmp;
-// })
-// socket.on('newPrivMsg', (data: {msg: Message, id: number}) => {
-// 	let privsTmp = privs.value!;
-// 	let priv = privsTmp.find(priv => priv.id == data.id);
-// 	priv?.messages.push(data.msg);
-// 	privs.value = privsTmp;
-// })
 
 //	========== RESIZE WINDOW
+
 let reload = ref(0);
 onMounted(() => {
 	window.addEventListener('resize', () => {
 		reload.value++;
 	});
 });
+
 
 //	===================== CHAT =====================
 
@@ -168,7 +161,7 @@ socket.on('newPrivConv', (data: PrivConvDto) => {
 	// printPrivs(privsRef.value);
 });
 socket.on('newPrivMsg', (data: { msg: MessageDto; id: number }) => {
-	console.log(`New message received : ${data.msg.msg}`);
+	console.log(`New Private message received : ${data.msg.msg}`);
 	// let privsTmp = privsRef.value!;
 	// let priv = privsTmp.find(priv => priv.id == data.id);
 	// priv?.messages.push(new Message(data.msg.user, data.msg.msg, new Date(data.msg.date)));
@@ -277,6 +270,50 @@ function getChansRequest() {
 		// printChans(chansRef.value);
 	})
 	.catch(e => console.log(e));
+}
+
+
+//	========== CREATE SOCKET LISTENERS
+
+socket.on('newChanMsg', (data: { msg: MessageDto; name: string }) => {
+	console.log(`New Channel message received : 
+		channel = ${data.name}, msg = ${data.msg.msg}`);
+	// let privsTmp = privsRef.value!;
+	// let priv = privsTmp.find(priv => priv.id == data.id);
+	// priv?.messages.push(new Message(data.msg.user, data.msg.msg, new Date(data.msg.date)));
+	// privsRef.value = privsTmp;
+	// ==============
+	// let priv = privs.find(priv => priv.id == data.id);
+	// priv?.messages.push(data.msg);
+	// // ==============
+	console.log(`test`);
+	let i = chansRef.value.findIndex((chan) => chan.name == data.name);
+	chansRef.value[i].messages.push(
+		new MessageDto(data.msg.user, data.msg.msg, new Date(data.msg.date)),
+	);
+	chansRef.value[i].readed = false;
+	printChans(chansRef.value);
+	if (data.msg.user != me && !nbChanNR.value.includes(chansRef.value[i].name))
+		nbChanNR.value.push(chansRef.value[i].name);
+	// console.log(`nbr Priv Mesage Not Read = ${nbChanNR.value}`)
+	if (i != 0) putChanFirst(i);
+});
+
+function putChanFirst(index: number) {
+	if (chansRef.value.length == 2)
+		return ([chansRef.value[0], chansRef.value[1]] = [
+			chansRef.value[1],
+			chansRef.value[0],
+		]);
+	console.log(`index = ${index}`);
+	let chanTmp1 = chansRef.value[0];
+	let chanTmp2: ChannelDto;
+	chansRef.value[0] = chansRef.value[index];
+	for (let i = 1; i <= index && i < chansRef.value.length; i++) {
+		chanTmp2 = chansRef.value[i];
+		chansRef.value[i] = chanTmp1;
+		chanTmp1 = chanTmp2;
+	}
 }
 
 

@@ -151,9 +151,7 @@ function banUser() {
 }
 
 function selectPriv() {
-	// console.log(`selectPriv()`);
 	let priv = privs?.value.find((priv) => priv.user.login == userName);
-	// console.log(`selectPriv = ${priv}`);
 	return priv;
 }
 
@@ -227,27 +225,11 @@ onBeforeUpdate(() => {
 });
 
 onUpdated(() => {
-	// console.log(`PrivConvItem Updated`);
-
-	// if (privs?.value.length) {
-	// 	index.value = privs!.value.findIndex(priv => priv.user.login == userName);
-	// }
-
-	// index = privs!.value.findIndex(priv => {
-	// 	console.log(`priv.user.login = ${priv.user.login}, userName = ${userName}`);
-	// 	if (priv.user.login == userName)
-	// 		return true;
-	// });
-	// console.log(`index priv of privConvItem = ${index.value}`);
-	// console.log(`onUpdate scrollTop =  ${((msgsCont.value!) as HTMLElement).scrollTop}`);
-	// console.log(`onUpdate scrollHeight =  ${((msgsCont.value!) as HTMLElement).scrollHeight}`);
 	if (scroll == true) {
 		(msgsCont.value! as HTMLElement).scrollTop = (
 			msgsCont.value! as HTMLElement
 		).scrollHeight;
 	}
-
-	// if (index.value != -1 && privs!.value[index.value].messages.at(-1)?.user != me) {
 	if (newMsg && privs!.value[index.value].messages.at(-1)?.user != me) {
 		mySocket.emit("privReaded", { userSend: userName, userReceive: me });
 		markReaded(index.value, true);

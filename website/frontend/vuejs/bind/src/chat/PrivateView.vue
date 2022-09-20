@@ -97,10 +97,11 @@ import { BasicUserDto } from "@/chat/dto/BasicUserDto";
 import { Socket } from "socket.io-client";
 import HTTP from "../components/axios";
 import { PrivConvDto } from "@/chat/dto/PrivConvDto";
+import { ProfileUserDto } from "@/dto/ProfileUserDto"
 
 // INJECTS
 let colors = inject("colors");
-let me: string = inject("me")!;
+let me: Ref<ProfileUserDto> = inject("user")!;
 let mySocket: Socket = inject("socket")!;
 let apiPath: string = inject("apiPath")!;
 

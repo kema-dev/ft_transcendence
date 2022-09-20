@@ -2,54 +2,50 @@
 	<div id="channel_view" class="stack">
 		<div class="userTopBar center raw space-between">
 			<div class="avatar_cont center">
-				<img :src="conv.user.avatar" class="avatar" alt="avatar" />
+				<img src="~@/assets/group_logo.svg"  class="avatar" alt="avatar" />
 			</div>
 			<span class="login">{{ route.params.conv_name }}</span>
+
 			<div class="option_buttons center raw stack">
-				<!-- <button @click="inviteGame" class="button_cont infoButton center">
-						<span class="infoButtonText">Invite in room</span>
-						<img src="~@/assets/play_button.png" alt="Invite game button" class="logo_img">
-					</button> -->
-				<button @click="info = !info" class="button_cont infoButton center">
-					<span class="infoButtonText">Info</span>
-					<img
-						v-if="!info"
+				<button @click="info = !info" class="button_cont center">
+					<span class="infoButtonText">Infos</span>
+					<img v-if="!info"
 						src="~@/assets/info_logo.svg"
-						alt="Info button"
-						class="logo_img"
+						alt="Infos button"
+						class="button_img"
 					/>
-					<img
-						v-else
+					<img v-else
 						src="~@/assets/undo_logo.svg"
 						alt="Info button"
-						class="logo_img"
+						class="button_img"
 					/>
 				</button>
-				<button onclick="history.back();" class="button_cont infoButton center">
+				<button onclick="history.back();" class="button_cont center">
 					<span class="infoButtonText">Close</span>
 					<img
 						src="~@/assets/close_logo.svg"
 						alt="Invite game button"
-						class="logo_img"
+						class="button_img"
 					/>
 				</button>
 			</div>
 		</div>
 		<div v-if="!info" class="conversation_content stack">
 			<div id="messages_cont" ref="msgsCont" class="messages">
-				<!-- <div v-if="chanDone && selectPriv()">
-						<div v-for="(message, i) in selectPriv()!.messages" :key="i" class="center column">
-							<div v-if="checkDate(i)" class="date">
-								{{displayDate(message.date, i)}}
-							</div>
-							<MessageItem
-								:userAvatar="receiver.avatar"
-								:userLogin="message.user"
-								:message="message.msg"
-								:date="message.date"
-							/>
+				
+				<div v-if="chanDone && selectChan()">
+					<div v-for="(message, i) in selectChan()!.messages" :key="i" class="center column">
+						<div v-if="checkDate(i)" class="date">
+							{{displayDate(message.date, i)}}
 						</div>
-					</div> -->
+						<MessageItem
+							:userAvatar="findAvatar(message.user)"
+							:userLogin="message.user"
+							:message="message.msg"
+							:date="message.date"
+						/>
+					</div>
+				</div>
 			</div>
 			<div class="sendbox_cont">
 				<input
@@ -146,62 +142,161 @@
 <script setup lang="ts">
 /* eslint @typescript-eslint/no-var-requires: "off" */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { inject, onMounted, ref, onBeforeUnmount, watch } from "vue";
+import { inject, onMounted, ref, Ref, onBeforeUnmount, watch, onBeforeUpdate, onUpdated } from "vue";
 import { useRoute } from "vue-router";
 import { Socket } from "socket.io-client";
 import MessageItem from "@/chat/MessageItem.vue";
 import BlockAdvert from "@/components/BlockItem.vue";
-import { Message } from "@/chat/dto/MessageDto";
+import { MessageDto } from "@/chat/dto/MessageDto";
 import { NewChanMsgDto } from "@/chat/dto/NewChanMsgDto";
+import { ChannelDto } from "./dto/ChannelDto";
+import { ProfileUserDto } from "@/dto/ProfileUserDto"
 
 const route = useRoute();
 let chanName = route.params.conv_name as string;
 let colors = inject("colors");
 let mySocket: Socket = inject("socket")!;
-let me: string = inject("me")!;
+let me: Ref<ProfileUserDto> = inject("user")!;
 let myMsg = ref("");
 let info = ref(false);
 let password = ref("");
 let showSettings = ref(false);
+let msgsCont = ref(null);
 
-// let user1 = new User("Totolosa", require("@/assets/avatars/(1).jpg"));
-// let user2 = new User("Ocean", require("@/assets/avatars/(2).jpg"));
-// let user3 = new User("Patrick la trick", require("@/assets/avatars/(3).jpg"));
+let chansRef : Ref<ChannelDto[]> = inject("chans")!;
+const chanDone: Ref<boolean> = inject("chanDone")!;
+let index = ref(-1);
+if (chansRef?.value.length) {
+	index.value = chansRef!.value.findIndex((chan) => chan.name == chanName);
+	if (
+		index.value != -1 &&
+		chansRef.value[index.value].messages.at(-1)?.user != me.value.login
+	) {
+		// mySocket.emit("chanReaded", { userSend: userName, userReceive: me });
+		// markReaded(index.value, true);
+	}
+}
 
-// let msg1 = new Message(user1, "Salut frere ce fait graaaaave longtemps ca fais plaisr! Tu deviens quoi l'ami?", new Date('July 17, 2022 03:24:00'));
-// let msg2 = new Message(user2, "Salut poto", new Date('July 22, 2022 03:25:12'));
-// let msg3 = new Message(user1, "Game?", new Date('July 18, 2022 12:45:45'));
-// let msg4 = new Message(user3, "Non je dois finir de faire le front, et wallah c'est chaud", new Date('July 18, 2022 12:47:55'));
-// let msg5 = new Message(user1, "dsaibciauwncopneejvnjn fcoamsdomvcafosnvonsvonoans", new Date());
-// let msg6 = new Message(user2, "Mais tu sais pas parler en fait", new Date());
 
-// let conv = ref(new Private(user2, [msg1, msg2, msg3, msg5, msg6]));
-// // let conv2 = new Conversation(false, [user1, user2, user3], [msg1, msg2]);
+// ================= METHODS =
+
+function selectChan() {
+	let chan = chansRef?.value.find((chan) => chan.name == chanName);
+	if (chan)
+		index.value = chansRef!.value.findIndex((chan) => chan.name == chanName);
+	return chan;
+}
 
 function sendMsg() {
-	mySocket.emit("newPrivMsg", new NewChanMsgDto(me, chanName, myMsg.value));
+	mySocket.emit("newChanMsg", new NewChanMsgDto(me.value.login, chanName, myMsg.value));
 	myMsg.value = "";
 }
 
-// function blockUser () {
-// 	let advert = document.getElementById("blockAdvert_view");
-// 	if (advert != null) {
-// 		advert.style.setProperty('visibility', 'visible');
-// 	}
-// }
+function findAvatar(login: string) {
+	let isAdmin = chansRef.value[index.value].admins.find(admin => admin.login == login);
+	if (isAdmin)
+		return isAdmin.avatar;
+	let isUser = chansRef.value[index.value].users.find(user => user.login == login);
+	if (isUser)
+		return isUser.avatar;
+}
+
+function checkDate(i: number) {
+	// console.log(`checkDate(), i = ${i}`)
+	if (i == 0) return true;
+	else if (
+		Math.ceil(
+			(selectChan()!.messages[i].date.getTime() -
+				selectChan()!.messages[i - 1].date.getTime()) /
+				(1000 * 60)
+		) > 15
+	) {
+		// console.log(`checkDate = true`);
+		return true;
+	} else {
+		// console.log(`checkDate = false`);
+		return false;
+	}
+}
+
+function displayDate(date: Date, i: number) {
+	// console.log(`displayDate()`)
+	let minutes: string | number;
+	if (date.getMinutes() < 10) minutes = "0" + date.getMinutes().toString();
+	else minutes = date.getMinutes();
+	// console.log(`test`);
+	let hours: string | number;
+	if (date.getHours() < 10) hours = "0" + date.getHours().toString();
+	else hours = date.getHours();
+	const day = date.getDay();
+	const month = date.toLocaleString("default", { month: "long" });
+	const year = date.getFullYear();
+	// console.log(`displayDate() avant returns`)
+	if (i == 0)
+		return `Created the ${day} ${month} ${year} at ${hours}:${minutes}`;
+	const now = new Date();
+	const timeDif = date.getTime() - new Date().getTime();
+	const minutesDif = Math.ceil(timeDif / (1000 * 60));
+	const hoursDif = Math.ceil(minutesDif / 60);
+	const daysDif = Math.ceil(hoursDif / 24);
+	if (date.toDateString() == now.toDateString()) return `${hours}:${minutes}`;
+	if (daysDif < 7)
+		return `${date.toLocaleDateString("en-GB", {
+			weekday: "long",
+		})} ${hours}:${minutes}`;
+	else return `${day} ${month} ${year} at ${hours}:${minutes}`;
+}
+
+
+// ====================== LIFECYCLES HOOKS ======================
+
+let scroll = true;
+let oldNbMsg = -1;
+let newMsg = false;
+
+onBeforeUpdate(() => {
+	if (chansRef?.value.length)
+		index.value = chansRef!.value.findIndex((chan) => chan.name == chanName);
+	if (
+		index.value != -1 &&
+		oldNbMsg != chansRef!.value[index.value].messages.length
+	) {
+		newMsg = true;
+		oldNbMsg = chansRef!.value[index.value].messages.length;
+	} else newMsg = false;
+	let oldScrollTop = (msgsCont.value! as HTMLElement).scrollTop;
+	let oldScrollHeight = (msgsCont.value! as HTMLElement).scrollHeight;
+	let oldClientHeight = (msgsCont.value! as HTMLElement).clientHeight;
+	if (oldScrollTop + oldClientHeight == oldScrollHeight) scroll = true;
+	else scroll = false;
+});
+
+onUpdated(() => {
+	if (scroll == true) {
+		(msgsCont.value! as HTMLElement).scrollTop = (
+			msgsCont.value! as HTMLElement
+		).scrollHeight;
+	}
+	if (newMsg && chansRef!.value[index.value].messages.at(-1)?.user != me.value.login) {
+		// mySocket.emit("chanReaded", { userSend: userName, userReceive: me });
+		// markReaded(index.value, true);
+	}
+});
 
 onMounted(() => {
-	// ((msgsCont.value!) as HTMLElement).scrollTop =
-	// ((msgsCont.value!) as HTMLElement).scrollHeight;
+	(msgsCont.value! as HTMLElement).scrollTop = (
+			msgsCont.value! as HTMLElement
+		).scrollHeight;
 	document.getElementById("sendbox")?.focus();
-	const box = document.getElementById("privateTabText");
+	const box = document.getElementById("channelsTabText");
 	if (box != null) box.classList.add("chatTabActive");
 });
 
 onBeforeUnmount(() => {
-	const box = document.getElementById("privateTabText");
+	const box = document.getElementById("channelsTabText");
 	if (box != null) box.classList.remove("chatTabActive");
 });
+
 </script>
 
 <style scoped>
@@ -239,26 +334,31 @@ onBeforeUnmount(() => {
 .login:hover {
 	color: v-bind("colors.color2");
 }
+
+
 .option_buttons {
 	width: auto;
-	position: relative;
-	margin-right: 10px;
+	margin-right: 8px;
 }
-.button_cont {
-	margin: 5px;
-	position: static;
-}
-.logo_img {
+.button_img {
 	width: 30px;
 	height: 30px;
 	filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg)
 		brightness(86%) contrast(83%);
 }
+.button_cont {
+	border-radius: 50%;
+	padding: 5px;
+}
+.button_cont:hover {
+	background-color: white;
+	box-shadow: 0px 0px 4px #aaa;
+}
 
 .infoButtonText {
-	opacity: 0;
+	visibility: hidden;
 	font-size: 0.8rem;
-	width: 120px;
+	width: 70px;
 	background-color: rgba(0, 0, 0, 0.6);
 	color: #fff;
 	text-align: center;
@@ -266,10 +366,26 @@ onBeforeUnmount(() => {
 	border-radius: 6px;
 	position: absolute;
 	z-index: 1;
-	bottom: 100%;
+	bottom: 110%;
 	right: 50%;
 	transform: translate(50%);
 }
+.button_cont:hover .infoButtonText {
+	visibility: visible;
+	opacity: 0;
+	animation: displayButtonInfo 0.3s;
+	animation-delay: 0.3s;
+	animation-fill-mode: forwards;
+}
+@keyframes displayButtonInfo {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
 
 .conversation_content {
 	height: calc(100% - 70px);
