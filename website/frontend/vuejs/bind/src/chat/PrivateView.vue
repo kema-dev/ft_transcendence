@@ -147,29 +147,6 @@ watch(search, () => {
 	if (newMsg.value) {
 		if (search.value != "") {
 			getServerUsers();
-			// HTTP.get(apiPath + "chat/getServerUsersFiltred/" + me + "/" + search.value)
-			// .then(res => {
-			// 	let usersTmp : BasicUser[] = [];
-			// 	res.data.forEach((user : BasicUser) => {
-			// 		usersTmp.push(new BasicUser(user.login));
-			// 	});
-			// 	serverUsers.value = usersTmp;
-
-			// 	serverUsers.value = serverUsers.value.filter((user, i) => {
-			// 		let isAlreadyKnow = true;
-			// 		for (let priv of privsFiltred.value) {
-			// 			if (priv.user.login == user.login){
-			// 				isAlreadyKnow = false;
-			// 				break;
-			// 			}
-			// 		}
-			// 		return isAlreadyKnow;
-			// 		// ========== AJOUTER FRIENDS ===========
-			// 	})
-
-			// 	userServReqDone.value = true;
-			// })
-			// .catch(e => console.log(e));
 		}
 	}
 });
@@ -182,20 +159,7 @@ function getServerUsers() {
 				usersTmp.push(new BasicUserDto(user.login));
 			});
 			serverUsers.value = usersTmp;
-
 			filterServerUsers();
-			// serverUsers.value = serverUsers.value.filter((user, i) => {
-			// 	let isAlreadyKnow = true;
-			// 	for (let priv of privsFiltred.value) {
-			// 		if (priv.user.login == user.login){
-			// 			isAlreadyKnow = false;
-			// 			break;
-			// 		}
-			// 	}
-			// 	return isAlreadyKnow;
-			// 	// ========== AJOUTER FRIENDS ===========
-			// })
-
 			userServReqDone.value = true;
 		})
 		.catch((e) => console.log(e));

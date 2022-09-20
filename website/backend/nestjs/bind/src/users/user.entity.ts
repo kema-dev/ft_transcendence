@@ -117,7 +117,6 @@ export class UserEntity extends TimestampEntites {
 		nullable: true,
 		onDelete: 'SET NULL',
 	})
-	@JoinTable()
 	chansAdmin: ChannelEntity[];
 	
 	@ManyToMany(type => ChannelEntity, (chan) => chan.users ,{
@@ -125,7 +124,6 @@ export class UserEntity extends TimestampEntites {
 		nullable: true,
 		onDelete: 'SET NULL',
 	})
-	@JoinTable()
 	chansUser: ChannelEntity[];
 
 	@ManyToMany((type) => ChannelEntity, (chan) => chan.bans, {
@@ -133,7 +131,7 @@ export class UserEntity extends TimestampEntites {
 		nullable: true,
 		onDelete: 'SET NULL',
 	})
-	@JoinTable()
+
 	bans: ChannelEntity[];
 
 	@ManyToMany((type) => ChannelEntity, (chan) => chan.mutes, {
@@ -141,7 +139,6 @@ export class UserEntity extends TimestampEntites {
 		nullable: true,
 		onDelete: 'SET NULL',
 	})
-	@JoinTable()
 	mutes: ChannelEntity[];
 }
 

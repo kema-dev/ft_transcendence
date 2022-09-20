@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Like } from 'typeorm';
 import { MessageEntity } from './entites/message.entity';
 import { PrivateEntity } from './entites/private.entity';
 import { ChannelEntity } from './entites/channel.entity';
@@ -16,6 +16,8 @@ import { ChannelDto } from './dto/ChannelDto';
 import { HttpService } from '@nestjs/axios';
 import { timeStamp } from 'console';
 import { NewChanDto } from './dto/NewChanDto';
+import { ChannelTabDto } from './dto/ChannelTabDto ';
+// import { AppGateway } from '../app.gateway';
 
 @Injectable()
 export class ChatService {
@@ -28,7 +30,8 @@ export class ChatService {
 		private channelRepository: Repository<ChannelEntity>,
 		@InjectRepository(UserEntity)
 		private userRepository: Repository<UserEntity>,
-		private readonly userService: UsersService, // private readonly dataSource: DataSource, // private httpService: HttpService,
+		private readonly userService: UsersService,
+		// private readonly appGateway: AppGateway,
 	) {}
 
 	// ========================= PRIVATES =========================
@@ -306,6 +309,49 @@ export class ChatService {
 			return chan;
 		}
 	}
+
+	async getServerChansFiltred(login: string, filter: string) {
+		console.log(`getServerChansFiltred for ${login} and filter '${filter}'`)
+		let maxUsers = 20;
+		const chans = await this.channelRepository.find({
+			relations: {
+				admins: true,
+				users: true,
+			},
+			where: { name: Like(filter + '%') },
+			take: maxUsers,
+		});
+		const channelTabs: ChannelTabDto[] = [];
+		for (let chan of chans) {
+			if (!chan.admins.map(a => a.login).includes(login) 
+				&& !chan.users.map(u => u.login).includes(login))
+				channelTabs.push(new ChannelTabDto(
+					chan.name,
+					chan.admins.length + chan.users.length,
+					chan.password ? true : false,
+				))
+		}
+		return channelTabs;
+	}
+
+	async joinChannel(data: {requestor: string, chanName: string, psw: string | undefined}) {
+		let chan = await this.channelRepository.findOne({
+			where: {name: data.chanName},
+			relations: {bans: true},
+		});
+		if (!chan)
+			throw new HttpException('CHAN_NOT_FOUND', HttpStatus.NOT_FOUND);
+		if (data.psw && chan.password != data.psw)
+			throw new HttpException('WRONG_PSW', HttpStatus.BAD_REQUEST);
+		let user = await this.userService.getByLogin(data.requestor);
+		if (chan.bans.includes(user))
+			throw new HttpException('USER_BANNDED', HttpStatus.UNAUTHORIZED);
+		chan.users.push(user);
+		this.channelRepository.save(chan).catch((e) => console.log('Save chan error'));
+
+		return;
+	}
+
 
 	printChanDto(chan: ChannelDto) {
 		console.log(`psw = ${chan.psw}`);

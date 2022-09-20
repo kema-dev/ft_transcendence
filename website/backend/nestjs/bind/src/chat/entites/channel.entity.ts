@@ -5,6 +5,7 @@ import {
 	PrimaryGeneratedColumn,
 	OneToMany,
 	ManyToMany,
+	JoinTable,
 	JoinColumn,
 } from 'typeorm';
 import TimestampEntites from '../../utils/timestamp.enties';
@@ -41,12 +42,14 @@ export class ChannelEntity extends TimestampEntites {
 	@ManyToMany( type => UserEntity, (user) => user.chansAdmin, {
 		onDelete: 'CASCADE'
 	})
+	@JoinTable()
 	admins: UserEntity[];
 
 	@ManyToMany((type) => UserEntity, (user) => user.chansUser, {
 		onDelete: 'CASCADE',
 		nullable: true,
 	})
+	@JoinTable()
 	users: UserEntity[];
 
 	@OneToMany((type) => MessageEntity, (message) => message.chan, {
@@ -59,11 +62,13 @@ export class ChannelEntity extends TimestampEntites {
 		onDelete: 'CASCADE',
 		nullable: true,
 	})
+	@JoinTable()
 	bans: UserEntity[];
 
 	@ManyToMany((type) => UserEntity, (user) => user.mutes, {
 		onDelete: 'CASCADE',
 		nullable: true,
 	})
+	@JoinTable()
 	mutes: UserEntity[];
 }

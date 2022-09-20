@@ -50,31 +50,51 @@ export class ChatController {
 	}
 
 	// @UseGuards(AuthGuard)
-	@Post('CreateChan')
-	async createChan(
-		@Body() data: NewChanDto
+	@Get('getServerChansFiltred/:login/:filter')
+	async getServerChansFiltred(
+		@Param() params: { login: string; filter: string },
 	) {
+		return await this.chatService.getServerChansFiltred(
+			params.login,
+			params.filter,
+		);
+	}
+
+	// @UseGuards(AuthGuard)
+	@Post('CreateChan')
+	async createChan( @Body() data: NewChanDto) {
 		return await this.chatService.createNewChan(data);
 	}
 
 	// @UseGuards(AuthGuard)
-	@Post('message')
-	postMessage() {
-		console.log('Add a message from message list');
-		return 'Add Message';
+	@Post('JoinChannel')
+	async joinChannel(
+		@Body() data: {requestor: string, chanName: string, psw: string | undefined}
+	) {
+		// if (data.psw)
+		// 	await this.chatService.checkChanPsw(data.chanName, data.psw);
+		return await this.chatService.joinChannel(data);
 	}
 
-	// @UseGuards(AuthGuard)
-	@Delete('message')
-	deleteMessage() {
-		console.log('Supress a message from message list');
-		return 'Delete Message';
-	}
 
-	// @UseGuards(AuthGuard)
-	@Put('message')
-	putMessage() {
-		console.log('Modify a message from message list');
-		return 'Update Message';
-	}
+	// // @UseGuards(AuthGuard)
+	// @Post('message')
+	// postMessage() {
+	// 	console.log('Add a message from message list');
+	// 	return 'Add Message';
+	// }
+
+	// // @UseGuards(AuthGuard)
+	// @Delete('message')
+	// deleteMessage() {
+	// 	console.log('Supress a message from message list');
+	// 	return 'Delete Message';
+	// }
+
+	// // @UseGuards(AuthGuard)
+	// @Put('message')
+	// putMessage() {
+	// 	console.log('Modify a message from message list');
+	// 	return 'Update Message';
+	// }
 }

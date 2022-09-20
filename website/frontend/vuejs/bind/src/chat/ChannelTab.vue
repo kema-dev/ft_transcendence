@@ -1,11 +1,12 @@
 <template>
-	<router-link
+	<!-- <router-link
 		v-if="!infos?.psw"
 		:to="{name: 'ChannelConv', params: {conv_name: infos!.name }}"
-	>
+	> -->
+	<button v-if="!infos.psw" @click="joinChannel">
 		<div class="channelTab center row stack">
 			<div class="avatar_cont center">
-				<img :src="infos!.avatar" alt="avatar" class="avatar" />
+				<img src="~@/assets/group_logo.svg" alt="avatar" class="avatar" />
 			</div>
 			<div class="chanName">{{ infos!.name }}</div>
 			<div class="userNumberCont center">
@@ -13,11 +14,13 @@
 				<span class="userNumber">{{ infos!.nbUsers }}</span>
 			</div>
 		</div>
-	</router-link>
-	<div v-else class="channelPsw center column stack">
+	</button>
+
+	<!-- </router-link> -->
+	<button v-else class="channelPsw center column stack">
 		<div @click="showPswDiv()" class="channelTab center row stack">
 			<div class="avatar_cont center">
-				<img :src="infos!.avatar" alt="avatar" class="avatar" />
+				<img src="~@/assets/group2_logo.svg" alt="avatar" class="avatar" />
 			</div>
 			<div class="chanName">{{ infos!.name }}</div>
 			<div class="userNumberCont center">
@@ -30,13 +33,13 @@
 			<img src="~@/assets/key_logo.svg" alt="Password" class="img" />
 			<input
 				v-model="psw"
-				@keydown.enter="checkPsw()"
+				@keydown.enter="joinChannel"
 				type="text"
 				ref="input"
 				class="pswInput"
 			/>
 		</div>
-	</div>
+	</button>
 	<WarningMsg
 		v-if="banWarn"
 		msg="You have been banned from this channel"
@@ -51,13 +54,18 @@
 </template>
 
 <script setup lang="ts">
+	import HTTP from "../components/axios";
 import { inject, defineProps, ref, nextTick, onMounted } from "vue";
+import { Socket } from "socket.io-client";
 import { useRouter } from "vue-router";
 import WarningMsg from "@/components/WarningMsg.vue";
 import { ChannelTabDto } from "@/chat/dto/ChannelTabDto ";
+import ProfileUserDto from "@/dto/ProfileUserDto";
 
 let colors = inject("colors");
-let me: string = inject("me")!;
+let me: ProfileUserDto = inject("user")!;
+let mySocket: Socket = inject("socket")!;
+let apiPath: string = inject("apiPath")!;
 const router = useRouter();
 const props = defineProps({
 	infos: {
@@ -73,17 +81,12 @@ const banWarn = ref(false);
 let chanViewPos: DOMRect;
 
 function showPswDiv() {
-	// DEMMANDE BACK IF USER BANNED <==================================
-	if (props.infos?.ban) {
-		banWarn.value = true;
-	} else {
-		showPsw.value = !showPsw.value;
-		psw.value = "";
-		if (showPsw.value) {
-			nextTick(() => {
-				(input.value! as HTMLInputElement).focus();
-			});
-		}
+	showPsw.value = !showPsw.value;
+	psw.value = "";
+	if (showPsw.value) {
+		nextTick(() => {
+			(input.value! as HTMLInputElement).focus();
+		});
 	}
 }
 
@@ -98,6 +101,35 @@ function checkPsw() {
 	//   }
 	// }, 50);
 }
+
+function joinChannel() {
+	(input.value! as HTMLInputElement).classList.remove("invalidPsw");
+	HTTP.post(apiPath + "chat/JoinChannel/", {
+		requestor: me.login,
+		chanName: props.infos.name,
+		psw: props.infos.psw ? psw.value : undefined,
+	})
+		.then((res) => {
+			router.push({name: 'ChanConv', params: {conv_name: props.infos.name }});
+		})
+		.catch((e) => {
+			if (e.response.data.message === 'WRONG_PSW') {
+				((input.value!) as HTMLInputElement).classList.add("invalidPsw");
+			} else if (e.response.data.message === 'USER_BANNDED') {
+				banWarn.value = true;
+			} else if (e.response.data.message === 'CHAN_NOT_FOUND') {
+				console.log(e);
+			}
+		});
+
+	// if (props.infos.psw) {
+	// 	checkPsw();
+	// } else { 
+	// 	mySocket.emit("JoinChannel", props.infos.name, me.login)
+	// 	router.push({name: 'ChanConv', params: {conv_name: props.infos.name }});
+	// }
+}
+
 
 onMounted(() => {
 	chanViewPos = document

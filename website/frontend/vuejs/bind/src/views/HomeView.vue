@@ -29,6 +29,7 @@ import { ChannelDto } from "@/chat/dto/ChannelDto"
 import { MessageDto } from "@/chat/dto/MessageDto";
 import { BasicUserDto } from "@/chat/dto/BasicUserDto";
 import { processExpression } from "@vue/compiler-core";
+import ProfileUserDto from "@/dto/ProfileUserDto";
 // import { chansRef } from "@/globals";
 
 
@@ -63,7 +64,7 @@ let userRef = ref();
 // post('user/getUser', {login: me}, (data: any) => {
 // 	userRef.value = data.data;
 // });
-socket.on("userUpdate", (data: any) => {
+socket.on("userUpdate", (data: ProfileUserDto) => {
 	if (data && data.login == me) {
 		userRef.value = data;
 		console.log(userRef.value);

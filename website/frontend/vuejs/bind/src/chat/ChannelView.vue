@@ -16,14 +16,14 @@
 					<img
 						v-if="!findChannel"
 						src="~@/assets/logo_search.svg"
-						alt="New message"
+						alt="Find Channel Button"
 						class="button_img"
 					/>
 					<span v-if="findChannel" class="infoButtonText">Back</span>
 					<img
 						v-if="findChannel"
 						src="~@/assets/undo_logo.svg"
-						alt="New message"
+						alt="Undo Button"
 						class="button_img"
 					/>
 				</button>
@@ -82,7 +82,7 @@
 			<!-- <div v-if="search.length > 0 && serverChans.length > 0" class="left column"> -->
 			<ChannelTab v-for="(data, i) in serverChans" :key="i" :infos="data" />
 		</div>
-		<h2 v-else-if="findChannel && serverChans.length == 0">No results</h2>
+		<h2 v-else-if="findChannel && search.length > 0 && serverChans.length == 0">No results</h2>
 		<!-- </div> -->
 		<form
 			v-if="newChannel"
@@ -160,14 +160,11 @@ let chansFiltred : Ref<ChannelDto[]> = ref(chansRef.value);
 const chanDone: Ref<boolean> = inject("chanDone")!;
 
 let serverChans : Ref<ChannelTabDto[]> = ref([]);
-
-const newMsg = ref(false);
-let userServReqDone = ref(false);
+let chanServReqDone = ref(false);
 
 const search = ref("");
 const findChannel = ref(false);
 const newChannel = ref(false);
-const searchKey = ref(0);
 const pswCheck = ref(false);
 
 watch(chanDone, () => {
@@ -177,15 +174,16 @@ watch(chanDone, () => {
 });
 
 watch(search, () => {
-	userServReqDone.value = false;
+	console.log(`search Change`);
+	chanServReqDone.value = false;
 	chansFiltred.value = chansRef.value?.filter(function (chan) {
 		return chan.name.toUpperCase().startsWith(search.value.toUpperCase());
 	});
-	if (newMsg.value && search.value != "") getServerChans();
+	if (findChannel.value && search.value != "") getServerChans();
 });
 
 function getServerChans() {
-	HTTP.get(apiPath + "chat/getServerUsersFiltred/" + me + "/" + search.value)
+	HTTP.get(apiPath + "chat/getServerChansFiltred/" + me + "/" + search.value)
 		.then((res) => {
 			let chansTmp: ChannelTabDto[] = [];
 			res.data.forEach((chan: ChannelTabDto) => {
@@ -194,13 +192,13 @@ function getServerChans() {
 				);
 			});
 			serverChans.value = chansTmp;
-			filterServerUsers();
-			userServReqDone.value = true;
+			// filterServerChans();
+			chanServReqDone.value = true;
 		})
 		.catch((e) => console.log(e));
 }
 
-function filterServerUsers() {
+function filterServerChans() {
 	serverChans.value = serverChans.value!.filter((chan, i) => {
 		let isAlreadyKnow = true;
 		for (let chanKnown of chansFiltred.value) {
@@ -210,7 +208,6 @@ function filterServerUsers() {
 			}
 		}
 		return isAlreadyKnow;
-		// ========== AJOUTER FRIENDS ===========
 	});
 }
 
@@ -231,7 +228,7 @@ function filterServerUsers() {
 
 function findChannelFn() {
 	findChannel.value = !findChannel.value;
-	searchKey.value += 1;
+	search.value = "";
 	nextTick(() => {
 		document.getElementById("search")?.focus();
 	});
