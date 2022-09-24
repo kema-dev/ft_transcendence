@@ -24,6 +24,14 @@ export class UsersService {
 			.catch((e) => console.log('Save saveSocket error'));
 	}
 
+	async saveLobby(login: string, lobby_name: string) {
+		const user = await this.getByLogin(login);
+		user.lobby_name = lobby_name;
+		await this.usersRepository
+			.save(user)
+			.catch((e) => console.log('Save saveSocket error'));
+	}
+
 	async getByEmail(mail: string) {
 		console.log('getByEmail: starting for ' + mail);
 		const user = await this.usersRepository.findOne({

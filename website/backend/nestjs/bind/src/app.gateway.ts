@@ -17,12 +17,13 @@ import { ChatService } from './chat/chat.service';
 import { UsersService } from './users/users.service';
 import { BallDto } from './game2.0/dto/BallDto';
 import { NewPrivMsgDto } from './chat/dto/NewPrivMsgDto';
-import { MatchService } from './match/match.service';
 import { PrivConvDto } from './chat/dto/PrivConvDto';
 import { MessageDto } from './chat/dto/MessageDto';
 import ProfileUserDto from 'src/users/dto/ProfileUserDto';
 import ResumUserDto from 'src/users/dto/ResumUserDto';
 import BasicUserDto from 'src/chat/dto/BasicUserDto';
+import { UserEntity } from 'src/users/user.entity';
+import { MatchDto } from 'src/match/match.dto'
 
 @WebSocketGateway({
 	cors: {
@@ -33,13 +34,12 @@ export class AppGateway
 	implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
 	@WebSocketServer() server: Server;
-	game: Game;
+	game: Game[] = [];
 	private logger: Logger = new Logger('AppGateway');
 
 	constructor(
 		private readonly chatService: ChatService,
 		private readonly userService: UsersService,
-		private readonly matchService: MatchService,
 	) { }
 
 	// =========================== GENERAL ==================================
@@ -57,59 +57,59 @@ export class AppGateway
 	async handleDisconnect(client: Socket) {
 		this.logger.log(`Client disconnected: ${client.id}`);
 		// console.log("query = ", client.handshake.query.login);
-		if (this.game)
-			this.game.destructor();
-		delete this.game;
+		let user = await this.userService.getByLogin(client.handshake.query.login as string);
+		let game = this.game.find((game) => game.lobby_name === user.lobby_name);
+		if (game && game.players.length < 1) {
+			game.destructor();
+			this.game.splice(this.game.indexOf(game), 1);
+		}
 	}
 
 	// ============================ GAME =====================================
 
-	@SubscribeMessage('getBallPos')
-	getBallsPos(client: Socket, payload: any): any {
-		this.server.emit('getBallPos', this.game.balls);
-		this.logger.log(`Message: ${payload}`);
-		return this.game.balls;
-	}
+	// @SubscribeMessage('getBallPos')
+	// getBallsPos(client: Socket, payload: any): any {
+	// 	this.server.emit('getBallPos', this.game[0].balls);
+	// 	this.logger.log(`Message: ${payload}`);
+	// 	return this.game[0].balls;
+	// }
 	@SubscribeMessage('setMov')
 	setMov(client: Socket, args: any): void {
-		this.game.setMov(args.mov, args.login);
+		let game = this.game.find((game) => game.lobby_name === args.lobby_name);
+		if (game)
+			game.setMov(args.mov, args.login);
 	}
 	@SubscribeMessage('newRoom')
 	async newRoom(client: Socket, payload: any): Promise<void> {
 		// this.gameService.games.push(
 		// var game = new Game(payload.nbrPlayer, payload.nbrBall, this.server)
 		// );
-		if (this.game) {
-			this.game.destructor();
-			delete this.game;
+		let array: UserEntity[] = [];
+		for (let i = 0; i < payload.players.length; i++) {
+			array.push(await this.userService.getByLogin(payload.players[i]));
 		}
-		const match_db = await this.matchService.create_match({
-			nbrPlayer: payload.nbrPlayer,
-			nbrBall: payload.nbrBall,
-			players: payload.players,
-			start: false,
-			lobby_name: payload.lobby_name,
-			open: true,
-			owner: payload.owner,
-		});
-		this.game = new Game(
-			match_db.nbrPlayer,
-			match_db.nbrBall,
+		const usr = await this.userService.getByLogin(client.handshake.query.login as string);
+		usr.lobby_name = payload.lobby_name;
+		this.userService.saveLobby(client.handshake.query.login as string, payload.lobby_name);
+		this.game.push(new Game(
+			payload.nbrPlayer,
+			payload.nbrBall,
 			this.server,
-			match_db.players,
+			array,
 			payload.lobby_name,
-		);
+			payload.owner,
+		));
 	}
 	@SubscribeMessage('start')
 	start(client: Socket, payload: any): void {
 		// this.gameService.games.push(
 		// var game = new Game(payload.nbrPlayer, payload.nbrBall, this.server)
 		// );
-		if (this.game) {
+		let game = this.game.find((game) => game.lobby_name === payload.lobby_name);
+		if (game) {
 			console.log('Game: Starting');
-			this.matchService.start_match(payload.lobby_name);
 			console.log(payload);
-			this.game.start = true;
+			game.start = true;
 		}
 	}
 	afterInit(server: Server) {
@@ -268,36 +268,25 @@ export class AppGateway
 
 	@SubscribeMessage('lobby_list')
 	async getLobbyList(@ConnectedSocket() client: Socket) {
-		const lobby_list = await this.matchService.get_lobby_list();
-		for (let i = 0; i < lobby_list.length; i++) {
-			for (let j = 0; j < lobby_list[i].players.length; j++) {
-				if (lobby_list[i].players[j] == client.handshake.query.login) {
-					lobby_list.splice(i, 1);
-					break;
-				}
+		let lobbies: MatchDto[];
+		for (let game of this.game) {
+			let lob: MatchDto;
+			lob.lobby_name = game.lobby_name;
+			for (let player of game.players) {
+				lob.players.push(player.login);
 			}
+			lob.nbr_players = game.nbrPlayer
+			lob.nbr_balls = game.nbrBall;
+			lobbies.push(lob);
 		}
-		client.emit('lobby_list', lobby_list);
+		client.emit('lobby_list', lobbies);
 	}
 	@SubscribeMessage('join_lobby')
 	async joinLobby(
 		@MessageBody() data: { username: string; lobby: string },
 		@ConnectedSocket() client: Socket,
 	) {
-		let lobby;
-		try {
-			lobby = await this.matchService.join_lobby(
-				data.username,
-				data.lobby,
-				client,
-			);
-		} catch (err) {
-			console.log(err.message);
-			if (err.message === 'User already in lobby') {
-				client.emit('join_lobby', { error: err.message });
-			}
-			return;
-		}
+
 		// client.emit('join_lobby_success', lobby);
 	}
 }

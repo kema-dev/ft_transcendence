@@ -15,6 +15,7 @@ export class CreateUserDto {
 		this.tmp_totp_code = '';
 		this.session_token = '';
 		this.session_expiration = new Date();
+		this.lobby_name = '';
 		// this.avatar = '';
 		Object.assign(this, params);
 	}
@@ -34,6 +35,7 @@ export class CreateUserDto {
 	tmp_totp_code: string;
 	session_token: string;
 	session_expiration: Date;
+	lobby_name: string;
 }
 
 export default CreateUserDto;

@@ -92,7 +92,7 @@ import API from '../components/axios';
 import { FQDN, API_42_UID, API_42_REDIRECT_URI } from '../../.env.json';
 
 const router = useRouter();
-
+let colors = inject('colors');
 let apiPath = FQDN + ':3000/api/v1/';
 let api42Path =
 	'https://api.intra.42.fr/oauth/authorize?client_id=' +
@@ -318,9 +318,9 @@ onMounted(() => {
 	text-align: center;
 	font-family: 'Orbitron', sans-serif;
 	font-size: 1rem;
-	/* display: flex;
-	flex-direction: column;
-  position: absolute; */
+	width: 500px;
+	height: 30px;
+	border: all 2px solid v-bind("colors.color1");
 }
 
 .ft_button {

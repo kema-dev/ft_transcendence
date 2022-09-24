@@ -14,7 +14,10 @@
 				:key="remount"
 			/>
 		</div>
-		<div class="center column" id="settings" v-show="!start">
+		<div v-if="!isCreate" class="center column" id="settings">
+			<button class="start" v-on:click="create">create</button>
+		</div>
+		<div class="center column" id="settings" v-else-if="!start">
 			<h1>{{ nbrPlayer }}</h1>
 			<h2 class="title">Players</h2>
 			<div class="center row">
@@ -53,6 +56,8 @@ let players = ref([$cookies.get('login')]);
 let lobby_name = ref($cookies.get('login') + "'s lobby");
 const owner = ref($cookies.get('login'));
 
+let isCreate = ref(false);
+
 function players_update() {
 	socket.off('player_update');
 	console.log('player_update started');
@@ -73,6 +78,16 @@ function launch() {
 	socket.emit('start', {
 		lobby_name: lobby_name.value,
 	});
+}
+function create() {
+	socket.emit('newRoom', {
+		nbrBall: nbrBall.value,
+		nbrPlayer: nbrPlayer.value,
+		players: players.value,
+		lobby_name: lobby_name.value,
+		owner: owner.value,
+	});
+	isCreate.value = true;
 }
 function incr() {
 	if (nbrPlayer.value + 1 <= 7) {

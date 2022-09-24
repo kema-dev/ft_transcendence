@@ -41,13 +41,6 @@ function focus() {
 	container.focus();
 }
 async function update() {
-	socket.emit('newRoom', {
-		nbrBall: props.nbrBall,
-		nbrPlayer: props.nbrPlayer,
-		players: props.players,
-		lobby_name: props.lobby_name,
-		owner: props.owner,
-	});
 	socket.on('update_game', (game: string) => {
 		// console.log(game)
 		gameDto = JSON.parse(game);
@@ -162,7 +155,7 @@ async function update() {
 		} else {
 			return;
 		}
-		socket.emit("setMov", { mov: mov, login: me?.value?.login });
+		socket.emit("setMov", { mov: mov, login: me?.value?.login, lobby_name: me?.value?.lobby_name });
 		e.preventDefault();
 	});
 	container.addEventListener('keyup', function (e: any) {
@@ -173,7 +166,7 @@ async function update() {
 		} else {
 			return;
 		}
-		socket.emit("setMov", { mov: mov, login: me?.value?.login });
+		socket.emit("setMov", { mov: mov, login: me?.value?.login, lobby_name: me?.value?.lobby_name });
 		e.preventDefault();
 	});
 }
