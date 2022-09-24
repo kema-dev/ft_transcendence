@@ -115,7 +115,7 @@ export default class Game {
 		for (let i = 0; i < this.balls.length; ++i) {
 			this.dto.balls[i].x = this.balls[i].x;
 			this.dto.balls[i].y = this.balls[i].y;
-		}
+		} 
 		for (const i in this.rackets) {
 			this.dto.rackets[i].x = this.rackets[i].x;
 			this.dto.rackets[i].y = this.rackets[i].y;

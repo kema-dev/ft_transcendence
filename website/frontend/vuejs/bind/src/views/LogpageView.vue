@@ -54,7 +54,7 @@
 								<button class="login-btn" @click="register()">Register</button>
 							</div>
 							<div v-else class="form_login">
-								<h3 class="input_text">Email</h3>
+								<h3 class="input_text">Email or login</h3>
 								<input
 									class="input_box"
 									v-model="email_auth"

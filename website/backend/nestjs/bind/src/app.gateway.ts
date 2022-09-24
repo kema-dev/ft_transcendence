@@ -372,9 +372,11 @@ export class AppGateway
 						return;
 					}
 				}
-				const players = this.game[i].players;
+				let players = this.game[i].players;
 				console.log('players: ', players);
 				players.push(await this.userService.getByLogin(data.username));
+				this.game[i].destructor();
+				this.game.splice(1, i);
 				const new_game = new Game(
 					this.game[i].nbrPlayer,
 					this.game[i].nbrBall,
@@ -383,17 +385,15 @@ export class AppGateway
 					this.game[i].lobby_name,
 					this.game[i].owner,
 				);
-				this.game[i].destructor();
-				this.game.splice(1, i);
 				this.game.push(new_game);
 				this.userService.saveLobby(data.username, this.game[i].lobby_name);
 				client.emit('join_lobby', 'success');
-				// for (const player of this.game[i].players) {
-				// 	console.log('Sending update to: ', player.login);
-				// 	this.server
-				// 		.to(player.socketId)
-				// 		.emit('update_game', JSON.stringify(new_game.dto));
-				// }
+				for (const player of this.game[i].players) {
+					console.log('Sending update to: ', player.login);
+					this.server
+						.to(player.socketId)
+						.emit('reload_game');
+				}
 			}
 		}
 		client.emit('join_lobby', 'Lobby not found');

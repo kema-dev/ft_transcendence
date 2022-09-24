@@ -1,21 +1,10 @@
 <template>
 	<div class="stack" id="page">
 		<div id="lobbies_menu">
-			<LobbyListItem
-				:isCreate="isCreate"
-				:start="start"
-			/>
+			<LobbyListItem :isCreate="isCreate" :start="start" />
 		</div>
 		<div id="game_pos">
-			<GameItem
-				:nbrPlayer="nbrPlayer"
-				:nbrBall="nbrBall"
-				:players="players"
-				:lobby_name="lobby_name"
-				:start="start"
-				:owner="owner"
-				:key="remount"
-			/>
+			<GameItem :key="remount" />
 		</div>
 		<div v-if="!isCreate" class="center column" id="settings">
 			<button class="start" v-on:click="create">create</button>
@@ -60,7 +49,6 @@ let nbrBall = ref(3);
 let players = ref([$cookies.get('login')]);
 let lobby_name = ref($cookies.get('login') + "'s lobby");
 const owner = ref($cookies.get('login'));
-
 
 function players_update() {
 	socket.off('player_update');
@@ -130,6 +118,9 @@ onMounted(() => {
 	let game = document.getElementById('container');
 	let settings = document.getElementById('settings');
 	if (game && settings) settings.style.height = game.offsetHeight + 'px';
+	socket.on('reload_game', () => {
+		remount.value = !remount.value;
+	});
 	// window.addEventListener("resize", () => {
 	// 	reload++;
 	// })
