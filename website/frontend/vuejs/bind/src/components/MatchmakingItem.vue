@@ -1,7 +1,10 @@
 <template>
 	<div class="stack" id="page">
 		<div id="lobbies_menu">
-			<LobbyListItem />
+			<LobbyListItem
+				:isCreate="isCreate"
+				:start="start"
+			/>
 		</div>
 		<div id="game_pos">
 			<GameItem
@@ -45,7 +48,9 @@ const toast = useToast();
 
 let define = inject('colors');
 let start = ref(false);
+let isCreate = ref(false);
 provide('playing', start);
+provide('create', isCreate);
 let socket: Socket = inject('socket')!;
 const $cookies = inject<VueCookies>('$cookies');
 let remount = ref(false);
@@ -56,7 +61,6 @@ let players = ref([$cookies.get('login')]);
 let lobby_name = ref($cookies.get('login') + "'s lobby");
 const owner = ref($cookies.get('login'));
 
-let isCreate = ref(false);
 
 function players_update() {
 	socket.off('player_update');
@@ -70,8 +74,8 @@ function players_update() {
 }
 
 function update_game() {
+	create();
 	remount.value = !remount.value;
-	console.log('updated settings');
 }
 function launch() {
 	start.value = !start.value;

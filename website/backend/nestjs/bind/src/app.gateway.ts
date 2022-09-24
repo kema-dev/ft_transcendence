@@ -23,7 +23,7 @@ import ProfileUserDto from 'src/users/dto/ProfileUserDto';
 import ResumUserDto from 'src/users/dto/ResumUserDto';
 import BasicUserDto from 'src/chat/dto/BasicUserDto';
 import { UserEntity } from 'src/users/user.entity';
-import { MatchDto } from 'src/match/match.dto'
+import { MatchDto } from 'src/match/match.dto';
 
 @WebSocketGateway({
 	cors: {
@@ -40,14 +40,14 @@ export class AppGateway
 	constructor(
 		private readonly chatService: ChatService,
 		private readonly userService: UsersService,
-	) { }
+	) {}
 
 	// =========================== GENERAL ==================================
 
 	// Connection
 	async handleConnection(@ConnectedSocket() client: Socket) {
 		console.log(`Client connected : ${client.id}`);
-		console.log("query = ", client.handshake.query.login);
+		console.log('query = ', client.handshake.query.login);
 		let login = client.handshake.query.login as string;
 		await this.userService.saveSocket(login, client.id);
 		// handleConnection(@ConnectedSocket() client: Socket, login: string) {
@@ -57,11 +57,25 @@ export class AppGateway
 	async handleDisconnect(client: Socket) {
 		this.logger.log(`Client disconnected: ${client.id}`);
 		// console.log("query = ", client.handshake.query.login);
-		let user = await this.userService.getByLogin(client.handshake.query.login as string);
-		let game = this.game.find((game) => game.lobby_name === user.lobby_name);
-		if (game && game.players.length < 1) {
-			game.destructor();
-			this.game.splice(this.game.indexOf(game), 1);
+		const usr = await this.userService.getByLogin(
+			client.handshake.query.login as string,
+		);
+		for (let i = 0; i < this.game.length; i++) {
+			for (let j = 0; j < this.game[i].players.length; j++) {
+				if (this.game[i].players[j].login == usr.login) {
+					this.game[i].players.splice(j, 1);
+					if (this.game[i].players.length < 1) {
+						this.game[i].destructor();
+						this.game.splice(i, 1);
+						break;
+					}
+					if (this.game[i].owner == usr.login) {
+						this.game[i].destructor();
+						this.game.splice(i, 1);
+						continue;
+					}
+				}
+			}
 		}
 	}
 
@@ -76,29 +90,52 @@ export class AppGateway
 	@SubscribeMessage('setMov')
 	setMov(client: Socket, args: any): void {
 		let game = this.game.find((game) => game.lobby_name === args.lobby_name);
-		if (game)
-			game.setMov(args.mov, args.login);
+		if (game) game.setMov(args.mov, args.login);
 	}
 	@SubscribeMessage('newRoom')
 	async newRoom(client: Socket, payload: any): Promise<void> {
 		// this.gameService.games.push(
 		// var game = new Game(payload.nbrPlayer, payload.nbrBall, this.server)
 		// );
-		let array: UserEntity[] = [];
+		const array: UserEntity[] = [];
 		for (let i = 0; i < payload.players.length; i++) {
 			array.push(await this.userService.getByLogin(payload.players[i]));
 		}
-		const usr = await this.userService.getByLogin(client.handshake.query.login as string);
+		const usr = await this.userService.getByLogin(
+			client.handshake.query.login as string,
+		);
 		usr.lobby_name = payload.lobby_name;
-		this.userService.saveLobby(client.handshake.query.login as string, payload.lobby_name);
-		this.game.push(new Game(
-			payload.nbrPlayer,
-			payload.nbrBall,
-			this.server,
-			array,
+		this.userService.saveLobby(
+			client.handshake.query.login as string,
 			payload.lobby_name,
-			payload.owner,
-		));
+		);
+		for (let i = 0; i < this.game.length; i++) {
+			for (let j = 0; j < this.game[i].players.length; j++) {
+				if (this.game[i].players[j].login == usr.login) {
+					this.game[i].players.splice(j, 1);
+					if (this.game[i].players.length < 1) {
+						this.game[i].destructor();
+						this.game.splice(i, 1);
+						break;
+					}
+					if (this.game[i].owner == usr.login) {
+						this.game[i].destructor();
+						this.game.splice(i, 1);
+						continue;
+					}
+				}
+			}
+		}
+		this.game.push(
+			new Game(
+				payload.nbrPlayer,
+				payload.nbrBall,
+				this.server,
+				array,
+				payload.lobby_name,
+				payload.owner,
+			),
+		);
 	}
 	@SubscribeMessage('start')
 	start(client: Socket, payload: any): void {
@@ -120,31 +157,45 @@ export class AppGateway
 
 	@SubscribeMessage('userUpdate')
 	async userUpdate(client: Socket, payload: any): Promise<void> {
-		let user = await this.userService.getByLogin(payload.login, { requestFriend: true, friends: true });
+		let user = await this.userService.getByLogin(payload.login, {
+			requestFriend: true,
+			friends: true,
+		});
 		this.server.emit('userUpdate', new ProfileUserDto(user));
 	}
 	@SubscribeMessage('getUserByLogin')
 	async getUserByLogin(client: Socket, payload: any): Promise<void> {
 		const user = await this.userService.getByLogin(payload.login);
-		client.emit("getUserByLogin", new ProfileUserDto(user));
+		client.emit('getUserByLogin', new ProfileUserDto(user));
 	}
 	@SubscribeMessage('addFriend')
 	addFriend(client: Socket, payload: any): void {
-		this.userService.sendFriendRequest(payload.sender, payload.receiver, this.server)
+		this.userService.sendFriendRequest(
+			payload.sender,
+			payload.receiver,
+			this.server,
+		);
 	}
 	@SubscribeMessage('removeFriend')
 	removeFriend(client: Socket, payload: any): void {
-		this.userService.removeFriend(payload.sender, payload.receiver, this.server)
+		this.userService.removeFriend(
+			payload.sender,
+			payload.receiver,
+			this.server,
+		);
 	}
 	@SubscribeMessage('getByLoginFiltred')
-	async getByLoginFiltred(@MessageBody() data: string, @ConnectedSocket() client: Socket) {
+	async getByLoginFiltred(
+		@MessageBody() data: string,
+		@ConnectedSocket() client: Socket,
+	) {
 		const users = await this.userService.getByLoginFiltred(data);
 		let UsersDto: ResumUserDto[] = [];
 		for (let i = 0; i < users.length; i++) {
 			UsersDto.push(new ResumUserDto(users[i]));
 		}
 		console.log(UsersDto);
-		client.emit("getUsersByLoginFiltred", UsersDto);
+		client.emit('getUsersByLoginFiltred', UsersDto);
 	}
 	@SubscribeMessage('acceptFriend')
 	acceptFriend(client: Socket, payload: any): void {
@@ -152,14 +203,17 @@ export class AppGateway
 	}
 	@SubscribeMessage('declineFriend')
 	declineFriend(client: Socket, payload: any): void {
-		this.userService.declineFriendRequest(payload.sender, payload.receiver, this.server);
+		this.userService.declineFriendRequest(
+			payload.sender,
+			payload.receiver,
+			this.server,
+		);
 	}
 	@SubscribeMessage('changeAvatar')
 	changeAvatar(client: Socket, payload: any): void {
 		this.logger.log('change avatar');
 		this.userService.changeAvatar(payload.login, payload.avatar);
 	}
-
 
 	@SubscribeMessage('connection')
 	saveSocket(@ConnectedSocket() client: Socket, ...args: any[]) {
@@ -268,15 +322,30 @@ export class AppGateway
 
 	@SubscribeMessage('lobby_list')
 	async getLobbyList(@ConnectedSocket() client: Socket) {
-		let lobbies: MatchDto[];
-		for (let game of this.game) {
-			let lob: MatchDto;
-			lob.lobby_name = game.lobby_name;
-			for (let player of game.players) {
-				lob.players.push(player.login);
+		const lobbies: MatchDto[] = [];
+		for (const game of this.game) {
+			let player_present_in_lobby = false;
+			for (let i = 0; i < game.players.length; i++) {
+				if (game.players[i].login == client.handshake.query.login) {
+					player_present_in_lobby = true;
+					break;
+				}
 			}
-			lob.nbr_players = game.nbrPlayer
-			lob.nbr_balls = game.nbrBall;
+			if (player_present_in_lobby == true) {
+				continue;
+			}
+			const players: string[] = [];
+			for (const player of game.players) {
+				players.push(player.login);
+			}
+			const lob = new MatchDto(
+				game.lobby_name,
+				players,
+				game.nbrPlayer,
+				game.nbrBall,
+				game.owner,
+				game.start,
+			);
 			lobbies.push(lob);
 		}
 		client.emit('lobby_list', lobbies);
@@ -286,7 +355,47 @@ export class AppGateway
 		@MessageBody() data: { username: string; lobby: string },
 		@ConnectedSocket() client: Socket,
 	) {
-
-		// client.emit('join_lobby_success', lobby);
+		console.log('join_lobby: Starting for', data.username);
+		for (let i = 0; i < this.game.length; i++) {
+			if (this.game[i].lobby_name == data.lobby) {
+				if (this.game[i].start) {
+					client.emit('join_lobby', 'Game already started');
+					return;
+				}
+				if (this.game[i].players.length == this.game[i].nbrPlayer) {
+					client.emit('join_lobby', 'Game is full');
+					return;
+				}
+				for (let j = 0; j < this.game[i].players.length; j++) {
+					if (this.game[i].players[j].login == data.username) {
+						client.emit('join_lobby', 'User already in lobby');
+						return;
+					}
+				}
+				const players = this.game[i].players;
+				console.log('players: ', players);
+				players.push(await this.userService.getByLogin(data.username));
+				const new_game = new Game(
+					this.game[i].nbrPlayer,
+					this.game[i].nbrBall,
+					this.server,
+					players,
+					this.game[i].lobby_name,
+					this.game[i].owner,
+				);
+				this.game[i].destructor();
+				this.game.splice(1, i);
+				this.game.push(new_game);
+				this.userService.saveLobby(data.username, this.game[i].lobby_name);
+				client.emit('join_lobby', 'success');
+				// for (const player of this.game[i].players) {
+				// 	console.log('Sending update to: ', player.login);
+				// 	this.server
+				// 		.to(player.socketId)
+				// 		.emit('update_game', JSON.stringify(new_game.dto));
+				// }
+			}
+		}
+		client.emit('join_lobby', 'Lobby not found');
 	}
 }
