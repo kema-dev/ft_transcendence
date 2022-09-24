@@ -8,8 +8,6 @@
 /* eslint @typescript-eslint/no-var-requires: "off" */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { onMounted, provide, ref } from 'vue';
-import User from '@/chat/User';
-import Socket from '@/utils/Socket';
 import { FQDN } from '../.env.json';
 
 provide('apiPath', FQDN + ':3000/api/v1/');
