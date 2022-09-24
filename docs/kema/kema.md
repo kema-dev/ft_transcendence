@@ -3,6 +3,8 @@
 ## ongoing
 
 * fix lobby flushing
+* make a "leave lobby" button
+* add players infos in lobbies
 * do not flush user lobbies on page refresh (search for existing one)
 * sync players in lobbies (existing players, new players in lobby, player leaving lobby)
 * make user join conditionally (if the lobby is not full)

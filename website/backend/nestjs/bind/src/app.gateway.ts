@@ -372,9 +372,17 @@ export class AppGateway
 						return;
 					}
 				}
+				const joiner = await this.userService.getByLogin(data.username);
+				for (let j = 0; j < this.game.length; j++) {
+					if (this.game[j].owner == joiner.login) {
+						this.game[j].destructor();
+						this.game.splice(1, j);
+						break;
+					}
+				}
 				let players = this.game[i].players;
 				console.log('players: ', players);
-				players.push(await this.userService.getByLogin(data.username));
+				players.push(joiner);
 				this.game[i].destructor();
 				this.game.splice(1, i);
 				const new_game = new Game(
