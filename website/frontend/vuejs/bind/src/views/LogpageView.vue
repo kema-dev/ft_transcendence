@@ -1,5 +1,9 @@
 <template>
-	<div class="center column" id="app">
+	<div class="center column">
+		<img src="@/assets/field.png" id="field1" class="field" />
+		<img src="@/assets/field.png" id="field2" class="field" />
+		<img src="@/assets/field.png" id="field3" class="field" />
+		<img src="@/assets/field.png" id="field4" class="field" />
 		<Transition name="showup">
 			<div v-if="show" class="outer">
 				<div class="inner">
@@ -16,42 +20,48 @@
 						/>
 						<label for="switcher-1"></label>
 					</span>
-					<div class="transi">
+					<div class="transi" style="height: 200px">
 						<Transition name="slide-up">
 							<div v-if="switch_value" class="form_register">
+								<h3 class="input_text">Email</h3>
 								<input
 									class="input_box"
 									v-model="email_register"
 									placeholder="email"
 									type="email"
 								/>
+								<h3 class="input_text">Login</h3>
 								<input
 									class="input_box"
 									v-model="login_register"
 									placeholder="login"
 									type="text"
 								/>
+								<h3 class="input_text">Password</h3>
 								<input
 									class="input_box"
 									v-model="password_register"
 									placeholder="password"
 									type="password"
 								/>
+								<h3 class="input_text">Confirm password</h3>
 								<input
 									class="input_box"
 									v-model="password_confirmation"
-									placeholder="password confirmation"
+									placeholder="password"
 									type="password"
 								/>
 								<button class="login-btn" @click="register()">Register</button>
 							</div>
 							<div v-else class="form_login">
+								<h3 class="input_text">Email</h3>
 								<input
 									class="input_box"
 									v-model="email_auth"
 									placeholder="email or login"
 									type="text"
 								/>
+								<h3 class="input_text">Password</h3>
 								<input
 									class="input_box"
 									v-model="password_auth"
@@ -66,16 +76,16 @@
 									type="text"
 								/>
 								<button @click="auth()">Login</button>
+								<div class="ft_login">
+									<a :href="api42Path"
+										><img
+											src="@/assets/connect_with_42.svg"
+											alt="connect with 42"
+											class="connect_img"
+									/></a>
+								</div>
 							</div>
 						</Transition>
-					</div>
-					<div class="ft_login">
-						<a :href="api42Path"
-							><img
-								src="@/assets/connect_with_42.svg"
-								alt="connect with 42"
-								class="connect_img"
-						/></a>
 					</div>
 				</div>
 			</div>
@@ -85,7 +95,7 @@
 
 <script setup lang="ts">
 import { useToast } from 'vue-toastification';
-import { inject, onMounted, provide, ref } from 'vue';
+import { inject, onMounted, onUnmounted, provide, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { VueCookies } from 'vue-cookies';
 import API from '../components/axios';
@@ -107,7 +117,7 @@ let password_confirmation = ref('');
 let email_auth = ref('');
 let password_auth = ref('');
 let show = ref(false);
-let switch_value = ref(true);
+let switch_value = ref(false);
 let totp_enabled = ref(false);
 let totp_val = ref('');
 
@@ -157,7 +167,7 @@ function register() {
 		.then((response) => {
 			console.log(response);
 			$cookies.set(response.data.key, response.data.value);
-			$cookies.set("login", response.data.login);
+			$cookies.set('login', response.data.login);
 			toast.success(
 				'Registration success, welcome ' + response.data.login + ' !',
 			);
@@ -199,7 +209,7 @@ async function auth() {
 		.then((response) => {
 			// console.log(response);
 			$cookies.set(response.data.key, response.data.value);
-			$cookies.set("login", response.data.login);
+			$cookies.set('login', response.data.login);
 			toast.success(
 				'Authentication success, welcome ' + response.data.login + ' !',
 			);
@@ -224,6 +234,16 @@ async function auth() {
 			}
 		});
 }
+let widthField = 776;
+let heightField = 754;
+let height = ref(window.innerHeight / 2 - heightField / 2);
+let width = ref(window.innerWidth / 2 - widthField / 2);
+function resize() {
+	height.value = window.innerHeight / 2 - heightField / 2;
+	width.value = window.innerWidth / 2 - widthField / 2;
+	console.log(heightField);
+	console.log(widthField);
+}
 onMounted(() => {
 	if ($cookies.get('session')) {
 		router.push('/home');
@@ -240,7 +260,7 @@ onMounted(() => {
 			.then((response) => {
 				console.log(response);
 				$cookies.set(response.data.key, response.data.value);
-							$cookies.set('login', response.data.login);
+				$cookies.set('login', response.data.login);
 				toast.success(
 					'Authentication success, welcome ' + response.data.login + ' !',
 				);
@@ -260,15 +280,47 @@ onMounted(() => {
 				}
 			});
 	}
+	window.addEventListener('resize', resize);
 });
+onUnmounted(() => {
+	window.removeEventListener('resize', resize);
+});
+document.documentElement.style.overflow = 'hidden'
 </script>
 
-<style>
+<style scoped>
+.field {
+	overflow: hidden;
+	position: absolute;
+}
+#field1 {
+	top: v-bind("height - 500 + 'px'");
+	left: v-bind("width - 500 + 'px'");
+}
+#field2 {
+	top: v-bind("height - 300 + 'px'");
+	left: v-bind("width + 600 + 'px'");
+}
+#field3 {
+	top: v-bind("height + 500 + 'px'");
+	left: v-bind("width + 500 + 'px'");
+}
+#field4 {
+	top: v-bind("height + 300 + 'px'");
+	left: v-bind("width - 600 + 'px'");
+}
 .box {
 	text-align: center;
 	margin-bottom: 30px;
 }
-
+.form_register {
+	display: flex;
+	flex-direction: column;
+}
+.form_login {
+	display: flex;
+	flex-direction: column;
+}
 .toggle_container {
 	margin: 0px auto;
 	background: #efefef;
@@ -277,11 +329,17 @@ onMounted(() => {
 	border-radius: 30px;
 	transition: all 0.25s;
 }
-
+.connect_img {
+	display: flex;
+	flex-direction: column;
+	position: relative;
+	height: 5rem;
+	opacity: v-bind('switch_value ? 0 : 1');
+	transition: all 0.25s;
+}
 .toggle_container.active {
 	background: #e9ffef;
 }
-
 .outer .inner {
 	display: flex;
 	flex-direction: column;
@@ -294,39 +352,56 @@ onMounted(() => {
 .showup-leave-active {
 	transition: all 0.5s ease-in-out;
 }
-
 .showup-leave-active {
 	transition-delay: 0.5s;
 }
-
 .showup-enter-from,
 .showup-leave-to {
 	transform: translateY(10vh);
 	opacity: 0;
 }
-
 .showup-enter-active .inner,
 .showup-leave-active .inner {
 	transition: all 0.5s ease-in-out;
 }
-
 .showup-enter-active .inner {
 	transition-delay: 0.5s;
 }
-
+.input_text {
+	width: 200px;
+	padding-left: 5px;
+	text-align: left;
+	font-size: 10px;
+	margin-bottom: -2px;
+}
 .input_box {
-	text-align: center;
+	text-align: left !important;
+	padding-left: 3px;
 	font-family: 'Orbitron', sans-serif;
 	font-size: 1rem;
-	width: 500px;
-	height: 30px;
-	border: all 2px solid v-bind("colors.color1");
+	width: 200px;
+	height: 40px;
+	margin: 3px 0;
+	border-radius: 10px;
+	border: 3px solid v-bind('colors.color2');
+	box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
 }
-
+.input_box:focus {
+	outline: none;
+}
 .ft_button {
 	text-align: center;
 	font-family: 'Orbitron', sans-serif;
 	font-size: 1rem;
+	margin-top: 50px;
+}
+.ft_login {
+	display: flex;
+	flex-direction: column;
+	position: relative;
+	justify-content: center;
+	align-items: center;
+	margin-top: 1.5rem;
 }
 
 .log_button {
@@ -462,93 +537,56 @@ body span.switcher.switcher-2 label {
 	height: 50px;
 	border-radius: 25px;
 }
-
 .slide-fade-enter-active,
 .slide-fade-leave-active {
 	transition: opacity 0.5s;
 	position: absolute;
 }
-
 .slide-fade-enter,
 .slide-fade-leave-to {
 	position: absolute;
 	opacity: 0;
 }
-
 .slide-enter-active {
 	transition: all 0.3s ease;
 	position: absolute;
 }
-
 .slide-leave-active {
 	transition: all 0.8s cubic-bezier(1, 0.5, 0.8, 1);
 	position: absolute;
 }
-
 .slide-enter,
 .slide-leave-to {
 	transform: translateX(10px);
 	opacity: 0;
 	position: absolute;
 }
-
 .slide-up-enter-active,
 .slide-up-leave-active {
 	transition: all 0.4s ease-out;
 	position: absolute;
 }
-
 .slide-up-enter-from {
 	opacity: 0;
 	transform: translateX(-10vw);
 	position: absolute;
 }
-
 .slide-up-leave-to {
 	opacity: 0;
 	transform: translateX(10vw);
 	position: absolute;
 }
-
 .form-container {
 	display: flex;
 	flex-direction: column;
 	position: relative;
 	height: 1em;
 }
-
-.form_register {
-	display: flex;
-	flex-direction: column;
-}
-
-.form_login {
-	display: flex;
-	flex-direction: column;
-}
-
 .transi {
 	display: inline-flex;
 	position: relative;
 	height: 5rem;
 }
-
-.connect_img {
-	display: flex;
-	flex-direction: column;
-	position: relative;
-	height: 5.5rem;
-}
-
-.ft_login {
-	display: flex;
-	flex-direction: column;
-	position: relative;
-	justify-content: center;
-	align-items: center;
-	margin-top: 1.5rem;
-}
-
 .back_msg {
 	width: 100%;
 	height: 100%;
