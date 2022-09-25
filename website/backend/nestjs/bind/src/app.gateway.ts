@@ -376,7 +376,7 @@ export class AppGateway
 				for (let j = 0; j < this.game.length; j++) {
 					if (this.game[j].owner == joiner.login) {
 						this.game[j].destructor();
-						this.game.splice(1, j);
+						this.game.splice(j, 1);
 						break;
 					}
 				}
@@ -384,7 +384,7 @@ export class AppGateway
 				console.log('players: ', players);
 				players.push(joiner);
 				this.game[i].destructor();
-				this.game.splice(1, i);
+				this.game.splice(i, 1);
 				const new_game = new Game(
 					this.game[i].nbrPlayer,
 					this.game[i].nbrBall,
