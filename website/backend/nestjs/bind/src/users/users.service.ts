@@ -349,4 +349,12 @@ export class UsersService {
 		await this.usersRepository.save(usr);
 		console.log('validate_totp: ' + user + ', returning ✔');
 	}
+
+	async assign_match_to_user(user: string, match: number) {
+		console.log('assign_match_to_user: starting for ' + user);
+		const usr = await this.getByAny(user);
+		usr.match.push(match);
+		this.usersRepository.save(usr);
+		console.log('assign_match_to_user: ' + user + ', returning ✔');
+	}
 }

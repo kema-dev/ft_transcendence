@@ -406,4 +406,15 @@ export class AppGateway
 		}
 		client.emit('join_lobby', 'Lobby not found');
 	}
+
+	@SubscribeMessage('get_user')
+	async getUser(
+		@MessageBody() data: string,
+		@ConnectedSocket() client: Socket,
+	) {
+		console.log('get_user: Starting for', data);
+		const user = await this.userService.getByLogin(data);
+		console.log('get_user: user', user);
+		console.log('get_user: Returning for ', data);
+	}
 }

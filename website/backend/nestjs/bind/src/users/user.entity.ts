@@ -149,5 +149,7 @@ export class UserEntity extends TimestampEntites {
 
 	@Column()
 	public lobby_name: string;
-}
 
+	@Column({ type: 'simple-array', nullable: true })
+	public match: number[];
+}
