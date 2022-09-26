@@ -24,6 +24,7 @@ import ResumUserDto from 'src/users/dto/ResumUserDto';
 import BasicUserDto from 'src/chat/dto/BasicUserDto';
 import { UserEntity } from 'src/users/user.entity';
 import { MatchDto } from 'src/match/match.dto';
+import { MatchService } from './match/match.service';
 
 @WebSocketGateway({
 	cors: {
@@ -40,6 +41,7 @@ export class AppGateway
 	constructor(
 		private readonly chatService: ChatService,
 		private readonly userService: UsersService,
+		private readonly matchService: MatchService,
 	) {}
 
 	// =========================== GENERAL ==================================
@@ -134,6 +136,7 @@ export class AppGateway
 				array,
 				payload.lobby_name,
 				payload.owner,
+				this.matchService,
 			),
 		);
 	}
@@ -148,6 +151,7 @@ export class AppGateway
 			console.log(payload);
 			game.start = true;
 		}
+		// this.matchService.simulate_5_matches();
 	}
 	afterInit(server: Server) {
 		this.logger.log('Init');
@@ -392,6 +396,7 @@ export class AppGateway
 					players,
 					this.game[i].lobby_name,
 					this.game[i].owner,
+					this.matchService,
 				);
 				this.game.push(new_game);
 				this.userService.saveLobby(data.username, this.game[i].lobby_name);
@@ -405,16 +410,5 @@ export class AppGateway
 			}
 		}
 		client.emit('join_lobby', 'Lobby not found');
-	}
-
-	@SubscribeMessage('get_user')
-	async getUser(
-		@MessageBody() data: string,
-		@ConnectedSocket() client: Socket,
-	) {
-		console.log('get_user: Starting for', data);
-		const user = await this.userService.getByLogin(data);
-		console.log('get_user: user', user);
-		console.log('get_user: Returning for ', data);
 	}
 }

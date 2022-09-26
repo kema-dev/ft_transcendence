@@ -6,15 +6,15 @@
 				<div class="info center row space-around">
 					<div class="row center">
 						<img class="podium icon" src="@/assets/svg/leaderboard.svg" />
-						<h1 class="number">{{ witch_rank(login, match) }}</h1>
+						<h1 class="number">{{ get_rank(me?.value?.login, ) }}</h1>
 					</div>
 					<div class="row center">
 						<img class="icon" src="@/assets/svg/user.svg" />
-						<h1 class="number">{{ match.nbrPlayer }}</h1>
+						<h1 class="number">{{ props.match.player_count }}</h1>
 					</div>
 					<div class="row center">
 						<img class="icon" src="@/assets/svg/tennis.svg" />
-						<h1 class="number">{{ match.nbrBall }}</h1>
+						<h1 class="number">{{ props.match.ball_count }}</h1>
 					</div>
 				</div>
 			</div>
@@ -24,43 +24,49 @@
 </template>
 
 <script setup lang="ts">
-import { inject, ref } from 'vue';
+import { inject, Ref, ref, defineProps } from 'vue';
+import { MatchDto } from '../dto/MatchDto';
+import ProfileUserDto from '../dto/ProfileUserDto';
 let define = inject('colors');
+let me: Ref<ProfileUserDto> = inject('user')!;
 
-let login = 'zeus';
+const props = defineProps(['match'])
+console.log('props:', props.match);
 
-let match = {
-	nbrPlayer: 3,
-	nbrBall: 2,
-	players: [
-		{
-			login: 'toto',
-			score: -2,
-		},
-		{
-			login: 'test',
-			score: -1,
-		},
-		{
-			login: 'zeus',
-			score: 0,
-		},
-	],
-};
+// let match = {
+// 	nbrPlayer: 3,
+// 	nbrBall: 2,
+// 	players: [
+// 		{
+// 			login: 'toto',
+// 			score: -2,
+// 		},
+// 		{
+// 			login: 'test',
+// 			score: -1,
+// 		},
+// 		{
+// 			login: 'zeus',
+// 			score: 0,
+// 		},
+// 	],
+// };
 
 let size = ref(0);
-function open() {
-	if (size.value) size.value = 0;
-	else size.value = match.nbrPlayer;
-}
+// function open() {
+// 	if (size.value) size.value = 0;
+// 	else size.value = match.nbrPlayer;
+// }
 
-function witch_rank(login: string, match: any) {
-	for (let i = 0; i < match.nbrPlayer; ++i) {
-		if (match.players[i].login == login) {
-			return i + 1;
+function get_rank(login: string) {
+	let rank = 0;
+	for (let i = 0; i < props.match.players.length; i++) {
+		if (props.match.players[i].login == login) {
+			rank = props.match.ranks[i];
+			break;
 		}
 	}
-	return -1;
+	return rank;
 }
 </script>
 

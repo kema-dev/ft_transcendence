@@ -351,7 +351,7 @@ export class UsersService {
 	}
 
 	async assign_match_to_user(user: string, match: number) {
-		console.log('assign_match_to_user: starting for ' + user);
+		console.log('assign_match_to_user: starting for', user, 'and match', match);
 		const usr = await this.getByAny(user);
 		usr.match.push(match);
 		this.usersRepository.save(usr);

@@ -16,6 +16,7 @@ export class CreateUserDto {
 		this.session_token = '';
 		this.session_expiration = new Date();
 		this.lobby_name = '';
+		this.match = [];
 		// this.avatar = '';
 		Object.assign(this, params);
 	}
@@ -36,6 +37,7 @@ export class CreateUserDto {
 	session_token: string;
 	session_expiration: Date;
 	lobby_name: string;
+	match: number[];
 }
 
 export default CreateUserDto;

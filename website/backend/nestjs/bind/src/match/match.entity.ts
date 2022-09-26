@@ -9,10 +9,10 @@ import {
 @Entity('match')
 export class MatchEntity {
 	@PrimaryGeneratedColumn()
-	public id?: number;
+	id: number;
 
 	@CreateDateColumn()
-	public creation_date?: Date;
+	creation_date?: Date;
 
 	@Column()
 	player_count: number;
