@@ -2,7 +2,9 @@
 
 ## ongoing
 
-* order players by rank
+* Add link to security page
+* Security page's UI
+* Add AuthGuards to all endpoints
 
 ## later
 
