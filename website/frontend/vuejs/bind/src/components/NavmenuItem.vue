@@ -8,8 +8,11 @@
 				</div>
 			</router-link>
 			<h1 class="pipe">|</h1>
-			<router-link to="/home/friends" class="nav_menu_link">
+			<router-link to="/home/friends" class="nav_menu_link stack">
 				<h2 class="nav_menu_text">FRIENDS</h2>
+				<div v-if="notifs" class="notifMsgCont center">
+					<div class="notifMsgNumber">{{ notifs }}</div>
+				</div>
 			</router-link>
 			<h1 class="pipe">|</h1>
 			<router-link to="/home/profile" class="nav_menu_link">
@@ -25,17 +28,18 @@
 </template>
 
 <script setup lang="ts">
-import { inject, Ref } from "vue";
+import { inject, Ref } from 'vue';
 
-let colors = inject("colors");
-let nbPrivNR: { n: Ref<number[]>; reset: () => void } = inject("nbPrivNR")!;
+let colors = inject('colors');
+let notifs = inject('notifs');
+let nbPrivNR: { n: Ref<number[]>; reset: () => void } = inject('nbPrivNR')!;
 </script>
 
 <style scoped>
 #menu {
 	height: calc(100vh - 60px);
 	width: 30vw;
-	background: v-bind("colors.color3");
+	background: v-bind('colors.color3');
 	box-shadow: -4px 0px 4px rgba(0, 0, 0, 0.25);
 	margin-top: 60px;
 }
@@ -49,7 +53,7 @@ let nbPrivNR: { n: Ref<number[]>; reset: () => void } = inject("nbPrivNR")!;
 	height: 60px;
 	justify-content: space-around;
 	align-items: center;
-	background-color: v-bind("colors.color0");
+	background-color: v-bind('colors.color0');
 	box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
 }
 .pipe {
@@ -74,12 +78,12 @@ let nbPrivNR: { n: Ref<number[]>; reset: () => void } = inject("nbPrivNR")!;
 	width: 18px;
 	border-radius: 9px;
 	/* background-color: rgb(255, 69, 69); */
-	background-color: v-bind("colors.color2");
+	background-color: v-bind('colors.color2');
 }
 .notifMsgNumber {
 	color: white;
 	font-size: 0.8rem;
-	font-family: "Orbitron", sans-serif;
+	font-family: 'Orbitron', sans-serif;
 	font-weight: bold;
 }
 .router-link-active > .notifMsgCont {

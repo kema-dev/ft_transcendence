@@ -1,6 +1,6 @@
 <template>
-	<div>
-		<div class="center column">
+	<div class="center">
+		<div class="center column friend-page">
 			<!-- <div class="search_groupe center row">
 				<input
 					type="text"
@@ -37,7 +37,7 @@
 										>
 										<h3 class="text">level {{ friend.level }}</h3>
 									</div>
-									<div class="center row">
+									<div class="center row wrap-request">
 										<button
 											class="request-button"
 											@click="acceptFriend(friend.login)"
@@ -52,8 +52,8 @@
 										</button>
 									</div>
 								</div>
-							</template></FriendItem
-						>
+							</template>
+						</FriendItem>
 					</div>
 				</div>
 				<!-- <div class="center column"> -->
@@ -117,55 +117,57 @@
 </template>
 
 <script setup lang="ts">
-import { inject, onMounted, onUnmounted, Ref, ref } from "vue";
-import FriendItem from "@/components/FriendItem.vue";
-import SearchItem from "@/components/SearchItem.vue";
-import { Socket } from "engine.io-client";
-import FriendContentItem from "../components/FriendContentItem.vue";
+import { inject, onMounted, onUnmounted, Ref, ref } from 'vue';
+import FriendItem from '@/components/FriendItem.vue';
+import SearchItem from '@/components/SearchItem.vue';
+import { Socket } from 'engine.io-client';
+import FriendContentItem from '../components/FriendContentItem.vue';
 
-let define = inject("colors");
-let me = inject("user")!;
-let socket: Socket = inject("socket")!;
+let define = inject('colors');
+let me = inject('user')!;
+let socket: Socket = inject('socket')!;
+let notifs: Ref<number> = inject('notifs')!;
 let users = ref([]);
 
-const search = ref("");
+const search = ref('');
 function add_friend(name: string) {
-	socket.emit("addFriend", { sender: me.value.login, receiver: name });
+	socket.emit('addFriend', { sender: me.value.login, receiver: name });
 }
 function remove_friend(name: string) {
-	socket.emit("removeFriend", { sender: me.value.login, receiver: name });
+	socket.emit('removeFriend', { sender: me.value.login, receiver: name });
 }
 function acceptFriend(name: string) {
-	socket.emit("acceptFriend", { sender: me.value.login, receiver: name });
+	socket.emit('acceptFriend', { sender: me.value.login, receiver: name });
 }
 function declineFriend(name: string) {
-	socket.emit("declineFriend", { sender: me.value.login, receiver: name });
+	socket.emit('declineFriend', { sender: me.value.login, receiver: name });
 }
 function myFriend(name: string) {
 	return !me.value.friends.find((friend) => friend.login == name);
 }
 
 onMounted(() => {
-	socket.on("getUsersByLoginFiltred", (data: any[]) => {
+	socket.on('getUsersByLoginFiltred', (data: any[]) => {
 		users.value = data;
 		console.log(users);
 	});
-	let input = document.getElementById("search");
-	if (input == null) console.log("error");
-	input?.addEventListener("input", (str) => {
+	let input = document.getElementById('search');
+	if (input == null) console.log('error');
+	input?.addEventListener('input', (str) => {
 		if (input.value == null) {
 			search.value = '';
 			return;
 		}
 		search.value = input.value;
-		if (search.value != "") {
+		if (search.value != '') {
 			// users.value = post('user/getUsers', search.value);
-			socket.emit("getByLoginFiltred", search.value);
+			socket.emit('getByLoginFiltred', search.value);
 		}
 	});
+	// notifs.value = 0;
 });
 onUnmounted(() => {
-	socket.off("getUsersByLoginFiltred");
+	socket.off('getUsersByLoginFiltred');
 });
 // function search_user(str: string) {
 // 	users.forEach((u) => u.name == str);
@@ -226,5 +228,11 @@ onUnmounted(() => {
 	text-overflow: ellipsis;
 	width: 7rem;
 	text-align: left;
+}
+.wrap-request {
+	flex-wrap: wrap;
+}
+.friend-page {
+	width: clamp(18rem, 80%, 550px);
 }
 </style>

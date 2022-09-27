@@ -30,6 +30,12 @@ export class UsersController {
 		return new BasicUserDto(user.login, user.avatar);
 	}
 
+	@Get('getEmail/:login')
+	async getEmail(@Param() params: { login: string }) {
+		const user = await this.usersService.getByLogin(params.login);
+		return user.email;
+	}
+
 	// @UseGuards(JwtAuthenticationGuard) FIXME
 	@Post('getUser')
 	async getUser(@Body() params: any) {

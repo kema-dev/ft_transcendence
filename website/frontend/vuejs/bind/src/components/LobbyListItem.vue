@@ -24,6 +24,7 @@ import { inject, onMounted, provide, ref } from 'vue';
 import { Socket } from 'socket.io-client';
 import { VueCookies } from 'vue-cookies';
 import { useToast } from 'vue-toastification';
+import API from './axios';
 const toast = useToast();
 
 let define = inject('colors');
@@ -34,28 +35,17 @@ let lobbies = ref([]);
 let lobby_name = ref($cookies.get('login') + "'s lobby");
 
 onMounted(() => {
-	socket.emit('lobby_list');
+	socket.off('lobby_list');
 	socket.on('lobby_list', (data: any) => {
 		lobbies.value = data;
 	});
+	socket.emit('lobby_list');
 });
 
-function join(lobby_name: string) {
+async function join(lobby_name: string) {
 	socket.emit('join_lobby', {
 		username: $cookies.get('login'),
 		lobby: lobby_name,
-	});
-	socket.on('join_lobby', (data: any) => {
-		if (data.status == 'ok') {
-			toast.success("You've joined the lobby " + lobby_name);
-		} else {
-			// console.log('data:' + data);
-			if (data.error == 'User already in lobby') {
-				// toast.warning("Your are already in this lobby");
-			} else {
-				toast.error('Unable to join the lobby ' + lobby_name);
-			}
-		}
 	});
 }
 </script>

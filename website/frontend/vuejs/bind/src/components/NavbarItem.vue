@@ -17,8 +17,8 @@
 					speed="2"
 					hover
 					class="icon"
+					@click="logout"
 				/>
-				<!-- TODO jjourdan logout -->
 				<!-- <lottie-player
 					:src="require('@/assets/json/home.json')"
 					speed="2"
@@ -32,8 +32,24 @@
 
 <script setup lang="ts">
 import { inject } from 'vue';
+import { VueCookies } from 'vue-cookies';
+import API from '../components/axios';
 
 let define = inject('colors');
+
+const $cookies = inject<VueCookies>('$cookies');
+
+function logout() {
+	API.post('auth/logout', {
+		login: $cookies.get('login'),
+	}).then(() => {
+		$cookies.remove('session');
+		$cookies.remove('login');
+		window.location.href = '/';
+	}).catch((err) => {
+		console.log(err);
+	});
+}
 </script>
 
 <style>
