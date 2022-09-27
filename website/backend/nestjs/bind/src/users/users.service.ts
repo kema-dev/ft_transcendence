@@ -5,6 +5,7 @@ import { UserEntity } from './user.entity';
 import CreateUserDto from './dto/createUser.dto';
 import ResumUserDto from 'src/users/dto/ResumUserDto';
 import ProfileUserDto from 'src/users/dto/ProfileUserDto';
+import { avatars } from 'src/users/avatars';
 
 // NOTE - API's documentation can be found at `docs/api/v1.md`
 
@@ -356,5 +357,16 @@ export class UsersService {
 		usr.match.push(match);
 		this.usersRepository.save(usr);
 		console.log('assign_match_to_user: ' + user + ', returning ✔');
+	}
+
+	async get_user_avatar(user: string) {
+		console.log('get_user_avatar: starting for', user);
+		if (user == 'search') {
+			console.log('get_user_avatar: search, returning ✔');
+			return avatars[5];
+		}
+		const usr = await this.getByAny(user);
+		console.log('get_user_avatar: ' + user + ', returning ✔');
+		return usr.avatar;
 	}
 }

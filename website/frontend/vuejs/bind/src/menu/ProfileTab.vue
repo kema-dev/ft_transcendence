@@ -98,7 +98,6 @@ onMounted(async () => {
 		user_stats.value = res.data;
 		user_ratio.value = res.data.average_rank;
 		user_ratio_rounded.value = Math.round(res.data.average_rank * 100);
-		console.log('user_stats:', user_stats.value);
 	});
 	bar.animate(user_ratio.value);
 	await API.post('/match/get_user_history', {

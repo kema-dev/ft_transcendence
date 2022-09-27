@@ -26,7 +26,7 @@
 					:key="i"
 				>
 					<div class="space-between fit_match">
-						<img class="avatar" src="@/assets/svg/ball_fire.svg" />
+						<img :src="avatar[i - 1]" class="avatar" />
 						<div class="info center row space-around">
 							<div class="row center">
 								<h1 class="player_login">{{ props.match.players[i - 1] }}</h1>
@@ -48,13 +48,15 @@
 </template>
 
 <script setup lang="ts">
-import { inject, Ref, ref, defineProps } from 'vue';
+import { inject, Ref, ref, defineProps, onMounted } from 'vue';
 import { MatchDto } from '../dto/MatchDto';
 import ProfileUserDto from '../dto/ProfileUserDto';
+import API from './axios';
+
 let define = inject('colors');
 let me: Ref<ProfileUserDto> = inject('user')!;
 
-const props = defineProps(['match'])
+const props = defineProps(['match']);
 
 let size = ref(0);
 
@@ -73,6 +75,24 @@ function get_rank(login: string) {
 	}
 	return rank;
 }
+
+let avatar = []
+
+async function get_avatars() {
+	for (let i = 0; i < props.match.players.length; i++) {
+		await API.post('/user/get_user_avatar', {
+			login: props.match.players[i],
+		}).then((res) => {
+			avatar.push(res.data);
+		}).catch((err) => {
+			// console.log(err);
+		});
+	}
+}
+
+onMounted(async () => {
+	await get_avatars();
+});
 </script>
 
 <style scoped>
