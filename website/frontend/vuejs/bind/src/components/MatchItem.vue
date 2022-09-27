@@ -2,11 +2,11 @@
 	<div class="center column">
 		<div class="center column groupe stack">
 			<div class="match center row space-between" v-on:click="open()">
-				<img class="avatar" src="@/assets/avatars/(2).jpg" />
+				<img class="tennis_racket_img" src="@/assets/svg/ball_fire.svg" />
 				<div class="info center row space-around">
 					<div class="row center">
 						<img class="podium icon" src="@/assets/svg/leaderboard.svg" />
-						<h1 class="number">{{ get_rank(me?.value?.login, ) }}</h1>
+						<h1 class="number">{{ get_rank(me?.value?.login) }}</h1>
 					</div>
 					<div class="row center">
 						<img class="icon" src="@/assets/svg/user.svg" />
@@ -87,8 +87,8 @@ function get_rank(login: string) {
 	cursor: pointer;
 	transition: all ease-in-out 0.2s;
 }
-.avatar {
-	/* width: ; */
+.tennis_racket_img {
+	/* make image smaller */
 	border-radius: 100%;
 	height: 60px;
 	width: 60px;
