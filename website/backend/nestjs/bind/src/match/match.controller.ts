@@ -31,4 +31,12 @@ export class MatchController {
 		console.log('get_user_history: Returning');
 		return matches;
 	}
+
+	@Post('get_user_stats')
+	async get_user_stats(@Body() body: any) {
+		console.log('get_stats: Starting');
+		const matches = await this.matchService.get_user_stats(body.login);
+		console.log('get_stats: Returning');
+		return matches;
+	}
 }

@@ -9,9 +9,10 @@
 		<input id="none" type="file" />
 		<!-- <h2 class="info">{{ user.rank }}</h2> -->
 		<h1 id="name">{{ me?.login }}</h1>
-		<h2 class="rank_txt">Average rank: Top {{ user_ratio_rounded }}%</h2>
+		<h2 class="avg_rank">Average rank: Top {{ user_ratio_rounded }}%</h2>
+		<h2 class="w_l">Total: {{ user_stats.total }} - Wins: {{ user_stats.wins }} - Loses: {{ user_stats.loses }} </h2>
 		<!-- <h2 class="info" style="margin-bottom: 40px">level {{ me?.level }}</h2> -->
-		<h2>Match history</h2>
+		<h2 class="match_history_title">Match history</h2>
 		<MatchItem
 			v-for="match in user_history"
 			v-bind:match="match"
@@ -39,8 +40,9 @@ var ProgressBar = require('progressbar.js');
 // console.log('me:', me?.value);
 
 let user_ratio = ref(0.5);
-let user_ratio_rounded = ref(0.5);
+let user_ratio_rounded = ref(50);
 let user_history = ref([]);
+let user_stats = ref({});
 
 // let user = {
 // 	name: 'zeus',
@@ -90,11 +92,13 @@ onMounted(async () => {
 		easing: 'easeInOut',
 		duration: 1400,
 	});
-	await API.post('/match/get_user_ratio', {
+	await API.post('/match/get_user_stats', {
 		login: me?.value?.login,
 	}).then((res) => {
-		user_ratio.value = res.data;
-		user_ratio_rounded.value = Math.round(res.data * 100);
+		user_stats.value = res.data;
+		user_ratio.value = res.data.average_rank;
+		user_ratio_rounded.value = Math.round(res.data.average_rank * 100);
+		console.log('user_stats:', user_stats.value);
 	});
 	bar.animate(user_ratio.value);
 	await API.post('/match/get_user_history', {
@@ -152,8 +156,14 @@ function change_avatar() {
 .info {
 	font-size: 100%;
 }
-.rank_txt {
+.avg_rank {
 	margin-top: 10px;
+}
+.w_l {
 	margin-bottom: 10px;
+}
+.match_history_title {
+	margin-bottom: 10px;
+	font-size: 200%;
 }
 </style>

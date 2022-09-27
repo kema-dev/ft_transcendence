@@ -97,7 +97,7 @@ export class MatchService {
 				average_rank: 0.5,
 			};
 		}
-		console.log('     get_user_stats: matches: ');
+		// console.log('     get_user_stats: matches: ');
 		const stats = {
 			total: matches.length,
 			wins: 0,
@@ -105,10 +105,16 @@ export class MatchService {
 			average_rank: 0,
 		};
 		for (const match of matches) {
+			let winner_score = 0;
+			for (let i = 0; i < match.scores.length; i++) {
+				if (match.scores[i] > winner_score) {
+					winner_score = match.scores[i];
+				}
+			}
 			const index = match.players.indexOf(login);
 			if (match.scores[index] == 0) {
 				stats.loses += 1;
-			} else {
+			} else if (match.scores[index] == winner_score) {
 				stats.wins += 1;
 			}
 			stats.average_rank += match.ranks[index] / match.player_count;

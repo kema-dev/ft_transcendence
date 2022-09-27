@@ -3,7 +3,6 @@
 ## ongoing
 
 * make details page for each match upon clicking (old open function)
-* add all match stats (total, win, lose, ratio)
 
 ## later
 
