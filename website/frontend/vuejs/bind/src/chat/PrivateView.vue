@@ -2,7 +2,6 @@
 	<!-- <div v-if="initReqDone" id="private_view" class="center column"> -->
 	<div v-if="privDone" id="private_view" class="center column">
 		<div class="toBarCont center raw stack">
-			<!-- <SearchItem @searchInput="searchChange" :key="searchKey" /> -->
 			<SearchItem v-model:search="search" />
 			<div class="option_buttons space-around raw stack">
 				<button @click="createNewMsg()" class="button_cont center">
@@ -35,7 +34,7 @@
 				:avatar="data.user.avatar"
 				class="center"
 			/>
-			<h2 v-if="privs!.length == 0" class="no_results">No conversations</h2>
+			<h2 v-if="privsRef!.length == 0" class="no_results">No conversations</h2>
 			<h2 v-else-if="privsFiltred!.length == 0" class="no_results">
 				No results
 			</h2>
@@ -44,11 +43,11 @@
 			<div v-if="privsFiltred.length > 0" class="knownPeople left column">
 				<h2 class="typeUsers">Friends/conversations</h2>
 				<router-link
-					v-for="(data, i) in privsFiltred.slice(0, 5)"
+					v-for="(data, i) in knownPeople()"
 					:key="i"
-					:to="{ name: 'PrivConv', params: { conv_name: data.user.login } }"
+					:to="{ name: 'PrivConv', params: { conv_name: data.login } }"
 				>
-					<BasicProfil :avatar="data.user.avatar" :login="data.user.login" />
+					<BasicProfil :avatar="data.avatar" :login="data.login" />
 				</router-link>
 			</div>
 			<div
@@ -64,9 +63,6 @@
 					<BasicProfil :avatar="data.avatar" :login="data.login" />
 				</router-link>
 			</div>
-			<!-- <h2 v-if="privsFiltred.length == 0 && !serverUsers">
-				No results
-			</h2> -->
 			<h2 v-if="privsFiltred.length == 0 && search.length == 0">
 				No conversation yet, search for a new one !
 			</h2>
@@ -89,7 +85,6 @@ import {
 	watch,
 	onUpdated,
 } from "vue";
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import ConversationTab from "@/chat/ConversationTab.vue";
 import BasicProfil from "@/components/BasicProfilItem.vue";
 import SearchItem from "@/components/SearchItem.vue";
@@ -107,24 +102,25 @@ let apiPath: string = inject("apiPath")!;
 
 // let privs : Ref<PrivConvDto[]> = inject("privs")!;
 // let nbPrivNR : { n: Ref<number[]>, reset: () => void} = inject("nbPrivNR")!;
-let privs: Ref<PrivConvDto[]> = inject("privs")!;
+let privsRef: Ref<PrivConvDto[]> = inject("privs")!;
 let nbPrivNR: { n: Ref<number[]>; reset: () => void } = inject("nbPrivNR")!;
-let privsFiltred = ref(privs.value);
+let privsFiltred = ref(privsRef.value);
 const privDone: Ref<boolean> = inject("privDone")!;
 let serverUsers = ref<BasicUserDto[]>();
-// let knownPeople = ref<BasicUser[]>();
+// let knownPeople = ref<BasicUserDto[]>();
 
 const search = ref("");
 const newMsg = ref(false);
 let userServReqDone = ref(false);
 
-if (privs.value.length) {
+if (privsRef.value.length) {
 	nbPrivNR.reset();
 }
 
 watch(privDone, () => {
 	// console.log(`privDone = ${privDone.value}`);
-	privsFiltred.value = privs.value;
+	privsFiltred.value = privsRef.value;
+
 	nbPrivNR.reset();
 });
 
@@ -132,9 +128,24 @@ onUpdated(() => {
 	if (nbPrivNR.n.value.length) nbPrivNR.reset();
 });
 
+function knownPeople() {
+	let convs = privsRef.value
+		.map(p => new BasicUserDto(p.user.login, p.user.avatar))
+	let friends = me.value.friends.map(f => new BasicUserDto(f.login, f.avatar));
+	friends = friends.filter(f => {
+		let notIn = true;
+		for (let conv of convs)
+			if (conv.login == f.login)
+				notIn = false;
+		if (f.login.startsWith(search.value) && notIn)
+			return new BasicUserDto(f.login, f.avatar);
+	})
+	return convs.concat(friends);
+}
+
 watch(search, () => {
 	userServReqDone.value = false;
-	privsFiltred.value = privs.value?.filter(function (value) {
+	privsFiltred.value = privsRef.value?.filter(function (value) {
 		return value.user.login
 			.toUpperCase()
 			.startsWith(search.value.toUpperCase());

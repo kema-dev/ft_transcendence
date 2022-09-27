@@ -1,12 +1,8 @@
 <template>
 	<div id="home" class="wrap" :key="reload">
 		<NavbarItem />
-		<!-- <router-link to="/">Log out</router-link> -->
 		<div id="game" class="center">
-			<!-- <div id="field"> -->
 			<MatchmakingItem />
-			<!-- <GameItem /> -->
-			<!-- </div> -->
 		</div>
 		<NavmenuItem />
 	</div>
@@ -30,7 +26,6 @@ import { MessageDto } from "@/chat/dto/MessageDto";
 import { BasicUserDto } from "@/chat/dto/BasicUserDto";
 import { processExpression } from "@vue/compiler-core";
 import ProfileUserDto from "@/dto/ProfileUserDto";
-// import { chansRef } from "@/globals";
 
 
 //  ========== COOKIES + APIPATCH
@@ -116,18 +111,6 @@ function getPrivsRequest() {
 				priv.messages.forEach(msg => msg.date = new Date(msg.date))
 			})
 			privsRef.value = privsTmp;
-
-			// let privsTmp : PrivConvDto[] = [];
-			// res.data.forEach((priv : PrivConvDto) => {
-			// 	let msgsTmp : MessageDto[] = [];
-			// 	priv.messages.forEach((msg, j) => {
-			// 		msgsTmp.push(new MessageDto(msg.user, msg.msg, new Date(msg.date)))
-			// 	});
-			// 	privsTmp.push(new PrivConvDto(new BasicUserDto(priv.user.login, priv.user.avatar), msgsTmp, priv.readed, priv.id));
-			// 	if (priv.readed == false && priv.messages.at(-1)?.user != me)
-			// 		nbPrivNR.value.push(priv.id);
-			// });
-			// privsRef.value = privsTmp;
 		}
 		privDone.value = true;
 	})
@@ -136,71 +119,28 @@ function getPrivsRequest() {
 
 
 //	========== CREATE SOCKET LISTENERS
+
 socket.on('newPrivConv', (data: PrivConvDto) => {
 	console.log(`New private created`);
-	// let privTmp = privsRef.value!;
-	// let msg = new Message(data.messages[0].user, data.messages[0].msg, new Date (data.messages[0].date));
-	// privTmp.push(new PrivConv(new BasicUser(data.user.login), [msg], data.readed, data.id));
-	// privsRef.value = privTmp;
-	// ==============
-	// privs.push(data);
-	// ==============
-	// let msg = new Message(data.messages[0].user, data.messages[0].msg, new Date (data.messages[0].date));
-	// privsRef.value.push(new PrivConv(new BasicUser(data.user.login), [msg], data.readed, data.id));
-	// ==============
 	let newPriv = data;
-	// newPriv.user = new BasicUserDto(newPriv.user.login);
 	newPriv.messages.forEach((msg) => (msg.date = new Date(msg.date)));
 	privsRef.value.unshift(newPriv);
 	if (data.messages[0].user != me) nbPrivNR.value.push(data.id);
-
-	// console.log(`privsRef : `);
-	// printPrivs(privsRef.value);
 });
+
 socket.on('newPrivMsg', (data: { msg: MessageDto; id: number }) => {
 	console.log(`New Private message received : ${data.msg.msg}`);
-	// let privsTmp = privsRef.value!;
-	// let priv = privsTmp.find(priv => priv.id == data.id);
-	// priv?.messages.push(new Message(data.msg.user, data.msg.msg, new Date(data.msg.date)));
-	// privsRef.value = privsTmp;
-	// ==============
-	// let priv = privs.find(priv => priv.id == data.id);
-	// priv?.messages.push(data.msg);
-	// // ==============
 	let i = privsRef.value.findIndex((priv) => priv.id == data.id);
 	privsRef.value[i].messages.push(
-		new MessageDto(data.msg.user, data.msg.msg, new Date(data.msg.date)),
-	);
+		new MessageDto(data.msg.user, data.msg.msg, new Date(data.msg.date)));
 	privsRef.value[i].readed = false;
 	if (data.msg.user != me && !nbPrivNR.value.includes(privsRef.value[i].id))
 		nbPrivNR.value.push(privsRef.value[i].id);
-	// console.log(`nbr Priv Mesage Not Read = ${nbPrivNR.value}`)
 	if (i != 0) putPrivFirst(i);
 });
-socket.on('newChannelUser', (data: { name: string; user: BasicUserDto }) => {
-	console.log(`New User in channel : ${data.name}`);
-	// let privsTmp = privsRef.value!;
-	// let priv = privsTmp.find(priv => priv.id == data.id);
-	// priv?.messages.push(new Message(data.msg.user, data.msg.msg, new Date(data.msg.date)));
-	// privsRef.value = privsTmp;
-	// ==============
-	// let priv = privs.find(priv => priv.id == data.id);
-	// priv?.messages.push(data.msg);
-	// // ==============
-	let i = chansRef.value.findIndex((chan) => chan.name == data.name);
-	chansRef.value[i].users.push(data.user);
-	chansRef.value[i].readed = false;
-	// if (data.msg.user != me && !nbPrivNR.value.includes(chansRef.value[i].id))
-	// 	nbPrivNR.value.push(chansRef.value[i].id);
-	// console.log(`nbr Priv Mesage Not Read = ${nbPrivNR.value}`)
-	if (i != 0) putChanFirst(i);
-});
-
 
 
 function putPrivFirst(index: number) {
-	// if(privsRef.value.length == 1)
-	// 	return;
 	if (privsRef.value.length == 2)
 		return ([privsRef.value[0], privsRef.value[1]] = [
 			privsRef.value[1],
@@ -293,15 +233,6 @@ function getChansRequest() {
 socket.on('newChanMsg', (data: { msg: MessageDto; name: string }) => {
 	console.log(`New Channel message received : 
 		channel = ${data.name}, msg = ${data.msg.msg}`);
-	// let privsTmp = privsRef.value!;
-	// let priv = privsTmp.find(priv => priv.id == data.id);
-	// priv?.messages.push(new Message(data.msg.user, data.msg.msg, new Date(data.msg.date)));
-	// privsRef.value = privsTmp;
-	// ==============
-	// let priv = privs.find(priv => priv.id == data.id);
-	// priv?.messages.push(data.msg);
-	// // ==============
-	console.log(`test`);
 	let i = chansRef.value.findIndex((chan) => chan.name == data.name);
 	chansRef.value[i].messages.push(
 		new MessageDto(data.msg.user, data.msg.msg, new Date(data.msg.date)),
@@ -310,13 +241,19 @@ socket.on('newChanMsg', (data: { msg: MessageDto; name: string }) => {
 	printChans(chansRef.value);
 	if (data.msg.user != me && !nbChanNR.value.includes(chansRef.value[i].name))
 		nbChanNR.value.push(chansRef.value[i].name);
-	// console.log(`nbr Priv Mesage Not Read = ${nbChanNR.value}`)
 	if (i != 0) putChanFirst(i);
 });
 
-socket.on("test", () => {
-	console.log(`Message bien recu`);
-})
+socket.on('newChannelUser', (data: { name: string; user: BasicUserDto }) => {
+	console.log(`New User in channel : ${data.name}`);
+	let i = chansRef.value.findIndex((chan) => chan.name == data.name);
+	chansRef.value[i].users.push(data.user);
+	chansRef.value[i].readed = false;
+	// if (data.msg.user != me && !nbPrivNR.value.includes(chansRef.value[i].id))
+	// 	nbPrivNR.value.push(chansRef.value[i].id);
+	if (i != 0) putChanFirst(i);
+});
+
 
 function putChanFirst(index: number) {
 	if (chansRef.value.length == 2)
@@ -341,10 +278,6 @@ function printChan(chan: ChannelDto) {
 	console.log(`creation = ${chan.creation}`);
 	console.log(`readed = ${chan.readed}`);
 	console.log(` admins = ${chan.admins.map(admin => admin.login + ', ')}`);
-	// chan.admins.forEach((elem) => console.log(`${elem.login}`));
-	// chan.admins.forEach((elem) => console.log(`${elem.login}`));
-	
-
 	chan.messages.forEach((msg) => console.log(`${msg.msg}`));
 }
 
