@@ -2,7 +2,6 @@
 
 ## ongoing
 
-* match details : name / rank / score
 * order players by rank
 
 ## later
