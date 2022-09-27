@@ -18,8 +18,10 @@
 					</div>
 				</div>
 			</div>
-			<div class="more" v-if="size">
+			<div class="more">
 				<div class="match_detail"></div>
+				<div
+					class="list">
 				<div
 					class="match_detail"
 					v-for="i in props.match.players.length"
@@ -40,7 +42,7 @@
 								<h1 class="number">{{ props.match.scores[i - 1] }}</h1>
 							</div>
 						</div>
-					</div>
+					</div></div>
 				</div>
 			</div>
 		</div>
@@ -100,6 +102,10 @@ onMounted(async () => {
 	margin: 10px 0;
 	width: clamp(18rem, 80%, 550px);
 }
+.list {
+	transition: v-bind("size ? 'all 0.5s ease-in-out' : 0");
+	opacity: v-bind('size ? 1 : 0');
+}
 .match {
 	height: 60px;
 	width: 100%;
@@ -127,7 +133,7 @@ onMounted(async () => {
 	position: absolute;
 	z-index: 1;
 	top: 0;
-	height: v-bind("size * 50 + 65 + 'px'");
+	height: v-bind("size * 50 + 60 + 'px'");
 	border: 3px v-bind('define.color2') solid;
 	border-radius: 30px;
 	background-color: v-bind('define.color2');
