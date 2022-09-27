@@ -31,7 +31,7 @@ let define = inject('colors');
 let me: Ref<ProfileUserDto> = inject('user')!;
 
 const props = defineProps(['match'])
-console.log('props:', props.match);
+// console.log('props:', props.match);
 
 // let match = {
 // 	nbrPlayer: 3,

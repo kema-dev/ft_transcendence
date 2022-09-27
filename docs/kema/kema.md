@@ -2,7 +2,6 @@
 
 ## ongoing
 
-* fix ranking method
 * change avatar to win / lose image in match history
 * make details page for each match upon clicking (old open function)
 * fix ratio display + add a number to display it

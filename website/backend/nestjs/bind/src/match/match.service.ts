@@ -20,15 +20,15 @@ export class MatchService {
 	}
 
 	async add_match(game: Game) {
-		const scores = [];
-		for (const player of game.profiles) {
-			scores.push(player.score);
-		}
+		const game_players = game.profiles.map((profile) => profile.login);
+		const game_scores = game.profiles.map((profile) => profile.score);
+		console.log('match players: ', game_players);
+		console.log('match scores: ', game_scores);
 		const ranks = [];
-		for (let i = 0; i < scores.length; i++) {
-			ranks.push(0);
-			for (let j = 0; j < scores.length; j++) {
-				if (scores[i] > scores[j]) {
+		for (let i = 0; i < game_scores.length; i++) {
+			ranks.push(1);
+			for (let j = 0; j < game_scores.length; j++) {
+				if (game_scores[j] > game_scores[i]) {
 					ranks[i]++;
 				}
 			}
@@ -38,8 +38,8 @@ export class MatchService {
 			ball_count: game.nbrBall,
 			lobby_name: game.lobby_name,
 			owner: game.owner,
-			players: game.profiles.map((profile) => profile.login),
-			scores: game.profiles.map((profile) => profile.score),
+			players: game_players,
+			scores: game_scores,
 			ranks: ranks,
 		});
 		// console.log(match);
@@ -81,6 +81,7 @@ export class MatchService {
 				matches.push(match);
 			}
 		}
+		matches.reverse();
 		console.log('get_user_matches: Returning');
 		return matches;
 	}

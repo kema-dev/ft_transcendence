@@ -11,9 +11,13 @@
 		<h1 id="name">{{ me?.login }}</h1>
 		<!-- <h2 class="info" style="margin-bottom: 40px">level {{ me?.level }}</h2> -->
 		<h2>Match history</h2>
-		<MatchItem v-for="match in user_history" v-bind:match="match" :key="match.creation_date" />
-			<!-- <ScoreItem :player="user.name" :adversary="match.adversary" :points1="match.points1" :points2="match.points2"/> -->
-			<!-- <MatchItem :match="match" /> -->
+		<MatchItem
+			v-for="match in user_history"
+			v-bind:match="match"
+			:key="match.creation_date"
+		/>
+		<!-- <ScoreItem :player="user.name" :adversary="match.adversary" :points1="match.points1" :points2="match.points2"/> -->
+		<!-- <MatchItem :match="match" /> -->
 		<!-- </div> -->
 	</div>
 </template>
@@ -24,6 +28,7 @@ import ScoreItem from '../components/ScoreItem.vue';
 import MatchItem from '@/components/MatchItem.vue';
 import { ProfileUserDto } from '../dto/ProfileUserDto';
 import API from '../components/axios';
+import { createWebHistory } from 'vue-router';
 let define = inject('colors');
 let me: Ref<ProfileUserDto> = inject('user')!;
 let socket = inject('socket')!;
@@ -88,12 +93,11 @@ onMounted(async () => {
 	}).then((res) => {
 		user_ratio.value = res.data;
 	});
-	bar.animate(user_ratio);
+	bar.animate(user_ratio.value);
 	await API.post('/match/get_user_history', {
 		login: me?.value?.login,
 	}).then((res) => {
 		user_history.value = res.data;
-		console.log('user_history:', user_history);
 	});
 });
 function change_avatar() {
