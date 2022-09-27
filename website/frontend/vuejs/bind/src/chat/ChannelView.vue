@@ -174,7 +174,7 @@ watch(chanDone, () => {
 });
 
 watch(search, () => {
-	console.log(`search Change`);
+	// console.log(`search Change`);
 	chanServReqDone.value = false;
 	chansFiltred.value = chansRef.value?.filter(function (chan) {
 		return chan.name.toUpperCase().startsWith(search.value.toUpperCase());
@@ -249,8 +249,8 @@ function submitChannel() {
 	// }
 	let chanName = data.get("name") as string;
 	let chanPsw = data.get("pswInput") as string;
-	console.log(`chanName = ${chanName}`);
-	console.log(`chanPsw = ${chanPsw}`);
+	// console.log(`chanName = ${chanName}`);
+	// console.log(`chanPsw = ${chanPsw}`);
 	HTTP.post(apiPath + "chat/CreateChan", new NewChanDto(chanName, me, chanPsw))
 	.then(res => {
 		let newChan = res.data as ChannelDto;

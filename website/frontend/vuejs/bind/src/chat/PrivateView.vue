@@ -152,13 +152,9 @@ watch(search, () => {
 });
 
 function getServerUsers() {
-	HTTP.get(apiPath + "chat/getServerUsersFiltred/" + me + "/" + search.value)
+	HTTP.get(apiPath + "chat/getServerUsersFiltred/" + me.value.login + "/" + search.value)
 		.then((res) => {
-			let usersTmp: BasicUserDto[] = [];
-			res.data.forEach((user: BasicUserDto) => {
-				usersTmp.push(new BasicUserDto(user.login));
-			});
-			serverUsers.value = usersTmp;
+			serverUsers.value = res.data;
 			filterServerUsers();
 			userServReqDone.value = true;
 		})

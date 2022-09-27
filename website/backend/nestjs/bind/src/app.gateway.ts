@@ -9,7 +9,7 @@ import {
 	MessageBody,
 	ConnectedSocket,
 } from '@nestjs/websockets';
-import { Logger } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import { Socket, Server } from 'socket.io';
 import Vector from './game2.0/objects/Vector';
 import Game from './game2.0/Game';
@@ -30,6 +30,8 @@ import { BasicUserDto } from 'src/chat/dto/BasicUserDto';
 		origin: '*',
 	},
 })
+
+@Injectable()
 export class AppGateway
 	implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
@@ -38,6 +40,8 @@ export class AppGateway
 	private logger: Logger = new Logger('AppGateway');
 
 	constructor(
+		// @Inject(forwardRef(() => ChatService))
+    // private chatService: ChatService,
 		private readonly chatService: ChatService,
 		private readonly userService: UsersService,
 		private readonly matchService: MatchService,
@@ -200,34 +204,31 @@ export class AppGateway
 		@ConnectedSocket() client: Socket,
 	) {
 		const priv = await this.chatService.addPrivMsg(data);
-		const sendSocketId = (await this.userService.getByLogin(data.userSend))
-			.socketId;
-		const receiveSocketId = (
-			await this.userService.getByLogin(data.userReceive)
-		).socketId;
+		const sender = await this.userService.getByLogin(data.userSend);
+		const receiver = await this.userService.getByLogin(data.userReceive);
 		const msg = new MessageDto(
 			data.userSend,
 			data.message,
 			new Date(data.date),
 		);
 		if (priv.messages.length == 1) {
-			const userSend = new BasicUserDto(data.userSend);
-			const userReceive = new BasicUserDto(data.userReceive);
-			const newPrivSenderDto = new PrivConvDto(userSend, [msg], false, priv.id);
-			const newPrivReceiverDto = new PrivConvDto(
+			const userSend = new BasicUserDto(sender.login, sender.avatar);
+			const userReceive = new BasicUserDto(receiver.login, receiver.avatar);
+			const privSenderDto = new PrivConvDto(userSend, [msg], false, priv.id);
+			const privReceiverDto = new PrivConvDto(
 				userReceive,
 				[msg],
 				false,
 				priv.id,
 			);
-			this.server.to(receiveSocketId).emit('newPrivConv', newPrivSenderDto);
-			this.server.to(sendSocketId).emit('newPrivConv', newPrivReceiverDto);
+			this.server.to(receiver.socketId).emit('newPrivConv', privSenderDto);
+			this.server.to(sender.socketId).emit('newPrivConv', privReceiverDto);
 		} else {
 			this.server
-				.to(receiveSocketId)
+				.to(receiver.socketId)
 				.emit('newPrivMsg', { msg: msg, id: priv.id });
 			this.server
-				.to(sendSocketId)
+				.to(sender.socketId)
 				.emit('newPrivMsg', { msg: msg, id: priv.id });
 		}
 	}
@@ -285,4 +286,14 @@ export class AppGateway
 		if (!priv) return console.log(`Error privReaded`);
 		await this.chatService.markPrivReaded(priv);
 	}
+
+	@SubscribeMessage('newChannelUser')
+	async newChannelUser(
+		@MessageBody() data: {requestor: string, chanName: string},
+		@ConnectedSocket() client: Socket,
+	) {
+		this.chatService.newChannelUser(this.server, data);
+	}
+
+	
 }

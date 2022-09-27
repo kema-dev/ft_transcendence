@@ -1,5 +1,17 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { Socket, Server } from 'socket.io';
+import {
+	SubscribeMessage,
+	WebSocketGateway,
+	OnGatewayInit,
+	WebSocketServer,
+	OnGatewayConnection,
+	OnGatewayDisconnect,
+	MessageBody,
+	ConnectedSocket,
+} from '@nestjs/websockets';
+
+import { Injectable, HttpException, HttpStatus, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like } from 'typeorm';
 import { MessageEntity } from './entites/message.entity';
@@ -20,6 +32,7 @@ import { ChannelTabDto } from './dto/ChannelTabDto ';
 // import { AppGateway } from '../app.gateway';
 
 @Injectable()
+// export class ChatService {
 export class ChatService {
 	constructor(
 		@InjectRepository(MessageEntity)
@@ -31,8 +44,13 @@ export class ChatService {
 		@InjectRepository(UserEntity)
 		private userRepository: Repository<UserEntity>,
 		private readonly userService: UsersService,
-		// private readonly appGateway: AppGateway,
+		
+    // private readonly appGateway: AppGateway,
+		// @Inject(forwardRef(() => AppGateway))
+    // private readonly appGateway: AppGateway,
 	) {}
+
+	@WebSocketServer() server: Server;
 
 	// ========================= PRIVATES =========================
 
@@ -126,28 +144,31 @@ export class ChatService {
 
 	async createPrivsDto(requestor: string, privs: PrivateEntity[]) {
 		const privsDto: PrivConvDto[] = [];
-		privs.forEach((priv) => {
+		for (let priv of privs) {
 			let login: string;
 			if (priv.users[0].login == requestor) login = priv.users[1].login;
 			else login = priv.users[0].login;
-			const user = new BasicUserDto(login);
+			console.log(`login = ${login}`);
+			const user = await this.userService.getByLogin(login);
+			const basicUser = new BasicUserDto(user.login, user.avatar);
 			const read = priv.readed;
 			const msgs: MessageDto[] = [];
 			const id = priv.id;
 			priv.messages.forEach((msg) =>
 				msgs.push(new MessageDto(msg.user.login, msg.message, msg.createdAt)),
 			);
-			privsDto.push(new PrivConvDto(user, msgs, read, id));
-		});
+			let newPrivDto = new PrivConvDto(basicUser, msgs, read, id);
+			privsDto.push(newPrivDto);
+		};
 		return privsDto;
 	}
 
 	async getServerUsersFiltred(login: string, filter: string) {
 		const users = await this.userService.getByLoginFiltred(filter);
 		const basicInfos: BasicUserDto[] = [];
-		for (let i = 0; i < users.length; i++) {
-			if (login != users[i].login)
-				basicInfos.push(new BasicUserDto(users[i].login));
+		for (let user of users) {
+			if (login != user.login)
+				basicInfos.push(new BasicUserDto(user.login, user.avatar));
 		}
 		return basicInfos;
 	}
@@ -173,6 +194,22 @@ export class ChatService {
 	async printPrivs(privs: PrivateEntity[]) {
 		privs.forEach(async (priv) => {
 			await this.printPriv(priv);
+		});
+	}
+
+	printPrivDto(priv: PrivConvDto) {
+		console.log(`user = ${priv.user.login}`);
+		console.log(`readed = ${priv.readed}`);
+		priv.messages.forEach((msg) => console.log(`${msg.msg}`));
+	}
+	
+	printPrivsDto(privs: PrivConvDto[]) {
+		console.log(`PrintPrivsDto :`);
+		if (!privs.length) {
+			return console.log(`No privs`);
+		}
+		privs.forEach((priv : PrivConvDto) => {
+			this.printPrivDto(priv);
 		});
 	}
 
@@ -243,35 +280,41 @@ export class ChatService {
 		});
 	}
 
-	async createChansDto(requestor: string, chans: ChannelEntity[]) {
+
+
+	createChanDto(chan: ChannelEntity) {
+		// console.log(`boucle ${i}`)
+		let name = chan.name;
+		let psw = chan.password;
+		let creation = chan.createdAt;
+		let read = chan.readed;
+		let avatar = chan.avatar;
+		// let admins = chan.admins.map(admin => new BasicUserDto(admin.login));
+		let admins : BasicUserDto[] = [];
+		chan.admins.forEach(admin => admins.push(new BasicUserDto(admin.login, admin.avatar)));
+		let users : BasicUserDto[] = [];
+		if (chan.users)
+			chan.users.forEach(user => users.push(new BasicUserDto(user.login, user.avatar)));
+		let bans : BasicUserDto[] = [];
+		if (chan.bans)
+			chan.bans.forEach(ban => bans.push(new BasicUserDto(ban.login, ban.avatar)));
+		let mutes : BasicUserDto[] = [];
+		if (chan.mutes)
+			chan.mutes.forEach(mute => mutes.push(new BasicUserDto(mute.login, mute.avatar)));
+		let msgs : MessageDto[] = [];
+		if (chan.messages)
+			chan.messages.forEach((msg) => msgs.push(new MessageDto(msg.user.login, msg.message, msg.createdAt)))
+		// console.log(`ChanDto creation :\nname = ${name}, psw = ${psw}`)
+		// chansDto.push(new ChannelDto(name, avatar, creation, admins, psw, users, msgs, bans, mutes, read));
+		return new ChannelDto(name, avatar, creation, admins, psw, users, msgs, bans, mutes, read);
+	}
+
+	createChansDto(requestor: string, chans: ChannelEntity[]) {
 		let chansDto : ChannelDto[] = [];
 		// this.printChans(chans);
 		chans.forEach((chan, i) => {
-			// console.log(`boucle ${i}`)
-			let name = chan.name;
-			let psw = chan.password;
-			let creation = chan.createdAt;
-			let read = chan.readed;
-			let avatar = chan.avatar;
-			// let admins = chan.admins.map(admin => new BasicUserDto(admin.login));
-			let admins : BasicUserDto[] = [];
-			chan.admins.forEach(admin => admins.push(new BasicUserDto(admin.login)));
-			let users : BasicUserDto[] = [];
-			if (chan.users)
-				chan.users.forEach(user => users.push(new BasicUserDto(user.login)));
-			let bans : BasicUserDto[] = [];
-			if (chan.bans)
-				chan.bans.forEach(ban => bans.push(new BasicUserDto(ban.login)));
-			let mutes : BasicUserDto[] = [];
-			if (chan.mutes)
-				chan.mutes.forEach(mute => mutes.push(new BasicUserDto(mute.login)));
-			let msgs : MessageDto[] = [];
-			if (chan.messages)
-				chan.messages.forEach((msg) => msgs.push(new MessageDto(msg.user.login, msg.message, msg.createdAt)))
-			// console.log(`ChanDto creation :\nname = ${name}, psw = ${psw}`)
-			// chansDto.push(new ChannelDto(name, avatar, creation, admins, psw, users, msgs, bans, mutes, read));
-			chansDto.push(new ChannelDto(name, avatar, creation, admins, psw, users, msgs, bans, mutes, read));
-			// console.log(`fin boucle`);
+			// let chandto = this.createChanDto(chan);
+			chansDto.push(this.createChanDto(chan));
 		});
 		// this.printChansDto(chansDto);
 		return chansDto;
@@ -286,7 +329,7 @@ export class ChatService {
 		let admin = await this.userService.getByLogin(data.admin);
 		let newChan = this.channelRepository.create({name: data.chanName, admins: [admin], password: data.psw});
 		this.channelRepository.save(newChan);
-		return new ChannelDto(newChan.name, "test", new Date(), [new BasicUserDto(newChan.admins[0].login)]);
+		return new ChannelDto(newChan.name, "test", new Date(), [new BasicUserDto(admin.login, admin.avatar)]);
 	}
 
 	async addChanMsg(data: NewChanMsgDto) {
@@ -334,22 +377,49 @@ export class ChatService {
 		return channelTabs;
 	}
 
-	async joinChannel(data: {requestor: string, chanName: string, psw: string | undefined}) {
+	async joinChannelReq(
+		data: {requestor: string, chanName: string, psw: string | undefined}) 
+	{
+		let user = await this.userService.getByLogin(data.requestor);
+		console.log(`joinChannelReq for chan = ${data.chanName}, user = ${data.requestor}, psw = ${data.psw}`)
 		let chan = await this.channelRepository.findOne({
 			where: {name: data.chanName},
-			relations: {bans: true},
+			relations: {admins: true, users: true, bans: true},
 		});
-		if (!chan)
+		if (!chan) {
+			// server.to(user.socketId).emit("joinChannelError", {error: "CHAN_NOT_FOUND"})
+			console.log(`joinChannelReq Error: Chan don't exist`)
 			throw new HttpException('CHAN_NOT_FOUND', HttpStatus.NOT_FOUND);
-		if (data.psw && chan.password != data.psw)
+		} else if (data.psw && chan.password != data.psw) {
+			// server.to(user.socketId).emit("joinChannelError", {error: "WRONG_PSW"})
+			console.log(`joinChannelReq Error: Wrong Password`)
 			throw new HttpException('WRONG_PSW', HttpStatus.BAD_REQUEST);
-		let user = await this.userService.getByLogin(data.requestor);
-		if (chan.bans.includes(user))
+		} else if (chan.bans.includes(user)) {
+			// server.to(user.socketId).emit("joinChannelError", {error: "USER_BANNDED"})
+			console.log(`joinChannelReq Error: User Banned`)
 			throw new HttpException('USER_BANNDED', HttpStatus.UNAUTHORIZED);
-		chan.users.push(user);
-		this.channelRepository.save(chan).catch((e) => console.log('Save chan error'));
+		} else {
+			chan.users.push(user);
+			this.channelRepository.save(chan).catch((e) => console.log('Save chan error'));
+			return this.createChanDto(chan);
+		}
+	}
 
-		return;
+	async newChannelUser(
+		server: Server,
+		data: {requestor: string, chanName: string}) 
+	{
+		let user = await this.userService.getByLogin(data.requestor);
+		let chan = await this.channelRepository.findOne({
+			where: {name: data.chanName},
+			relations: {admins: true, users: true},
+		});
+		// console.log(`server = ${this.server}`);
+		for (let user of chan.admins.concat(chan.users))
+			server.to(user.socketId).emit("newChannelUser", {
+				name: chan.name,
+				user: new BasicUserDto(user.login, user.avatar),
+			});
 	}
 
 

@@ -17,6 +17,7 @@ import Player from '@/menu/PlayerTab.vue';
 import API from '../components/axios';
 import { useCookies } from 'vue3-cookies';
 import { useToast } from 'vue-toastification';
+import { BasicUserDto } from '@/chat/dto/BasicUserDto';
 
 const data = require('../../.env')
 
@@ -78,10 +79,11 @@ const routes: Array<RouteRecordRaw> = [
 						name: 'PrivConv',
 						path: '/home/chat/private/:conv_name',
 						components: { chat_menu: PrivateConv },
-						meta: { transition: 'mySlide' },
+						// props: true, 
+						// meta: { transition: 'mySlide' },
 					},
 					{
-						name: 'ChannelConv',
+						name: 'ChanConv',
 						path: '/home/chat/channel/:conv_name',
 						components: { chat_menu: ChannelConv },
 						meta: { transition: 'mySlide' },

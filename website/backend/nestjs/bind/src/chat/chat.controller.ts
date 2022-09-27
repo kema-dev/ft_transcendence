@@ -73,8 +73,9 @@ export class ChatController {
 	) {
 		// if (data.psw)
 		// 	await this.chatService.checkChanPsw(data.chanName, data.psw);
-		return await this.chatService.joinChannel(data);
+		return await this.chatService.joinChannelReq(data);
 	}
+
 
 
 	// // @UseGuards(AuthGuard)

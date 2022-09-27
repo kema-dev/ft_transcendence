@@ -1,7 +1,7 @@
 <template>
 	<router-link
 		:to="{
-			name: chan == true ? 'ChannelConv' : 'PrivConv',
+			name: chan == true ? 'ChanConv' : 'PrivConv',
 			params: { conv_name: nameConv },
 		}"
 		class="conv_container left row stack"

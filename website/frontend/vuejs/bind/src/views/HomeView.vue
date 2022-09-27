@@ -43,7 +43,6 @@ provide('apiPath', apiPath);
 
 const me: string = $cookies.get('login');
 provide('me', me);
-console.log(`I am '${me}'`);
 
 //	========== CREATE SOCKET
 
@@ -67,8 +66,9 @@ let userRef = ref();
 socket.on("userUpdate", (data: ProfileUserDto) => {
 	if (data && data.login == me) {
 		userRef.value = data;
-		console.log(userRef.value);
+		// console.log(userRef.value);
 		// provide("user", userRef);
+		console.log(`I am '${userRef.value.login}'`);
 	}
 });
 socket.emit("userUpdate", { login: me });
@@ -106,34 +106,30 @@ provide('markReaded', privReaded);
 provide('privDone', privDone);
 
 function getPrivsRequest() {
-	// console.log(`avant getPrivsRequest()`);
 	HTTP.get(apiPath + "chat/getPrivs/" + me)
 	.then(res => {
-		// console.log(`privsConvDto : `);
-		// printPrivs(res.data);
 		if (!res.data) {	
 			privsRef.value = [];
 		} else {
-			// privs.value = res.data;
-			let privsTmp : PrivConvDto[] = [];
-			res.data.forEach((priv : PrivConvDto) => {
-				let msgsTmp : MessageDto[] = [];
-				priv.messages.forEach((msg, j) => {
-					msgsTmp.push(new MessageDto(msg.user, msg.msg, new Date(msg.date)))
-				});
-				privsTmp.push(new PrivConvDto(new BasicUserDto(priv.user.login), msgsTmp, priv.readed, priv.id));
-				if (priv.readed == false && priv.messages.at(-1)?.user != me)
-					nbPrivNR.value.push(priv.id);
-			});
-			// privs.value = privsTmp;
-			// privs = privsTmp;
+			let privsTmp : PrivConvDto[] = res.data;
+			privsTmp.forEach(priv => {
+				priv.messages.forEach(msg => msg.date = new Date(msg.date))
+			})
 			privsRef.value = privsTmp;
+
+			// let privsTmp : PrivConvDto[] = [];
+			// res.data.forEach((priv : PrivConvDto) => {
+			// 	let msgsTmp : MessageDto[] = [];
+			// 	priv.messages.forEach((msg, j) => {
+			// 		msgsTmp.push(new MessageDto(msg.user, msg.msg, new Date(msg.date)))
+			// 	});
+			// 	privsTmp.push(new PrivConvDto(new BasicUserDto(priv.user.login, priv.user.avatar), msgsTmp, priv.readed, priv.id));
+			// 	if (priv.readed == false && priv.messages.at(-1)?.user != me)
+			// 		nbPrivNR.value.push(priv.id);
+			// });
+			// privsRef.value = privsTmp;
 		}
-
 		privDone.value = true;
-		// console.log(`getPrivsRequest Done`);
-
-		printPrivs(privsRef.value);
 	})
 	.catch(e => console.log(e));
 }
@@ -153,9 +149,9 @@ socket.on('newPrivConv', (data: PrivConvDto) => {
 	// privsRef.value.push(new PrivConv(new BasicUser(data.user.login), [msg], data.readed, data.id));
 	// ==============
 	let newPriv = data;
-	newPriv.user = new BasicUserDto(newPriv.user.login);
+	// newPriv.user = new BasicUserDto(newPriv.user.login);
 	newPriv.messages.forEach((msg) => (msg.date = new Date(msg.date)));
-	privsRef.value.unshift(data);
+	privsRef.value.unshift(newPriv);
 	if (data.messages[0].user != me) nbPrivNR.value.push(data.id);
 
 	// console.log(`privsRef : `);
@@ -181,10 +177,26 @@ socket.on('newPrivMsg', (data: { msg: MessageDto; id: number }) => {
 	// console.log(`nbr Priv Mesage Not Read = ${nbPrivNR.value}`)
 	if (i != 0) putPrivFirst(i);
 });
+socket.on('newChannelUser', (data: { name: string; user: BasicUserDto }) => {
+	console.log(`New User in channel : ${data.name}`);
+	// let privsTmp = privsRef.value!;
+	// let priv = privsTmp.find(priv => priv.id == data.id);
+	// priv?.messages.push(new Message(data.msg.user, data.msg.msg, new Date(data.msg.date)));
+	// privsRef.value = privsTmp;
+	// ==============
+	// let priv = privs.find(priv => priv.id == data.id);
+	// priv?.messages.push(data.msg);
+	// // ==============
+	let i = chansRef.value.findIndex((chan) => chan.name == data.name);
+	chansRef.value[i].users.push(data.user);
+	chansRef.value[i].readed = false;
+	// if (data.msg.user != me && !nbPrivNR.value.includes(chansRef.value[i].id))
+	// 	nbPrivNR.value.push(chansRef.value[i].id);
+	// console.log(`nbr Priv Mesage Not Read = ${nbPrivNR.value}`)
+	if (i != 0) putChanFirst(i);
+});
 
-// watch(privsRef, () => {
-// 	console.log(`privs changed in homeview`);
-// })
+
 
 function putPrivFirst(index: number) {
 	// if(privsRef.value.length == 1)
@@ -210,6 +222,8 @@ function printPriv(priv: PrivConvDto) {
 }
 
 function printPrivs(privs: PrivConvDto[]) {
+	if (!privs.length)
+		console.log(`privs empty`)
 	privs.forEach((priv: PrivConvDto) => {
 		console.log(`user = ${priv.user.login}`);
 		printPriv(priv);
@@ -299,6 +313,10 @@ socket.on('newChanMsg', (data: { msg: MessageDto; name: string }) => {
 	// console.log(`nbr Priv Mesage Not Read = ${nbChanNR.value}`)
 	if (i != 0) putChanFirst(i);
 });
+
+socket.on("test", () => {
+	console.log(`Message bien recu`);
+})
 
 function putChanFirst(index: number) {
 	if (chansRef.value.length == 2)

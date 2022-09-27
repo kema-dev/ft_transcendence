@@ -55,15 +55,16 @@
 
 <script setup lang="ts">
 	import HTTP from "../components/axios";
-import { inject, defineProps, ref, nextTick, onMounted } from "vue";
+import { inject, defineProps, ref, Ref, nextTick, onMounted } from "vue";
 import { Socket } from "socket.io-client";
 import { useRouter } from "vue-router";
 import WarningMsg from "@/components/WarningMsg.vue";
 import { ChannelTabDto } from "@/chat/dto/ChannelTabDto ";
 import ProfileUserDto from "@/dto/ProfileUserDto";
+import { ChannelDto } from "./dto/ChannelDto";
 
 let colors = inject("colors");
-let me: ProfileUserDto = inject("user")!;
+let me: Ref<ProfileUserDto> = inject("user")!;
 let mySocket: Socket = inject("socket")!;
 let apiPath: string = inject("apiPath")!;
 const router = useRouter();
@@ -78,7 +79,8 @@ let showPsw = ref(false);
 let psw = ref('');
 let input = ref(null);
 const banWarn = ref(false);
-let chanViewPos: DOMRect;
+
+let chansRef : Ref<ChannelDto[]> = inject("chans")!;
 
 function showPswDiv() {
 	showPsw.value = !showPsw.value;
@@ -90,26 +92,35 @@ function showPswDiv() {
 	}
 }
 
-function checkPsw() {
-	// faire le check du password en back ============================================
-	(input.value! as HTMLInputElement).classList.remove("invalidPsw");
-	// setTimeout(() => {
-	//   if (psw.value == props.infos?.psw) {
-	//     router.push({name: 'PrivConv', params: {conv_name: props.infos.name }});
-	//   } else {
-	//     ((input.value!) as HTMLInputElement).classList.add("invalidPsw");
-	//   }
-	// }, 50);
-}
+// function checkPsw() {
+// 	// faire le check du password en back ============================================
+// 	(input.value! as HTMLInputElement).classList.remove("invalidPsw");
+// 	// setTimeout(() => {
+// 	//   if (psw.value == props.infos?.psw) {
+// 	//     router.push({name: 'PrivConv', params: {conv_name: props.infos.name }});
+// 	//   } else {
+// 	//     ((input.value!) as HTMLInputElement).classList.add("invalidPsw");
+// 	//   }
+// 	// }, 50);
+// }
+
 
 function joinChannel() {
-	(input.value! as HTMLInputElement).classList.remove("invalidPsw");
+	if (props.infos.psw)
+		(input.value! as HTMLInputElement).classList.remove("invalidPsw");
+
+	console.log(`test : ${me.value.login}`);
 	HTTP.post(apiPath + "chat/JoinChannel/", {
-		requestor: me.login,
+		requestor: me.value.login,
 		chanName: props.infos.name,
 		psw: props.infos.psw ? psw.value : undefined,
 	})
 		.then((res) => {
+			let newChan = res.data as ChannelDto;
+			newChan.creation = new Date(newChan.creation);
+			newChan.messages.forEach(msg => msg.date = new Date(msg.date));
+			chansRef.value.push(newChan);
+			mySocket.emit("newChannelUser", {chanName: props.infos.name, login: me})
 			router.push({name: 'ChanConv', params: {conv_name: props.infos.name }});
 		})
 		.catch((e) => {
@@ -122,34 +133,29 @@ function joinChannel() {
 			}
 		});
 
-	// if (props.infos.psw) {
-	// 	checkPsw();
-	// } else { 
-	// 	mySocket.emit("JoinChannel", props.infos.name, me.login)
-	// 	router.push({name: 'ChanConv', params: {conv_name: props.infos.name }});
-	// }
 }
 
 
 onMounted(() => {
-	chanViewPos = document
-		.getElementById("channel_view")!
-		.getBoundingClientRect()!;
-	console.log(
-		"height = ",
-		chanViewPos.height,
-		"width = ",
-		chanViewPos.width,
-		"top = ",
-		chanViewPos.top,
-		"right = ",
-		chanViewPos.right,
-		"bottom = ",
-		chanViewPos.bottom,
-		"left = ",
-		chanViewPos.left
-	);
+	// chanViewPos = document
+	// 	.getElementById("channel_view")!
+	// 	.getBoundingClientRect()!;
+	// console.log(
+	// 	"height = ",
+	// 	chanViewPos.height,
+	// 	"width = ",
+	// 	chanViewPos.width,
+	// 	"top = ",
+	// 	chanViewPos.top,
+	// 	"right = ",
+	// 	chanViewPos.right,
+	// 	"bottom = ",
+	// 	chanViewPos.bottom,
+	// 	"left = ",
+	// 	chanViewPos.left
+	// );
 });
+
 </script>
 
 <style scoped>

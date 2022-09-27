@@ -1,5 +1,5 @@
 <template>
-	<div id="conversation_view" class="stack">
+	<div  id="conversation_view" class="stack">
 		<div class="userTopBar center raw space-between">
 			<div class="avatar_cont center">
 				<img :src="receiver.avatar" class="avatar" alt="avatar" />
@@ -93,30 +93,51 @@ import {
 } from "vue";
 import { useRoute } from "vue-router";
 import { Socket } from "socket.io-client";
+import HTTP from "../components/axios";
 import MessageItem from "@/chat/MessageItem.vue";
 import WarningMsg from "@/components/WarningMsg.vue";
 import { NewPrivMsgDto } from "@/chat/dto/NewPrivMsgDto";
 import { PrivConvDto } from "@/chat/dto/PrivConvDto";
 import { BasicUserDto } from "./dto/BasicUserDto";
 
+
+// =============== INIT
+
 let colors = inject("colors");
 let mySocket: Socket = inject("socket")!;
 let me: string = inject("me")!;
+let apiPath: string = inject("apiPath")!;
 const userName = useRoute().params.conv_name as string;
-let receiver: BasicUserDto = new BasicUserDto(userName);
-let privs: Ref<PrivConvDto[]> | undefined = inject("privs");
+
+// ==== RECEIVER
+let receiver = new BasicUserDto(userName, require("@/assets/avatars/(1).jpg"));
+// let receiver: BasicUserDto;
+// let avatDone = ref(false);
+// HTTP.get(apiPath + "user/getBasicUser/" + userName)
+// 	.then(res => { receiver = res.data; avatDone.value = true; })
+// 	.catch(e => console.log(e));
+
+// ==== PRIV
+let privsRef: Ref<PrivConvDto[]> = inject("privs")!;
 let markReaded: (index: number, readed: boolean) => void =
 	inject("markReaded")!;
 let index = ref(-1);
-if (privs?.value.length) {
-	index.value = privs!.value.findIndex((priv) => priv.user.login == userName);
-	if (
-		index.value != -1 &&
-		privs.value[index.value].messages.at(-1)?.user != me
-	) {
-		mySocket.emit("privReaded", { userSend: userName, userReceive: me });
-		markReaded(index.value, true);
+if (privsRef?.value.length) {
+	index.value = privsRef!.value.findIndex((priv) => priv.user.login == userName);
+	if (index.value != -1) {
+		receiver = privsRef.value[index.value].user;
+		if (privsRef.value[index.value].messages.at(-1)?.user != me) {
+			mySocket.emit("privReaded", { userSend: userName, userReceive: me });
+			markReaded(index.value, true);
+		}
 	}
+	// if (
+	// 	index.value != -1 &&
+	// 	privs.value[index.value].messages.at(-1)?.user != me
+	// ) {
+	// 	mySocket.emit("privReaded", { userSend: userName, userReceive: me });
+	// 	markReaded(index.value, true);
+	// }
 }
 const privDone: Ref<boolean> = inject("privDone")!;
 // let p : {privs: Ref<PrivConv[]>, (index : number, readed: boolean) : void } | undefined = inject("privsPackage");
@@ -151,7 +172,7 @@ function banUser() {
 }
 
 function selectPriv() {
-	let priv = privs?.value.find((priv) => priv.user.login == userName);
+	let priv = privsRef?.value.find((priv) => priv.user.login == userName);
 	return priv;
 }
 
@@ -208,14 +229,15 @@ let oldNbMsg = -1;
 let newMsg = false;
 
 onBeforeUpdate(() => {
-	if (privs?.value.length)
-		index.value = privs!.value.findIndex((priv) => priv.user.login == userName);
+	// Find index of PrivsRef and get receiver
+	if (privsRef?.value.length && index.value == -1) 
+		index.value = privsRef!.value.findIndex((priv) => priv.user.login == userName);
 	if (
 		index.value != -1 &&
-		oldNbMsg != privs!.value[index.value].messages.length
+		oldNbMsg != privsRef!.value[index.value].messages.length
 	) {
 		newMsg = true;
-		oldNbMsg = privs!.value[index.value].messages.length;
+		oldNbMsg = privsRef!.value[index.value].messages.length;
 	} else newMsg = false;
 	let oldScrollTop = (msgsCont.value! as HTMLElement).scrollTop;
 	let oldScrollHeight = (msgsCont.value! as HTMLElement).scrollHeight;
@@ -230,16 +252,17 @@ onUpdated(() => {
 			msgsCont.value! as HTMLElement
 		).scrollHeight;
 	}
-	if (newMsg && privs!.value[index.value].messages.at(-1)?.user != me) {
+	if (newMsg && privsRef!.value[index.value].messages.at(-1)?.user != me) {
 		mySocket.emit("privReaded", { userSend: userName, userReceive: me });
 		markReaded(index.value, true);
 	}
 });
 
 onMounted(() => {
-	(msgsCont.value! as HTMLElement).scrollTop = (
-		msgsCont.value! as HTMLElement
-	).scrollHeight;
+	if (msgsCont.value)
+		(msgsCont.value! as HTMLElement).scrollTop = (
+			msgsCont.value! as HTMLElement
+		).scrollHeight;
 	document.getElementById("sendbox")?.focus();
 	const box = document.getElementById("privateTabText");
 	if (box != null) box.classList.add("chatTabActive");
