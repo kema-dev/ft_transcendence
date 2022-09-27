@@ -19,7 +19,7 @@
 				</div>
 			</div>
 			<div class="more">
-				<div class="match_detail"></div>
+				<div class="match_detail_first"></div>
 				<div
 					class="list">
 				<div
@@ -29,17 +29,17 @@
 				>
 					<div class="space-between fit_match">
 						<img :src="avatar[i - 1]" class="avatar" />
-						<div class="info center row space-around">
+						<div class="info_details center row space-around">
 							<div class="row center">
-								<h1 class="player_login">{{ props.match.players[i - 1] }}</h1>
+								<h1 class="player_login">{{ get_player_name(props.match.players[i - 1]) }}</h1>
 							</div>
 							<div class="row center">
 								<img class="podium icon" src="@/assets/svg/leaderboard.svg" />
-								<h1 class="number">{{ props.match.ranks[i - 1] }}</h1>
+								<h1 class="number_details">{{ props.match.ranks[i - 1] }}</h1>
 							</div>
 							<div class="row center">
-								<img class="icon" src="@/assets/svg/heart.svg" />
-								<h1 class="number">{{ props.match.scores[i - 1] }}</h1>
+								<img class="icon small_icon" src="@/assets/svg/heart.svg" />
+								<h1 class="number_details">{{ props.match.scores[i - 1] }}</h1>
 							</div>
 						</div>
 					</div></div>
@@ -92,6 +92,14 @@ async function get_avatars() {
 	}
 }
 
+function get_player_name(player: string) {
+	// send max 5 char
+	if (player.length > 6) {
+		return player.substring(0, 6) + '.';
+	}
+	return player;
+}
+
 onMounted(async () => {
 	await get_avatars();
 });
@@ -114,7 +122,7 @@ onMounted(async () => {
 	border-left: 0;
 	background-color: v-bind('define.color0');
 	z-index: 10;
-	margin-bottom: v-bind("size * 50 + 'px'");
+	margin-bottom: v-bind("size ? (size - 1) * 55 + 'px' : 0");
 	cursor: pointer;
 	transition: all ease-in-out 0.2s;
 }
@@ -129,18 +137,26 @@ onMounted(async () => {
 	width: calc(100% - 60px);
 	height: 60px;
 }
+.info_details {
+	width: calc(100% - 50px);
+	height: 50px;
+}
 .more {
 	position: absolute;
 	z-index: 1;
 	top: 0;
-	height: v-bind("size * 50 + 60 + 'px'");
+	height: v-bind("size ? fit-content : 60 + 'px'");
 	border: 3px v-bind('define.color2') solid;
 	border-radius: 30px;
 	background-color: v-bind('define.color2');
 	transition: all ease-in-out 0.2s;
 }
 .number {
-	font-size: clamp(1px, 150%, 10rem);
+	font-size: clamp(1px, 120%, 8rem);
+}
+.number_details {
+	font-size: clamp(1px, 120%, 8rem);
+	margin-left: -8px;
 }
 .icon {
 	/* height: clamp(10px, 10%, 40px); */
@@ -157,7 +173,15 @@ onMounted(async () => {
 	border-radius: 100px;
 	border: 3px v-bind('define.color2') solid;
 	background-color: v-bind('define.color0');
-	margin-bottom: 10px;
+	margin-bottom: 5px;
+}
+.match_detail_first {
+	height: 50px;
+	width: 100%;
+	border-radius: 100px;
+	border: 3px v-bind('define.color2') solid;
+	background-color: v-bind('define.color0');
+	margin-bottom: 12px;
 }
 .avatar {
 	border-radius: 100%;
@@ -169,6 +193,9 @@ onMounted(async () => {
 	height: 42px;
 }
 .player_login {
-	font-size: clamp(1px, 150%, 10rem);
+	font-size: clamp(1px, 120%, 8rem);
+}
+.small_icon {
+	height: 30px !important;
 }
 </style>
