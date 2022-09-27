@@ -2,7 +2,8 @@
 
 ## ongoing
 
-* make details page for each match upon clicking (old open function)
+* match details : name / rank / score
+* order players by rank
 
 ## later
 
