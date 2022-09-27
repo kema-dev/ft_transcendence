@@ -9,6 +9,7 @@
 		<input id="none" type="file" />
 		<!-- <h2 class="info">{{ user.rank }}</h2> -->
 		<h1 id="name">{{ me?.login }}</h1>
+		<h2 class="rank_txt">Average rank: Top {{ user_ratio_rounded }}%</h2>
 		<!-- <h2 class="info" style="margin-bottom: 40px">level {{ me?.level }}</h2> -->
 		<h2>Match history</h2>
 		<MatchItem
@@ -38,6 +39,7 @@ var ProgressBar = require('progressbar.js');
 // console.log('me:', me?.value);
 
 let user_ratio = ref(0.5);
+let user_ratio_rounded = ref(0.5);
 let user_history = ref([]);
 
 // let user = {
@@ -92,6 +94,7 @@ onMounted(async () => {
 		login: me?.value?.login,
 	}).then((res) => {
 		user_ratio.value = res.data;
+		user_ratio_rounded.value = Math.round(res.data * 100);
 	});
 	bar.animate(user_ratio.value);
 	await API.post('/match/get_user_history', {
@@ -142,11 +145,15 @@ function change_avatar() {
 	display: none;
 }
 #name {
-	margin-top: -5px;
+	margin-top: -20px;
 	/* margin-bottom: -5px; */
 	font-size: 200%;
 }
 .info {
 	font-size: 100%;
+}
+.rank_txt {
+	margin-top: 10px;
+	margin-bottom: 10px;
 }
 </style>
