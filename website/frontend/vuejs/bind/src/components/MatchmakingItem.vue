@@ -6,10 +6,21 @@
 		<div id="game_pos">
 			<GameItem :key="remount" />
 		</div>
-		<div v-if="!isCreate" class="center column" id="settings">
-			<button class="start" v-on:click="create">create</button>
+		<div v-if="!isCreate && !isJoin" class="center column" id="settings">
+			<h1>Create or join</h1>
+			<h2>Create or join a game</h2>
+			<div class="center row">
+				<button class="start" v-on:click="create()">create</button>
+				<button class="start" v-on:click="join()">join</button>
+			</div>
 		</div>
-		<div class="center column" id="settings" v-else-if="!start">
+		<div v-else-if="isJoin">
+				<h1>test</h1>
+			<div v-for="lobbie in lobbies" :key="lobbie.lobby_name">
+				<h1>test1</h1>
+			</div>
+		</div>
+		<div class="center column" id="settings" v-else-if="!start && isCreate">
 			<h1>{{ nbrPlayer }}</h1>
 			<h2 class="title">Players</h2>
 			<div class="center row">
@@ -27,7 +38,7 @@
 </template>
 
 <script setup lang="ts">
-import { inject, onMounted, provide, ref } from 'vue';
+import { inject, onMounted, onUnmounted, provide, ref } from 'vue';
 import GameItem from '@/components/GameItem.vue';
 import LobbyListItem from '@/components/LobbyListItem.vue';
 import { Socket } from 'socket.io-client';
@@ -38,11 +49,13 @@ const toast = useToast();
 let define = inject('colors');
 let start = ref(false);
 let isCreate = ref(false);
+let isJoin = ref(false);
 provide('playing', start);
 provide('create', isCreate);
 let socket: Socket = inject('socket')!;
 const $cookies = inject<VueCookies>('$cookies');
 let remount = ref(false);
+let lobbies = ref([]);
 
 let nbrPlayer = ref(6);
 let nbrBall = ref(3);
@@ -50,8 +63,12 @@ let players = ref([$cookies.get('login')]);
 let lobby_name = ref($cookies.get('login') + "'s lobby");
 const owner = ref($cookies.get('login'));
 
+socket.on('lobby_list', (data: any) => {
+	lobbies.value = data;
+});
+socket.emit('lobby_list');
+
 function players_update() {
-	socket.off('player_update');
 	console.log('player_update started');
 	socket.on('player_update', (data: any) => {
 		console.log('player_update: ' + data);
@@ -60,7 +77,6 @@ function players_update() {
 		update_game();
 	});
 }
-
 function update_game() {
 	create();
 	remount.value = !remount.value;
@@ -80,6 +96,9 @@ function create() {
 		owner: owner.value,
 	});
 	isCreate.value = true;
+}
+function join() {
+	isJoin.value = true;
 }
 function incr() {
 	if (nbrPlayer.value + 1 <= 7) {
@@ -125,6 +144,11 @@ onMounted(() => {
 	// 	reload++;
 	// })
 });
+onUnmounted(() => {
+	socket.off('player_update');
+	socket.off('reload_game');
+	socket.off('lobby_list');
+});
 </script>
 
 <style scoped>
@@ -157,7 +181,9 @@ onMounted(() => {
 	background-color: v-bind('define.color2');
 	border-radius: 10px;
 	color: v-bind('define.color0');
-	width: 4.5rem;
-	height: 1.5rem;
+	font-size: 18px;
+	width: 7rem;
+	height: 1.8rem;
+	margin: 1rem 0.5rem;
 }
 </style>
