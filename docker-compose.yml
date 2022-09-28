@@ -73,8 +73,8 @@ services:
       echo \"POSTGRES_PORT=${POSTGRESQL_PORT}\\nPOSTGRES_USER=${POSTGRESQL_USERNAME}\\nPOSTGRES_PASSWORD=${POSTGRESQL_PASSWORD}\\nPOSTGRES_DB=${POSTGRESQL_DATABASE}\\nJWT_MAX_AGE=${JWT_MAX_AGE}\\nJWT_SECRET=`date +%s%N | cut -b10-19 | md5sum | head -c 20`\\nAPI_42_UID=${API_42_UID}\\nAPI_42_SECRET=${API_42_SECRET}\\nAPI_42_REDIRECT_URI=${API_42_REDIRECT_URI}\\nFQDN=${FQDN}\" > .env && \
       mkdir -p /secrets && \
       openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /secrets/key.pem -out /secrets/cert.pem -subj \"/C=FR/ST=France/L=Paris/O=42/OU=42/CN=ft_transcendence\" && \
-      chown $USER:$USER /secrets/key.pem && \
-      chown $USER:$USER /secrets/cert.pem && \
+      chmod 777 /secrets/key.pem && \
+      chmod 777 /secrets/cert.pem && \
       npm config set fund false && \
       npm install && \
       npm run ${NEST_PHASE} \
@@ -106,10 +106,9 @@ services:
     command: "sh -c '\
       echo \"{\\\"API_42_UID\\\":\\\"$API_42_UID\\\",\\\"API_42_REDIRECT_URI\\\":\\\"$API_42_REDIRECT_URI\\\",\\\"FQDN\\\":\\\"$FQDN\\\"}\" > .env.json && \
       mkdir -p /secrets && \
-      chmod -R 777 /secrets && \
       openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /secrets/key.pem -out /secrets/cert.pem -subj \"/C=FR/ST=France/L=Paris/O=42/OU=42/CN=ft_transcendence\" && \
-      chown $USER:$USER /secrets/key.pem && \
-      chown $USER:$USER /secrets/cert.pem && \
+      chown 1000:1000 /secrets/key.pem && \
+      chown 1000:1000 /secrets/cert.pem && \
       yarn install --ignore-engines && \
       yarn run ${VUE_PHASE} \
       '"
