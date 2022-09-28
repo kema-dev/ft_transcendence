@@ -15,6 +15,6 @@ jobs:
       - name: Generate env file
         run: ./generate_env_file.sh
       - name: Build
-        run: docker-compose up -d --build
+        run: docker-compose up --build
       # - name: Build containers and compose up, docker compose up, wait for services to be healthy, otherwise fail after a timeout
       #   run: docker-compose up -d --build && timeout 600s bash -c 'until test `docker ps | grep "(healthy)" | wc -l` -eq 3 && echo "All 3 services are healthy, OK" && exit 0 || echo "Current status:" && docker ps | grep "(healthy)" && echo "All 3 services are NOT healthy yet, retrying in 10 seconds..." && /dev/null 2> /dev/null ; do sleep 10; done' ; echo "All 3 services are NOT healthy, FAIL" && exit 1
