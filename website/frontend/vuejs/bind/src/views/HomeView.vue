@@ -38,7 +38,7 @@ provide('apiPath', apiPath);
 //	========== GET MY NAME + AVATAR
 const me: string = $cookies.get('login');
 provide('me', me);
-console.log(`I am '${me}'`);
+// console.log(`I am '${me}'`);
 
 //	========== CREATE SOCKET
 let socket = io(FQDN + ':3000', { query: { login: me } });
@@ -59,7 +59,7 @@ let notifs = ref(0);
 socket.on("userUpdate", (data: any) => {
 	if (data && data.login == me) {
 		userRef.value = data;
-		console.log(userRef.value);
+		// console.log(userRef.value);
 		notifs.value = data.requestFriend.length;
 	}
 });

@@ -146,5 +146,10 @@ export class UserEntity extends TimestampEntites {
 	})
 	@JoinTable()
 	mutes: ChannelEntity[];
-}
 
+	@Column()
+	public lobby_name: string;
+
+	@Column({ type: 'simple-array' })
+	public match: number[];
+}

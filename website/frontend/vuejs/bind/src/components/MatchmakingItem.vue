@@ -1,20 +1,15 @@
 <template>
 	<div class="stack" id="page">
 		<div id="lobbies_menu">
-			<LobbyListItem />
+			<LobbyListItem :isCreate="isCreate" :start="start" />
 		</div>
 		<div id="game_pos">
-			<GameItem
-				:nbrPlayer="nbrPlayer"
-				:nbrBall="nbrBall"
-				:players="players"
-				:lobby_name="lobby_name"
-				:start="start"
-				:owner="owner"
-				:key="remount"
-			/>
+			<GameItem :key="remount" />
 		</div>
-		<div class="center column" id="settings" v-show="!start">
+		<div v-if="!isCreate" class="center column" id="settings">
+			<button class="start" v-on:click="create">create</button>
+		</div>
+		<div class="center column" id="settings" v-else-if="!start">
 			<h1>{{ nbrPlayer }}</h1>
 			<h2 class="title">Players</h2>
 			<div class="center row">
@@ -42,7 +37,9 @@ const toast = useToast();
 
 let define = inject('colors');
 let start = ref(false);
+let isCreate = ref(false);
 provide('playing', start);
+provide('create', isCreate);
 let socket: Socket = inject('socket')!;
 const $cookies = inject<VueCookies>('$cookies');
 let remount = ref(false);
@@ -55,7 +52,7 @@ const owner = ref($cookies.get('login'));
 
 function players_update() {
 	socket.off('player_update');
-	console.log('player_update started');
+	// console.log('player_update started');
 	socket.on('player_update', (data: any) => {
 		console.log('player_update: ' + data);
 		players.value = data;
@@ -65,14 +62,24 @@ function players_update() {
 }
 
 function update_game() {
+	create();
 	remount.value = !remount.value;
-	console.log('updated settings');
 }
 function launch() {
 	start.value = !start.value;
 	socket.emit('start', {
 		lobby_name: lobby_name.value,
 	});
+}
+function create() {
+	socket.emit('newRoom', {
+		nbrBall: nbrBall.value,
+		nbrPlayer: nbrPlayer.value,
+		players: players.value,
+		lobby_name: lobby_name.value,
+		owner: owner.value,
+	});
+	isCreate.value = true;
 }
 function incr() {
 	if (nbrPlayer.value + 1 <= 7) {
@@ -111,6 +118,9 @@ onMounted(() => {
 	let game = document.getElementById('container');
 	let settings = document.getElementById('settings');
 	if (game && settings) settings.style.height = game.offsetHeight + 'px';
+	socket.on('reload_game', () => {
+		remount.value = !remount.value;
+	});
 	// window.addEventListener("resize", () => {
 	// 	reload++;
 	// })

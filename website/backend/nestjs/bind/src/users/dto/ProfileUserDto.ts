@@ -7,6 +7,7 @@ export class ProfileUserDto {
 		this.level = user.level;
 		this.avatar = user.avatar;
 		this.status = user.status;
+		this.lobby_name = user.lobby_name;
 		if (!user.status)
 			this.status = "offline";
 		this.ratio = user.ratio;
@@ -28,6 +29,7 @@ export class ProfileUserDto {
 	ratio: string;
 	requestFriend: ResumUserDto[];
 	friends: ResumUserDto[];
+	lobby_name: string;
 }
 
 export default ProfileUserDto;

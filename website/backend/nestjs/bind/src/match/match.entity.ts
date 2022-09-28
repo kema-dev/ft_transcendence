@@ -1,28 +1,37 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import {
+	Column,
+	Entity,
+	PrimaryGeneratedColumn,
+	CreateDateColumn,
+} from 'typeorm';
 
 @Entity('match')
 export class MatchEntity {
 	@PrimaryGeneratedColumn()
-	public id?: number;
+	id: number;
+
+	@CreateDateColumn()
+	creation_date?: Date;
 
 	@Column()
-	public nbrPlayer: number;
+	player_count: number;
 
 	@Column()
-	public nbrBall: number;
+	ball_count: number;
+
+	@Column()
+	lobby_name: string;
+
+	@Column()
+	owner: string;
 
 	@Column({ type: 'simple-array' })
-	public players: Array<string>;
+	players: string[];
 
-	@Column()
-	public start: boolean;
+	@Column({ type: 'simple-array' })
+	scores: number[];
 
-	@Column({ unique: true })
-	public lobby_name: string;
-
-	@Column()
-	public open: boolean;
-
-	@Column()
-	public owner: string;
+	@Column({ type: 'simple-array' })
+	ranks: number[];
 }
