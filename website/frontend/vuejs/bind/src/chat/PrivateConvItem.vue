@@ -2,9 +2,11 @@
 	<div  id="conversation_view" class="stack">
 		<div class="userTopBar center raw space-between">
 			<div class="avatar_cont center">
-				<img :src="receiver.avatar" class="avatar" alt="avatar" />
+				<img v-if="selectPriv()" :src="privsRef[index].user.avatar" 
+					class="avatar" alt="avatar"
+				/>
 			</div>
-			<button @click="toProfile" class="login">{{ receiver!.login }}</button>
+			<button @click="toProfile" class="login">{{ userName }}</button>
 			<div class="option_buttons center raw stack">
 				<button @click="inviteGame" class="button_cont center">
 					<span class="infoButtonText">Invite in room</span>
@@ -36,7 +38,7 @@
 			<div id="messages_cont" ref="msgsCont" class="messages">
 				<div v-if="privDone && selectPriv()">
 					<div
-						v-for="(message, i) in selectPriv()!.messages"
+						v-for="(message, i) in privsRef[index].messages"
 						:key="i"
 						class="center column"
 					>
@@ -84,7 +86,7 @@
 import {
 	inject,
 	onMounted,
-	onUnmounted,
+	watch,
 	ref,
 	Ref,
 	onBeforeUnmount,
@@ -108,14 +110,8 @@ let mySocket: Socket = inject("socket")!;
 let me: string = inject("me")!;
 let apiPath: string = inject("apiPath")!;
 const userName = useRoute().params.conv_name as string;
+let receiver : BasicUserDto;
 
-// ==== RECEIVER
-let receiver = new BasicUserDto(userName, require("@/assets/avatars/(1).jpg"));
-// let receiver: BasicUserDto;
-// let avatDone = ref(false);
-// HTTP.get(apiPath + "user/getBasicUser/" + userName)
-// 	.then(res => { receiver = res.data; avatDone.value = true; })
-// 	.catch(e => console.log(e));
 
 // ==== PRIV
 let privsRef: Ref<PrivConvDto[]> = inject("privs")!;
@@ -131,30 +127,17 @@ if (privsRef?.value.length) {
 			markReaded(index.value, true);
 		}
 	}
-	// if (
-	// 	index.value != -1 &&
-	// 	privs.value[index.value].messages.at(-1)?.user != me
-	// ) {
-	// 	mySocket.emit("privReaded", { userSend: userName, userReceive: me });
-	// 	markReaded(index.value, true);
-	// }
 }
 const privDone: Ref<boolean> = inject("privDone")!;
-// let p : {privs: Ref<PrivConv[]>, (index : number, readed: boolean) : void } | undefined = inject("privsPackage");
-// printPrivs(privs.value);
-// let privRef : Ref<PrivConv> | undefined;
-// if (privs) {
-// }
 
-// let priv = privs.value.find(priv => priv.user.login == userName);
-// let privRef = ref(priv);
-// let privRef = ref(privs.value.find(priv => priv.user.login == userName));
-// let privRef = privs.value.find(priv => priv.user.login == userName);
-
-// printPriv(privRef.value);
-
-// console.log("Priv debut PrivConvItem :")
-// printPriv(priv);
+// ==== RECEIVER
+if (privDone && index.value == -1)
+	receiver = new BasicUserDto(userName, require("@/assets/avatars/(1).jpg"));
+// let receiver: BasicUserDto;
+// let avatDone = ref(false);
+// HTTP.get(apiPath + "user/getBasicUser/" + userName)
+// 	.then(res => { receiver = res.data; avatDone.value = true; })
+// 	.catch(e => console.log(e));
 
 let myMsg = ref("");
 let blockWarn = ref(false);
@@ -223,6 +206,10 @@ function displayDate(date: Date, i: number) {
 }
 
 // ====================== LIFECYCLES HOOKS ======================
+
+// watch(privDone, () => {
+	
+// });
 
 let scroll = true;
 let oldNbMsg = -1;

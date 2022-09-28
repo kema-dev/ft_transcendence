@@ -14,7 +14,7 @@ import { inject, ref } from "vue";
 import io from "socket.io-client"
 import { VueCookies } from "vue-cookies";
 import { Socket } from "socket.io-client";
-
+import { useRoute } from "vue-router";
 import HTTP from "../components/axios";
 import { FQDN } from "../../.env.json";
 import MatchmakingItem from '@/components/MatchmakingItem.vue';
@@ -26,13 +26,16 @@ import { MessageDto } from "@/chat/dto/MessageDto";
 import { BasicUserDto } from "@/chat/dto/BasicUserDto";
 import { processExpression } from "@vue/compiler-core";
 import ProfileUserDto from "@/dto/ProfileUserDto";
+import { routeLocationKey } from "vue-router";
+import { NewChanMsgDto } from "@/chat/dto/NewChanMsgDto";
 
 
-//  ========== COOKIES + APIPATCH
+//  ========== COOKIES + APIPATCH + ROUTE
 
 const $cookies = inject<VueCookies>('$cookies')!;
 const apiPath = FQDN + ':3000/api/v1/';
 provide('apiPath', apiPath);
+const route = useRoute()
 
 //	========== GET MY NAME + AVATAR
 
@@ -137,7 +140,10 @@ socket.on('newPrivMsg', (data: { msg: MessageDto; id: number }) => {
 	privsRef.value[i].messages.push(
 		new MessageDto(data.msg.user, data.msg.msg, new Date(data.msg.date)));
 	privsRef.value[i].readed = false;
-	if (data.msg.user != me && !nbPrivNR.value.includes(privsRef.value[i].id))
+	console.log(`route.path = ${route.path}\nroute.fullPath = ${route.fullPath}`)
+	if (data.msg.user != me 
+		&& !nbPrivNR.value.includes(privsRef.value[i].id)
+		&& route.path != "/home/chat/private/" + data.msg.user)
 		nbPrivNR.value.push(privsRef.value[i].id);
 	if (i != 0) putPrivFirst(i);
 });
