@@ -1,5 +1,4 @@
 <template>
-	<!-- <div v-if="initReqDone" id="private_view" class="center column"> -->
 	<div v-if="privDone" id="private_view" class="center column">
 		<div class="toBarCont center raw stack">
 			<SearchItem v-model:search="search" />
@@ -40,10 +39,13 @@
 			</h2>
 		</div>
 		<div v-if="newMsg" class="newMsgResults">
-			<div v-if="privsFiltred.length > 0" class="knownPeople left column">
+			<div v-if="userDone
+				&& knownPeople?.length" 
+				class="knownPeople left column"
+			>
 				<h2 class="typeUsers">Friends/conversations</h2>
 				<router-link
-					v-for="(data, i) in knownPeople()"
+					v-for="(data, i) in knownPeople"
 					:key="i"
 					:to="{ name: 'PrivConv', params: { conv_name: data.login } }"
 				>
@@ -63,8 +65,9 @@
 					<BasicProfil :avatar="data.avatar" :login="data.login" />
 				</router-link>
 			</div>
-			<h2 v-if="privsFiltred.length == 0 && search.length == 0">
-				No conversation yet, search for a new one !
+			<h2 v-if="privsFiltred.length == 0 && search.length == 0
+				&& me.friends.length == 0">
+				No conversation/friend yet, search for a new one !
 			</h2>
 			<h2 v-if="userServReqDone && search.length > 0 && !serverUsers?.length">
 				No results
@@ -93,53 +96,71 @@ import { Socket } from "socket.io-client";
 import HTTP from "../components/axios";
 import { PrivConvDto } from "@/chat/dto/PrivConvDto";
 import { ProfileUserDto } from "@/dto/ProfileUserDto"
+import ResumUserDto from "@/dto/ResumUserDto";
 
 // INJECTS
 let colors = inject("colors");
 let me: Ref<ProfileUserDto> = inject("user")!;
+let userDone : Ref<boolean> = inject("userDone")!;
 let mySocket: Socket = inject("socket")!;
 let apiPath: string = inject("apiPath")!;
 
-// let privs : Ref<PrivConvDto[]> = inject("privs")!;
-// let nbPrivNR : { n: Ref<number[]>, reset: () => void} = inject("nbPrivNR")!;
+// REFS COMPONENTS
+const search = ref("");
+const newMsg = ref(false);
+let userServReqDone = ref(false);
+
+// PRIVSREFS
 let privsRef: Ref<PrivConvDto[]> = inject("privs")!;
 let nbPrivNR: { n: Ref<number[]>; reset: () => void } = inject("nbPrivNR")!;
 let privsFiltred = ref(privsRef.value);
 const privDone: Ref<boolean> = inject("privDone")!;
+let knownPeople = ref<BasicUserDto[]>();
+if (privDone.value && userDone.value)
+	knownPeople = ref(setKnownPeople());
 let serverUsers = ref<BasicUserDto[]>();
-// let knownPeople = ref<BasicUserDto[]>();
 
-const search = ref("");
-const newMsg = ref(false);
-let userServReqDone = ref(false);
+
 
 if (privsRef.value.length) {
 	nbPrivNR.reset();
 }
 
 watch(privDone, () => {
-	// console.log(`privDone = ${privDone.value}`);
 	privsFiltred.value = privsRef.value;
-
+	if (userDone.value)
+		knownPeople.value = setKnownPeople();
 	nbPrivNR.reset();
 });
+
+watch(userDone, () => {
+	if (privDone.value)
+		knownPeople.value = setKnownPeople();
+})
 
 onUpdated(() => {
 	if (nbPrivNR.n.value.length) nbPrivNR.reset();
 });
 
-function knownPeople() {
-	let convs = privsRef.value
-		.map(p => new BasicUserDto(p.user.login, p.user.avatar))
-	let friends = me.value.friends.map(f => new BasicUserDto(f.login, f.avatar));
-	friends = friends.filter(f => {
-		let notIn = true;
-		for (let conv of convs)
-			if (conv.login == f.login)
-				notIn = false;
-		if (f.login.startsWith(search.value) && notIn)
-			return new BasicUserDto(f.login, f.avatar);
-	})
+function setKnownPeople() {
+	// console.log(`setKnowPeople`);
+	let convs : BasicUserDto[] = [];
+	if (privsFiltred.value) {
+		convs = privsFiltred.value
+			.map(p => new BasicUserDto(p.user.login, p.user.avatar))
+	}
+	let friends : BasicUserDto[] = [];
+	if (me.value) {
+		friends = me.value.friends.map(f => new BasicUserDto(f.login, f.avatar));
+		friends = friends.filter(f => {
+			let notIn = true;
+			for (let conv of convs)
+				if (conv.login == f.login)
+					notIn = false;
+			if (f.login.startsWith(search.value) && notIn)
+				return new BasicUserDto(f.login, f.avatar);
+		})
+	}
 	return convs.concat(friends);
 }
 
@@ -150,15 +171,11 @@ watch(search, () => {
 			.toUpperCase()
 			.startsWith(search.value.toUpperCase());
 	});
-	// if (newMsg.value) {
-	// 	friendsFiltred.value = me.friends.filter(function(value) {
-	// 		return value.login.toUpperCase().startsWith(search.value.toUpperCase());
-	// 	});
-	// }
+
 	if (newMsg.value) {
-		if (search.value != "") {
+		knownPeople.value = setKnownPeople();
+		if (search.value != "")
 			getServerUsers();
-		}
 	}
 });
 
@@ -173,10 +190,10 @@ function getServerUsers() {
 }
 
 function filterServerUsers() {
-	serverUsers.value = serverUsers.value!.filter((user, i) => {
+	serverUsers.value = serverUsers.value!.filter((user) => {
 		let isAlreadyKnow = true;
-		for (let priv of privsFiltred.value) {
-			if (priv.user.login == user.login) {
+		for (let people of knownPeople.value) {
+			if (people.login == user.login) {
 				isAlreadyKnow = false;
 				break;
 			}
