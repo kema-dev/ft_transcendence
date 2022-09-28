@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
 	SubscribeMessage,
 	WebSocketGateway,
@@ -31,22 +30,20 @@ import { MatchDto } from 'src/match/match.dto';
 	},
 })
 export class AppGateway
-	implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
-{
+	implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
 	@WebSocketServer() server: Server;
-	game: Game[] = [];
+	games: Game[] = [];
 	private logger: Logger = new Logger('AppGateway');
 
 	constructor(
 		private readonly chatService: ChatService,
 		private readonly userService: UsersService,
-	) {}
+	) { }
 
 	// =========================== GENERAL ==================================
 
 	// Connection
 	async handleConnection(@ConnectedSocket() client: Socket) {
-		console.log(`Client connected : ${client.id}`);
 		console.log('query = ', client.handshake.query.login);
 		let login = client.handshake.query.login as string;
 		await this.userService.saveSocket(login, client.id);
@@ -57,26 +54,28 @@ export class AppGateway
 	async handleDisconnect(client: Socket) {
 		this.logger.log(`Client disconnected: ${client.id}`);
 		// console.log("query = ", client.handshake.query.login);
-		const usr = await this.userService.getByLogin(
+		const user = await this.userService.getByLogin(
 			client.handshake.query.login as string,
 		);
-		for (let i = 0; i < this.game.length; i++) {
-			for (let j = 0; j < this.game[i].players.length; j++) {
-				if (this.game[i].players[j].login == usr.login) {
-					this.game[i].players.splice(j, 1);
-					if (this.game[i].players.length < 1) {
-						this.game[i].destructor();
-						this.game.splice(i, 1);
-						break;
-					}
-					if (this.game[i].owner == usr.login) {
-						this.game[i].destructor();
-						this.game.splice(i, 1);
-						continue;
-					}
-				}
-			}
+		if (!user) return;
+		let game = this.games.find((game) => game.lobby_name === user.lobby_name);
+		if (!game) return;
+		game.destructor();
+		if (game.players.length - 1 > 0) {
+			let newGame = new Game(
+				game.nbrPlayer - 1,
+				game.nbrBall,
+				this.server,
+				game.players.filter((player) => player.login !== user.login),
+				game.lobby_name,
+				game.owner,
+				game.img,
+			);
+			this.games.push(newGame);
+			this.server.to(newGame.sockets).emit('reload_game');
 		}
+		console.log('game destroyed');
+		this.games.splice(this.games.indexOf(game), 1);
 	}
 
 	// ============================ GAME =====================================
@@ -89,68 +88,95 @@ export class AppGateway
 	// }
 	@SubscribeMessage('setMov')
 	setMov(client: Socket, args: any): void {
-		let game = this.game.find((game) => game.lobby_name === args.lobby_name);
+		console.log('setMov');
+		console.log(args);
+		let game = this.games.find((game) => game.lobby_name === args.lobby_name);
 		if (game) game.setMov(args.mov, args.login);
 	}
-	@SubscribeMessage('newRoom')
-	async newRoom(client: Socket, payload: any): Promise<void> {
-		// this.gameService.games.push(
-		// var game = new Game(payload.nbrPlayer, payload.nbrBall, this.server)
-		// );
-		const array: UserEntity[] = [];
-		for (let i = 0; i < payload.players.length; i++) {
-			array.push(await this.userService.getByLogin(payload.players[i]));
-		}
-		const usr = await this.userService.getByLogin(
-			client.handshake.query.login as string,
+	@SubscribeMessage('newLobby')
+	async newRoom(@MessageBody() data: { login: string, nbrBall: number },
+		@ConnectedSocket() client: Socket): Promise<void> {
+		let user = await this.userService.getByLogin(data.login);
+		if (!user) return;
+		let game = new Game(
+			1,
+			data.nbrBall,
+			this.server,
+			[user],
+			user.login + "'s lobby",
+			user.login,
+			user.avatar
 		);
-		usr.lobby_name = payload.lobby_name;
-		this.userService.saveLobby(
-			client.handshake.query.login as string,
-			payload.lobby_name,
+		this.games.push(game);
+		user.lobby_name = game.lobby_name;
+		this.userService.saveUser(user);
+		this.server.emit('lobbys', this.sendLobbys(this.games));
+	}
+	sendLobbys(games: Game[]) {
+		let lobbys: MatchDto[] = [];
+		games.forEach((game) => {
+			lobbys.push(new MatchDto(game));
+			console.log(game.img, lobbys[lobbys.length - 1].img);
+		});
+		return lobbys;
+	}
+	@SubscribeMessage('look_lobby')
+	async lookLobby(@ConnectedSocket() client: Socket, @MessageBody() data: { login: string, lobby_name: string },) {
+		const game = this.games.find((game) => game.lobby_name === data.lobby_name);
+		if (!game) return;
+		game.addViewer(client.id);
+	}
+	@SubscribeMessage('lobbys')
+	async getLobbyList(@ConnectedSocket() client: Socket) {
+		client.emit('lobbys', this.sendLobbys(this.games));
+	}
+	@SubscribeMessage('join_lobby')
+	async joinLobby(
+		@MessageBody() data: { login: string; lobby: string },
+		@ConnectedSocket() client: Socket,
+	) {
+		const game = this.games.find((game) => game.lobby_name == data.lobby);
+		if (!game) return;
+		const user = await this.userService.getByLogin(data.login);
+		if (!user) return;
+		if (game.players.length >= 7) return;
+		if (game.start) return;
+		let newGame = new Game(
+			game.nbrPlayer + 1,
+			game.nbrBall,
+			this.server,
+			game.players.concat(user),
+			game.lobby_name,
+			game.owner,
+			game.img
 		);
-		for (let i = 0; i < this.game.length; i++) {
-			for (let j = 0; j < this.game[i].players.length; j++) {
-				if (this.game[i].players[j].login == usr.login) {
-					this.game[i].players.splice(j, 1);
-					if (this.game[i].players.length < 1) {
-						this.game[i].destructor();
-						this.game.splice(i, 1);
-						break;
-					}
-					if (this.game[i].owner == usr.login) {
-						this.game[i].destructor();
-						this.game.splice(i, 1);
-						continue;
-					}
-				}
-			}
-		}
-		this.game.push(
-			new Game(
-				payload.nbrPlayer,
-				payload.nbrBall,
-				this.server,
-				array,
-				payload.lobby_name,
-				payload.owner,
-			),
-		);
+		game.destructor();
+		this.games.push(newGame);
+		this.server.to(newGame.sockets).emit('reload_game');
+		this.games.splice(this.games.indexOf(game), 1);
+		this.server.emit('lobbys', this.sendLobbys(this.games));
+		user.lobby_name = newGame.lobby_name;
+		this.userService.saveUser(user);
 	}
 	@SubscribeMessage('start')
 	start(client: Socket, payload: any): void {
 		// this.gameService.games.push(
 		// var game = new Game(payload.nbrPlayer, payload.nbrBall, this.server)
 		// );
-		let game = this.game.find((game) => game.lobby_name === payload.lobby_name);
+		let game = this.games.find((game) => game.lobby_name === payload.lobby_name);
 		if (game) {
-			console.log('Game: Starting');
-			console.log(payload);
 			game.start = true;
 		}
 	}
 	afterInit(server: Server) {
 		this.logger.log('Init');
+	}
+	@SubscribeMessage('updateLobby')
+	updateLobby(client: Socket, payload: any): void {
+		const game = this.games.find((game) => game.lobby_name === payload.lobby_name);
+		if (game) {
+			game.updateBalls(payload.nbrBall);
+		}
 	}
 
 	// ============================ USER =====================================
@@ -194,7 +220,6 @@ export class AppGateway
 		for (let i = 0; i < users.length; i++) {
 			UsersDto.push(new ResumUserDto(users[i]));
 		}
-		console.log(UsersDto);
 		client.emit('getUsersByLoginFiltred', UsersDto);
 	}
 	@SubscribeMessage('acceptFriend')
@@ -215,10 +240,10 @@ export class AppGateway
 		this.userService.changeAvatar(payload.login, payload.avatar);
 	}
 
-	@SubscribeMessage('connection')
-	saveSocket(@ConnectedSocket() client: Socket, ...args: any[]) {
-		console.log('debut saveSocket');
-	}
+	// @SubscribeMessage('connection')
+	// saveSocket(@ConnectedSocket() client: Socket, ...args: any[]) {
+	// 	console.log('debut saveSocket');
+	// }
 
 	// ============================ CHAT =====================================
 
@@ -318,92 +343,5 @@ export class AppGateway
 		]);
 		if (!priv) return console.log(`Error privReaded`);
 		await this.chatService.markPrivReaded(priv);
-	}
-
-	@SubscribeMessage('lobby_list')
-	async getLobbyList(@ConnectedSocket() client: Socket) {
-		const lobbies: MatchDto[] = [];
-		for (const game of this.game) {
-			let player_present_in_lobby = false;
-			for (let i = 0; i < game.players.length; i++) {
-				if (game.players[i].login == client.handshake.query.login) {
-					player_present_in_lobby = true;
-					break;
-				}
-			}
-			if (player_present_in_lobby == true) {
-				continue;
-			}
-			const players: string[] = [];
-			for (const player of game.players) {
-				players.push(player.login);
-			}
-			const lob = new MatchDto(
-				game.lobby_name,
-				players,
-				game.nbrPlayer,
-				game.nbrBall,
-				game.owner,
-				game.start,
-			);
-			lobbies.push(lob);
-		}
-		client.emit('lobby_list', lobbies);
-	}
-	@SubscribeMessage('join_lobby')
-	async joinLobby(
-		@MessageBody() data: { username: string; lobby: string },
-		@ConnectedSocket() client: Socket,
-	) {
-		console.log('join_lobby: Starting for', data.username);
-		for (let i = 0; i < this.game.length; i++) {
-			if (this.game[i].lobby_name == data.lobby) {
-				if (this.game[i].start) {
-					client.emit('join_lobby', 'Game already started');
-					return;
-				}
-				if (this.game[i].players.length == this.game[i].nbrPlayer) {
-					client.emit('join_lobby', 'Game is full');
-					return;
-				}
-				for (let j = 0; j < this.game[i].players.length; j++) {
-					if (this.game[i].players[j].login == data.username) {
-						client.emit('join_lobby', 'User already in lobby');
-						return;
-					}
-				}
-				const joiner = await this.userService.getByLogin(data.username);
-				for (let j = 0; j < this.game.length; j++) {
-					if (this.game[j].owner == joiner.login) {
-						this.game[j].destructor();
-						this.game.splice(j, 1);
-						break;
-					}
-				}
-				let players = this.game[i].players;
-				console.log('players: ', players);
-				players.push(joiner);
-				this.game[i].destructor();
-				this.game.splice(i, 1);
-				const new_game = new Game(
-					this.game[i].nbrPlayer,
-					this.game[i].nbrBall,
-					this.server,
-					players,
-					this.game[i].lobby_name,
-					this.game[i].owner,
-				);
-				this.game.push(new_game);
-				this.userService.saveLobby(data.username, this.game[i].lobby_name);
-				client.emit('join_lobby', 'success');
-				for (const player of this.game[i].players) {
-					console.log('Sending update to: ', player.login);
-					this.server
-						.to(player.socketId)
-						.emit('reload_game');
-				}
-			}
-		}
-		client.emit('join_lobby', 'Lobby not found');
 	}
 }
