@@ -30,6 +30,7 @@ export default class Game {
 	owner: string;
 	img: string;
 	match_service: MatchService;
+	fieldpoints: Array<{ x: number, y: number}>;
 	constructor(
 		nbrPlayer: number,
 		nbrBall: number,
@@ -55,6 +56,7 @@ export default class Game {
 		this.players = players;
 		this.sockets = [];
 		this.owner = owner;
+		this.fieldpoints = [];
 		for (let player of this.players)
 			this.sockets.push(player.socketId);
 		this.logger = new Logger();
@@ -75,6 +77,9 @@ export default class Game {
 			fieldPoints.push(wall.x);
 			fieldPoints.push(wall.y);
 		});
+		for (let i = 0; i < fieldPoints.length; i += 2) {
+			this.fieldpoints.push({ x: fieldPoints[i], y: fieldPoints[i + 1] });
+		}
 		let i = 0;
 		this.walls.forEach((wall) => {
 			this.objects.push(wall);
@@ -202,6 +207,64 @@ export default class Game {
 				// this.logger.log("res4: " + (rack.vector.x * rack.startY + rack.vector.x * rack.height * 3))
 				// if (x >= rack.vector.y * rack.startX && x <= rack.vector.y * rack.startX + rack.vector.y * rack.height * 3 &&
 				// 	y >= rack.vector.x * rack.startY && y <= rack.vector.x * rack.startY + rack.vector.x * rack.height * 3) {
+				// console.log('rack start x: ' + rack.startX);
+				// console.log('rack start y: ' + rack.startY);
+				// console.log('field:', this.fieldpoints);
+				console.log('field:', this.fieldpoints);
+				const rack_number = parseInt(i);
+				console.log('rack_number:', rack_number);
+				const left_point = this.fieldpoints[rack_number];
+				let right_point;
+				if (rack_number - 1 < 0) {
+					right_point = this.fieldpoints[this.fieldpoints.length - 1];
+				} else {
+					right_point = this.fieldpoints[rack_number - 1];
+				}
+				console.log('number:', (rack_number - 1) % (this.nbrPlayer * 2));
+				console.log('left_point:', left_point);
+				console.log('right_point:', right_point);
+				const allowed_space_x = right_point.x - left_point.x;
+				const allowed_space_y = right_point.y - left_point.y;
+				console.log('allowed_space_x:', allowed_space_x);
+				console.log('allowed_space_y:', allowed_space_y);
+				console.log('rack.width:', rack.width);
+				console.log('rack.height:', rack.height);
+				console.log('rack angle:', rack.angle);
+				const rack_space_y =
+					rack.height * Math.cos((rack.angle / 360) * 2 * Math.PI);
+				const rack_space_x =
+					rack.height * Math.sin((rack.angle / 360) * 2 * Math.PI);
+				console.log('rack_space_x:', rack_space_x);
+				console.log('rack_space_y:', rack_space_y);
+				const rack_min_x_tmp = rack.startX;
+				const rack_min_y_tmp = rack.startY;
+				const rack_max_x_tmp = rack.startX + allowed_space_x;
+				const rack_max_y_tmp = rack.startY + allowed_space_y;
+				const rack_min_x_ord = Math.min(rack_min_x_tmp, rack_max_x_tmp);
+				const rack_min_y_ord = Math.min(rack_min_y_tmp, rack_max_y_tmp);
+				const rack_max_x_ord = Math.max(rack_min_x_tmp, rack_max_x_tmp);
+				const rack_max_y_ord = Math.max(rack_min_y_tmp, rack_max_y_tmp);
+				const rack_min_x = rack_min_x_ord;
+				const rack_min_y = rack_min_y_ord;
+				const rack_max_x = rack_max_x_ord - rack_space_x;
+				const rack_max_y = rack_max_y_ord - rack_space_y;
+				console.log('rack_min_x:', rack_min_x);
+				console.log('rack_max_x:', rack_max_x);
+				console.log('rack_min_y:', rack_min_y);
+				console.log('rack_max_y:', rack_max_y);
+				console.log('x:', x);
+				console.log('y:', y);
+				const delta = 0.1;
+				if (
+					x >= rack_min_x - delta &&
+					x <= rack_max_x + delta &&
+					y >= rack_min_y - delta &&
+					y <= rack_max_y + delta
+				) {
+					console.log('MOVE');
+				} else {
+					console.log('STAY');
+				}
 				rack.x = x;
 				rack.y = y;
 				// }
