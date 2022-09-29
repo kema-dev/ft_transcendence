@@ -92,7 +92,7 @@
 		>
 			<div class="elemForm_cont left column">
 				<label for="name" class="labelForm">Channel name</label>
-				<input type="text" name="name" required id="name" class="inputForm" />
+				<input type="text" name="newChanName" required id="newChanName" class="inputForm" />
 			</div>
 			<div class="elemForm_cont left column">
 				<div class="left_center raw">
@@ -235,6 +235,9 @@ function findChannelFn() {
 }
 function newChannelFn() {
 	newChannel.value = !newChannel.value;
+	nextTick(() => {
+		document.getElementById("newChanName")?.focus();
+	})
 }
 
 function submitChannel() {
@@ -247,7 +250,7 @@ function submitChannel() {
 	// } else {
 	// 	// conversations.push(new Channel(data.get('name') as string, [me]));
 	// }
-	let chanName = data.get("name") as string;
+	let chanName = data.get("newChanName") as string;
 	let chanPsw = data.get("pswInput") as string;
 	// console.log(`chanName = ${chanName}`);
 	// console.log(`chanPsw = ${chanPsw}`);

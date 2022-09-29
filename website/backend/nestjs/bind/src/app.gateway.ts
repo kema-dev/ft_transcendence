@@ -295,6 +295,16 @@ export class AppGateway
 		this.chatService.newChannelUser(this.server, data);
 	}
 
+	@SubscribeMessage('userQuitChan')
+	async userQuitChan(
+		@MessageBody() data: {login: string, chan: string},
+		@ConnectedSocket() client: Socket,
+	) {
+		this.chatService.userQuitChan(this.server, data);
+	}
+
+
+	// ============================ MATCHMAKING =====================================
 	
 	@SubscribeMessage('lobby_list')
 	async getLobbyList(@ConnectedSocket() client: Socket) {

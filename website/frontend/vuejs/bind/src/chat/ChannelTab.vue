@@ -108,8 +108,6 @@ function showPswDiv() {
 function joinChannel() {
 	if (props.infos.psw)
 		(input.value! as HTMLInputElement).classList.remove("invalidPsw");
-
-	console.log(`joinChanel : ${me.value.login}`);
 	HTTP.post(apiPath + "chat/JoinChannel/", {
 		requestor: me.value.login,
 		chanName: props.infos.name,
@@ -134,27 +132,6 @@ function joinChannel() {
 		});
 
 }
-
-
-onMounted(() => {
-	// chanViewPos = document
-	// 	.getElementById("channel_view")!
-	// 	.getBoundingClientRect()!;
-	// console.log(
-	// 	"height = ",
-	// 	chanViewPos.height,
-	// 	"width = ",
-	// 	chanViewPos.width,
-	// 	"top = ",
-	// 	chanViewPos.top,
-	// 	"right = ",
-	// 	chanViewPos.right,
-	// 	"bottom = ",
-	// 	chanViewPos.bottom,
-	// 	"left = ",
-	// 	chanViewPos.left
-	// );
-});
 
 </script>
 

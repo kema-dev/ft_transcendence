@@ -415,7 +415,7 @@ export class ChatService {
 			relations: {admins: true, users: true},
 		});
 		for (let user of chan.admins.concat(chan.users)) {
-			console.log(`user.login = ${user.login}, newUser.login = ${newUser.login}`)
+			// console.log(`user.login = ${user.login}, newUser.login = ${newUser.login}`)
 			if (user.login != newUser.login)
 				server.to(user.socketId).emit("newChannelUser", {
 					name: chan.name,
@@ -424,16 +424,42 @@ export class ChatService {
 		}
 	}
 
+	async userQuitChan(
+		server: Server,
+		data: {login: string, chan: string}) 
+	{
+		console.log(`User '${data.login}' left the channel '${data.chan}''`);
+		let chan = await this.channelRepository.findOne({
+			where: {name: data.chan},
+			relations: {admins: true, users: true, mutes: true},
+		});
+		chan.admins = chan.admins.filter(adm => adm.login != data.login);
+		chan.users = chan.users.filter(user => user.login != data.login);
+		chan.mutes = chan.mutes.filter(mute => mute.login != data.login);
+		if (chan.admins.length + chan.users.length + chan.mutes.length == 0)
+			this.channelRepository.remove(chan)
+			.catch((e) => console.log('Remove chan error'));
+		else
+			this.channelRepository.save(chan)
+			.catch((e) => console.log('Save chan error'));
+		for (let user of chan.admins.concat(chan.users)) {
+			if (user.login != data.login)
+				server.to(user.socketId).emit("userQuitChan", {
+					login: data.login,
+					chan: data.chan,
+				});
+		}
+	}
+
+
+
 
 	printChanDto(chan: ChannelDto) {
 		console.log(`psw = ${chan.psw}`);
 		console.log(`creation = ${chan.creation}`);
 		console.log(`readed = ${chan.readed}`);
-		// console.log(` admins = ${chan.admins.map(admin => admin.login + ', ')}`);
-		chan.admins.forEach((elem) => console.log(`${elem.login}`));
-		// chan.admins.forEach((elem) => console.log(`${elem.login}`));
-		
-	
+		console.log(`admins = ${chan.admins.map(admin => admin.login + ', ')}`);
+		console.log(`users = ${chan.users.map(user => user.login + ', ')}`);
 		chan.messages.forEach((msg) => console.log(`${msg.msg}`));
 	}
 	

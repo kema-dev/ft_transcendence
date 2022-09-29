@@ -146,8 +146,10 @@ let msgsCont = ref(null);
 // ====================== METHODS ======================
 
 function sendMsg() {
-	mySocket.emit("newPrivMsg", new NewPrivMsgDto(me, userName, myMsg.value));
-	myMsg.value = "";
+	if (myMsg.value != "") {
+		mySocket.emit("newPrivMsg", new NewPrivMsgDto(me, userName, myMsg.value));
+		myMsg.value = "";
+	}
 }
 
 function banUser() {

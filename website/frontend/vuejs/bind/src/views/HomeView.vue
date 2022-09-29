@@ -242,6 +242,18 @@ socket.on('newChannelUser', (data: { name: string; user: BasicUserDto }) => {
 	// if (i != 0) putChanFirst(i);
 });
 
+socket.on('userQuitChan', (data: {login: string, chan: string}) => {
+	console.log(`User '${data.login}' left the channel '${data.chan}'`);
+	let i = chansRef.value.findIndex((chan) => chan.name == data.chan);
+	chansRef.value[i].admins = chansRef.value[i].admins
+		.filter(adm => adm.login != data.login);
+	chansRef.value[i].users = chansRef.value[i].users
+		.filter(user => user.login != data.login);
+	chansRef.value[i].mutes = chansRef.value[i].mutes
+		.filter(mute => mute.login != data.login);
+	printChan(chansRef.value[i]);
+});
+
 
 function putChanFirst(index: number) {
 	if (chansRef.value.length == 2)

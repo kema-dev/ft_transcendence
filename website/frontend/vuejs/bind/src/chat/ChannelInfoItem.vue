@@ -1,19 +1,36 @@
 <template>
-	<div class="infoCont left column">
+	<div v-if="display" class="infoCont left column">
 		<div class="infoElemCont left column" id="passwordInfo">
 			<div class="infoElemHead left_center raw">
 				<div class="infoElemImgCont center">
 					<img src="~@/assets/key_logo.svg" alt="Password" class="infoImg" />
 				</div>
-				<span class="infoText">Password :</span>
-				<img
-					v-if="password == ''"
+				<span class="infoText">
+					Password : {{chansRef[i].psw ? "Yes" : "No"}}
+				</span>
+				<!-- <img
+					v-if="!chansRef[props.i].psw"
 					src="~@/assets/redcross.svg"
 					alt="No Password"
 					class="infoImg"
-				/>
-				<span v-else>{{ password }}</span>
-				<div class="settingsOptions left_center raw stack">
+				/> -->
+				<button
+					@click="modifPsw = !modifPsw"
+					class="settingsBtn center"
+				>
+					<!-- <img
+						src="~@/assets/settings_logo.svg"
+						alt="Password"
+						class="infoImg"
+					/> -->
+					<img
+						src="~@/assets/edit_logo.svg"
+						alt="Edit password"
+						class="infoImg"
+					/>
+				</button>
+
+				<!-- <div class="settingsOptions left_center raw stack">
 					<button
 						@click="showSettings = !showSettings"
 						class="settingsBtn center"
@@ -51,10 +68,15 @@
 						</button>
 					</div>
 				</div>
-			</div>
-			<div class="infoElemBody left">
+			</div> -->
+			
+			<!-- <div class="infoElemBody left">
 				<input type="text" class="passwordInput" />
+			</div> -->
 			</div>
+			<form v-if="modifPsw" class="settingsCont left">
+				<input type="text" name="newPsw" id="newPsw" class="inputForm" />
+			</form>
 		</div>
 		<!-- <div class="infoElemCont center raw" id="AdministratorsInfo">
 				<div class="infoImgCont">
@@ -76,13 +98,16 @@
 					<img src="~@/assets/settings_logo.svg" alt="Password" class="infoAvatar">
 				</button>
 			</div> -->
+		<button @click="quitChannel" class="leaveButton">
+			Quit Channel
+		</button>
 	</div>
 </template>
 
 <script setup lang="ts">
 /* eslint @typescript-eslint/no-var-requires: "off" */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { inject, onMounted, ref, Ref, onBeforeUnmount, watch, onBeforeUpdate, onUpdated } from "vue";
+import { defineProps, inject, onMounted, ref, Ref, onBeforeUnmount, watch, onBeforeUpdate, onUpdated, nextTick } from "vue";
 import { useRoute } from "vue-router";
 import { Socket } from "socket.io-client";
 import MessageItem from "@/chat/MessageItem.vue";
@@ -91,79 +116,51 @@ import { MessageDto } from "@/chat/dto/MessageDto";
 import { NewChanMsgDto } from "@/chat/dto/NewChanMsgDto";
 import { ChannelDto } from "./dto/ChannelDto";
 import { ProfileUserDto } from "@/dto/ProfileUserDto"
+import router from "@/router";
 
-const route = useRoute();
-let chanName = route.params.conv_name as string;
+const props = defineProps({
+	i: {
+		type: Number,
+		required: true,
+	} 
+});
+
 let colors = inject("colors");
 let mySocket: Socket = inject("socket")!;
+const route = useRoute();
+let chanName = route.params.conv_name as string;
 let myName: string = inject("me")!;
 let me: Ref<ProfileUserDto> = inject("user")!;
-let myMsg = ref("");
-let info = ref(false);
-let password = ref("");
-let showSettings = ref(false);
-let msgsCont = ref(null);
-
+let modifPsw = ref(false);
+let display = ref(true);
 let chansRef : Ref<ChannelDto[]> = inject("chans")!;
-const chanDone: Ref<boolean> = inject("chanDone")!;
 
 
-// FIND INDEX CHANNELREF 
-let index = ref(-1);
-if (chansRef?.value.length) {
-	index.value = chansRef!.value.findIndex((chan) => chan.name == chanName);
-}
-
-watch(chanDone, () => {
-	index.value = chansRef!.value.findIndex((chan) => chan.name == chanName);
-})
 
 // ================= METHODS 
 
-
-function selectChan() {
-	let chan = chansRef?.value.find((chan) => chan.name == chanName);
-	if (chan)
-		index.value = chansRef!.value.findIndex((chan) => chan.name == chanName);
-	return chan;
+function quitChannel() {
+	mySocket.emit("userQuitChan", {login: myName, chan: chanName});
+	display.value = false;
+	chansRef.value.splice(props.i, 1);
+	router.push({name: 'channels'});
 }
 
-function sendMsg() {
-	mySocket.emit("newChanMsg", new NewChanMsgDto(me.value.login, chanName, myMsg.value));
-	myMsg.value = "";
-}
 
 function findAvatar(login: string) {
-	printChan(chansRef.value[index.value]);
-	console.log(`index.value = ${index.value}`)
-	let isAdmin = chansRef.value[index.value].admins.find(admin => admin.login == login);
+	printChan(chansRef.value[props.i]);
+	console.log(`index.value = ${props.i}`)
+	let isAdmin = chansRef.value[props.i].admins.find(admin => admin.login == login);
 	console.log(`isAdmin = ${isAdmin}`)
 
 	if (isAdmin)
 		return isAdmin.avatar;
-	let isUser = chansRef.value[index.value].users.find(user => user.login == login);
+	let isUser = chansRef.value[props.i].users.find(user => user.login == login);
 	console.log(`isUser = ${isUser}`)
 	if (isUser)
 		return isUser.avatar;
 }
 
-function checkDate(i: number) {
-	// console.log(`checkDate(), i = ${i}`)
-	if (i == 0) return true;
-	else if (
-		Math.ceil(
-			(selectChan()!.messages[i].date.getTime() -
-				selectChan()!.messages[i - 1].date.getTime()) /
-				(1000 * 60)
-		) > 15
-	) {
-		// console.log(`checkDate = true`);
-		return true;
-	} else {
-		// console.log(`checkDate = false`);
-		return false;
-	}
-}
 
 function displayDate(date: Date, i: number) {
 	// console.log(`displayDate()`)
@@ -194,37 +191,6 @@ function displayDate(date: Date, i: number) {
 }
 
 
-// ====================== LIFECYCLES HOOKS ======================
-
-let scroll = false;
-let oldNbMsg = -1;
-let newMsg = false;
-
-onBeforeUpdate(() => {
-	if (chansRef?.value.length)
-		index.value = chansRef!.value.findIndex((chan) => chan.name == chanName);
-
-});
-
-// onUpdated(() => {
-
-// });
-
-onMounted(() => {
-	// (msgsCont.value! as HTMLElement).scrollTop = (
-	// 		msgsCont.value! as HTMLElement
-	// 	).scrollHeight;
-	// document.getElementById("sendbox")?.focus();
-	// const box = document.getElementById("channelsTabText");
-	// if (box != null) box.classList.add("chatTabActive");
-});
-
-onBeforeUnmount(() => {
-	// const box = document.getElementById("channelsTabText");
-	// if (box != null) box.classList.remove("chatTabActive");
-});
-
-
 // ====================== UTILS ======================
 
 function printChan(chan: ChannelDto) {
@@ -241,33 +207,28 @@ function printChan(chan: ChannelDto) {
 
 <style scoped>
 .infoCont {
-	margin-top: 20px;
+	padding: 10px 20px;
 }
 
 .infoElemCont {
 	width: auto;
-	margin-left: 20px;
+	margin-bottom: 10px;
 }
 .infoText {
 	font-family: 'Orbitron', sans-serif;
 	width: auto;
 	white-space: nowrap;
-	margin: 0 10px;
 }
-.passwordInput {
-	padding: 0 5px;
-	border-radius: 5px;
-	height: 1.5rem;
-	outline: none;
-}
-.settingsOptions {
+.settingsBtn {
 	margin-left: 20px;
-}
-.infoElemImgCont,
-.settingsBtn,
-.extendBtn {
 	height: 26px;
 	width: 26px;
+	border-radius: 13px;
+}
+.settingsBtn:hover {
+	/* border: solid 1px v-bind("colors.color2"); */
+	background-color: #fff;
+	box-shadow: 0px 0px 4px #aaa;
 }
 .infoImg {
 	height: 20px;
@@ -275,20 +236,16 @@ function printChan(chan: ChannelDto) {
 	filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg)
 		brightness(86%) contrast(83%);
 }
-.settingsBtn,
-.extendSettingsCont {
-	border: solid 1px v-bind("colors.color2");
-	border-radius: 13px;
-	position: absolute;
-	background-color: #fff;
+.inputForm {
+	width: auto;
 }
-.settingsBtn {
-	z-index: 1;
-}
-.extendSettingsCont {
-	height: 26px;
-	width: v-bind("4 * 26 + 'px'");
-	z-index: 0;
-	transition: all 0.5 ease-in-out;
+.leaveButton {
+	height: 1.5rem;
+	font-weight: 500;
+	border-radius: calc(1.5rem / 2);
+	background-color: v-bind("colors.color2");
+	color: white;
+	padding: 0 10px;
+	box-shadow: 0px 0px 4px #aaa;
 }
 </style>
