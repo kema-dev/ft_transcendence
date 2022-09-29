@@ -31,8 +31,11 @@ let define = inject('colors');
 let socket: Socket = inject('socket')!;
 const $cookies = inject<VueCookies>('$cookies');
 
-let lobbies = ref([]);
 let lobby_name = ref($cookies.get('login') + "'s lobby");
+let lobbies = ref([]);
+
+let start: Ref = inject('playing');
+let isCreate: Ref = inject('isCreate');
 
 let start: Ref = inject('playing');
 let isCreate: Ref = inject('create');
@@ -47,7 +50,7 @@ onMounted(() => {
 
 async function join(lobby_name: string) {
 	socket.emit('join_lobby', {
-		username: $cookies.get('login'),
+		login: $cookies.get('login'),
 		lobby: lobby_name,
 	});
 	isCreate.value = true;

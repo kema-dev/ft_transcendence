@@ -52,7 +52,7 @@ function logout() {
 }
 </script>
 
-<style>
+<style scoped>
 nav {
 	position: fixed;
 	z-index: 100;

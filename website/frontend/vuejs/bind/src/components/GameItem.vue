@@ -17,7 +17,7 @@ let run = true;
 let me: Ref<ProfileUserDto> = inject('user')!;
 let rotation = 0;
 let gameDto: GameDto | undefined = undefined;
-
+let isOwner = inject('isOwner')!;
 var mov = 0;
 let rackets: Konva.Rect[] = [];
 let walls: Konva.Rect[] = [];
@@ -77,6 +77,9 @@ async function update() {
 
 	while (gameDto === undefined) {
 		await delay(100);
+	}
+	if (gameDto.owner === me.value.login) {
+		isOwner.value = true;
 	}
 	for (let player of gameDto.profiles) {
 		if (me?.value?.login == player.login) break;
