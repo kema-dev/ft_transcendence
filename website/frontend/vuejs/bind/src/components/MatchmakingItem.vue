@@ -77,6 +77,7 @@ function join() {
 	socket.emit('userUpdate', { login: me?.value?.login });
 }
 function update_game() {
+	create();
 	remount.value = !remount.value;
 }
 function launch() {

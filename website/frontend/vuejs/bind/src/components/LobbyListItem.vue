@@ -37,6 +37,9 @@ let lobbies = ref([]);
 let start: Ref = inject('playing');
 let isCreate: Ref = inject('isCreate');
 
+let start: Ref = inject('playing');
+let isCreate: Ref = inject('create');
+
 onMounted(() => {
 	socket.off('lobby_list');
 	socket.on('lobby_list', (data: any) => {

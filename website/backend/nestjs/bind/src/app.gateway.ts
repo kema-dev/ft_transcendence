@@ -23,6 +23,7 @@ import ResumUserDto from 'src/users/dto/ResumUserDto';
 import BasicUserDto from 'src/chat/dto/BasicUserDto';
 import { UserEntity } from 'src/users/user.entity';
 import { MatchDto } from 'src/match/match.dto';
+import { MatchService } from './match/match.service';
 
 @WebSocketGateway({
 	cors: {
@@ -38,7 +39,8 @@ export class AppGateway
 	constructor(
 		private readonly chatService: ChatService,
 		private readonly userService: UsersService,
-	) { }
+		private readonly matchService: MatchService,
+	) {}
 
 	// =========================== GENERAL ==================================
 
@@ -70,6 +72,7 @@ export class AppGateway
 				game.lobby_name,
 				game.owner,
 				game.img,
+				this.matchService
 			);
 			this.games.push(newGame);
 			this.server.to(newGame.sockets).emit('reload_game');
@@ -109,7 +112,8 @@ export class AppGateway
 			[user],
 			user.login + "'s lobby",
 			user.login,
-			user.avatar
+			user.avatar,
+			this.matchService
 		);
 		this.games.push(game);
 		user.lobby_name = game.lobby_name;
@@ -156,7 +160,8 @@ export class AppGateway
 			game.players.concat(user),
 			game.lobby_name,
 			game.owner,
-			game.img
+			game.img,
+			this.matchService
 		);
 		game.destructor();
 		this.games.push(newGame);
@@ -177,6 +182,7 @@ export class AppGateway
 		if (game) {
 			game.start = true;
 		}
+		// this.matchService.simulate_5_matches();
 	}
 	afterInit(server: Server) {
 		this.logger.log('Init');

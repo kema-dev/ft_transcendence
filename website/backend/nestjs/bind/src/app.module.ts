@@ -7,8 +7,8 @@ import { AuthenticationModule } from './authentication/authentication.module';
 import { UsersModule } from './users/users.module';
 import { ChatModule } from './chat/chat.module';
 import { AppGateway } from './app.gateway';
-import { TypeOrmModule } from '@nestjs/typeorm';
 // import { SocketModule } from './socket/socket.module';
+import { MatchModule } from './match/match.module';
 
 @Module({
 	imports: [
@@ -31,9 +31,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 		AuthenticationModule,
 		UsersModule,
 		ChatModule,
+		MatchModule,
 		// SocketModule
 	],
 	controllers: [],
 	providers: [AppGateway],
 })
-export class AppModule { }
+export class AppModule {}

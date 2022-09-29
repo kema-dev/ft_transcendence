@@ -20,7 +20,7 @@ import BasicUserDto from 'src/chat/dto/BasicUserDto';
 @Controller('user')
 export class UsersController {
 	private logger: Logger = new Logger('UsersController');
-	constructor(private readonly usersService: UsersService) { }
+	constructor(private readonly usersService: UsersService) {}
 
 	// @UseGuards(AuthGuard)
 	@Get('getBasicUser/:login')
@@ -39,7 +39,9 @@ export class UsersController {
 	@Post('getUser')
 	async getUser(@Body() params: any) {
 		console.log('getUser: starting for ' + params.login);
-		let test = new ProfileUserDto(await this.usersService.getByLogin(params.login))
+		let test = new ProfileUserDto(
+			await this.usersService.getByLogin(params.login),
+		);
 		this.logger.log('getUser: ' + test.login);
 		return test;
 	}
@@ -52,4 +54,8 @@ export class UsersController {
 	// async getAnyByLogin(@Body() params: any) {
 	// 	return this.usersService.getAnyByLogin(params.login, params.infos);
 	// }
+	@Post('get_user_avatar')
+	async get_user_avatar(@Body() params: any) {
+		return this.usersService.get_user_avatar(params.login);
+	}
 }
