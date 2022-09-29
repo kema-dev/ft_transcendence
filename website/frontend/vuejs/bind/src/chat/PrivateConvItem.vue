@@ -46,7 +46,7 @@
 							{{ displayDate(message.date, i) }}
 						</div>
 						<MessageItem
-							:userAvatar="receiver.avatar"
+							:userAvatar="privsRef[index].user.avatar"
 							:userLogin="message.user"
 							:message="message.msg"
 							:date="message.date"
@@ -110,7 +110,7 @@ let mySocket: Socket = inject("socket")!;
 let me: string = inject("me")!;
 let apiPath: string = inject("apiPath")!;
 const userName = useRoute().params.conv_name as string;
-let receiver : BasicUserDto;
+// let receiver : BasicUserDto;
 
 
 // ==== PRIV
@@ -121,7 +121,7 @@ let index = ref(-1);
 if (privsRef?.value.length) {
 	index.value = privsRef!.value.findIndex((priv) => priv.user.login == userName);
 	if (index.value != -1) {
-		receiver = privsRef.value[index.value].user;
+		// receiver = privsRef.value[index.value].user;
 		if (privsRef.value[index.value].messages.at(-1)?.user != me) {
 			mySocket.emit("privReaded", { userSend: userName, userReceive: me });
 			markReaded(index.value, true);
@@ -131,8 +131,8 @@ if (privsRef?.value.length) {
 const privDone: Ref<boolean> = inject("privDone")!;
 
 // ==== RECEIVER
-if (privDone && index.value == -1)
-	receiver = new BasicUserDto(userName, require("@/assets/avatars/(1).jpg"));
+// if (privDone && index.value == -1)
+// 	receiver = new BasicUserDto(userName, require("@/assets/avatars/(1).jpg"));
 // let receiver: BasicUserDto;
 // let avatDone = ref(false);
 // HTTP.get(apiPath + "user/getBasicUser/" + userName)

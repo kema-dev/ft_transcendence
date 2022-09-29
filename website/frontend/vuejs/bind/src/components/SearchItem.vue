@@ -6,9 +6,6 @@
 		id="search"
 		@input="$emit('update:search', $event.target!.value)"
 	/>
-	<!-- <button v-if="search.length > 0" @click="changeInput('')" class="reset_button center">
-			<img src="~@/assets/clear_button.png" alt="clear button" class="reset_button_img">
-		</button> -->
 	</form>
 </template>
 

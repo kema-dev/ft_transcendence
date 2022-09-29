@@ -109,7 +109,7 @@ function joinChannel() {
 	if (props.infos.psw)
 		(input.value! as HTMLInputElement).classList.remove("invalidPsw");
 
-	console.log(`test : ${me.value.login}`);
+	console.log(`joinChanel : ${me.value.login}`);
 	HTTP.post(apiPath + "chat/JoinChannel/", {
 		requestor: me.value.login,
 		chanName: props.infos.name,

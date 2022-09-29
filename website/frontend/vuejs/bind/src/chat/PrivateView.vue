@@ -128,9 +128,9 @@ if (privsRef.value.length) {
 
 watch(privDone, () => {
 	privsFiltred.value = privsRef.value;
+	nbPrivNR.reset();
 	if (userDone.value)
 		knownPeople.value = setKnownPeople();
-	nbPrivNR.reset();
 });
 
 watch(userDone, () => {
@@ -192,41 +192,20 @@ function getServerUsers() {
 function filterServerUsers() {
 	serverUsers.value = serverUsers.value!.filter((user) => {
 		let isAlreadyKnow = true;
-		for (let people of knownPeople.value) {
+		for (let people of knownPeople.value!) {
 			if (people.login == user.login) {
 				isAlreadyKnow = false;
 				break;
 			}
 		}
 		return isAlreadyKnow;
-		// ========== AJOUTER FRIENDS ===========
 	});
 }
 
-// function knownPeople(): User[] {
-// 	let res: User[] = [];
-// 	for (let i = 0; i < privsFiltred.value!.length; i++) {
-// 		res.push(privsFiltred.value![i].login);
-// 	}
-// 	// for (let i = 0; i < friendsFiltred.value.length; i++) {
-// 	// 	if (!res.includes(friendsFiltred.value[i])) {
-// 	// 		res.push(friendsFiltred.value[i]);
-// 	// 	}
-// 	// }
-// 	return res;
-// }
-
-// function otherPeople(): User[] {
-// 	let others = [user4, user5];
-// 	return others.filter(function(value) {
-// 		return value.login.toUpperCase().startsWith(search.value.toUpperCase());
-// 	});
-// }
 
 function createNewMsg() {
 	search.value = "";
 	newMsg.value = !newMsg.value;
-	// searchKey.value += 1;
 	nextTick(() => {
 		document.getElementById('search')?.focus();
 	});

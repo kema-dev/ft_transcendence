@@ -9,7 +9,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, Ref, provide, watch } from "vue";
+import { onMounted, Ref, provide, watch, onUpdated } from "vue";
 import { inject, ref } from "vue";
 import io from "socket.io-client"
 import { VueCookies } from "vue-cookies";
@@ -140,7 +140,6 @@ socket.on('newPrivMsg', (data: { msg: MessageDto; id: number }) => {
 	privsRef.value[i].messages.push(
 		new MessageDto(data.msg.user, data.msg.msg, new Date(data.msg.date)));
 	privsRef.value[i].readed = false;
-	console.log(`route.path = ${route.path}\nroute.fullPath = ${route.fullPath}`)
 	if (data.msg.user != me 
 		&& !nbPrivNR.value.includes(privsRef.value[i].id)
 		&& route.path != "/home/chat/private/" + data.msg.user)
@@ -200,38 +199,18 @@ provide('chanDone', chanDone);
 
 
 function getChansRequest() {
-	// console.log(`avant getPrivsRequest()`);
 	HTTP.get(apiPath + "chat/getChans/" + me)
 	.then(res => {
-		// console.log(`privsConvDto : `);
-		// printChans(res.data);
 		if (!res.data)
 			chansRef.value = [];
 		else {
 			chansRef.value = (res.data) as ChannelDto[];
-			chansRef.value
 			chansRef.value.forEach(chan => {
 				chan.creation = new Date(chan.creation);
 				chan.messages.forEach(msg => msg.date = new Date(msg.date));
 			})
-
-
-			// let chansTmp : ChannelDto[] = [];
-			// res.data.forEach((chan : ChannelDto) => {
-			// 	let msgsTmp : MessageDto[] = [];
-			// 	chan.messages.forEach((msg, j) => {
-			// 		msgsTmp.push(new MessageDto(msg.user, msg.msg, new Date(msg.date)))
-			// 	});
-			// 	// chansTmp.push(new ChannelDto(new BasicUserDto(chan.user.login), msgsTmp, chan.readed, chan.id));
-			// 	if (chan.readed == false && chan.messages.at(-1)?.user != me)
-			// 		nbChanNR.value.push(chan.name);
-			// });
-			// chansRef.value = chansTmp;
 		}
-
 		chanDone.value = true;
-
-		// printChans(chansRef.value);
 	})
 	.catch(e => console.log(e));
 }
@@ -247,20 +226,20 @@ socket.on('newChanMsg', (data: { msg: MessageDto; name: string }) => {
 		new MessageDto(data.msg.user, data.msg.msg, new Date(data.msg.date)),
 	);
 	chansRef.value[i].readed = false;
-	printChans(chansRef.value);
+	// printChans(chansRef.value);
 	if (data.msg.user != me && !nbChanNR.value.includes(chansRef.value[i].name))
 		nbChanNR.value.push(chansRef.value[i].name);
 	if (i != 0) putChanFirst(i);
 });
 
 socket.on('newChannelUser', (data: { name: string; user: BasicUserDto }) => {
-	console.log(`New User in channel : ${data.name}`);
+	console.log(`New User '${data.user.login}' in channel : ${data.name}`);
 	let i = chansRef.value.findIndex((chan) => chan.name == data.name);
 	chansRef.value[i].users.push(data.user);
-	chansRef.value[i].readed = false;
+	// chansRef.value[i].readed = false;
 	// if (data.msg.user != me && !nbPrivNR.value.includes(chansRef.value[i].id))
 	// 	nbPrivNR.value.push(chansRef.value[i].id);
-	if (i != 0) putChanFirst(i);
+	// if (i != 0) putChanFirst(i);
 });
 
 
@@ -286,15 +265,16 @@ function printChan(chan: ChannelDto) {
 	console.log(`psw = ${chan.psw}`);
 	console.log(`creation = ${chan.creation}`);
 	console.log(`readed = ${chan.readed}`);
-	console.log(` admins = ${chan.admins.map(admin => admin.login + ', ')}`);
+	console.log(`admins = ${chan.admins.map(admin => admin.login + ', ')}`);
+	console.log(`users = ${chan.users.map(user => user.login + ', ')}`);
 	chan.messages.forEach((msg) => console.log(`${msg.msg}`));
 }
 
 function printChans(chans: ChannelDto[]) {
 	console.log(`printChan :`);
 	if (!chans.length) {
-			return console.log(`No channels`);
-		}
+		return console.log(`No channels`);
+	}
 	chans.forEach((chan : ChannelDto) => {
 		console.log(`PrintChan : ${chan.name}`);
 		printChan(chan);

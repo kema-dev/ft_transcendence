@@ -384,7 +384,7 @@ export class ChatService {
 		console.log(`joinChannelReq for chan = ${data.chanName}, user = ${data.requestor}, psw = ${data.psw}`)
 		let chan = await this.channelRepository.findOne({
 			where: {name: data.chanName},
-			relations: {admins: true, users: true, bans: true},
+			relations: {admins: true, users: true, bans: true, messages: { user: true}},
 		});
 		if (!chan) {
 			// server.to(user.socketId).emit("joinChannelError", {error: "CHAN_NOT_FOUND"})
@@ -409,17 +409,19 @@ export class ChatService {
 		server: Server,
 		data: {requestor: string, chanName: string}) 
 	{
-		let user = await this.userService.getByLogin(data.requestor);
+		let newUser = await this.userService.getByLogin(data.requestor);
 		let chan = await this.channelRepository.findOne({
 			where: {name: data.chanName},
 			relations: {admins: true, users: true},
 		});
-		// console.log(`server = ${this.server}`);
-		for (let user of chan.admins.concat(chan.users))
-			server.to(user.socketId).emit("newChannelUser", {
-				name: chan.name,
-				user: new BasicUserDto(user.login, user.avatar),
-			});
+		for (let user of chan.admins.concat(chan.users)) {
+			console.log(`user.login = ${user.login}, newUser.login = ${newUser.login}`)
+			if (user.login != newUser.login)
+				server.to(user.socketId).emit("newChannelUser", {
+					name: chan.name,
+					user: new BasicUserDto(newUser.login, newUser.avatar),
+				});
+		}
 	}
 
 
