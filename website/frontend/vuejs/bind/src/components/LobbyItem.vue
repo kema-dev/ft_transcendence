@@ -8,11 +8,11 @@
 					<div class="row right" style="width: auto">
 						<div class="row center tag player-tag">
 							<img class="icon" src="@/assets/svg/user.svg" />
-							<h2 class="number">{{ lobby?.nbr_players }}</h2>
+							<h2 class="number">{{ lobby?.nbr_players }} / 7</h2>
 						</div>
 						<div class="row center tag">
 							<img class="icon" src="@/assets/svg/tennis.svg" />
-							<h2 class="number">{{ lobby?.nbr_balls }}</h2>
+							<h2 class="number">{{ lobby?.nbr_balls }} / 3</h2>
 						</div>
 					</div>
 				</div>
@@ -89,9 +89,10 @@ function look() {
 }
 .tag {
 	margin-top: 5px;
+	margin-right: 5px;
 	/*margin-right: 5px;*/
 	height: 24px;
-	width: 48px;
+	width: 65px;
 	border-radius: 100px;
 	/*background: v-bind('define.color2');*/
 }
@@ -100,7 +101,7 @@ function look() {
 }
 .icon {
 	width: 18px;
-	margin-right: 5px;
+	margin-right: 3px;
 	/*filter: invert(100%) sepia(2%) saturate(7500%) hue-rotate(191deg)
 		brightness(102%) contrast(108%);*/
 }

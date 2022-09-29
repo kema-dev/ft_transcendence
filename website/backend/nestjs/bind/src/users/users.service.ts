@@ -31,7 +31,7 @@ export class UsersService {
 			.catch((e) => console.log('Save saveSocket error'));
 	}
 	async saveUser(user:UserEntity) {
-		this.usersRepository.save(user);
+		await this.usersRepository.save(user);
 	}
 
 	async getByEmail(mail: string) {

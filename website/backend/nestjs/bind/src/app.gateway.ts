@@ -92,11 +92,15 @@ export class AppGateway
 		console.log(args);
 		let game = this.games.find((game) => game.lobby_name === args.lobby_name);
 		if (game) game.setMov(args.mov, args.login);
+		console.log(args.lobby_name);
 	}
 	@SubscribeMessage('newLobby')
-	async newRoom(@MessageBody() data: { login: string, nbrBall: number },
+	async newLobby(@MessageBody() data: { login: string, nbrBall: number },
 		@ConnectedSocket() client: Socket): Promise<void> {
-		let user = await this.userService.getByLogin(data.login);
+		let user = await this.userService.getByLogin(data.login, {
+			requestFriend: true,
+			friends: true,
+		});
 		if (!user) return;
 		let game = new Game(
 			1,
@@ -110,6 +114,7 @@ export class AppGateway
 		this.games.push(game);
 		user.lobby_name = game.lobby_name;
 		this.userService.saveUser(user);
+		this.server.to(user.socketId).emit('userUpdate', new ProfileUserDto(user));
 		this.server.emit('lobbys', this.sendLobbys(this.games));
 	}
 	sendLobbys(games: Game[]) {
@@ -137,7 +142,10 @@ export class AppGateway
 	) {
 		const game = this.games.find((game) => game.lobby_name == data.lobby);
 		if (!game) return;
-		const user = await this.userService.getByLogin(data.login);
+		let user = await this.userService.getByLogin(data.login, {
+			requestFriend: true,
+			friends: true,
+		});
 		if (!user) return;
 		if (game.players.length >= 7) return;
 		if (game.start) return;
@@ -155,8 +163,10 @@ export class AppGateway
 		this.server.to(newGame.sockets).emit('reload_game');
 		this.games.splice(this.games.indexOf(game), 1);
 		this.server.emit('lobbys', this.sendLobbys(this.games));
+		console.log(newGame.lobby_name);
 		user.lobby_name = newGame.lobby_name;
 		this.userService.saveUser(user);
+		this.server.to(user.socketId).emit('userUpdate', new ProfileUserDto(user));
 	}
 	@SubscribeMessage('start')
 	start(client: Socket, payload: any): void {
@@ -187,7 +197,7 @@ export class AppGateway
 			requestFriend: true,
 			friends: true,
 		});
-		this.server.emit('userUpdate', new ProfileUserDto(user));
+		this.server.to(user.socketId).emit('userUpdate', new ProfileUserDto(user));
 	}
 	@SubscribeMessage('getUserByLogin')
 	async getUserByLogin(client: Socket, payload: any): Promise<void> {

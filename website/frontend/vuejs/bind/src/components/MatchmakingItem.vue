@@ -57,7 +57,6 @@ let lobbys = ref([]);
 let isCreate: Ref<boolean> = inject('isCreate')!;
 let isJoin: Ref<boolean> = inject('isJoin')!;
 let nbrBall = ref(1);
-let lobby_name = $cookies.get('login') + "'s lobby";
 
 socket.on('lobbys', (data: any) => {
 	lobbys.value = data;
@@ -83,14 +82,14 @@ function update_game() {
 function launch() {
 	start.value = !start.value;
 	socket.emit('start', {
-		lobby_name: lobby_name,
+		lobby_name: me?.value?.lobby_name,
 	});
 }
 function incrBall() {
 	if (nbrBall.value + 1 <= 3) {
 		nbrBall.value++;
 		socket.emit('updateLobby', {
-			lobby_name: lobby_name,
+			lobby_name: me?.value?.lobby_name,
 			nbrBall: nbrBall.value,
 		});
 		remount.value = !remount.value;
@@ -102,7 +101,7 @@ function decrBall() {
 	if (nbrBall.value - 1 >= 1) {
 		nbrBall.value--;
 		socket.emit('updateLobby', {
-			lobby_name: lobby_name,
+			lobby_name: me?.value?.lobby_name,
 			nbrBall: nbrBall.value,
 		});
 	} else {
