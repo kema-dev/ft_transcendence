@@ -1,52 +1,32 @@
 {
-	"name": "bind",
-	"version": "0.1.0",
+	"name": "ft_transcendence-frontend",
+	"version": "1.0.0",
 	"private": true,
+	"description": "ft_transcendence's vuejs frontend",
+	"license": "MIT",
 	"scripts": {
 		"serve": "vue-cli-service serve",
-		"build": "vue-cli-service build",
-		"lint": "vue-cli-service lint"
+		"build": "vue-cli-service build"
 	},
 	"dependencies": {
-		"@babel/core": "^7.0.0",
-		"@lottiefiles/vue-lottie-player": "^1.0.9",
-		"@nestjs/platform-socket.io": "^9.0.11",
-		"@nestjs/websockets": "^9.0.11",
 		"@types/node": "^18.0.6",
-		"@types/vuelidate": "^0.7.15",
-		"@vuelidate/core": "^2.0.0-alpha.41",
-		"@vuelidate/validators": "^2.0.0-alpha.29",
 		"axios": "^0.27.2",
-		"core-js": "^3.24.1",
 		"konva": "^8.3.2",
 		"progressbar.js": "^1.1.0",
 		"qrcode.vue": "^3.3.3",
-		"scss-tokenizer": "^0.4.3",
 		"socket.io-client": "^4.5.1",
 		"vue": "^3.2.13",
-		"vue-class-component": "^8.0.0-0",
-		"vue-rocker-switch": "^1.2.4",
 		"vue-router": "^4.1.4",
-		"vue-switches": "^2.0.1",
 		"vue-toastification": "^2.0.0-rc.5",
-		"vue3-cookies": "^1.0.6",
-		"vuejs-overlay": "^0.0.28",
-		"vuelidate": "^0.7.7"
+		"vue3-cookies": "^1.0.6"
 	},
 	"devDependencies": {
-		"@typescript-eslint/eslint-plugin": "^5.4.0",
-		"@typescript-eslint/parser": "^5.4.0",
-		"@vue/cli-plugin-babel": "~5.0.0",
-		"@vue/cli-plugin-eslint": "~5.0.0",
 		"@vue/cli-plugin-router": "~5.0.0",
 		"@vue/cli-plugin-typescript": "~5.0.0",
 		"@vue/cli-service": "~5.0.0",
-		"@vue/eslint-config-typescript": "^9.1.0",
-		"eslint": "^7.32.0",
-		"eslint-plugin-vue": "^8.0.3",
+		"typescript": "~4.5.5",
 		"node-sass": "^7.0.1",
 		"sass-loader": "^13.0.2",
-		"typescript": "~4.5.5",
 		"vue-cookies": "^1.8.1"
 	}
 }
