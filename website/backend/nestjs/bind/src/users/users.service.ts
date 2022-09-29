@@ -24,13 +24,15 @@ export class UsersService {
 			.save(user)
 			.catch((e) => console.log('Save saveSocket error'));
 	}
-
 	async saveLobby(login: string, lobby_name: string) {
 		const user = await this.getByLogin(login);
 		user.lobby_name = lobby_name;
 		await this.usersRepository
 			.save(user)
 			.catch((e) => console.log('Save saveSocket error'));
+	}
+	async saveUser(user:UserEntity) {
+		await this.usersRepository.save(user);
 	}
 
 	async getByEmail(mail: string) {
@@ -57,7 +59,7 @@ export class UsersService {
 			return user;
 		}
 		console.error('getByLogin: ' + logname + ' not found, returning ✘');
-		throw new HttpException('E_USER_NOT_FOUND', HttpStatus.NOT_FOUND);
+		// throw new HttpException('E_USER_NOT_FOUND', HttpStatus.NOT_FOUND);
 	}
 
 	async getByLoginFiltred(filter: string) {

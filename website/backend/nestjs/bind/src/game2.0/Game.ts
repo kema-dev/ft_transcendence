@@ -28,6 +28,7 @@ export default class Game {
 	players: UserEntity[];
 	sockets: string[];
 	owner: string;
+	img: string;
 	match_service: MatchService;
 	constructor(
 		nbrPlayer: number,
@@ -36,6 +37,7 @@ export default class Game {
 		players: UserEntity[],
 		lobby_name: string,
 		owner: string,
+		img: string,
 		match_service: MatchService,
 	) {
 		this.match_service = match_service;
@@ -49,12 +51,12 @@ export default class Game {
 		this.deltaTime = 1;
 		this.rackets = [];
 		this.profiles = [];
+		this.img = img;
 		this.players = players;
 		this.sockets = [];
 		this.owner = owner;
-		for (let player of this.players) {
+		for (let player of this.players)
 			this.sockets.push(player.socketId);
-		}
 		this.logger = new Logger();
 		this.dto = new GameDto(nbrPlayer, nbrBall);
 		this.init();
@@ -65,9 +67,7 @@ export default class Game {
 		const radius = 410;
 		const field = new Field(this.nbrPlayer);
 		for (let i = 0; i < this.nbrBall; ++i) {
-			if (i % 2 == 1)
-				this.balls.push(new Ball(radius, radius + (-i / 2) * 30 - 7.5));
-			else this.balls.push(new Ball(radius, radius + (i / 2) * 30 + 7.5));
+				this.balls.push(new Ball(radius, radius));
 		}
 		this.walls = field.walls;
 		const fieldPoints: Array<number> = [];
@@ -93,6 +93,7 @@ export default class Game {
 				const tmp2 = wall.getRacket();
 				this.objects.push(tmp2);
 				this.rackets.push(tmp2);
+				console.log('racket');
 				i++;
 			}
 		});
@@ -100,6 +101,7 @@ export default class Game {
 	setDto() {
 		let i = 0;
 		this.dto.start = this.start;
+		this.dto.nbrBall = this.balls.length;
 		for (i = 0; i < this.balls.length; ++i) {
 			if (!this.dto.balls[i]) this.dto.balls[i] = new BallDto();
 			this.dto.balls[i].x = this.balls[i].x;
@@ -124,6 +126,7 @@ export default class Game {
 			this.dto.rackets[i].w = this.rackets[i].width;
 		}
 		this.dto.profiles = this.profiles;
+		// this.dto.owner = this.owner;
 	}
 	setMinimumDto() {
 		this.dto.start = this.start;
@@ -139,12 +142,21 @@ export default class Game {
 	}
 	setMov(value: number, login: string) {
 		for (const p of this.profiles) {
-			this.logger.log('p.login', p.login + ' l' + login);
+			this.logger.log(p.login);
 			if (p.login == login) {
 				p.mov = ((value * this.walls[0].height) / 100) * this.rackets[0].speed;
 				return;
 			}
 		}
+	}
+	updateBalls(nbrBall: number) {
+		const radius = 410;
+		if (nbrBall > this.balls.length)
+			this.balls.push(new Ball(radius, radius));
+		else
+			this.balls.pop();
+		this.nbrBall = nbrBall;
+		this.setDto();
 	}
 	getScores() {
 		let scores = [];
@@ -207,9 +219,7 @@ export default class Game {
 				// }
 			}
 			await this.setMinimumDto();
-			this.server
-				.to(this.sockets)
-				.emit('update_game', JSON.stringify(this.dto));
+			this.server.to(this.sockets).emit('update_game', JSON.stringify(this.dto));
 			const end = await performance.now();
 			this.deltaTime = end - start;
 			this.deltaTime /= 1000;

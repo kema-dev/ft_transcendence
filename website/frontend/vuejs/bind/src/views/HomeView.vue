@@ -59,7 +59,6 @@ let notifs = ref(0);
 socket.on("userUpdate", (data: any) => {
 	if (data && data.login == me) {
 		userRef.value = data;
-		// console.log(userRef.value);
 		notifs.value = data.requestFriend.length;
 	}
 });
@@ -67,6 +66,8 @@ socket.emit("userUpdate", { login: me });
 provide('notifs', notifs);
 provide("user", userRef);
 provide("me", me);
+provide('isCreate', ref(false));
+provide('isJoin', ref(false));
 
 // socket.on('newPrivConv', (data: PrivConv) => {
 // 	let privTmp = privs.value!;

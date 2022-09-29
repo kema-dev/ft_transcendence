@@ -7,6 +7,7 @@ import { AuthenticationModule } from './authentication/authentication.module';
 import { UsersModule } from './users/users.module';
 import { ChatModule } from './chat/chat.module';
 import { AppGateway } from './app.gateway';
+// import { SocketModule } from './socket/socket.module';
 import { MatchModule } from './match/match.module';
 
 @Module({

@@ -3,7 +3,6 @@ import Home from '@/views/HomeView.vue';
 import LogpageView from '@/views/LogpageView.vue';
 import BackendDownView from '@/views/BackendDownView.vue';
 import SecurityView from '@/views/SecurityView.vue';
-import GameView from '@/views/GameView.vue';
 import Friends from '@/menu/FriendsTab.vue';
 import Chat from '@/menu/ChatTab.vue';
 import InGame from '@/chat/InGameTab.vue';
@@ -44,7 +43,7 @@ const routes: Array<RouteRecordRaw> = [
 		name: 'home',
 		path: '/home',
 		components: { default: Home },
-		redirect: '/home/chat/private',
+		redirect: '/home/friends',
 		children: [
 			{
 				name: 'friends',
