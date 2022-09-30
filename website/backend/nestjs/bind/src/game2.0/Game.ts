@@ -30,7 +30,7 @@ export default class Game {
 	owner: string;
 	img: string;
 	match_service: MatchService;
-	fieldpoints: Array<{ x: number, y: number}>;
+	fieldpoints: Array<{ x: number, y: number }>;
 	constructor(
 		nbrPlayer: number,
 		nbrBall: number,
@@ -69,7 +69,7 @@ export default class Game {
 		const radius = 410;
 		const field = new Field(this.nbrPlayer);
 		for (let i = 0; i < this.nbrBall; ++i) {
-				this.balls.push(new Ball(radius, radius));
+			this.balls.push(new Ball(radius, radius));
 		}
 		this.walls = field.walls;
 		const fieldPoints: Array<number> = [];
@@ -206,104 +206,58 @@ export default class Game {
 				} else {
 					right_point = this.fieldpoints[rack_number * 2 - 1];
 				}
-				// console.log('number:', (rack_number - 1) % (this.nbrPlayer * 2));
-				// console.log('left_point:', left_point);
-				// console.log('right_point:', right_point);
-				const x_min = Math.min(left_point.x, right_point.x);
-				const x_max = Math.max(left_point.x, right_point.x);
-				const y_min = Math.min(left_point.y, right_point.y);
-				const y_max = Math.max(left_point.y, right_point.y);
-				console.log('x_min:', x_min);
-				console.log('x_max:', x_max);
-				console.log('y_min:', y_min);
-				console.log('y_max:', y_max);
-				const rack_offset_x = rack.startX - left_point.x;
-				const rack_offset_y = rack.startY - left_point.y;
-				console.log('rack_offset_x:', rack_offset_x);
-				console.log('rack_offset_y:', rack_offset_y);
-				const rack_space_y =
-					rack.height * Math.cos((rack.angle / 360) * 2 * Math.PI);
-				const rack_space_x =
-					rack.height * Math.sin((rack.angle / 360) * 2 * Math.PI);
-				console.log('rack_space_x:', rack_space_x);
-				console.log('rack_space_y:', rack_space_y);
-				let min_rack_x;
-				let max_rack_x;
-				let min_rack_y;
-				let max_rack_y;
-				if (rack_space_x > 0) {
-					min_rack_x = x_min + rack_offset_x;
-					max_rack_x = x_max + rack_offset_x - rack_space_x;
-				} else {
-					min_rack_x = x_min + rack_offset_x + rack_space_x;
-					max_rack_x = x_max + rack_offset_x;
-				}
-				if (rack_space_y > 0) {
-					min_rack_y = y_min + rack_offset_y;
-					max_rack_y = y_max + rack_offset_y - rack_space_y;
-				} else {
-					min_rack_y = y_min + rack_offset_y + rack_space_y;
-					max_rack_y = y_max + rack_offset_y;
-				}
-				console.log('min_rack_x:', min_rack_x);
-				console.log('max_rack_x:', max_rack_x);
-				console.log('min_rack_y:', min_rack_y);
-				console.log('max_rack_y:', max_rack_y);
-				// const allowed_space_x = x_max - x_min + rack_offset_x;
-				// const allowed_space_y = y_max - y_min + rack_offset_y;
-				// console.log('allowed_space_x:', allowed_space_x);
-				// console.log('allowed_space_y:', allowed_space_y);
-				// console.log('rack.width:', rack.width);
-				// console.log('rack.height:', rack.height);
-				// console.log('rack angle:', rack.angle);
-				// const rack_x_1 = rack.startX;
-				// const rack_x_2 = rack.startX + rack_space_x;
-				// const rack_start_x = Math.min(rack_x_1, rack_x_2);
-				// const rack_end_x = Math.max(rack_x_1, rack_x_2);
-				// const rack_y_1 = rack.startY;
-				// const rack_y_2 = rack.startY + rack_space_y;
-				// const rack_start_y = Math.min(rack_y_1, rack_y_2);
-				// const rack_end_y = Math.max(rack_y_1, rack_y_2);
-				// const future_rack_start_x_1 = 9999;
-				// const future_rack_start_x_2 = x + rack_space_x;
-				// const future_rack_start_x = Math.min(
-				// 	future_rack_start_x_1,
-				// 	future_rack_start_x_2,
-				// );
-				// const future_rack_end_x = Math.max(
-				// 	future_rack_start_x_1,
-				// 	future_rack_start_x_2,
-				// );
-				// const future_rack_start_y_1 = 99999;
-				// const future_rack_start_y_2 = y + rack_space_y;
-				// const future_rack_start_y = Math.min(
-				// 	future_rack_start_y_1,
-				// 	future_rack_start_y_2,
-				// );
-				// const future_rack_end_y = Math.max(
-				// 	future_rack_start_y_1,
-				// 	future_rack_start_y_2,
-				// );
-				// console.log('future_rack_start_x:', future_rack_start_x);
-				// console.log('future_rack_end_x:', future_rack_end_x);
-				// console.log('future_rack_start_y:', future_rack_start_y);
-				// console.log('future_rack_end_y:', future_rack_end_y);
-				console.log('x:', x);
-				console.log('y:', y);
-				console.log('x + rack_space_x:', x + rack_space_x);
-				console.log('y + rack_space_y:', y + rack_space_y);
-				console.log('');
+
+				const future_pos = {
+					x: x,
+					y: y,
+				};
+				console.log('future_pos:', future_pos);
+				const rack_offset = {
+					x: rack.startX - left_point.x,
+					y: rack.startY - left_point.y,
+				};
+				const left_with_offset = {
+					x: left_point.x + rack_offset.x,
+					y: left_point.y + rack_offset.y,
+				};
+				console.log('left_with_offset:', left_with_offset);
+				const right_with_offset = {
+					x: right_point.x + rack_offset.x,
+					y: right_point.y + rack_offset.y,
+				};
+				console.log('right_with_offset:', right_with_offset);
+				// const min_point = {
+				// 	x: Math.min(left_with_offset.x, right_with_offset.x),
+				// 	y: Math.min(left_with_offset.y, right_with_offset.y),
+				// };
+				// console.log('min_point:', min_point);
+				// const max_point = {
+				// 	x: Math.max(left_with_offset.x, right_with_offset.x),
+				// 	y: Math.max(left_with_offset.y, right_with_offset.y),
+				// };
+				// console.log('max_point:', max_point);
+				console.log('rack.angle:', rack.angle);
+				const rack_size = {
+					x: rack.height * Math.sin(((rack.angle * -1) / 360) * 2 * Math.PI),
+					y: rack.height * Math.cos(((rack.angle * -1) / 360) * 2 * Math.PI),
+				};
+				console.log('rack_size:', rack_size);
+				const rack_start = {
+					x: x,
+					y: y,
+				};
+				console.log('rack_start:', rack_start);
+				const rack_end = {
+					x: x + rack_size.x,
+					y: y + rack_size.y,
+				};
+				console.log('rack_end:', rack_end);
 				let move = false;
-				const delta = 0.5;
 				if (
-					x > min_rack_x - delta &&
-					x < max_rack_x + delta &&
-					y > min_rack_y - delta &&
-					y < max_rack_y + delta
+					this.point_between(rack_start, left_with_offset, right_with_offset) &&
+					this.point_between(rack_end, left_with_offset, right_with_offset)
 				) {
 					move = true;
-				} else {
-					move = false;
 				}
 
 				if (move == true) {
@@ -324,6 +278,22 @@ export default class Game {
 			start = end;
 			await delay(1);
 		}
+	}
+	point_between(point: any, left: any, right: any) {
+		const x_min = Math.min(left.x, right.x);
+		const x_max = Math.max(left.x, right.x);
+		const y_min = Math.min(left.y, right.y);
+		const y_max = Math.max(left.y, right.y);
+		const delta = 0.5;
+		if (
+			point.x >= x_min - delta &&
+			point.x <= x_max + delta &&
+			point.y >= y_min - delta &&
+			point.y <= y_max + delta
+		) {
+			return true;
+		}
+		return false;
 	}
 }
 
