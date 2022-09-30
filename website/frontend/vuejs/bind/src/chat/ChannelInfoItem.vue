@@ -1,12 +1,23 @@
 <template>
 	<div v-if="display" class="infoCont left column">
-		<div class="infoElemCont left column" id="passwordInfo">
-			<div class="infoElemHead left_center raw">
-				<div class="infoElemImgCont center">
+		<div class="ElemCont left column" id="passwordInfo">
+			<div class="ElemHeadCont left_center raw">
+				<div class="titleImgCont center">
 					<img src="~@/assets/key_logo.svg" alt="Password" class="infoImg" />
 				</div>
-				<span class="infoText">
-					Password : {{chansRef[i].psw ? "Yes" : "No"}}
+				<span class="titleText">
+					Password : 
+				</span>
+				<span v-if="!pswBool" class="titleValueText">
+					{{chansRef[i].psw ? "Yes" : "No"}}
+				</span>
+				<span v-else class="titleValueText center">
+					<input
+						@click="changePswCB"
+						type="checkbox" 
+						name="pswCheckBox" 
+						id="pswCheckBox"
+					>
 				</span>
 				<!-- <img
 					v-if="!chansRef[props.i].psw"
@@ -14,18 +25,28 @@
 					alt="No Password"
 					class="infoImg"
 				/> -->
-				<button
-					@click="modifPsw = !modifPsw"
-					class="settingsBtn center"
+				<button v-if="pswBool"
+					@click="modifPswReq"
+					class="settingsBtnCont center"
 				>
-					<!-- <img
-						src="~@/assets/settings_logo.svg"
-						alt="Password"
-						class="infoImg"
-					/> -->
 					<img
+						src="~@/assets/done.svg"
+						alt="Edit password"
+						class="infoImg"
+					/>
+				</button>
+				<button
+					@click="showPsw"
+					class="settingsBtnCont center"
+				>
+					<img v-if="!pswBool"
 						src="~@/assets/edit_logo.svg"
 						alt="Edit password"
+						class="infoImg"
+					/>
+					<img v-else
+						src="~@/assets/undo_logo.svg"
+						alt="Undo button"
 						class="infoImg"
 					/>
 				</button>
@@ -33,7 +54,7 @@
 				<!-- <div class="settingsOptions left_center raw stack">
 					<button
 						@click="showSettings = !showSettings"
-						class="settingsBtn center"
+						class="settingsBtnCont center"
 					>
 						<img
 							src="~@/assets/settings_logo.svg"
@@ -74,25 +95,36 @@
 				<input type="text" class="passwordInput" />
 			</div> -->
 			</div>
-			<form v-if="modifPsw" class="settingsCont left">
-				<input type="text" name="newPsw" id="newPsw" class="inputForm" />
+			<form v-if="pswBool"
+				@submit.prevent="modifPswReq" 
+				class="settingsCont left"
+			>
+				<input v-model="pswValue"
+					type="text"
+					name="pswInput" 
+					id="pswInput" 
+					class="inputForm"
+					:disabled="!pswCheck"
+				/>
 			</form>
 		</div>
-		<!-- <div class="infoElemCont center raw" id="AdministratorsInfo">
+		<!-- <div class="
+ElemCont center raw" id="AdministratorsInfo">
 				<div class="infoImgCont">
 					<img src="~@/assets/crown_logo.svg" alt="Password" class="infoAvatar">
 				</div>
-				<span class="infoText">Administrators</span>
+				<span class="titleText">Administrators</span>
 				<img v-if="password == ''" src="~@/assets/redcross.svg" alt="" class="svgNoFilter">
 				<button class="infoSettings infoImgCont">
 					<img src="~@/assets/settings_logo.svg" alt="Password" class="infoAvatar">
 				</button>
 			</div>
-			<div class="infoElemCont center raw" id="UsersInfo">
+			<div class="
+ElemCont center raw" id="UsersInfo">
 				<div class="infoImgCont">
 					<img src="~@/assets/group2_logo.svg" alt="Password" class="infoAvatar">
 				</div>
-				<span class="infoText">Users</span>
+				<span class="titleText">Users</span>
 				<img v-if="password == ''" src="~@/assets/redcross.svg" alt="" class="svgNoFilter">
 				<button class="infoSettings infoImgCont">
 					<img src="~@/assets/settings_logo.svg" alt="Password" class="infoAvatar">
@@ -131,9 +163,17 @@ const route = useRoute();
 let chanName = route.params.conv_name as string;
 let myName: string = inject("me")!;
 let me: Ref<ProfileUserDto> = inject("user")!;
-let modifPsw = ref(false);
 let display = ref(true);
 let chansRef : Ref<ChannelDto[]> = inject("chans")!;
+
+// PASSWORD
+let pswValue = ref("");
+let pswBool = ref(false);
+let pswCheck = ref(false);
+// if (chansRef.value[props.i].psw)
+// 	pswCheck = ref(true);
+// else
+// 	pswCheck = ref(false);
 
 
 
@@ -146,6 +186,41 @@ function quitChannel() {
 	router.push({name: 'channels'});
 }
 
+function changePswCB() {
+	pswValue.value = "";
+	pswCheck.value = !pswCheck.value;
+	nextTick(() => {
+		document.getElementById("pswInput")?.focus();
+	})
+}
+
+function showPsw() {
+	pswBool.value = !pswBool.value;
+	pswValue.value = "";
+	if (pswBool.value) {
+		pswCheck.value = chansRef.value[props.i].psw ? true : false;
+		nextTick(() => {
+			document.getElementById("pswInput")?.focus();
+		})
+	}
+}
+
+function modifPswReq() {
+	let input = document.getElementById("pswInput");
+	input?.classList.remove("invalidInput");
+	if (pswCheck.value && pswValue.value == "")
+		return setTimeout(() => {
+			input!.classList.add("invalidInput");
+		}, 50);
+	if (chansRef.value[props.i].psw) {
+		if (!pswCheck.value)
+			mySocket.emit("modifChan");
+		else if (pswValue.value != "")
+			mySocket.emit("modifChan");
+	} else if (pswCheck.value)
+		mySocket.emit("modifChan");
+	pswBool.value = false;
+}
 
 function findAvatar(login: string) {
 	printChan(chansRef.value[props.i]);
@@ -191,6 +266,10 @@ function displayDate(date: Date, i: number) {
 }
 
 
+// ====================== SOCKET LISTENNERS ======================
+
+mySocket.on("")
+
 // ====================== UTILS ======================
 
 function printChan(chan: ChannelDto) {
@@ -206,26 +285,40 @@ function printChan(chan: ChannelDto) {
 </script>
 
 <style scoped>
+
+/* GENERAL */
 .infoCont {
 	padding: 10px 20px;
 }
-
-.infoElemCont {
-	width: auto;
+.ElemCont {
+	width: 220px;
 	margin-bottom: 10px;
 }
-.infoText {
+.ElemHeadCont {
+
+}
+.titleText {
 	font-family: 'Orbitron', sans-serif;
 	width: auto;
 	white-space: nowrap;
+	font-weight: 500;
 }
-.settingsBtn {
-	margin-left: 20px;
+.titleValueText {
+	font-family: 'Orbitron', sans-serif;
+	margin-left: 10px;
+	/* width: auto;
+	white-space: nowrap; */
+}
+.titleImgCont,
+.settingsBtnCont {
 	height: 26px;
 	width: 26px;
 	border-radius: 13px;
 }
-.settingsBtn:hover {
+.settingsBtnCont {
+	margin-left: auto;
+}
+.settingsBtnCont:hover {
 	/* border: solid 1px v-bind("colors.color2"); */
 	background-color: #fff;
 	box-shadow: 0px 0px 4px #aaa;
@@ -236,13 +329,52 @@ function printChan(chan: ChannelDto) {
 	filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg)
 		brightness(86%) contrast(83%);
 }
-.inputForm {
-	width: auto;
+.invalidInput {
+	animation: shake 0.4s linear;
 }
+@keyframes shake {
+	0%,
+	100% {
+		transform: translateX(0);
+	}
+	10%,
+	30%,
+	50%,
+	70%,
+	90% {
+		transform: translateX(-5px);
+	}
+	20%,
+	40%,
+	60%,
+	80% {
+		transform: translateX(5px);
+	}
+	0% {
+		background-color: rgb(255, 178, 178);
+	}
+	100.0% {
+		background-color: white;
+	}
+}
+
+/* SPECIFIC */
+.inputForm {
+	font-family: 'Orbitron', sans-serif;
+	font-size: 0.8rem;
+	width: 220px;
+	height: 1.4rem;
+	border-radius: calc(1.4rem / 2);
+	outline: none;
+	padding: 0 8px;
+}
+/* .inputForm:read-only {
+	background-color: rgb(230, 230, 230);
+} */
 .leaveButton {
 	height: 1.5rem;
-	font-weight: 500;
 	border-radius: calc(1.5rem / 2);
+	font-weight: 500;
 	background-color: v-bind("colors.color2");
 	color: white;
 	padding: 0 10px;

@@ -16,7 +16,7 @@
 					/>
 					<img v-else
 						src="~@/assets/undo_logo.svg"
-						alt="Info button"
+						alt="Undo button"
 						class="button_img"
 					/>
 				</button>
