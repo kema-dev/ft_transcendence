@@ -30,6 +30,7 @@ export default class Game {
 	owner: string;
 	img: string;
 	match_service: MatchService;
+	fieldpoints: Array<{ x: number, y: number }>;
 	constructor(
 		nbrPlayer: number,
 		nbrBall: number,
@@ -55,6 +56,7 @@ export default class Game {
 		this.players = players;
 		this.sockets = [];
 		this.owner = owner;
+		this.fieldpoints = [];
 		for (let player of this.players)
 			this.sockets.push(player.socketId);
 		this.logger = new Logger();
@@ -67,7 +69,7 @@ export default class Game {
 		const radius = 410;
 		const field = new Field(this.nbrPlayer);
 		for (let i = 0; i < this.nbrBall; ++i) {
-				this.balls.push(new Ball(radius, radius));
+			this.balls.push(new Ball(radius, radius));
 		}
 		this.walls = field.walls;
 		const fieldPoints: Array<number> = [];
@@ -75,6 +77,9 @@ export default class Game {
 			fieldPoints.push(wall.x);
 			fieldPoints.push(wall.y);
 		});
+		for (let i = 0; i < fieldPoints.length; i += 2) {
+			this.fieldpoints.push({ x: fieldPoints[i], y: fieldPoints[i + 1] });
+		}
 		let i = 0;
 		this.walls.forEach((wall) => {
 			this.objects.push(wall);
@@ -190,34 +195,80 @@ export default class Game {
 				const rack = this.rackets[i];
 				const x = rack.x + -rack.vector.y * (this.deltaTime * mov);
 				const y = rack.y + rack.vector.x * (this.deltaTime * mov);
-				// this.logger.log(rack.vector.y)
-				// this.logger.log(rack.angle)
-				// this.logger.log("x: " + x)
-				// this.logger.log("y: " + y)
-				// this.logger.log("vx: " + rack.vector.x)
-				// this.logger.log("vy: " + rack.vector.y)
-				// this.logger.log("res: " + rack.vector.y * rack.startX)
-				// this.logger.log("res2: " + (rack.vector.y * rack.startX + rack.vector.y * rack.height * 3))
-				// this.logger.log("res3: " + rack.vector.x * rack.startY)
-				// this.logger.log("res4: " + (rack.vector.x * rack.startY + rack.vector.x * rack.height * 3))
-				// if (x >= rack.vector.y * rack.startX && x <= rack.vector.y * rack.startX + rack.vector.y * rack.height * 3 &&
-				// 	y >= rack.vector.x * rack.startY && y <= rack.vector.x * rack.startY + rack.vector.x * rack.height * 3) {
-				rack.x = x;
-				rack.y = y;
-				// }
-				// if (rack.angle < 90) {
-				// 	if (y >= rack.max.x) {
-				// 		rack.x = x;
-				// 		rack.y = y;
-				// 	}
-				// }
-				// else if (rack.angle < 180) {
-				// 	if (x >= rack.max.y && x <= rack.max.x) {
-				// 		rack.x = x;
-				// 		rack.y = y;
-				// 	}
-				// }
+
+				// console.log('field:', this.fieldpoints);
+				const rack_number = parseInt(i);
+				// console.log('rack_number:', rack_number);
+				const left_point = this.fieldpoints[rack_number * 2];
+				let right_point;
+				if (rack_number - 1 < 0) {
+					right_point = this.fieldpoints[this.fieldpoints.length - 1];
+				} else {
+					right_point = this.fieldpoints[rack_number * 2 - 1];
+				}
+
+				const future_pos = {
+					x: x,
+					y: y,
+				};
+				console.log('future_pos:', future_pos);
+				const rack_offset = {
+					x: rack.startX - left_point.x,
+					y: rack.startY - left_point.y,
+				};
+				const left_with_offset = {
+					x: left_point.x + rack_offset.x,
+					y: left_point.y + rack_offset.y,
+				};
+				console.log('left_with_offset:', left_with_offset);
+				const right_with_offset = {
+					x: right_point.x + rack_offset.x,
+					y: right_point.y + rack_offset.y,
+				};
+				console.log('right_with_offset:', right_with_offset);
+				// const min_point = {
+				// 	x: Math.min(left_with_offset.x, right_with_offset.x),
+				// 	y: Math.min(left_with_offset.y, right_with_offset.y),
+				// };
+				// console.log('min_point:', min_point);
+				// const max_point = {
+				// 	x: Math.max(left_with_offset.x, right_with_offset.x),
+				// 	y: Math.max(left_with_offset.y, right_with_offset.y),
+				// };
+				// console.log('max_point:', max_point);
+				console.log('rack.angle:', rack.angle);
+				const rack_size = {
+					x: rack.height * Math.sin(((rack.angle * -1) / 360) * 2 * Math.PI),
+					y: rack.height * Math.cos(((rack.angle * -1) / 360) * 2 * Math.PI),
+				};
+				console.log('rack_size:', rack_size);
+				const rack_start = {
+					x: x,
+					y: y,
+				};
+				console.log('rack_start:', rack_start);
+				const rack_end = {
+					x: x + rack_size.x,
+					y: y + rack_size.y,
+				};
+				console.log('rack_end:', rack_end);
+				let move = false;
+				if (
+					this.point_between(rack_start, left_with_offset, right_with_offset) &&
+					this.point_between(rack_end, left_with_offset, right_with_offset)
+				) {
+					move = true;
+				}
+
+				if (move == true) {
+					rack.x = x;
+					rack.y = y;
+					console.log('MOVE');
+				} else {
+					console.log('STAY');
+				}
 			}
+
 			await this.setMinimumDto();
 			this.server.to(this.sockets).emit('update_game', JSON.stringify(this.dto));
 			const end = await performance.now();
@@ -227,6 +278,22 @@ export default class Game {
 			start = end;
 			await delay(1);
 		}
+	}
+	point_between(point: any, left: any, right: any) {
+		const x_min = Math.min(left.x, right.x);
+		const x_max = Math.max(left.x, right.x);
+		const y_min = Math.min(left.y, right.y);
+		const y_max = Math.max(left.y, right.y);
+		const delta = 0.5;
+		if (
+			point.x >= x_min - delta &&
+			point.x <= x_max + delta &&
+			point.y >= y_min - delta &&
+			point.y <= y_max + delta
+		) {
+			return true;
+		}
+		return false;
 	}
 }
 

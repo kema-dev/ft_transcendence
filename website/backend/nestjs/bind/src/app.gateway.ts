@@ -125,7 +125,7 @@ export class AppGateway
 		let lobbys: MatchDto[] = [];
 		games.forEach((game) => {
 			lobbys.push(new MatchDto(game));
-			console.log(game.img, lobbys[lobbys.length - 1].img);
+			// console.log(game.img, lobbys[lobbys.length - 1].img);
 		});
 		return lobbys;
 	}

@@ -363,12 +363,12 @@ export class UsersService {
 
 	async get_user_avatar(user: string) {
 		console.log('get_user_avatar: starting for', user);
-		if (user == 'search') {
-			console.log('get_user_avatar: search, returning ✔');
-			return avatars[5];
-		}
+		// if (user == 'search') {
+		// 	console.log('get_user_avatar: search, returning ✔');
+		// 	return avatars[5];
+		// }
 		const usr = await this.getByAny(user);
-		console.log('get_user_avatar: ' + user + ', returning ✔');
+		console.log('get_user_avatar: ', user, ', returning ✔');
 		return usr.avatar;
 	}
 }

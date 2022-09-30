@@ -49,9 +49,9 @@ export class MatchService {
 	}
 
 	async assign_match_to_user(login: string, match_id: number) {
-		if (login == 'search') {
-			return;
-		}
+		// if (login == 'search') {
+		// 	return;
+		// }
 		await this.usersService.assign_match_to_user(login, match_id);
 	}
 
@@ -117,7 +117,7 @@ export class MatchService {
 			} else if (match.scores[index] == winner_score) {
 				stats.wins += 1;
 			}
-			stats.average_rank += match.ranks[index] / match.player_count;
+			stats.average_rank += (match.ranks[index] - 1) / (match.player_count - 1);
 		}
 		if (stats.total < 1) {
 			stats.average_rank = 0.5;
@@ -128,20 +128,20 @@ export class MatchService {
 		return stats;
 	}
 
-	async simulate_5_matches() {
-		for (let i = 0; i < 5; i++) {
-			const match = await this.matchRepository.create({
-				player_count: 2,
-				ball_count: 2,
-				lobby_name: 'lobby_name',
-				owner: 'owner',
-				players: ['q', 'w'],
-				scores: [1, 0],
-				ranks: [0, 1],
-			});
-			for (const profile of match.players) {
-				this.assign_match_to_user(profile, match.id);
-			}
-		}
-	}
+	// async simulate_5_matches() {
+	// 	for (let i = 0; i < 5; i++) {
+	// 		const match = await this.matchRepository.create({
+	// 			player_count: 2,
+	// 			ball_count: 2,
+	// 			lobby_name: 'lobby_name',
+	// 			owner: 'owner',
+	// 			players: ['q', 'w'],
+	// 			scores: [1, 0],
+	// 			ranks: [0, 1],
+	// 		});
+	// 		for (const profile of match.players) {
+	// 			this.assign_match_to_user(profile, match.id);
+	// 		}
+	// 	}
+	// }
 }

@@ -6,7 +6,7 @@
 				<div class="info center row space-around">
 					<div class="row center">
 						<img class="podium icon" src="@/assets/svg/leaderboard.svg" />
-						<h1 class="number">{{ get_rank(me?.value?.login) }}</h1>
+						<h1 class="number">{{ get_rank() }}</h1>
 					</div>
 					<div class="row center">
 						<img class="icon" src="@/assets/svg/user.svg" />
@@ -20,29 +20,33 @@
 			</div>
 			<div class="more">
 				<div class="match_detail_first"></div>
-				<div
-					class="list">
-				<div
-					class="match_detail"
-					v-for="i in props.match.players.length"
-					:key="i"
-				>
-					<div class="space-between fit_match">
-						<img :src="avatar[i - 1]" class="avatar" />
-						<div class="info_details center row space-around">
-							<div class="row center">
-								<h1 class="player_login">{{ get_player_name(props.match.players[i - 1]) }}</h1>
-							</div>
-							<div class="row center">
-								<img class="podium icon" src="@/assets/svg/leaderboard.svg" />
-								<h1 class="number_details">{{ props.match.ranks[i - 1] }}</h1>
-							</div>
-							<div class="row center">
-								<img class="icon small_icon" src="@/assets/svg/heart.svg" />
-								<h1 class="number_details">{{ props.match.scores[i - 1] }}</h1>
+				<div class="list">
+					<div
+						class="match_detail"
+						v-for="i in props.match.players.length"
+						:key="i"
+					>
+						<div class="space-between fit_match">
+							<img :src="avatar[i - 1]" class="avatar" />
+							<div class="info_details center row space-around">
+								<div class="row center">
+									<h1 class="player_login">
+										{{ get_player_name(props.match.players[i - 1]) }}
+									</h1>
+								</div>
+								<div class="row center">
+									<img class="podium icon" src="@/assets/svg/leaderboard.svg" />
+									<h1 class="number_details">{{ props.match.ranks[i - 1] }}</h1>
+								</div>
+								<div class="row center">
+									<img class="icon small_icon" src="@/assets/svg/heart.svg" />
+									<h1 class="number_details">
+										{{ props.match.scores[i - 1] }}
+									</h1>
+								</div>
 							</div>
 						</div>
-					</div></div>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -64,13 +68,13 @@ let size = ref(0);
 
 function open() {
 	if (size.value) size.value = 0;
-	else size.value = (props.match.player_count + 1);
+	else size.value = props.match.player_count + 1;
 }
 
-function get_rank(login: string) {
+function get_rank() {
 	let rank = 0;
 	for (let i = 0; i < props.match.players.length; i++) {
-		if (props.match.players[i].login == login) {
+		if (props.match.players[i] == me?.value?.login) {
 			rank = props.match.ranks[i];
 			break;
 		}
@@ -78,17 +82,19 @@ function get_rank(login: string) {
 	return rank;
 }
 
-let avatar = ref([])
+let avatar = ref([]);
 
 async function get_avatars() {
 	for (let i = 0; i < props.match.players.length; i++) {
 		await API.post('/user/get_user_avatar', {
 			login: props.match.players[i],
-		}).then((res) => {
-			avatar.value.push(res.data);
-		}).catch((err) => {
-			// console.log(err);
-		});
+		})
+			.then((res) => {
+				avatar.value.push(res.data);
+			})
+			.catch((err) => {
+				// console.log(err);
+			});
 	}
 }
 
