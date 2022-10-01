@@ -148,6 +148,7 @@ import { MessageDto } from "@/chat/dto/MessageDto";
 import { NewChanMsgDto } from "@/chat/dto/NewChanMsgDto";
 import { ChannelDto } from "./dto/ChannelDto";
 import { ProfileUserDto } from "@/dto/ProfileUserDto"
+import { ModifChanDto } from "@/chat/dto/ModifChanDto"
 import router from "@/router";
 
 const props = defineProps({
@@ -214,11 +215,14 @@ function modifPswReq() {
 		}, 50);
 	if (chansRef.value[props.i].psw) {
 		if (!pswCheck.value)
-			mySocket.emit("modifChan");
+			mySocket.emit("modifChan",
+				new ModifChanDto(chanName, "psw", ""));
 		else if (pswValue.value != "")
-			mySocket.emit("modifChan");
+			mySocket.emit("modifChan", 
+				new ModifChanDto(chanName, "psw", pswValue.value));
 	} else if (pswCheck.value)
-		mySocket.emit("modifChan");
+		mySocket.emit("modifChan", 
+			new ModifChanDto(chanName, "psw", pswValue.value));
 	pswBool.value = false;
 }
 
@@ -378,6 +382,8 @@ function printChan(chan: ChannelDto) {
 	background-color: v-bind("colors.color2");
 	color: white;
 	padding: 0 10px;
+	margin: auto;
+	margin-top: 20px;
 	box-shadow: 0px 0px 4px #aaa;
 }
 </style>

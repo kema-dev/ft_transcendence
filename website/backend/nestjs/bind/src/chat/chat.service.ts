@@ -29,6 +29,7 @@ import { HttpService } from '@nestjs/axios';
 import { timeStamp } from 'console';
 import { NewChanDto } from './dto/NewChanDto';
 import { ChannelTabDto } from './dto/ChannelTabDto ';
+import { ModifChanDto } from './dto/ModifChanDto';
 // import { AppGateway } from '../app.gateway';
 
 @Injectable()
@@ -412,9 +413,9 @@ export class ChatService {
 		let newUser = await this.userService.getByLogin(data.requestor);
 		let chan = await this.channelRepository.findOne({
 			where: {name: data.chanName},
-			relations: {admins: true, users: true},
+			relations: {admins: true, users: true, mutes: true},
 		});
-		for (let user of chan.admins.concat(chan.users)) {
+		for (let user of chan.admins.concat(chan.users).concat(chan.mutes)) {
 			// console.log(`user.login = ${user.login}, newUser.login = ${newUser.login}`)
 			if (user.login != newUser.login)
 				server.to(user.socketId).emit("newChannelUser", {
@@ -442,13 +443,47 @@ export class ChatService {
 		else
 			this.channelRepository.save(chan)
 			.catch((e) => console.log('Save chan error'));
-		for (let user of chan.admins.concat(chan.users)) {
+		for (let user of chan.admins.concat(chan.users).concat(chan.mutes)) {			
 			if (user.login != data.login)
 				server.to(user.socketId).emit("userQuitChan", {
 					login: data.login,
 					chan: data.chan,
 				});
 		}
+	}
+
+
+	
+
+	async modifChan(server: Server, modif: ModifChanDto) {
+		let chan = await this.channelRepository.findOne({
+			where: {name: modif.chan},
+			relations: {admins: true, users: true, mutes: true}
+		});
+		this.updateChanSetting(chan, modif);
+		for (let user of chan.admins.concat(chan.users).concat(chan.mutes))
+			server.to(user.socketId).emit("modifChan", modif);
+	}
+
+	updateChanSetting(chan: ChannelEntity, modif: ModifChanDto) {
+		if (modif.psw)
+			modif.psw == "" ?
+				chan.password = undefined : chan.password = modif.psw; 
+		// else if (modif.invitUser)
+		// 	return modifChanInvitUser(server, modif.chan, modif.invitUser);
+		// else if (modif.promotAdm)
+		// 	return modifChanPromotAdm(server, modif.chan, modif.promotAdm);
+		// else if (modif.demotUser)
+		// 	return modifChanDemotUser(server, modif.chan, modif.demotUser);
+		// else if (modif.ban)
+		// 	return modifChanBan(server, modif.chan, modif.ban);
+		// else if (modif.mute)
+		// 	return modifChanMute(server, modif.chan, modif.mute);
+		// else if (modif.kick)
+		// 	return modifChanKick(server, modif.chan, modif.kick);
+		// else if (modif.avatar)
+		// 	return modifChanAvatar(server, modif.chan, modif.avatar);
+		this.channelRepository.save(chan);
 	}
 
 

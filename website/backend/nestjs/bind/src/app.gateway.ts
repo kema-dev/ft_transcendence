@@ -24,6 +24,7 @@ import { MessageDto } from './chat/dto/MessageDto';
 import ProfileUserDto from 'src/users/dto/ProfileUserDto';
 import ResumUserDto from 'src/users/dto/ResumUserDto';
 import { BasicUserDto } from 'src/chat/dto/BasicUserDto';
+import { ModifChanDto } from './chat/dto/ModifChanDto';
 
 @WebSocketGateway({
 	cors: {
@@ -301,6 +302,14 @@ export class AppGateway
 		@ConnectedSocket() client: Socket,
 	) {
 		this.chatService.userQuitChan(this.server, data);
+	}
+
+	@SubscribeMessage('modifChan')
+	async modifChan(
+		@MessageBody() data: ModifChanDto,
+		@ConnectedSocket() client: Socket,
+	) {
+		this.chatService.modifChan(this.server, data);
 	}
 
 

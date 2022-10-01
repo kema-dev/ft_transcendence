@@ -28,6 +28,7 @@ import { processExpression } from "@vue/compiler-core";
 import ProfileUserDto from "@/dto/ProfileUserDto";
 import { routeLocationKey } from "vue-router";
 import { NewChanMsgDto } from "@/chat/dto/NewChanMsgDto";
+import { ModifChanDto } from "@/chat/dto/ModifChanDto";
 
 
 //  ========== COOKIES + APIPATCH + ROUTE
@@ -251,8 +252,17 @@ socket.on('userQuitChan', (data: {login: string, chan: string}) => {
 		.filter(user => user.login != data.login);
 	chansRef.value[i].mutes = chansRef.value[i].mutes
 		.filter(mute => mute.login != data.login);
-	printChan(chansRef.value[i]);
+	// printChan(chansRef.value[i]);
 });
+
+socket.on('modifChan', (data: ModifChanDto) => {
+	console.log(`Chan '${data.chan}' modified`)
+	let i = chansRef.value.findIndex(chan => chan.name == data.chan);
+	if (data.psw)
+		data.psw == "" ?
+			chansRef.value[i].psw = undefined : 
+			chansRef.value[i].psw = data.psw;
+})
 
 
 function putChanFirst(index: number) {
