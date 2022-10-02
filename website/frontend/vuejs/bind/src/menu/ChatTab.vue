@@ -1,6 +1,6 @@
 <template>
 	<div id="chat_view">
-		<div id="chat_bar" class="center space-around">
+		<div id="chatTopBar" class="center space-around">
 			<!-- <router-link to="/home/chat/in-game" class="chat_item">
 				<h2 id="ingameTabText" class="chat_item_text">IN-GAME</h2>
 			</router-link> -->
@@ -14,7 +14,7 @@
 				<h2 id="channelsTabText" class="chat_item_text">CHANNELS</h2>
 			</router-link>
 		</div>
-		<div class="content">
+		<div class="content" id="chatContent">
 			<!-- <router-view name="chat_menu" v-slot="{ Component, route }">
 				<transition name="myFade" mode="in-out">
 					<component :is="Component" />
@@ -38,7 +38,7 @@ let nbPrivNR: { n: Ref<number[]>; reset: () => void } = inject('nbPrivNR')!;
 </script>
 
 <style>
-#chat_bar {
+#chatTopBar {
 	height: 60px;
 }
 

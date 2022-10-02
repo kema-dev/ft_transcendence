@@ -1,12 +1,12 @@
 <template>
 	<div v-if="display" class="infoCont left column">
-		<div class="ElemCont left column" id="passwordInfo">
+		<div class="ElemCont left_center column">
 			<div class="ElemHeadCont left_center raw">
 				<div class="titleImgCont center">
 					<img src="~@/assets/key_logo.svg" alt="Password" class="infoImg" />
 				</div>
 				<span class="titleText">
-					Password : 
+					Password :
 				</span>
 				<span v-if="!pswBool" class="titleValueText">
 					{{chansRef[i].psw ? "Yes" : "No"}}
@@ -17,25 +17,20 @@
 						type="checkbox" 
 						name="pswCheckBox" 
 						id="pswCheckBox"
+						:checked="chansRef[i].psw ? true : false"
 					>
 				</span>
-				<!-- <img
-					v-if="!chansRef[props.i].psw"
-					src="~@/assets/redcross.svg"
-					alt="No Password"
-					class="infoImg"
-				/> -->
 				<button v-if="pswBool"
 					@click="modifPswReq"
 					class="settingsBtnCont center"
 				>
 					<img
 						src="~@/assets/done.svg"
-						alt="Edit password"
+						alt="Valid password"
 						class="infoImg"
 					/>
 				</button>
-				<button
+				<button v-if="iAmAdmin"
 					@click="showPsw"
 					class="settingsBtnCont center"
 				>
@@ -50,50 +45,6 @@
 						class="infoImg"
 					/>
 				</button>
-
-				<!-- <div class="settingsOptions left_center raw stack">
-					<button
-						@click="showSettings = !showSettings"
-						class="settingsBtnCont center"
-					>
-						<img
-							src="~@/assets/settings_logo.svg"
-							alt="Password"
-							class="infoImg"
-						/>
-					</button>
-					<div
-						v-if="showSettings"
-						class="extendSettingsCont right_center raw"
-					>
-						<button class="extendBtn center">
-							<img
-								src="~@/assets/add2_logo.svg"
-								alt="Add password"
-								class="infoImg"
-							/>
-						</button>
-						<button class="extendBtn center">
-							<img
-								src="~@/assets/edit_logo.svg"
-								alt="Edit password"
-								class="infoImg"
-							/>
-						</button>
-						<button class="extendBtn center">
-							<img
-								src="~@/assets/delete_logo.svg"
-								alt="Delete password"
-								class="infoImg"
-							/>
-						</button>
-					</div>
-				</div>
-			</div> -->
-			
-			<!-- <div class="infoElemBody left">
-				<input type="text" class="passwordInput" />
-			</div> -->
 			</div>
 			<form v-if="pswBool"
 				@submit.prevent="modifPswReq" 
@@ -108,28 +59,68 @@
 				/>
 			</form>
 		</div>
-		<!-- <div class="
-ElemCont center raw" id="AdministratorsInfo">
-				<div class="infoImgCont">
-					<img src="~@/assets/crown_logo.svg" alt="Password" class="infoAvatar">
+		<div class="ElemCont left_center column">
+			<div class="ElemHeadCont left_center raw">
+				<div class="titleImgCont center">
+					<img src="~@/assets/crown.svg" alt="Password" class="infoImg" />
 				</div>
-				<span class="titleText">Administrators</span>
-				<img v-if="password == ''" src="~@/assets/redcross.svg" alt="" class="svgNoFilter">
-				<button class="infoSettings infoImgCont">
-					<img src="~@/assets/settings_logo.svg" alt="Password" class="infoAvatar">
-				</button>
+				<span class="titleText">
+					Admins :
+				</span>
+				<span v-if="!chansRef[i].admins.length" class="titleValueText">
+					No admins
+				</span>
 			</div>
-			<div class="
-ElemCont center raw" id="UsersInfo">
-				<div class="infoImgCont">
-					<img src="~@/assets/group2_logo.svg" alt="Password" class="infoAvatar">
+			<div v-for="(data, i) in chansRef[props.i].admins" :key="i" class="left_center">
+				<BasicProfil :avatar="data.avatar" 
+					:login="data.login" class="basicUser"/>
+				<setUserChan v-if="iAmAdmin && data.login != myName" 
+					:login="data.login" :chan="chanName" :promot="true"/>
+			</div>
+		</div>
+		<div class="ElemCont left_center column">
+			<div class="ElemHeadCont left_center raw">
+				<div class="titleImgCont center">
+					<img src="~@/assets/group2_logo.svg" alt="Password" class="infoImg" />
 				</div>
-				<span class="titleText">Users</span>
-				<img v-if="password == ''" src="~@/assets/redcross.svg" alt="" class="svgNoFilter">
-				<button class="infoSettings infoImgCont">
-					<img src="~@/assets/settings_logo.svg" alt="Password" class="infoAvatar">
+				<span class="titleText">
+					Users :
+				</span>
+				<span v-if="!chansRef[i].users.length" class="titleValueText">
+					No users
+				</span>
+				<!-- <button v-if="pswBool"
+					@click="modifPswReq"
+					class="settingsBtnCont center"
+				>
+					<img
+						src="~@/assets/done.svg"
+						alt="Valid password"
+						class="infoImg"
+					/>
 				</button>
-			</div> -->
+				<button v-if="iAmAdmin"
+					@click="showPsw"
+					class="settingsBtnCont center"
+				>
+					<img v-if="!pswBool"
+						src="~@/assets/edit_logo.svg"
+						alt="Edit password"
+						class="infoImg"
+					/>
+					<img v-else
+						src="~@/assets/undo_logo.svg"
+						alt="Undo button"
+						class="infoImg"
+					/>
+				</button> -->
+			</div>
+			<div v-for="(data, i) in chansRef[props.i].users" :key="i" class="left_center">
+				<BasicProfil :avatar="data.avatar" :login="data.login" class="basicUser"/>
+				<setUserChan v-if="iAmAdmin && data.login != myName" 
+					:login="data.login" :chan="chanName" :promot="false"/>
+			</div>
+		</div>
 		<button @click="quitChannel" class="leaveButton">
 			Quit Channel
 		</button>
@@ -142,6 +133,8 @@ ElemCont center raw" id="UsersInfo">
 import { defineProps, inject, onMounted, ref, Ref, onBeforeUnmount, watch, onBeforeUpdate, onUpdated, nextTick } from "vue";
 import { useRoute } from "vue-router";
 import { Socket } from "socket.io-client";
+import BasicProfil from "@/components/BasicProfilItem.vue";
+import setUserChan from "@/chat/setUserChanItem.vue";
 import MessageItem from "@/chat/MessageItem.vue";
 import BlockAdvert from "@/components/BlockItem.vue";
 import { MessageDto } from "@/chat/dto/MessageDto";
@@ -166,6 +159,7 @@ let myName: string = inject("me")!;
 let me: Ref<ProfileUserDto> = inject("user")!;
 let display = ref(true);
 let chansRef : Ref<ChannelDto[]> = inject("chans")!;
+let iAmAdmin = ref(isAdmin());
 
 // PASSWORD
 let pswValue = ref("");
@@ -180,6 +174,12 @@ let pswCheck = ref(false);
 
 // ================= METHODS 
 
+function isAdmin() {
+	return chansRef.value[props.i].admins
+		.map(adm => adm.login)
+		.includes(myName);
+}
+
 function quitChannel() {
 	mySocket.emit("userQuitChan", {login: myName, chan: chanName});
 	display.value = false;
@@ -190,6 +190,8 @@ function quitChannel() {
 function changePswCB() {
 	pswValue.value = "";
 	pswCheck.value = !pswCheck.value;
+	// chansRef.value[props.i].psw ? 
+	// 	pswCheck.value = true : pswCheck.value = false;
 	nextTick(() => {
 		document.getElementById("pswInput")?.focus();
 	})
@@ -272,7 +274,7 @@ function displayDate(date: Date, i: number) {
 
 // ====================== SOCKET LISTENNERS ======================
 
-mySocket.on("")
+// mySocket.on("")
 
 // ====================== UTILS ======================
 
@@ -306,6 +308,7 @@ function printChan(chan: ChannelDto) {
 	width: auto;
 	white-space: nowrap;
 	font-weight: 500;
+	margin-left: 5px;
 }
 .titleValueText {
 	font-family: 'Orbitron', sans-serif;
@@ -314,6 +317,7 @@ function printChan(chan: ChannelDto) {
 	white-space: nowrap; */
 }
 .titleImgCont,
+.setUserCont,
 .settingsBtnCont {
 	height: 26px;
 	width: 26px;
@@ -322,6 +326,7 @@ function printChan(chan: ChannelDto) {
 .settingsBtnCont {
 	margin-left: auto;
 }
+.setUserCont:hover,
 .settingsBtnCont:hover {
 	/* border: solid 1px v-bind("colors.color2"); */
 	background-color: #fff;
@@ -371,10 +376,11 @@ function printChan(chan: ChannelDto) {
 	border-radius: calc(1.4rem / 2);
 	outline: none;
 	padding: 0 8px;
+	/* flex-basis: 100%; */
 }
-/* .inputForm:read-only {
-	background-color: rgb(230, 230, 230);
-} */
+.basicUser {
+	margin: 5px 10px;
+}
 .leaveButton {
 	height: 1.5rem;
 	border-radius: calc(1.5rem / 2);

@@ -65,6 +65,7 @@ import { ChannelDto } from "./dto/ChannelDto";
 
 let colors = inject("colors");
 let me: Ref<ProfileUserDto> = inject("user")!;
+let myName: string = inject("me")!;
 let mySocket: Socket = inject("socket")!;
 let apiPath: string = inject("apiPath")!;
 const router = useRouter();
@@ -118,7 +119,7 @@ function joinChannel() {
 			newChan.creation = new Date(newChan.creation);
 			newChan.messages.forEach(msg => msg.date = new Date(msg.date));
 			chansRef.value.push(newChan);
-			mySocket.emit("newChannelUser", {chanName: props.infos.name, login: me})
+			mySocket.emit("newChannelUser", {chan: props.infos.name, login: myName})
 			router.push({name: 'ChanConv', params: {conv_name: props.infos.name }});
 		})
 		.catch((e) => {

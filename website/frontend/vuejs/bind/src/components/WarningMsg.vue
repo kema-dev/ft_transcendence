@@ -9,7 +9,12 @@
 </template>
 
 <script setup lang="ts">
-import { inject } from "vue";
+import { inject, defineProps } from "vue";
+
+const props = defineProps({
+	msg : String,
+	img: String,
+})
 
 let colors = inject("colors");
 </script>

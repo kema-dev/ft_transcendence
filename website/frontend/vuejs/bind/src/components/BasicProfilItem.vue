@@ -10,9 +10,6 @@
 <script setup lang="ts">
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { inject, defineProps, onMounted, ref } from "vue";
-// import Conversation from "@/chat/objects/PrivConv";
-import User from "@/chat/objects/User";
-import { stringifyQuery } from "vue-router";
 
 let define = inject('colors');
 const props = defineProps({

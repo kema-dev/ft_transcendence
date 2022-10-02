@@ -258,7 +258,7 @@ socket.on('userQuitChan', (data: {login: string, chan: string}) => {
 socket.on('modifChan', (data: ModifChanDto) => {
 	console.log(`Chan '${data.chan}' modified`)
 	let i = chansRef.value.findIndex(chan => chan.name == data.chan);
-	if (data.psw)
+	if (data.psw != undefined)
 		data.psw == "" ?
 			chansRef.value[i].psw = undefined : 
 			chansRef.value[i].psw = data.psw;

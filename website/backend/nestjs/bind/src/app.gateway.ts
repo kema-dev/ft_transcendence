@@ -174,31 +174,6 @@ export class AppGateway
 
 	// ============================ CHAT =====================================
 
-	// @SubscribeMessage('message')
-	// handleMessage(
-	// 	@MessageBody() data: string,
-	// 	@ConnectedSocket() client: Socket,
-	// ) {
-	// 	console.log(`Client message : ${data}`);
-	// 	this.server.emit('message', client.id, data);
-	// }
-
-	// @SubscribeMessage('getMsgs')
-	// async getMsgs(@ConnectedSocket() client: Socket) {
-	// 	this.chatService.getMessages().then((res) => {
-	// 		console.log(res);
-	// 		client.emit('getMsgs', res);
-	// 	});
-	// }
-
-	// @SubscribeMessage('getPrivConvs')
-	// async getPrivConvs(@ConnectedSocket() client: Socket) {
-	// 	this.chatService.getPrivConvs().then((res) => {
-	// 		console.log(res);
-	// 		client.emit('getMsgs', res);
-	// 	});
-	// }
-
 	@SubscribeMessage('newPrivMsg')
 	async NewPrivMsg(
 		@MessageBody() data: NewPrivMsgDto,
@@ -290,7 +265,7 @@ export class AppGateway
 
 	@SubscribeMessage('newChannelUser')
 	async newChannelUser(
-		@MessageBody() data: {requestor: string, chanName: string},
+		@MessageBody() data: {chan: string, login: string},
 		@ConnectedSocket() client: Socket,
 	) {
 		this.chatService.newChannelUser(this.server, data);
