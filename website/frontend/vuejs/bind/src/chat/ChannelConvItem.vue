@@ -328,7 +328,6 @@ function printChan(chan: ChannelDto) {
 .conversation_content {
 	height: calc(100% - 70px);
 	width: 100%;
-	padding-top: 20px;
 }
 .messages {
 	overflow-y: auto;
@@ -336,6 +335,11 @@ function printChan(chan: ChannelDto) {
 	display: flex;
 	flex-direction: column;
 	justify-content: flex-start;
+}
+.date {
+	margin: 15px 0;
+	font-size: 0.8rem;
+	white-space: pre;
 }
 
 .sendbox_cont {
@@ -357,57 +361,6 @@ function printChan(chan: ChannelDto) {
 	width: 80%;
 }
 
-.infoCont {
-	margin-top: 20px;
-}
-
-.infoElemCont {
-	width: auto;
-	margin-left: 20px;
-}
-.infoText {
-	font-family: 'Orbitron', sans-serif;
-	width: auto;
-	white-space: nowrap;
-	margin: 0 10px;
-}
-.passwordInput {
-	padding: 0 5px;
-	border-radius: 5px;
-	height: 1.5rem;
-	outline: none;
-}
-.settingsOptions {
-	margin-left: 20px;
-}
-.infoElemImgCont,
-.settingsBtn,
-.extendBtn {
-	height: 26px;
-	width: 26px;
-}
-.infoImg {
-	height: 20px;
-	width: 20px;
-	filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg)
-		brightness(86%) contrast(83%);
-}
-.settingsBtn,
-.extendSettingsCont {
-	border: solid 1px v-bind("colors.color2");
-	border-radius: 13px;
-	position: absolute;
-	background-color: #fff;
-}
-.settingsBtn {
-	z-index: 1;
-}
-.extendSettingsCont {
-	height: 26px;
-	width: v-bind("4 * 26 + 'px'");
-	z-index: 0;
-	transition: all 0.5 ease-in-out;
-}
 
 /* TRANSITION ROUTER VIEW */
 

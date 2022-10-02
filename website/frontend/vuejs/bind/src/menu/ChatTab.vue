@@ -1,9 +1,6 @@
 <template>
 	<div id="chat_view">
 		<div id="chatTopBar" class="center space-around">
-			<!-- <router-link to="/home/chat/in-game" class="chat_item">
-				<h2 id="ingameTabText" class="chat_item_text">IN-GAME</h2>
-			</router-link> -->
 			<router-link to="/home/chat/private" class="chat_item stack">
 				<h2 id="privateTabText" class="chat_item_text">PRIVATE</h2>
 				<div v-if="nbPrivNR.n.value.length" class="notifMsgCont center">
@@ -15,16 +12,6 @@
 			</router-link>
 		</div>
 		<div class="content" id="chatContent">
-			<!-- <router-view name="chat_menu" v-slot="{ Component, route }">
-				<transition name="myFade" mode="in-out">
-					<component :is="Component" />
-				</transition>
-			</router-view> -->
-			<!-- <router-view name="chat_menu" v-slot="{ Component, route }">
-				<transition :name="route.meta.transition" mode="out-in">
-					<component :is="Component" />
-				</transition>
-			</router-view> -->
 			<router-view name="chat_menu" />
 		</div>
 	</div>

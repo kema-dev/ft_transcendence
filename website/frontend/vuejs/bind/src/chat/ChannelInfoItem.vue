@@ -135,10 +135,6 @@ import { useRoute } from "vue-router";
 import { Socket } from "socket.io-client";
 import BasicProfil from "@/components/BasicProfilItem.vue";
 import setUserChan from "@/chat/setUserChanItem.vue";
-import MessageItem from "@/chat/MessageItem.vue";
-import BlockAdvert from "@/components/BlockItem.vue";
-import { MessageDto } from "@/chat/dto/MessageDto";
-import { NewChanMsgDto } from "@/chat/dto/NewChanMsgDto";
 import { ChannelDto } from "./dto/ChannelDto";
 import { ProfileUserDto } from "@/dto/ProfileUserDto"
 import { ModifChanDto } from "@/chat/dto/ModifChanDto"
@@ -157,18 +153,14 @@ const route = useRoute();
 let chanName = route.params.conv_name as string;
 let myName: string = inject("me")!;
 let me: Ref<ProfileUserDto> = inject("user")!;
-let display = ref(true);
 let chansRef : Ref<ChannelDto[]> = inject("chans")!;
 let iAmAdmin = ref(isAdmin());
+let display = ref(true);
 
 // PASSWORD
 let pswValue = ref("");
 let pswBool = ref(false);
 let pswCheck = ref(false);
-// if (chansRef.value[props.i].psw)
-// 	pswCheck = ref(true);
-// else
-// 	pswCheck = ref(false);
 
 
 

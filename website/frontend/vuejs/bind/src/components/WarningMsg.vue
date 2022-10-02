@@ -3,6 +3,8 @@
 		<div class="blockAdvert center column">
 			<img :src="img" alt="Warning" class="warning_img" />
 			<span class="blockAdvertText">{{ msg }}</span>
+			<span class="blockAdvertText">{{ msg2 }}</span>
+			<slot name="content"></slot>
 			<slot name="buttons"></slot>
 		</div>
 	</div>
@@ -13,6 +15,7 @@ import { inject, defineProps } from "vue";
 
 const props = defineProps({
 	msg : String,
+	msg2 : String,
 	img: String,
 })
 

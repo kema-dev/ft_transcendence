@@ -114,10 +114,6 @@
 					:required="pswCheck"
 				/>
 			</div>
-			<!-- <div class="elemForm_cont left column">
-				<label for="users" class="labelForm">User to invite in channel</label>
-				<input type="text" name="usersChann" id="usersChann" class="inputForm">
-			</div> -->
 			<input type="submit" value="Create" id="submitButton" />
 		</form>
 	</div>
@@ -243,13 +239,6 @@ function newChannelFn() {
 function submitChannel() {
 	let form = document.getElementById('channelForm') as HTMLFormElement;
 	const data = new FormData(form);
-	// if (data.get("pswInput") as string) {
-		
-	// 	// conversations.push(new Channel(data.get('name') as string, [me], data.get("pswInput") as string));
-	// 	// console.log(data.get("pswInput") as string);
-	// } else {
-	// 	// conversations.push(new Channel(data.get('name') as string, [me]));
-	// }
 	let chanName = data.get("newChanName") as string;
 	let chanPsw = data.get("pswInput") as string;
 	// console.log(`chanName = ${chanName}`);

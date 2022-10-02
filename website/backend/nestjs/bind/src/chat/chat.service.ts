@@ -323,15 +323,18 @@ export class ChatService {
 	}
 
 	async createNewChan(data: NewChanDto) {
-		let chanAlreadyExist = await this.channelRepository.findOne({where: {name : data.chanName}});
+		let chanAlreadyExist = await this.channelRepository
+			.findOne({where: {name : data.chanName}});
 		console.log(chanAlreadyExist);
-		if (chanAlreadyExist){
+		if (chanAlreadyExist)
 			throw new HttpException('CHAN_ALREADY_EXIST', HttpStatus.CONFLICT);
-		}
 		let admin = await this.userService.getByLogin(data.admin);
-		let newChan = this.channelRepository.create({name: data.chanName, admins: [admin], password: data.psw});
-		this.channelRepository.save(newChan);
-		return new ChannelDto(newChan.name, "test", new Date(), [new BasicUserDto(admin.login, admin.avatar)]);
+		let newChan = this.channelRepository
+			.create({name: data.chanName, admins: [admin], password: data.psw});
+		await this.channelRepository.save(newChan)
+			.catch((e) => console.log('Save channel error'));;
+		return new ChannelDto(newChan.name, "test", new Date(), 
+			[new BasicUserDto(admin.login, admin.avatar)], data.psw);
 	}
 
 	async addChanMsg(data: NewChanMsgDto) {
@@ -403,7 +406,8 @@ export class ChatService {
 		} else {
 			console.log(`user '${user.login}' join chanel '${chan.name}'`)
 			chan.users.push(user);
-			this.channelRepository.save(chan).catch((e) => console.log('Save chan error'));
+			await this.channelRepository.save(chan)
+				.catch((e) => console.log('Save chan error'));
 			return this.createChanDto(chan);
 		}
 	}
@@ -459,9 +463,7 @@ export class ChatService {
 	
 
 	async modifChan(server: Server, modif: ModifChanDto) {
-		console.log(`Modif Chan:\npsw = '${modif.psw}'`);
-		if (modif.psw == undefined)
-			console.log(`psw undefined`)
+		console.log(`Modif Chan:`);
 		let chan = await this.channelRepository.findOne({
 			where: {name: modif.chan},
 			relations: {admins: true, users: true, mutes: true}
@@ -476,7 +478,6 @@ export class ChatService {
 			console.log(`Modif chan psw : ${modif.psw == "" ? "no psw" : modif.psw}`)
 			modif.psw == "" ?
 				chan.password = null : chan.password = modif.psw; 
-			console.log(`new chan.password = ${chan.password}`)
 		}
 		// else if (modif.invitUser)
 		// 	return modifChanInvitUser(server, modif.chan, modif.invitUser);
