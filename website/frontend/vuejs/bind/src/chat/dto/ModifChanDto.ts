@@ -13,12 +13,17 @@ export class ModifChanDto {
 	kick?: string;
 	avatar?: any;
 	constructor(
-		chan: string, key: string, value: any, time?: number, group?: string
+		chan: string, key: string, value: any, group?: string, time?: number
 	) {
 		this.chan = chan;
-		for (const classKey in this)
+		// for (const classKey in this)
+		// 	if (classKey == key)
+		// 		this[classKey] = value;
+		for (const classKey in this) {
+			console.log(`classkey = ${classKey}, key = ${key}`);
 			if (classKey == key)
 				this[classKey] = value;
+		}
 		if (time)
 			this.time = time;
 		if (group)

@@ -256,22 +256,45 @@ socket.on('userQuitChan', (data: {login: string, chan: string}) => {
 });
 
 socket.on('modifChan', (data: ModifChanDto) => {
-	console.log(`Chan '${data.chan}' modified`)
+	console.log(`Chan '${data.chan}' modified`);
+	console.log(`mute = ${data.mute}, restoreMute = ${data.restoreMute},`)
 	let i = chansRef.value.findIndex(chan => chan.name == data.chan);
-	if (data.psw != undefined)
+	if (data.psw != undefined){
+		console.log(`Psw from chan '${data.chan}' modified`);
 		data.psw == "" ?
 			chansRef.value[i].psw = undefined : 
 			chansRef.value[i].psw = data.psw;
+	}
 	else if (data.promotAdm) {
-		let j = chansRef.value[i].users.findIndex(user => user.login == data.promotAdm);
+		console.log(`User '${data.promotAdm}' from chan '${data.chan}' promoted to Admin`);
+		let j = chansRef.value[i].users
+			.findIndex(user => user.login == data.promotAdm);
 		chansRef.value[i].admins.push(chansRef.value[i].users[j]);
 		chansRef.value[i].users.splice(j, 1);
 	}
-		
 	else if (data.demotUser){
-		let j = chansRef.value[i].admins.findIndex(user => user.login == data.demotUser);
+		console.log(`Admin '${data.demotUser}' from chan '${data.chan}' demoted to User`);
+		let j = chansRef.value[i].admins
+			.findIndex(user => user.login == data.demotUser);
 		chansRef.value[i].users.push(chansRef.value[i].admins[j]);
 		chansRef.value[i].admins.splice(j, 1);
+	}
+	else if (data.mute) {
+		console.log(`User '${data.mute}' from chan '${data.chan}' is muted`);
+		let j = (chansRef.value[i][data.group as keyof ChannelDto] as BasicUserDto[])
+			.findIndex(user => user.login == data.mute);
+		chansRef.value[i].mutes
+			.push((chansRef.value[i][data.group as keyof ChannelDto] as BasicUserDto[])[j]);
+		(chansRef.value[i][data.group as keyof ChannelDto] as BasicUserDto[])
+			.splice(j, 1);
+	}
+	else if (data.restoreMute) {
+		console.log(`User '${data.mute}' from chan '${data.chan}' is unmuted`);
+		let j = chansRef.value[i].mutes
+			.findIndex(user => user.login == data.restoreMute);
+		(chansRef.value[i][data.group as keyof ChannelDto] as BasicUserDto[])
+			.push(chansRef.value[i].mutes[j]);
+		chansRef.value[i].mutes.splice(i, 1);
 	}
 })
 

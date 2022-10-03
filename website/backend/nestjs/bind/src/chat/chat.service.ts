@@ -30,6 +30,7 @@ import { group, timeStamp } from 'console';
 import { NewChanDto } from './dto/NewChanDto';
 import { ChannelTabDto } from './dto/ChannelTabDto ';
 import { ModifChanDto } from './dto/ModifChanDto';
+import { MetadataScanner } from '@nestjs/core';
 // import { AppGateway } from '../app.gateway';
 
 @Injectable()
@@ -466,14 +467,14 @@ export class ChatService {
 		console.log(`Modif Chan:`);
 		let chan = await this.channelRepository.findOne({
 			where: {name: modif.chan},
-			relations: {admins: true, users: true, mutes: true}
+			relations: {admins: true, users: true, mutes: true, bans: true, messages: true}
 		});
-		this.updateChanSetting(chan, modif);
+		this.updateChanSetting(chan, modif, server);
 		for (let user of chan.admins.concat(chan.users).concat(chan.mutes))
 			server.to(user.socketId).emit("modifChan", modif);
 	}
 
-	updateChanSetting(chan: ChannelEntity, modif: ModifChanDto) {
+	updateChanSetting(chan: ChannelEntity, modif: ModifChanDto, server: Server) {
 		if (modif.psw != undefined) {
 			console.log(`Modif chan psw : ${modif.psw == "" ? "no psw" : modif.psw}`)
 			modif.psw == "" ?
@@ -487,7 +488,6 @@ export class ChatService {
 			chan.admins.push(chan.users[i]);
 			chan.users.splice(i, 1);
 		}
-			 
 		else if (modif.demotUser){
 			console.log(`Modif chan demotUser : chan = ${modif.chan}, newUser = ${modif.demotUser}`)
 			let i = chan.admins.findIndex(user => user.login == modif.demotUser);
@@ -495,12 +495,29 @@ export class ChatService {
 			chan.admins.splice(i, 1);
 		}
 		else if (modif.mute) {
-			// let i : number;
+			console.log(`User '${modif.mute}' from group '${modif.group}' of chan '${modif.chan}' is muted`);
+			this.printChan(chan); 
 			let i = (chan[modif.group as keyof ChannelEntity] as UserEntity[])
 				.findIndex(user => user.login == modif.mute);
 			chan.mutes.push((chan[modif.group as keyof ChannelEntity] as UserEntity[])[i]);
 			(chan[modif.group as keyof ChannelEntity] as UserEntity[]).splice(i, 1);
+			this.printChan(chan);
+			this.muteBanTimer(chan, modif, server);
 		}
+		else if (modif.ban) {
+			let i = (chan[modif.group as keyof ChannelEntity] as UserEntity[])
+				.findIndex(user => user.login == modif.ban);
+			chan.mutes.push((chan[modif.group as keyof ChannelEntity] as UserEntity[])[i]);
+			(chan[modif.group as keyof ChannelEntity] as UserEntity[]).splice(i, 1);
+			this.muteBanTimer(chan, modif, server);
+		}
+		// else if (modif.restoreMute) {
+		// 	let i = (chan[modif.group as keyof ChannelEntity] as UserEntity[])
+		// 		.findIndex(user => user.login == modif.ban);
+		// 	chan.mutes.push((chan[modif.group as keyof ChannelEntity] as UserEntity[])[i]);
+		// 	(chan[modif.group as keyof ChannelEntity] as UserEntity[]).splice(i, 1);
+		// 	this.muteBanTimer(chan, modif, server);
+		// }
 
 		// else if (modif.restoreMute)
 		// 	return modifChanMute(server, modif.chan, modif.mute);
@@ -513,11 +530,49 @@ export class ChatService {
 		// else if (modif.avatar)
 		// 	return modifChanAvatar(server, modif.chan, modif.avatar);
 		this.channelRepository.save(chan)
-			.catch((e) => console.log('Save Channel error'));;
+			.catch((e) => console.log('Save Channel error'));
 	}
 
-	async timer(time: number) {
-
+	async muteBanTimer(chan: ChannelEntity, modif: ModifChanDto, server: Server) {
+		let interval = 1000;
+		let seconds = 0;
+		// this.printChan(chan);
+		let idInterval = setInterval(() => {
+			seconds += 1;
+			if (seconds >= modif.time) {
+				clearInterval(idInterval);
+				let login: string;
+				let restore: string;
+				if (modif.mute) {
+					login = modif.mute;
+					restore = "restoreMute";
+					modif.restoreMute = modif.mute;
+					modif.mute = undefined;
+					let i = chan.mutes.findIndex(mute => mute.login == modif.mute);
+					(chan[modif.group as keyof ChannelEntity] as UserEntity[])
+						.push(chan.mutes[i]);
+					chan.mutes.splice(i, 1);
+				}
+				else {
+					login = modif.ban;
+					restore = "restoreBan";
+					modif.restoreBan = modif.ban;
+					modif.ban = undefined;
+					let i = chan.bans.findIndex(ban => ban.login == modif.ban);
+					chan.bans.splice(i, 1);
+				}
+				console.log(`User '${login}' from channel '${chan.name}' is ${restore}`);
+				console.log(`nbAdmins = ${chan.admins.length}, nbUser = ${chan.users.length}, nbMute = ${chan.mutes.length}`)
+				for (let user of chan.admins.concat(chan.users).concat(chan.mutes)) {
+					console.log(`restore : login = ${user.login}`);
+					server.to(user.socketId).emit("modifChan", modif);
+					// server.to(user.socketId).emit("modifChan", 
+					// 	new ModifChanDto(modif.chan, restore, login, modif.group));
+				}
+				this.channelRepository.save(chan)
+					.catch((e) => console.log('Save Channel error'));
+			}
+		}, interval);
 	}
 
 
@@ -546,10 +601,12 @@ export class ChatService {
 		console.log(`name : ${chan.name}`);
 		console.log(`admins : ${chan.admins.map(admin => admin.login + ', ')}`);
 		console.log(`users : ${chan.users.map(user => user.login + ', ')}`);
-		console.log("msgs :");
-		chan.messages.forEach(msg => {
-			console.log(`${msg.message}, created at ${msg.createdAt.toLocaleTimeString("fr")}`)
-		})
+		console.log(`mutes : ${chan.mutes.map(mute => `'` + mute.login + `'`)}`);
+		console.log(`bans : ${chan.bans.map(ban => ban.login + ', ')}`);
+		console.log(`msgs : ${chan.messages.map(msg => `'` + msg.message + `'`)}`);
+		// chan.messages.forEach(msg => {
+		// 	console.log(`${msg.message}, created at ${msg.createdAt.toLocaleTimeString("fr")}`)
+		// })
 	}
 
 	async printChans(chans: ChannelEntity[]) {

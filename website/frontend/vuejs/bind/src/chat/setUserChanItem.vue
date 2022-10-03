@@ -15,7 +15,7 @@
 				class="infoImg"
 			/>
 		</button>
-		<button v-if="promote && showMore"
+		<button v-if="props.promote && showMore"
 			@click="promote()"
 			class="setUserCont center"
 		>
@@ -25,7 +25,7 @@
 				class="infoImg"
 			/>
 		</button>
-		<button v-if="demote && showMore"
+		<button v-if="props.demote && showMore"
 			@click="demote()"
 			class="setUserCont center"
 		>
@@ -35,7 +35,7 @@
 				class="infoImg"
 			/>
 		</button>
-		<button v-if="mute && showMore"
+		<button v-if="props.mute && showMore"
 			@click="updateSanction('mute')"
 			class="setUserCont center"
 		>
@@ -45,7 +45,7 @@
 				class="infoImg"
 			/>
 		</button>
-		<button v-if="ban && showMore"
+		<button v-if="props.ban && showMore"
 			@click="updateSanction('ban')"
 			class="setUserCont center"
 		>
@@ -55,7 +55,7 @@
 				class="infoImg"
 			/>
 		</button>
-		<button v-if="restore && showMore"
+		<button v-if="props.restore && showMore"
 			@click="restoreUser()"
 			class="setUserCont center"
 		>
@@ -153,15 +153,18 @@ function muteBan(sanction: string) {
 	if (!timeData || timeData.split(':').length < 3)
 		return setTimeout(() => {
 			input!.classList.add("invalidInput");
-	}, 50);
-	// console.log(`time = ${timeData}, type = ${typeof timeData}`);
+		}, 50);
 	let timeArray = timeData.split(':');
 	let hours = Number(timeArray[0]);
 	let minutes = Number(timeArray[1]);
 	let seconds = Number(timeArray[2]);
 	let time = seconds + minutes * 60 + hours * 3600;
+	if (time < 1)
+		return setTimeout(() => {
+			input!.classList.add("invalidInput");
+		}, 50);
 	mySocket.emit("modifChan", 
-		new ModifChanDto(props.chan, sanction, props.login, time, props.group));
+		new ModifChanDto(props.chan, sanction, props.login, props.group, time));
 	resetSanction();
 }
 
