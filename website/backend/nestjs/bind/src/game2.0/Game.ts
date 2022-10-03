@@ -207,10 +207,10 @@ export default class Game {
 					right_point = this.fieldpoints[rack_number * 2 - 1];
 				}
 
-				const future_pos = {
-					x: x,
-					y: y,
-				};
+				// const future_pos = {
+				// 	x: x,
+				// 	y: y,
+				// };
 				// console.log('future_pos:', future_pos);
 				const rack_offset = {
 					x: rack.startX - left_point.x,
@@ -237,6 +237,7 @@ export default class Game {
 				// };
 				// console.log('max_point:', max_point);
 				// console.log('rack.angle:', rack.angle);
+				// INFO MATHS: Upside down schema, reverse angle = inverted negative / positive (as needed for racket algebra) and matching provided angle
 				const rack_size = {
 					x: rack.height * Math.sin(((rack.angle * -1) / 360) * 2 * Math.PI),
 					y: rack.height * Math.cos(((rack.angle * -1) / 360) * 2 * Math.PI),
