@@ -15,23 +15,28 @@
 				class="infoImg"
 			/>
 		</button>
-		<button v-if="showMore && promot != undefined"
-			@click="props.promot == true ? promote() : demote()"
+		<button v-if="promote && showMore"
+			@click="promote()"
 			class="setUserCont center"
 		>
-			<img v-if="props.promot == false"
+			<img
 				src='~@/assets/arrow_up.svg'
 				alt="User setting"
 				class="infoImg"
 			/>
-			<img v-else
+		</button>
+		<button v-if="demote && showMore"
+			@click="demote()"
+			class="setUserCont center"
+		>
+			<img
 				src='~@/assets/arrow_down.svg'
 				alt="User setting"
 				class="infoImg"
 			/>
 		</button>
-		<button v-if="showMore"
-			@click="sanction = 'mute'"
+		<button v-if="mute && showMore"
+			@click="updateSanction('mute')"
 			class="setUserCont center"
 		>
 			<img
@@ -40,12 +45,22 @@
 				class="infoImg"
 			/>
 		</button>
-		<button v-if="showMore"
-			@click="sanction = 'ban'"
+		<button v-if="ban && showMore"
+			@click="updateSanction('ban')"
 			class="setUserCont center"
 		>
 			<img
 				src='~@/assets/block_logo.svg'
+				alt="User setting"
+				class="infoImg"
+			/>
+		</button>
+		<button v-if="restore && showMore"
+			@click="restoreUser()"
+			class="setUserCont center"
+		>
+			<img
+				src='~@/assets/restore.svg'
 				alt="User setting"
 				class="infoImg"
 			/>
@@ -69,7 +84,7 @@
 					id="timeForm"
 					class="center raw"
 				>
-					<input type="time" name="timeInput" id="timeInput" step="1" required/>
+					<input @keypress.enter="muteBan(sanction)" type="time" name="timeInput" id="timeInput" step="1" required/>
 				</form>
 			</template>
 			<template #buttons>
@@ -82,7 +97,7 @@
 </template>
 
 <script setup lang="ts">
-import { inject, defineProps, onMounted, ref } from "vue";
+import { inject, defineProps, onMounted, ref, nextTick } from "vue";
 import { Socket } from "socket.io-client";
 import { ModifChanDto } from "@/chat/dto/ModifChanDto"
 import WarningMsg from "@/components/WarningMsg.vue";
@@ -108,8 +123,15 @@ const props = defineProps({
 		type: String,
 		required: true,
 	},
-	promot : Boolean,
-
+	group: {
+		type: String,
+		required: true,
+	},
+	promote : Boolean,
+	demote : Boolean,
+	mute : Boolean,
+	ban : Boolean,
+	restore : Boolean,
 });
 
 function promote() {
@@ -122,26 +144,32 @@ function demote() {
 		new ModifChanDto(props.chan, "demotUser", props.login));
 }
 
-
-
 function muteBan(sanction: string) {
 	let input = document.getElementById("timeInput")!;
 	input.classList.remove("invalidInput");
 	let form = document.getElementById('timeForm') as HTMLFormElement;
 	const data = new FormData(form);
 	let timeData  = data.get("timeInput") as string;
-	if (!timeData)
+	if (!timeData || timeData.split(':').length < 3)
 		return setTimeout(() => {
 			input!.classList.add("invalidInput");
-		}, 50);
-	// console.log(`form = ${data}, time = ${timeData}, type = ${typeof timeData}`);
+	}, 50);
+	// console.log(`time = ${timeData}, type = ${typeof timeData}`);
 	let timeArray = timeData.split(':');
 	let hours = Number(timeArray[0]);
 	let minutes = Number(timeArray[1]);
 	let seconds = Number(timeArray[2]);
-	// mySocket.emit("modifChan", 
-	// 	new ModifChanDto(props.chan, sanction, props.login));
+	let time = seconds + minutes * 60 + hours * 3600;
+	mySocket.emit("modifChan", 
+		new ModifChanDto(props.chan, sanction, props.login, time, props.group));
 	resetSanction();
+}
+
+function updateSanction(value: string) {
+	sanction.value = value;
+	nextTick(() => {
+		document.getElementById('timeInput')?.focus();
+	})
 }
 
 function resetSanction() {
@@ -149,6 +177,12 @@ function resetSanction() {
 	showMore.value = false;
 }
 
+function restoreUser() {
+	let restore: string;
+	props.mute? restore = "restoreMute" : restore = "restoreBan";
+	mySocket.emit("modifChan", 
+		new ModifChanDto(props.chan, restore, props.login));
+}
 
 </script>
 

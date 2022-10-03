@@ -26,7 +26,7 @@ import { MessageDto } from './dto/MessageDto';
 import { PrivConvDto } from './dto/PrivConvDto';
 import { ChannelDto } from './dto/ChannelDto';
 import { HttpService } from '@nestjs/axios';
-import { timeStamp } from 'console';
+import { group, timeStamp } from 'console';
 import { NewChanDto } from './dto/NewChanDto';
 import { ChannelTabDto } from './dto/ChannelTabDto ';
 import { ModifChanDto } from './dto/ModifChanDto';
@@ -333,7 +333,7 @@ export class ChatService {
 			.create({name: data.chanName, admins: [admin], password: data.psw});
 		await this.channelRepository.save(newChan)
 			.catch((e) => console.log('Save channel error'));;
-		return new ChannelDto(newChan.name, "test", new Date(), 
+		return new ChannelDto(newChan.name, "test", newChan.createdAt, 
 			[new BasicUserDto(admin.login, admin.avatar)], data.psw);
 	}
 
@@ -481,13 +481,32 @@ export class ChatService {
 		}
 		// else if (modif.invitUser)
 		// 	return modifChanInvitUser(server, modif.chan, modif.invitUser);
-		// else if (modif.promotAdm)
-		// 	return modifChanPromotAdm(server, modif.chan, modif.promotAdm);
-		// else if (modif.demotUser)
-		// 	return modifChanDemotUser(server, modif.chan, modif.demotUser);
+		else if (modif.promotAdm) {
+			console.log(`Modif chan promotAdm : chan = ${modif.chan}, newAdm = ${modif.promotAdm}`)
+			let i = chan.users.findIndex(user => user.login == modif.promotAdm);
+			chan.admins.push(chan.users[i]);
+			chan.users.splice(i, 1);
+		}
+			 
+		else if (modif.demotUser){
+			console.log(`Modif chan demotUser : chan = ${modif.chan}, newUser = ${modif.demotUser}`)
+			let i = chan.admins.findIndex(user => user.login == modif.demotUser);
+			chan.users.push(chan.admins[i]);
+			chan.admins.splice(i, 1);
+		}
+		else if (modif.mute) {
+			// let i : number;
+			let i = (chan[modif.group as keyof ChannelEntity] as UserEntity[])
+				.findIndex(user => user.login == modif.mute);
+			chan.mutes.push((chan[modif.group as keyof ChannelEntity] as UserEntity[])[i]);
+			(chan[modif.group as keyof ChannelEntity] as UserEntity[]).splice(i, 1);
+		}
+
+		// else if (modif.restoreMute)
+		// 	return modifChanMute(server, modif.chan, modif.mute);
 		// else if (modif.ban)
 		// 	return modifChanBan(server, modif.chan, modif.ban);
-		// else if (modif.mute)
+		// else if (modif.restoreBan)
 		// 	return modifChanMute(server, modif.chan, modif.mute);
 		// else if (modif.kick)
 		// 	return modifChanKick(server, modif.chan, modif.kick);
@@ -497,7 +516,9 @@ export class ChatService {
 			.catch((e) => console.log('Save Channel error'));;
 	}
 
+	async timer(time: number) {
 
+	}
 
 
 	printChanDto(chan: ChannelDto) {

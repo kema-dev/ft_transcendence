@@ -262,6 +262,17 @@ socket.on('modifChan', (data: ModifChanDto) => {
 		data.psw == "" ?
 			chansRef.value[i].psw = undefined : 
 			chansRef.value[i].psw = data.psw;
+	else if (data.promotAdm) {
+		let j = chansRef.value[i].users.findIndex(user => user.login == data.promotAdm);
+		chansRef.value[i].admins.push(chansRef.value[i].users[j]);
+		chansRef.value[i].users.splice(j, 1);
+	}
+		
+	else if (data.demotUser){
+		let j = chansRef.value[i].admins.findIndex(user => user.login == data.demotUser);
+		chansRef.value[i].users.push(chansRef.value[i].admins[j]);
+		chansRef.value[i].admins.splice(j, 1);
+	}
 })
 
 

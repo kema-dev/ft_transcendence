@@ -75,7 +75,8 @@
 				<BasicProfil :avatar="data.avatar" 
 					:login="data.login" class="basicUser"/>
 				<setUserChan v-if="iAmAdmin && data.login != myName" 
-					:login="data.login" :chan="chanName" :promot="true"/>
+					:login="data.login" :chan="chanName" group="admins" 
+					:demote="true" :mute="true" :ban="true"/>
 			</div>
 		</div>
 		<div class="ElemCont left_center column">
@@ -118,7 +119,48 @@
 			<div v-for="(data, i) in chansRef[props.i].users" :key="i" class="left_center">
 				<BasicProfil :avatar="data.avatar" :login="data.login" class="basicUser"/>
 				<setUserChan v-if="iAmAdmin && data.login != myName" 
-					:login="data.login" :chan="chanName" :promot="false"/>
+					:login="data.login" :chan="chanName" group="users"
+					:promote="true" :mute="true" :ban="true"/>
+			</div>
+		</div>
+		<div class="ElemCont left_center column">
+			<div class="ElemHeadCont left_center raw">
+				<div class="titleImgCont center">
+					<img src="~@/assets/mute.svg" alt="Muted people" class="infoImg" />
+				</div>
+				<span class="titleText">
+					Muted :
+				</span>
+				<span v-if="!chansRef[i].mutes.length" class="titleValueText">
+					No mutes
+				</span>
+			</div>
+			<div v-for="(data, i) in chansRef[props.i].mutes" :key="i" class="left_center">
+				<BasicProfil :avatar="data.avatar" 
+					:login="data.login" class="basicUser"/>
+				<setUserChan v-if="iAmAdmin && data.login != myName" 
+					:login="data.login" :chan="chanName" group="mutes"
+					:restore="true" :ban="true"/>
+			</div>
+		</div>
+		<div class="ElemCont left_center column">
+			<div class="ElemHeadCont left_center raw">
+				<div class="titleImgCont center">
+					<img src="~@/assets/block_logo.svg" alt="Ban people" class="infoImg" />
+				</div>
+				<span class="titleText">
+					Baned :
+				</span>
+				<span v-if="!chansRef[i].bans.length" class="titleValueText">
+					No bans
+				</span>
+			</div>
+			<div v-for="(data, i) in chansRef[props.i].bans" :key="i" class="left_center">
+				<BasicProfil :avatar="data.avatar" 
+					:login="data.login" class="basicUser"/>
+				<setUserChan v-if="iAmAdmin && data.login != myName" 
+					:login="data.login" :chan="chanName" group="bans"
+					:restore="true"/>
 			</div>
 		</div>
 		<button @click="quitChannel" class="leaveButton">
@@ -129,7 +171,6 @@
 
 <script setup lang="ts">
 /* eslint @typescript-eslint/no-var-requires: "off" */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { defineProps, inject, onMounted, ref, Ref, onBeforeUnmount, watch, onBeforeUpdate, onUpdated, nextTick } from "vue";
 import { useRoute } from "vue-router";
 import { Socket } from "socket.io-client";
@@ -162,6 +203,12 @@ let pswValue = ref("");
 let pswBool = ref(false);
 let pswCheck = ref(false);
 
+
+// ================= WATCHERS
+
+watch(chansRef.value[props.i].admins, () => {
+	iAmAdmin.value = isAdmin();
+})
 
 
 // ================= METHODS 

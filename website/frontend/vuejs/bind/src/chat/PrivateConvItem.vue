@@ -188,7 +188,7 @@ function displayDate(date: Date, i: number) {
 	let hours: string | number;
 	if (date.getHours() < 10) hours = "0" + date.getHours().toString();
 	else hours = date.getHours();
-	const day = date.getDay();
+	const day = date.getUTCDate();
 	const month = date.toLocaleString("default", { month: "long" });
 	const year = date.getFullYear();
 	// console.log(`displayDate() avant returns`)

@@ -1,4 +1,3 @@
-// import User from '@/chat/objects/User';
 import { MessageDto } from './MessageDto';
 import { BasicUserDto } from './BasicUserDto';
 
