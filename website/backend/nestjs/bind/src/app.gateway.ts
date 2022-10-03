@@ -46,7 +46,7 @@ export class AppGateway
 
 	// Connection
 	async handleConnection(@ConnectedSocket() client: Socket) {
-		console.log('query = ', client.handshake.query.login);
+		// console.log('query = ', client.handshake.query.login);
 		let login = client.handshake.query.login as string;
 		await this.userService.saveSocket(login, client.id);
 		// handleConnection(@ConnectedSocket() client: Socket, login: string) {
@@ -91,11 +91,11 @@ export class AppGateway
 	// }
 	@SubscribeMessage('setMov')
 	setMov(client: Socket, args: any): void {
-		console.log('setMov');
-		console.log(args);
+		// console.log('setMov');
+		// console.log(args);
 		let game = this.games.find((game) => game.lobby_name === args.lobby_name);
 		if (game) game.setMov(args.mov, args.login);
-		console.log(args.lobby_name);
+		// console.log(args.lobby_name);
 	}
 	@SubscribeMessage('newLobby')
 	async newLobby(@MessageBody() data: { login: string, nbrBall: number },

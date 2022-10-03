@@ -10,7 +10,10 @@
 		<!-- <h2 class="info">{{ user.rank }}</h2> -->
 		<h1 id="name">{{ me?.login }}</h1>
 		<h2 class="avg_rank">Average rank: Top {{ user_ratio_rounded }}%</h2>
-		<h2 class="w_l">Total: {{ user_stats.total }} - Wins: {{ user_stats.wins }} - Loses: {{ user_stats.loses }} </h2>
+		<h2 class="w_l">
+			Total: {{ user_stats.total }} - Wins: {{ user_stats.wins }} - Loses:
+			{{ user_stats.loses }}
+		</h2>
 		<!-- <h2 class="info" style="margin-bottom: 40px">level {{ me?.level }}</h2> -->
 		<h2 class="match_history_title">Match history</h2>
 		<MatchItem

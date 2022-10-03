@@ -98,7 +98,7 @@ export default class Game {
 				const tmp2 = wall.getRacket();
 				this.objects.push(tmp2);
 				this.rackets.push(tmp2);
-				console.log('racket');
+				// console.log('racket');
 				i++;
 			}
 		});
@@ -147,7 +147,7 @@ export default class Game {
 	}
 	setMov(value: number, login: string) {
 		for (const p of this.profiles) {
-			this.logger.log(p.login);
+			// this.logger.log(p.login);
 			if (p.login == login) {
 				p.mov = ((value * this.walls[0].height) / 100) * this.rackets[0].speed;
 				return;
@@ -211,7 +211,7 @@ export default class Game {
 					x: x,
 					y: y,
 				};
-				console.log('future_pos:', future_pos);
+				// console.log('future_pos:', future_pos);
 				const rack_offset = {
 					x: rack.startX - left_point.x,
 					y: rack.startY - left_point.y,
@@ -220,12 +220,12 @@ export default class Game {
 					x: left_point.x + rack_offset.x,
 					y: left_point.y + rack_offset.y,
 				};
-				console.log('left_with_offset:', left_with_offset);
+				// console.log('left_with_offset:', left_with_offset);
 				const right_with_offset = {
 					x: right_point.x + rack_offset.x,
 					y: right_point.y + rack_offset.y,
 				};
-				console.log('right_with_offset:', right_with_offset);
+				// console.log('right_with_offset:', right_with_offset);
 				// const min_point = {
 				// 	x: Math.min(left_with_offset.x, right_with_offset.x),
 				// 	y: Math.min(left_with_offset.y, right_with_offset.y),
@@ -236,22 +236,22 @@ export default class Game {
 				// 	y: Math.max(left_with_offset.y, right_with_offset.y),
 				// };
 				// console.log('max_point:', max_point);
-				console.log('rack.angle:', rack.angle);
+				// console.log('rack.angle:', rack.angle);
 				const rack_size = {
 					x: rack.height * Math.sin(((rack.angle * -1) / 360) * 2 * Math.PI),
 					y: rack.height * Math.cos(((rack.angle * -1) / 360) * 2 * Math.PI),
 				};
-				console.log('rack_size:', rack_size);
+				// console.log('rack_size:', rack_size);
 				const rack_start = {
 					x: x,
 					y: y,
 				};
-				console.log('rack_start:', rack_start);
+				// console.log('rack_start:', rack_start);
 				const rack_end = {
 					x: x + rack_size.x,
 					y: y + rack_size.y,
 				};
-				console.log('rack_end:', rack_end);
+				// console.log('rack_end:', rack_end);
 				let move = false;
 				if (
 					this.point_between(rack_start, left_with_offset, right_with_offset) &&
@@ -263,9 +263,9 @@ export default class Game {
 				if (move == true) {
 					rack.x = x;
 					rack.y = y;
-					console.log('MOVE');
+					// console.log('MOVE');
 				} else {
-					console.log('STAY');
+					// console.log('STAY');
 				}
 			}
 
