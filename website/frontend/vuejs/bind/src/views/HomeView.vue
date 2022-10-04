@@ -120,6 +120,7 @@ function getPrivsRequest() {
 			privsRef.value = privsTmp;
 		}
 		privDone.value = true;
+		console.log(`getPrivs Done`)
 	})
 	.catch(e => console.log(e));
 }
@@ -212,6 +213,7 @@ function getChansRequest() {
 			})
 		}
 		chanDone.value = true;
+		console.log(`getChans Done`)
 	})
 	.catch(e => console.log(e));
 }
@@ -257,7 +259,6 @@ socket.on('userQuitChan', (data: {login: string, chan: string}) => {
 
 socket.on('modifChan', (data: ModifChanDto) => {
 	console.log(`Chan '${data.chan}' modified`);
-	console.log(`mute = ${data.mute}, restoreMute = ${data.restoreMute},`)
 	let i = chansRef.value.findIndex(chan => chan.name == data.chan);
 	if (data.psw != undefined){
 		console.log(`Psw from chan '${data.chan}' modified`);
@@ -289,12 +290,29 @@ socket.on('modifChan', (data: ModifChanDto) => {
 			.splice(j, 1);
 	}
 	else if (data.restoreMute) {
-		console.log(`User '${data.mute}' from chan '${data.chan}' is unmuted`);
+		console.log(`User '${data.restoreMute}' from chan '${data.chan}' is unmuted`);
 		let j = chansRef.value[i].mutes
 			.findIndex(user => user.login == data.restoreMute);
-		(chansRef.value[i][data.group as keyof ChannelDto] as BasicUserDto[])
-			.push(chansRef.value[i].mutes[j]);
+		chansRef.value[i].users.push(chansRef.value[i].mutes[j]);
 		chansRef.value[i].mutes.splice(i, 1);
+	}
+	else if (data.ban) {
+		console.log(`User '${data.ban}' from chan '${data.chan}' is banned`);
+		if (data.ban == me) {
+			chansRef.value.splice(i, 1);
+		}
+		let j = (chansRef.value[i][data.group as keyof ChannelDto] as BasicUserDto[])
+			.findIndex(user => user.login == data.ban);
+		chansRef.value[i].bans
+			.push((chansRef.value[i][data.group as keyof ChannelDto] as BasicUserDto[])[j]);
+		(chansRef.value[i][data.group as keyof ChannelDto] as BasicUserDto[])
+			.splice(j, 1);
+	}
+	else if (data.restoreBan) {
+		console.log(`User '${data.restoreBan}' from chan '${data.chan}' is unbaned`);
+		let j = chansRef.value[i].bans
+			.findIndex(user => user.login == data.restoreBan);
+		chansRef.value[i].bans.splice(i, 1);
 	}
 })
 

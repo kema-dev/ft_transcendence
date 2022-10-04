@@ -137,6 +137,12 @@ watch(chanDone, () => {
 // ================= METHODS =================
 
 function sendMsg() {
+	let input = document.getElementById("sendbox");
+	input?.classList.remove("invalidInput");
+	if (chansRef.value[index.value].mutes.find(m => m.login == myName))
+		return setTimeout(() => {
+			input!.classList.add("invalidInput");
+		}, 50);
 	if (myMsg.value != '') {
 		mySocket.emit("newChanMsg", new NewChanMsgDto(me.value.login, chanName, myMsg.value));
 		myMsg.value = "";
@@ -152,16 +158,25 @@ function chanMsgRead() {
 }
 
 function findAvatar(login: string) {
-	// printChan(chansRef.value[index.value]);
-	// console.log(`index.value = ${index.value}`)
-	let isAdmin = chansRef.value[index.value].admins.find(admin => admin.login == login);
-	// console.log(`isAdmin = ${isAdmin}`)
-	if (isAdmin)
-		return isAdmin.avatar;
-	let isUser = chansRef.value[index.value].users.find(user => user.login == login);
-	// console.log(`isUser = ${isUser}`)
-	if (isUser)
-		return isUser.avatar;
+	// let isAdmin = chansRef.value[index.value].admins.find(admin => admin.login == login);
+	// // console.log(`isAdmin = ${isAdmin}`)
+	// if (isAdmin)
+	// 	return isAdmin.avatar;
+	// let isUser = chansRef.value[index.value].users.find(user => user.login == login);
+	// // console.log(`isUser = ${isUser}`)
+	// if (isUser)
+	// 	return isUser.avatar;
+	// let isMuted = chansRef.value[index.value].mutes.find(mute => mute.login == login);
+	// // console.log(`isUser = ${isUser}`)
+	// if (isMuted)
+	// 	return isMuted.avatar;
+	let isInChan = chansRef.value[index.value].admins
+		.concat(chansRef.value[index.value].users)
+		.concat(chansRef.value[index.value].mutes)
+		.concat(chansRef.value[index.value].bans)
+		.find(user => user.login == login);
+	if (isInChan)
+		return isInChan.avatar;
 	else
 		return require('@/assets/dead.svg')
 }
@@ -359,6 +374,34 @@ function printChan(chan: ChannelDto) {
 .sendbox:focus {
 	transition: width 0.3s ease-in-out;
 	width: 80%;
+}
+.invalidInput {
+	animation: shake 0.4s linear;
+}
+@keyframes shake {
+	0%,
+	100% {
+		transform: translateX(0);
+	}
+	10%,
+	30%,
+	50%,
+	70%,
+	90% {
+		transform: translateX(-5px);
+	}
+	20%,
+	40%,
+	60%,
+	80% {
+		transform: translateX(5px);
+	}
+	0% {
+		background-color: rgb(255, 178, 178);
+	}
+	100.0% {
+		background-color: white;
+	}
 }
 
 

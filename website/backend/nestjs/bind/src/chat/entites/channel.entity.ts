@@ -30,6 +30,9 @@ export class ChannelEntity extends TimestampEntites {
 	@Column()
 	name: string;
 
+	@Column()
+	private: boolean;
+
 	@Column({ nullable: true })
 	avatar: string;
 
@@ -58,14 +61,14 @@ export class ChannelEntity extends TimestampEntites {
 	})
 	messages: MessageEntity[];
 
-	@ManyToMany((type) => UserEntity, (user) => user.bans, {
+	@ManyToMany((type) => UserEntity, (user) => user.chansBan, {
 		onDelete: 'CASCADE',
 		nullable: true,
 	})
 	@JoinTable()
 	bans: UserEntity[];
 
-	@ManyToMany((type) => UserEntity, (user) => user.mutes, {
+	@ManyToMany((type) => UserEntity, (user) => user.chansMute, {
 		onDelete: 'CASCADE',
 		nullable: true,
 	})

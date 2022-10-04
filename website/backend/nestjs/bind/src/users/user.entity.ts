@@ -134,14 +134,13 @@ export class UserEntity extends TimestampEntites {
 		nullable: true,
 		onDelete: 'SET NULL',
 	})
-
-	bans: ChannelEntity[];
+	chansBan: ChannelEntity[];
 
 	@ManyToMany((type) => ChannelEntity, (chan) => chan.mutes, {
 		cascade: true,
 		nullable: true,
 		onDelete: 'SET NULL',
 	})
-	mutes: ChannelEntity[];
+	chansMute: ChannelEntity[];
 }
 

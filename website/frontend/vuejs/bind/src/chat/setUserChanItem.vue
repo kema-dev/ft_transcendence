@@ -45,22 +45,22 @@
 				class="infoImg"
 			/>
 		</button>
-		<button v-if="props.ban && showMore"
-			@click="updateSanction('ban')"
-			class="setUserCont center"
-		>
-			<img
-				src='~@/assets/block_logo.svg'
-				alt="User setting"
-				class="infoImg"
-			/>
-		</button>
 		<button v-if="props.restore && showMore"
 			@click="restoreUser()"
 			class="setUserCont center"
 		>
 			<img
 				src='~@/assets/restore.svg'
+				alt="User setting"
+				class="infoImg"
+			/>
+		</button>
+		<button v-if="props.ban && showMore"
+			@click="updateSanction('ban')"
+			class="setUserCont center"
+		>
+			<img
+				src='~@/assets/block_logo.svg'
 				alt="User setting"
 				class="infoImg"
 			/>
@@ -182,7 +182,8 @@ function resetSanction() {
 
 function restoreUser() {
 	let restore: string;
-	props.mute? restore = "restoreMute" : restore = "restoreBan";
+	props.group == "mutes" ? 
+		restore = "restoreMute" : restore = "restoreBan";
 	mySocket.emit("modifChan", 
 		new ModifChanDto(props.chan, restore, props.login));
 }

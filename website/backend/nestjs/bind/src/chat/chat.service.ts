@@ -31,6 +31,7 @@ import { NewChanDto } from './dto/NewChanDto';
 import { ChannelTabDto } from './dto/ChannelTabDto ';
 import { ModifChanDto } from './dto/ModifChanDto';
 import { MetadataScanner } from '@nestjs/core';
+import e from 'express';
 // import { AppGateway } from '../app.gateway';
 
 @Injectable()
@@ -218,18 +219,51 @@ export class ChatService {
 	// ========================= CHANNELS =========================
 
 	async getUserChans(login: string) {
-		const user = await this.userRepository.findOne({
+		const admChans = await this.userRepository.findOne({
 			relations: {
-				chansAdmin : {admins: true, users: true, messages: {user: true}},
-				chansUser : {admins: true, users: true, messages: {user: true}},
+				chansAdmin : {admins: true, users: true, mutes: true,
+					 bans: true, messages: {user: true}},
+				chansUser : {admins: true, users: true, mutes: true,
+					 bans: true, messages: {user: true}},
 			},
 			where: {login: login},
-			order: {
-				chansAdmin: { messages: { createdAt: 'ASC'} },
-				chansUser: { messages: { createdAt: 'ASC'} },
-			}
+			// order: {
+			// 	chansAdmin: { messages: { createdAt: 'ASC'} },
+			// 	chansUser: { messages: { createdAt: 'ASC'} },
+			// 	chansMute: { messages: { createdAt: 'ASC'} },
+			// 	chansBan: { messages: { createdAt: 'ASC'} },
+			// }
 		});
-		// if (!user.chansAdmin.length)
+		// console.log(`find Admin Chan Done`);
+		const userChans = await this.userRepository.findOne({
+			relations: {
+				chansUser : {admins: true, users: true, mutes: true,
+					 bans: true, messages: {user: true}},
+			},
+			where: {login: login},
+			// order: {
+			// 	chansAdmin: { messages: { createdAt: 'ASC'} },
+			// 	chansUser: { messages: { createdAt: 'ASC'} },
+			// 	chansMute: { messages: { createdAt: 'ASC'} },
+			// 	chansBan: { messages: { createdAt: 'ASC'} },
+			// }
+		});
+		// console.log(`find User Chan Done`);
+		const muteChans = await this.userRepository.findOne({
+			relations: {
+				chansMute : {admins: true, users: true, mutes: true,
+					 bans: true, messages: {user: true}},
+			},
+			where: {login: login},
+			// order: {
+			// 	chansAdmin: { messages: { createdAt: 'ASC'} },
+			// 	chansUser: { messages: { createdAt: 'ASC'} },
+			// 	chansMute: { messages: { createdAt: 'ASC'} },
+			// 	chansBan: { messages: { createdAt: 'ASC'} },
+			// }
+		});
+		// console.log(`find Mute Chan Done`);
+		// if (!user.chansAdmin.length) 
 		// 	console.log(`chansAdmin.length = 0`);
 		// if (!user.chansUser.length)
 		// 	console.log(`chansUser.length = 0`);
@@ -237,7 +271,9 @@ export class ChatService {
 		// let ret = user.chansAdmin.concat(user.chansUser);
 		// console.log(`ret.length = ${ret.length}`);
 		// return user.chansAdmin.concat(user.chansUser);
-		return user.chansAdmin.concat(user.chansUser);
+		return admChans.chansAdmin
+			.concat(userChans.chansUser)
+			.concat(muteChans.chansMute);
 	}
 
 	async getChan(chanName: string) {
@@ -331,7 +367,8 @@ export class ChatService {
 			throw new HttpException('CHAN_ALREADY_EXIST', HttpStatus.CONFLICT);
 		let admin = await this.userService.getByLogin(data.admin);
 		let newChan = this.channelRepository
-			.create({name: data.chanName, admins: [admin], password: data.psw});
+			.create({name: data.chanName, private: data.priv,
+			admins: [admin], password: data.psw});
 		await this.channelRepository.save(newChan)
 			.catch((e) => console.log('Save channel error'));;
 		return new ChannelDto(newChan.name, "test", newChan.createdAt, 
@@ -470,7 +507,10 @@ export class ChatService {
 			relations: {admins: true, users: true, mutes: true, bans: true, messages: true}
 		});
 		this.updateChanSetting(chan, modif, server);
-		for (let user of chan.admins.concat(chan.users).concat(chan.mutes))
+		for (let user of chan.admins
+			.concat(chan.users)
+			.concat(chan.mutes)
+			.concat(chan.bans))
 			server.to(user.socketId).emit("modifChan", modif);
 	}
 
@@ -496,35 +536,30 @@ export class ChatService {
 		}
 		else if (modif.mute) {
 			console.log(`User '${modif.mute}' from group '${modif.group}' of chan '${modif.chan}' is muted`);
-			this.printChan(chan); 
 			let i = (chan[modif.group as keyof ChannelEntity] as UserEntity[])
-				.findIndex(user => user.login == modif.mute);
+			.findIndex(user => user.login == modif.mute);
 			chan.mutes.push((chan[modif.group as keyof ChannelEntity] as UserEntity[])[i]);
 			(chan[modif.group as keyof ChannelEntity] as UserEntity[]).splice(i, 1);
-			this.printChan(chan);
 			this.muteBanTimer(chan, modif, server);
+		}
+		else if (modif.restoreMute) {
+			console.log(`User '${modif.restoreMute}' from chan '${modif.chan}' is unmuted`);
+			let i = chan.mutes.findIndex(mute => mute.login == modif.restoreMute);
+			chan.users.push(chan.mutes[i]);
+			chan.mutes.splice(i, 1);
 		}
 		else if (modif.ban) {
+			console.log(`User '${modif.ban}' from group '${modif.group}' of chan '${modif.chan}' is baned`);
 			let i = (chan[modif.group as keyof ChannelEntity] as UserEntity[])
 				.findIndex(user => user.login == modif.ban);
-			chan.mutes.push((chan[modif.group as keyof ChannelEntity] as UserEntity[])[i]);
+			chan.bans.push((chan[modif.group as keyof ChannelEntity] as UserEntity[])[i]);
 			(chan[modif.group as keyof ChannelEntity] as UserEntity[]).splice(i, 1);
 			this.muteBanTimer(chan, modif, server);
 		}
-		// else if (modif.restoreMute) {
-		// 	let i = (chan[modif.group as keyof ChannelEntity] as UserEntity[])
-		// 		.findIndex(user => user.login == modif.ban);
-		// 	chan.mutes.push((chan[modif.group as keyof ChannelEntity] as UserEntity[])[i]);
-		// 	(chan[modif.group as keyof ChannelEntity] as UserEntity[]).splice(i, 1);
-		// 	this.muteBanTimer(chan, modif, server);
-		// }
-
-		// else if (modif.restoreMute)
-		// 	return modifChanMute(server, modif.chan, modif.mute);
-		// else if (modif.ban)
-		// 	return modifChanBan(server, modif.chan, modif.ban);
-		// else if (modif.restoreBan)
-		// 	return modifChanMute(server, modif.chan, modif.mute);
+		else if (modif.restoreBan) {
+			let i = chan.mutes.findIndex(mute => mute.login == modif.restoreBan);
+			chan.bans.splice(i, 1);
+		}
 		// else if (modif.kick)
 		// 	return modifChanKick(server, modif.chan, modif.kick);
 		// else if (modif.avatar)
@@ -533,10 +568,8 @@ export class ChatService {
 			.catch((e) => console.log('Save Channel error'));
 	}
 
-	async muteBanTimer(chan: ChannelEntity, modif: ModifChanDto, server: Server) {
-		let interval = 1000;
+	muteBanTimer(chan: ChannelEntity, modif: ModifChanDto, server: Server) {
 		let seconds = 0;
-		// this.printChan(chan);
 		let idInterval = setInterval(() => {
 			seconds += 1;
 			if (seconds >= modif.time) {
@@ -544,35 +577,35 @@ export class ChatService {
 				let login: string;
 				let restore: string;
 				if (modif.mute) {
+					if (chan.mutes.findIndex(mute => mute.login == modif.mute) == -1)
+						return console.log(`User '${modif.mute}' already unmuted`);
 					login = modif.mute;
-					restore = "restoreMute";
+					restore = "unmuted";
 					modif.restoreMute = modif.mute;
 					modif.mute = undefined;
-					let i = chan.mutes.findIndex(mute => mute.login == modif.mute);
-					(chan[modif.group as keyof ChannelEntity] as UserEntity[])
-						.push(chan.mutes[i]);
+					let i = chan.mutes.findIndex(mute => mute.login == login);
+					chan.users.push(chan.mutes[i]);
 					chan.mutes.splice(i, 1);
 				}
 				else {
+					if (chan.bans.findIndex(ban => ban.login == modif.ban) == -1)
+						return console.log(`User '${modif.ban}' already unbaned`);
 					login = modif.ban;
-					restore = "restoreBan";
+					restore = "unbaned";
 					modif.restoreBan = modif.ban;
 					modif.ban = undefined;
-					let i = chan.bans.findIndex(ban => ban.login == modif.ban);
+					let i = chan.bans.findIndex(ban => ban.login == login);
 					chan.bans.splice(i, 1);
-				}
-				console.log(`User '${login}' from channel '${chan.name}' is ${restore}`);
-				console.log(`nbAdmins = ${chan.admins.length}, nbUser = ${chan.users.length}, nbMute = ${chan.mutes.length}`)
-				for (let user of chan.admins.concat(chan.users).concat(chan.mutes)) {
-					console.log(`restore : login = ${user.login}`);
-					server.to(user.socketId).emit("modifChan", modif);
-					// server.to(user.socketId).emit("modifChan", 
-					// 	new ModifChanDto(modif.chan, restore, login, modif.group));
 				}
 				this.channelRepository.save(chan)
 					.catch((e) => console.log('Save Channel error'));
+				console.log(`User '${login}' from channel '${chan.name}' is restored`);
+				for (let user of chan.admins.concat(chan.users).concat(chan.mutes)) {
+					console.log(`restore : login = ${user.login}`);
+					server.to(user.socketId).emit("modifChan", modif);
+				}
 			}
-		}, interval);
+		}, 1000);
 	}
 
 

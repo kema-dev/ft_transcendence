@@ -91,8 +91,17 @@
 			class="channelForm left column"
 		>
 			<div class="elemForm_cont left column">
-				<label for="name" class="labelForm">Channel name</label>
+				<label for="newChanName" class="labelForm">Name</label>
 				<input type="text" name="newChanName" required id="newChanName" class="inputForm" />
+			</div>
+			<div class="elemForm_cont left_center raw">
+				<label for="privateCheckbox" class="labelForm">Private?</label>
+				<input
+						v-model="privateCheck"
+						type="checkbox"
+						name="privateCheckbox"
+						id="privateCheckbox"
+					/>
 			</div>
 			<div class="elemForm_cont left column">
 				<div class="left_center raw">
@@ -162,6 +171,7 @@ const search = ref("");
 const findChannel = ref(false);
 const newChannel = ref(false);
 const pswCheck = ref(false);
+const privateCheck = ref(false);
 
 watch(chanDone, () => {
 	// console.log(`chanDone = ${chanDone.value}`);
@@ -241,9 +251,10 @@ function submitChannel() {
 	const data = new FormData(form);
 	let chanName = data.get("newChanName") as string;
 	let chanPsw = data.get("pswInput") as string;
+	let priv = privateCheck.value;
 	// console.log(`chanName = ${chanName}`);
 	// console.log(`chanPsw = ${chanPsw}`);
-	HTTP.post(apiPath + "chat/CreateChan", new NewChanDto(chanName, me, chanPsw))
+	HTTP.post(apiPath + "chat/CreateChan", new NewChanDto(chanName, me, priv, chanPsw))
 	.then(res => {
 		let newChan = res.data as ChannelDto;
 		newChan.creation = new Date(newChan.creation);
@@ -407,6 +418,7 @@ onBeforeUnmount(() => {
 	height: 1.5rem;
 	outline: none;
 }
+#privateCheckbox,
 #pswCheckbox {
 	margin-left: 10px;
 }
