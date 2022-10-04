@@ -73,6 +73,7 @@ import { MessageDto } from "@/chat/dto/MessageDto";
 import { NewChanMsgDto } from "@/chat/dto/NewChanMsgDto";
 import { ChannelDto } from "./dto/ChannelDto";
 import { ProfileUserDto } from "@/dto/ProfileUserDto"
+import router from "@/router";
 
 // ================= INIT =================
 
@@ -90,6 +91,7 @@ let index = ref(-1);
 // GET CHANS REFS
 let chansRef : Ref<ChannelDto[]> = inject("chans")!;
 const chanDone: Ref<boolean> = inject("chanDone")!;
+const chanBan: Ref<string> = inject("chanBan")!;
 
 // GET CHAN INDEX
 index.value = chansRef.value.findIndex((chan) => chan.name == chanName);
@@ -132,6 +134,17 @@ watch(chanDone, () => {
 		})
 	}
 }, {flush: 'post'})
+
+
+// ================= WATCHERS =================
+
+watch(chanBan, () => {
+	// console.log(`chanBan change for ${chanBan.value}`)
+	if (chanBan.value == chansRef.value[index.value].name) {
+		// console.log(`Exit chan because banned`)
+		router.push({name: 'channels'});
+	}
+})
 
 
 // ================= METHODS =================

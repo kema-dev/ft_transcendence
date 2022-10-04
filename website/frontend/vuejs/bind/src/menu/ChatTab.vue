@@ -61,7 +61,6 @@ let nbPrivNR: { n: Ref<number[]>; reset: () => void } = inject('nbPrivNR')!;
 
 /* ROUTER VUE TRANSITION  */
 
-@import "~@/chat/transitions.css";
 /* .myFade-enter-active,
 .myFade-leave-active {
   transition: opacity 0.5s ease;

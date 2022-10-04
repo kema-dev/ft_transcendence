@@ -427,7 +427,12 @@ export class ChatService {
 		console.log(`joinChannelReq for chan = ${data.chanName}, user = ${data.requestor}, psw = ${data.psw}`)
 		let chan = await this.channelRepository.findOne({
 			where: {name: data.chanName},
-			relations: {admins: true, users: true, bans: true, messages: { user: true}},
+			relations: {
+				admins: true, 
+				users: true, 
+				mutes:true,  
+				bans: true, 
+				messages: { user: true}},
 		});
 		if (!chan) {
 			// server.to(user.socketId).emit("joinChannelError", {error: "CHAN_NOT_FOUND"})
@@ -437,7 +442,7 @@ export class ChatService {
 			// server.to(user.socketId).emit("joinChannelError", {error: "WRONG_PSW"})
 			console.log(`joinChannelReq Error: Wrong Password`)
 			throw new HttpException('WRONG_PSW', HttpStatus.BAD_REQUEST);
-		} else if (chan.bans.includes(user)) {
+		} else if (chan.bans.findIndex(ban => ban.login == data.requestor) != -1) {
 			// server.to(user.socketId).emit("joinChannelError", {error: "USER_BANNDED"})
 			console.log(`joinChannelReq Error: User Banned`)
 			throw new HttpException('USER_BANNDED', HttpStatus.UNAUTHORIZED);
@@ -454,7 +459,7 @@ export class ChatService {
 		server: Server,
 		data: {chan: string, login: string}) 
 	{
-		console.log(`newUser '${data.chan} want to join '${data.chan}'`)
+		console.log(`newUser '${data.login}' want to join '${data.chan}'`)
 		let newUser = await this.userService.getByLogin(data.login);
 		let chan = await this.channelRepository.findOne({
 			where: {name: data.chan},

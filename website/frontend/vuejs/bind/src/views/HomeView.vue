@@ -9,7 +9,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, Ref, provide, watch, onUpdated } from "vue";
+import { onMounted, Ref, provide, watch, onUpdated, nextTick } from "vue";
 import { inject, ref } from "vue";
 import io from "socket.io-client"
 import { VueCookies } from "vue-cookies";
@@ -185,19 +185,22 @@ function printPrivs(privs: PrivConvDto[]) {
 
 const chansRef : Ref<ChannelDto[]> = ref([]);
 const nbChanNR : Ref<string[]> = ref([]);
+const chanDone = ref(false);
+const chanBan = ref("");
 function resetNbChanNR() {
 	nbChanNR.value = [];
 }
-const chanDone = ref(false);
 function chanReaded(index : number, readed: boolean) {
 	chansRef.value[index].readed = readed;
 }
+
 
 getChansRequest();
 provide('chans', chansRef);
 provide('nbChanNR', {n: nbChanNR, reset: resetNbChanNR});
 provide('chanReaded', chanReaded);
 provide('chanDone', chanDone);
+provide('chanBan', chanBan);
 
 
 function getChansRequest() {
@@ -299,7 +302,15 @@ socket.on('modifChan', (data: ModifChanDto) => {
 	else if (data.ban) {
 		console.log(`User '${data.ban}' from chan '${data.chan}' is banned`);
 		if (data.ban == me) {
-			chansRef.value.splice(i, 1);
+			chanBan.value = data.chan;
+			// let idInterval = setInterval(() => {
+			// 	if (chansRef.value[i].bans.findIndex(ban => ban.login == data.ban) == -1)
+			// }, 50)
+			// chansRef.value.splice(i, 1);
+			setTimeout(() => {
+				chansRef.value.splice(i, 1);
+				chanBan.value = "";
+			}, 200);
 		}
 		let j = (chansRef.value[i][data.group as keyof ChannelDto] as BasicUserDto[])
 			.findIndex(user => user.login == data.ban);
