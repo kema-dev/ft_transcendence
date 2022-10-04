@@ -107,8 +107,13 @@ function showPswDiv() {
 
 
 function joinChannel() {
-	if (props.infos.psw)
+	if (props.infos.psw){
 		(input.value! as HTMLInputElement).classList.remove("invalidPsw");
+		if (psw.value == '')
+			return setTimeout(() => {
+				((input.value!) as HTMLInputElement).classList.add("invalidPsw");
+			}, 50);
+	}
 	HTTP.post(apiPath + "chat/JoinChannel/", {
 		requestor: me.value.login,
 		chanName: props.infos.name,

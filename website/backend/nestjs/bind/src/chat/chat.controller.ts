@@ -1,11 +1,8 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
 	Controller,
-	Delete,
 	Get,
 	Param,
 	Post,
-	Put,
 	UseGuards,
 	Body,
 } from '@nestjs/common';
@@ -30,12 +27,15 @@ export class ChatController {
 	async getChans(@Param() params : {login: string}) {
 		console.log(`getChans for user ${params.login }`);
 		const chans = await this.chatService.getUserChans(params.login);
-		// await this.chatService.printChans(chans);
-		if (chans.length) {
+		if (chans.length)
 			await this.chatService.sortChans(chans);
-		}
-		// await this.chatService.printChans(chans);
-		return await this.chatService.createChansDto(params.login, chans);
+		return this.chatService.createChansDto(params.login, chans);
+	}
+
+	// @UseGuards(AuthGuard)
+	@Get('userExist/:login')
+	async userExist(@Param() params : {login: string}) {
+		return this.chatService.userExist(params.login);
 	}
 
 	// @UseGuards(AuthGuard)
@@ -71,31 +71,6 @@ export class ChatController {
 	async joinChannel(
 		@Body() data: {requestor: string, chanName: string, psw: string | undefined}
 	) {
-		// if (data.psw)
-		// 	await this.chatService.checkChanPsw(data.chanName, data.psw);
 		return await this.chatService.joinChannelReq(data);
 	}
-
-
-
-	// // @UseGuards(AuthGuard)
-	// @Post('message')
-	// postMessage() {
-	// 	console.log('Add a message from message list');
-	// 	return 'Add Message';
-	// }
-
-	// // @UseGuards(AuthGuard)
-	// @Delete('message')
-	// deleteMessage() {
-	// 	console.log('Supress a message from message list');
-	// 	return 'Delete Message';
-	// }
-
-	// // @UseGuards(AuthGuard)
-	// @Put('message')
-	// putMessage() {
-	// 	console.log('Modify a message from message list');
-	// 	return 'Update Message';
-	// }
 }

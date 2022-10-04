@@ -76,7 +76,7 @@
 			</h2>
 		</div>
 		<div
-			v-if="findChannel && serverChans.length > 0"
+			v-if="findChannel && search.length > 0 && serverChans.length > 0"
 			class="findChannelResults left column"
 		>
 			<!-- <div v-if="search.length > 0 && serverChans.length > 0" class="left column"> -->
@@ -216,21 +216,6 @@ function filterServerChans() {
 		return isAlreadyKnow;
 	});
 }
-
-// function knownPeople() : Channel[] {
-// 	let res : Channel[] = [];
-// 	for (let i = 0; i < convsFiltred.value.length; i++) {
-// 		res.push(convsFiltred.value[i]);
-// 	}
-// 	return res;
-// }
-
-// function otherPeople() : User[] {
-// 	let others = [user4, user5];
-// 	return others.filter(function(value) {
-// 		return value.name.toUpperCase().startsWith(search.value.toUpperCase());
-// 	});
-// }
 
 function findChannelFn() {
 	findChannel.value = !findChannel.value;

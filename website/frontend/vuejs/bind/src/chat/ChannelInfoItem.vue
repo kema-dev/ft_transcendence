@@ -1,5 +1,13 @@
 <template>
-	<div v-if="display" class="infoCont left column">
+	<div v-if="display" class="infoCont center column">
+		<div class="topButsCont center raw">
+			<button @click="showNewUser" class="invitButton">
+				Invit User
+			</button>
+			<button @click="quitChannel" class="leaveButton">
+				Quit Channel
+			</button>
+		</div>
 		<div class="ElemCont left_center column">
 			<div class="ElemHeadCont left_center raw">
 				<div class="titleImgCont center">
@@ -8,7 +16,7 @@
 				<span class="titleText">
 					Password :
 				</span>
-				<span v-if="!pswBool" class="titleValueText">
+				<span v-if="!pswShow" class="titleValueText">
 					{{chansRef[i].psw ? "Yes" : "No"}}
 				</span>
 				<span v-else class="titleValueText center">
@@ -20,7 +28,7 @@
 						:checked="chansRef[i].psw ? true : false"
 					>
 				</span>
-				<button v-if="pswBool"
+				<button v-if="pswShow"
 					@click="modifPswReq"
 					class="settingsBtnCont center"
 				>
@@ -34,7 +42,7 @@
 					@click="showPsw"
 					class="settingsBtnCont center"
 				>
-					<img v-if="!pswBool"
+					<img v-if="!pswShow"
 						src="~@/assets/edit_logo.svg"
 						alt="Edit password"
 						class="infoImg"
@@ -46,7 +54,7 @@
 					/>
 				</button>
 			</div>
-			<form v-if="pswBool"
+			<form v-if="pswShow"
 				@submit.prevent="modifPswReq" 
 				class="settingsCont left"
 			>
@@ -55,10 +63,59 @@
 					name="pswInput" 
 					id="pswInput" 
 					class="inputForm"
-					:disabled="!pswCheck"
+					:disabled="!pswCheckBox"
 				/>
 			</form>
 		</div>
+		<span class="diviserBar"></span>
+		<div class="ElemCont left_center column">
+			<div class="ElemHeadCont left_center raw">
+				<div class="titleImgCont center">
+					<img src="~@/assets/private.svg" alt="Private" class="infoImg" />
+				</div>
+				<span class="titleText">
+					Private :
+				</span>
+				<span v-if="!privShow" class="titleValueText">
+					{{chansRef[i].priv ? "Yes" : "No"}}
+				</span>
+				<span v-else class="titleValueText center">
+					<input
+						@click="privCheck = !privCheck"
+						type="checkbox" 
+						name="privCheckBox" 
+						id="privCheckBox"
+						:checked="chansRef[i].priv ? true : false"
+					>
+				</span>
+				<button v-if="privShow"
+					@click="modifPrivReq"
+					class="settingsBtnCont center"
+				>
+					<img
+						src="~@/assets/done.svg"
+						alt="Valid private"
+						class="infoImg"
+					/>
+				</button>
+				<button v-if="iAmAdmin"
+					@click="showPriv"
+					class="settingsBtnCont center"
+				>
+					<img v-if="!privShow"
+						src="~@/assets/edit_logo.svg"
+						alt="Edit private"
+						class="infoImg"
+					/>
+					<img v-else
+						src="~@/assets/undo_logo.svg"
+						alt="Undo button"
+						class="infoImg"
+					/>
+				</button>
+			</div>
+		</div>
+		<span class="diviserBar"></span>
 		<div class="ElemCont left_center column">
 			<div class="ElemHeadCont left_center raw">
 				<div class="titleImgCont center">
@@ -79,6 +136,7 @@
 					:demote="true" :mute="true" :ban="true"/>
 			</div>
 		</div>
+		<span class="diviserBar"></span>
 		<div class="ElemCont left_center column">
 			<div class="ElemHeadCont left_center raw">
 				<div class="titleImgCont center">
@@ -90,31 +148,6 @@
 				<span v-if="!chansRef[i].users.length" class="titleValueText">
 					No users
 				</span>
-				<!-- <button v-if="pswBool"
-					@click="modifPswReq"
-					class="settingsBtnCont center"
-				>
-					<img
-						src="~@/assets/done.svg"
-						alt="Valid password"
-						class="infoImg"
-					/>
-				</button>
-				<button v-if="iAmAdmin"
-					@click="showPsw"
-					class="settingsBtnCont center"
-				>
-					<img v-if="!pswBool"
-						src="~@/assets/edit_logo.svg"
-						alt="Edit password"
-						class="infoImg"
-					/>
-					<img v-else
-						src="~@/assets/undo_logo.svg"
-						alt="Undo button"
-						class="infoImg"
-					/>
-				</button> -->
 			</div>
 			<div v-for="(data, i) in chansRef[props.i].users" :key="i" class="left_center">
 				<BasicProfil :avatar="data.avatar" :login="data.login" class="basicUser"/>
@@ -123,6 +156,7 @@
 					:promote="true" :mute="true" :ban="true"/>
 			</div>
 		</div>
+		<span class="diviserBar"></span>
 		<div class="ElemCont left_center column">
 			<div class="ElemHeadCont left_center raw">
 				<div class="titleImgCont center">
@@ -143,6 +177,7 @@
 					:restore="true" :ban="true"/>
 			</div>
 		</div>
+		<span class="diviserBar"></span>
 		<div class="ElemCont left_center column">
 			<div class="ElemHeadCont left_center raw">
 				<div class="titleImgCont center">
@@ -163,9 +198,20 @@
 					:restore="true"/>
 			</div>
 		</div>
-		<button @click="quitChannel" class="leaveButton">
-			Quit Channel
-		</button>
+		<WarningMsg v-if="invitUser"
+			msg="Enter the user's login you want to invit:"
+			:img="require('@/assets/add_user.png')"
+		>
+			<template #content>
+				<input v-model="newUser" @keypress.enter="addUserReq" type="text" id="newUserInput"/>
+			</template>
+			<template #buttons>
+				<div class="blockAdvertButtons center raw">
+					<button @click="addUserReq">OK</button>
+					<button @click="showNewUser">Back</button>
+				</div>
+			</template>
+		</WarningMsg>
 	</div>
 </template>
 
@@ -174,8 +220,10 @@
 import { defineProps, inject, onMounted, ref, Ref, onBeforeUnmount, watch, onBeforeUpdate, onUpdated, nextTick } from "vue";
 import { useRoute } from "vue-router";
 import { Socket } from "socket.io-client";
+import HTTP from "../components/axios";
 import BasicProfil from "@/components/BasicProfilItem.vue";
 import setUserChan from "@/chat/setUserChanItem.vue";
+import WarningMsg from "@/components/WarningMsg.vue";
 import { ChannelDto } from "./dto/ChannelDto";
 import { ProfileUserDto } from "@/dto/ProfileUserDto"
 import { ModifChanDto } from "@/chat/dto/ModifChanDto"
@@ -188,9 +236,11 @@ const props = defineProps({
 	} 
 });
 
+// GLOBAL
 let colors = inject("colors");
 let mySocket: Socket = inject("socket")!;
 const route = useRoute();
+let apiPath: string = inject("apiPath")!;
 let chanName = route.params.conv_name as string;
 let myName: string = inject("me")!;
 let me: Ref<ProfileUserDto> = inject("user")!;
@@ -198,20 +248,28 @@ let chansRef : Ref<ChannelDto[]> = inject("chans")!;
 let iAmAdmin = ref(isAdmin());
 let display = ref(true);
 
+// INVIT USER
+let invitUser = ref(false);
+let newUser = ref('');
+
 // PASSWORD
 let pswValue = ref("");
-let pswBool = ref(false);
-let pswCheck = ref(false);
+let pswShow = ref(false);
+let pswCheckBox = ref(false);
+
+// PRIVATE
+let privShow = ref(false);
+let privCheck = ref(false);
 
 
-// ================= WATCHERS
+// ================= WATCHERS =================
 
 watch(chansRef.value[props.i].admins, () => {
 	iAmAdmin.value = isAdmin();
 })
 
 
-// ================= METHODS 
+// ================= GENERAL =================
 
 function isAdmin() {
 	return chansRef.value[props.i].admins
@@ -226,9 +284,43 @@ function quitChannel() {
 	router.push({name: 'channels'});
 }
 
+
+// ================= INVIT USER =================
+
+function showNewUser() {
+	invitUser.value = !invitUser.value;
+	newUser.value = '';
+	if (invitUser.value) {
+		nextTick(() => {
+			document.getElementById("newUserInput")?.focus();
+		})
+	}
+}
+
+function addUserReq() {
+	let newUserInput = document.getElementById("newUserInput");
+	newUserInput?.classList.remove("invalidInput");
+	HTTP.get(apiPath + "chat/userExist/" + newUser.value)
+	.then(res => {
+		mySocket.emit("newChannelUser", {chan: chanName, login: newUser.value});
+		newUser.value = "";
+		invitUser.value = false;
+	})
+	.catch(e => {
+		if (e.response.data.message === 'USER_ALREADY_EXIST') {
+			return setTimeout(() => {
+				newUserInput?.classList.add("invalidInput");
+			}, 50);
+		}
+	});
+}
+
+
+// ================= PASSWORD =================
+
 function changePswCB() {
 	pswValue.value = "";
-	pswCheck.value = !pswCheck.value;
+	pswCheckBox.value = !pswCheckBox.value;
 	// chansRef.value[props.i].psw ? 
 	// 	pswCheck.value = true : pswCheck.value = false;
 	nextTick(() => {
@@ -237,10 +329,10 @@ function changePswCB() {
 }
 
 function showPsw() {
-	pswBool.value = !pswBool.value;
+	pswShow.value = !pswShow.value;
 	pswValue.value = "";
-	if (pswBool.value) {
-		pswCheck.value = chansRef.value[props.i].psw ? true : false;
+	if (pswShow.value) {
+		pswCheckBox.value = chansRef.value[props.i].psw ? true : false;
 		nextTick(() => {
 			document.getElementById("pswInput")?.focus();
 		})
@@ -250,70 +342,40 @@ function showPsw() {
 function modifPswReq() {
 	let input = document.getElementById("pswInput");
 	input?.classList.remove("invalidInput");
-	if (pswCheck.value && pswValue.value == "")
+	if (pswCheckBox.value && pswValue.value == "")
 		return setTimeout(() => {
 			input!.classList.add("invalidInput");
 		}, 50);
 	if (chansRef.value[props.i].psw) {
-		if (!pswCheck.value)
+		if (!pswCheckBox.value)
 			mySocket.emit("modifChan",
 				new ModifChanDto(chanName, "psw", ""));
 		else if (pswValue.value != "")
 			mySocket.emit("modifChan", 
 				new ModifChanDto(chanName, "psw", pswValue.value));
-	} else if (pswCheck.value)
+	} else if (pswCheckBox.value)
 		mySocket.emit("modifChan", 
 			new ModifChanDto(chanName, "psw", pswValue.value));
-	pswBool.value = false;
-}
-
-function findAvatar(login: string) {
-	printChan(chansRef.value[props.i]);
-	console.log(`index.value = ${props.i}`)
-	let isAdmin = chansRef.value[props.i].admins.find(admin => admin.login == login);
-	console.log(`isAdmin = ${isAdmin}`)
-
-	if (isAdmin)
-		return isAdmin.avatar;
-	let isUser = chansRef.value[props.i].users.find(user => user.login == login);
-	console.log(`isUser = ${isUser}`)
-	if (isUser)
-		return isUser.avatar;
+	pswShow.value = false;
 }
 
 
-function displayDate(date: Date, i: number) {
-	// console.log(`displayDate()`)
-	let minutes: string | number;
-	if (date.getMinutes() < 10) minutes = "0" + date.getMinutes().toString();
-	else minutes = date.getMinutes();
-	// console.log(`test`);
-	let hours: string | number;
-	if (date.getHours() < 10) hours = "0" + date.getHours().toString();
-	else hours = date.getHours();
-	const day = date.getDay();
-	const month = date.toLocaleString("default", { month: "long" });
-	const year = date.getFullYear();
-	// console.log(`displayDate() avant returns`)
-	if (i == 0)
-		return `Created the ${day} ${month} ${year} at ${hours}:${minutes}`;
-	const now = new Date();
-	const timeDif = date.getTime() - new Date().getTime();
-	const minutesDif = Math.ceil(timeDif / (1000 * 60));
-	const hoursDif = Math.ceil(minutesDif / 60);
-	const daysDif = Math.ceil(hoursDif / 24);
-	if (date.toDateString() == now.toDateString()) return `${hours}:${minutes}`;
-	if (daysDif < 7)
-		return `${date.toLocaleDateString("en-GB", {
-			weekday: "long",
-		})} ${hours}:${minutes}`;
-	else return `${day} ${month} ${year} at ${hours}:${minutes}`;
+// ================= PRIVATE =================
+
+
+function showPriv() {
+	privShow.value = !privShow.value;
+	privCheck.value = chansRef.value[props.i].priv;
 }
 
+function modifPrivReq() {
+	if ((chansRef.value[props.i].priv && !privCheck.value)
+		|| (!chansRef.value[props.i].priv && privCheck.value)) 
+		mySocket.emit("modifChan",
+			new ModifChanDto(chanName, "priv", privCheck.value));
+	privShow.value = false;
+}
 
-// ====================== SOCKET LISTENNERS ======================
-
-// mySocket.on("")
 
 // ====================== UTILS ======================
 
@@ -333,15 +395,24 @@ function printChan(chan: ChannelDto) {
 
 /* GENERAL */
 .infoCont {
-	padding: 10px 20px;
+	padding: 10px 0;
 }
+.topButsCont {
+	margin-bottom: 20px;
+}
+
 .ElemCont {
 	width: 220px;
-	margin-bottom: 10px;
+	margin: 10px;
 }
-.ElemHeadCont {
+.diviserBar{
+	width: 200px;
+	height: 1px;
+	background-color: v-bind("colors.color2");
+}
+/* .ElemHeadCont {
 
-}
+} */
 .titleText {
 	font-family: 'Orbitron', sans-serif;
 	width: auto;
@@ -415,16 +486,41 @@ function printChan(chan: ChannelDto) {
 	border-radius: calc(1.4rem / 2);
 	outline: none;
 	padding: 0 8px;
-	/* flex-basis: 100%; */
 }
 .basicUser {
 	margin: 5px 10px;
 }
-.leaveButton {
+.invitButton {
 	height: 1.5rem;
+	width: 135px;
 	border-radius: calc(1.5rem / 2);
 	font-weight: 500;
 	background-color: v-bind("colors.color2");
+	/* background-color: rgba(255, 178, 178, 0.616); */
+	color: white;
+	padding: 0 10px;
+	margin: auto;
+	margin-top: 20px;
+	box-shadow: 0px 0px 4px #aaa;
+}
+#newUserInput {
+	font-family: 'Orbitron', sans-serif;
+	font-size: 0.8rem;
+	width: 150px;
+	background-color: v-bind("colors.color3");
+	height: 1.4rem;
+	border-radius: calc(1.4rem / 2);
+	outline: none;
+	margin-bottom: 10px;
+	padding: 0 8px;
+}
+.leaveButton {
+	height: 1.5rem;
+	width: 135px;
+	border-radius: calc(1.5rem / 2);
+	font-weight: 500;
+	/* background-color: v-bind("colors.color2"); */
+	background-color: rgb(246, 129, 129);
 	color: white;
 	padding: 0 10px;
 	margin: auto;

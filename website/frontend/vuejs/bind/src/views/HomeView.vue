@@ -238,6 +238,16 @@ socket.on('newChanMsg', (data: { msg: MessageDto; name: string }) => {
 	if (i != 0) putChanFirst(i);
 });
 
+socket.on("newChannel", (data: ChannelDto) => {
+	if (!chansRef.value.map(chan => chan.name).includes(data.name)) {
+		let newChan = data;
+		newChan.creation = new Date(newChan.creation);
+		newChan.messages.forEach(msg => msg.date = new Date(msg.date));
+		chansRef.value.unshift(newChan);
+	}
+
+});
+
 socket.on('newChannelUser', (data: { name: string; user: BasicUserDto }) => {
 	console.log(`New User '${data.user.login}' in channel : ${data.name}`);
 	let i = chansRef.value.findIndex((chan) => chan.name == data.name);
@@ -268,6 +278,10 @@ socket.on('modifChan', (data: ModifChanDto) => {
 		data.psw == "" ?
 			chansRef.value[i].psw = undefined : 
 			chansRef.value[i].psw = data.psw;
+	}
+	if (data.priv != undefined){
+		console.log(`Private from chan '${data.chan}' modified`);
+		chansRef.value[i].priv = data.priv;
 	}
 	else if (data.promotAdm) {
 		console.log(`User '${data.promotAdm}' from chan '${data.chan}' promoted to Admin`);
@@ -303,10 +317,6 @@ socket.on('modifChan', (data: ModifChanDto) => {
 		console.log(`User '${data.ban}' from chan '${data.chan}' is banned`);
 		if (data.ban == me) {
 			chanBan.value = data.chan;
-			// let idInterval = setInterval(() => {
-			// 	if (chansRef.value[i].bans.findIndex(ban => ban.login == data.ban) == -1)
-			// }, 50)
-			// chansRef.value.splice(i, 1);
 			setTimeout(() => {
 				chansRef.value.splice(i, 1);
 				chanBan.value = "";

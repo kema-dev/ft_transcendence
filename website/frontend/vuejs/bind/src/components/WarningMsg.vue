@@ -3,7 +3,7 @@
 		<div class="blockAdvert center column">
 			<img :src="img" alt="Warning" class="warning_img" />
 			<span class="blockAdvertText">{{ msg }}</span>
-			<span class="blockAdvertText">{{ msg2 }}</span>
+			<span v-if="props.msg2" class="blockAdvertText">{{ msg2 }}</span>
 			<slot name="content"></slot>
 			<slot name="buttons"></slot>
 		</div>

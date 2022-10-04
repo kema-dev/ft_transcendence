@@ -1,6 +1,7 @@
 export class ModifChanDto {
 	chan: string;
 	psw?: string;
+	priv?: boolean;
 	invitUser?: string;
 	promotAdm?: string;
 	demotUser?: string;
