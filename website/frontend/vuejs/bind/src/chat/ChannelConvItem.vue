@@ -67,7 +67,6 @@ import { inject, onMounted, ref, Ref, onBeforeUnmount, watch, onBeforeUpdate, on
 import { useRoute } from "vue-router";
 import { Socket } from "socket.io-client";
 import MessageItem from "@/chat/MessageItem.vue";
-import BlockAdvert from "@/components/BlockItem.vue";
 import ChannelInfoItem from "./ChannelInfoItem.vue";
 import { MessageDto } from "@/chat/dto/MessageDto";
 import { NewChanMsgDto } from "@/chat/dto/NewChanMsgDto";

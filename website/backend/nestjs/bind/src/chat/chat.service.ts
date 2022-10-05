@@ -419,11 +419,11 @@ export class ChatService {
 		return channelTabs;
 	}
 
-	async joinChannelReq(
+	async joinChanRequest(
 		data: {requestor: string, chanName: string, psw: string | undefined}) 
 	{
 		let user = await this.userService.getByLogin(data.requestor);
-		console.log(`joinChannelReq for chan = ${data.chanName}, user = ${data.requestor}, psw = ${data.psw}`)
+		console.log(`joinChanRequest for chan = ${data.chanName}, user = ${data.requestor}, psw = ${data.psw}`)
 		let chan = await this.channelRepository.findOne({
 			where: {name: data.chanName},
 			relations: {
@@ -434,16 +434,13 @@ export class ChatService {
 				messages: { user: true}},
 		});
 		if (!chan) {
-			// server.to(user.socketId).emit("joinChannelError", {error: "CHAN_NOT_FOUND"})
-			console.log(`joinChannelReq Error: Chan don't exist`)
+			console.log(`joinChanRequest Error: Chan don't exist`)
 			throw new HttpException('CHAN_NOT_FOUND', HttpStatus.NOT_FOUND);
 		} else if (data.psw && chan.password != data.psw) {
-			// server.to(user.socketId).emit("joinChannelError", {error: "WRONG_PSW"})
-			console.log(`joinChannelReq Error: Wrong Password`)
+			console.log(`joinChanRequest Error: Wrong Password`)
 			throw new HttpException('WRONG_PSW', HttpStatus.BAD_REQUEST);
 		} else if (chan.bans.findIndex(ban => ban.login == data.requestor) != -1) {
-			// server.to(user.socketId).emit("joinChannelError", {error: "USER_BANNDED"})
-			console.log(`joinChannelReq Error: User Banned`)
+			console.log(`joinChanRequest Error: User Banned`)
 			throw new HttpException('USER_BANNDED', HttpStatus.UNAUTHORIZED);
 		} else {
 			console.log(`user '${user.login}' join chanel '${chan.name}'`)
@@ -464,6 +461,33 @@ export class ChatService {
 			throw new HttpException('USER_ALREADY_EXIST', HttpStatus.CONFLICT);
 	}
 
+	async invitChanUser(chanName: string, login: string) {
+		let user = await this.userRepository.findOne({
+			where: {login: login},
+		})
+		if (!user)
+			throw new HttpException('DO_NOT_EXIST', HttpStatus.NOT_FOUND);
+		let chan = await this.channelRepository.findOne({
+			where: {name: chanName},
+			relations: {
+				admins: true, 
+				users: true, 
+				mutes: true,
+				bans:true,
+			}
+		});
+		let isUser = chan.admins
+			.concat(chan.users)
+			.concat(chan.mutes)
+			.find(user => user.login == login)
+		if (isUser)
+			throw new HttpException('ALREADY_USER', HttpStatus.CONFLICT);
+		let banned = chan.bans.find(user => user.login == login)
+		if (banned)
+			throw new HttpException('IS_BANNED', HttpStatus.UNAUTHORIZED);
+		return true;
+	}
+
 	async newChannelUser(
 		server: Server,
 		data: {chan: string, login: string}) 
@@ -479,6 +503,11 @@ export class ChatService {
 				bans:true, 
 				messages: {user:true}},
 		});
+		if (!chan.users.map(user => user.login).includes(data.login)) {
+			chan.users.push(newUser);
+			this.channelRepository.save(chan)
+				.catch((e) => console.log('Save chan error'));
+		}
 		server.to(newUser.socketId).emit("newChannel", this.createChanDto(chan));
 		for (let user of chan.admins.concat(chan.users).concat(chan.mutes)) {
 			if (user.login != newUser.login)
@@ -525,7 +554,7 @@ export class ChatService {
 			where: {name: modif.chan},
 			relations: {admins: true, users: true, mutes: true, bans: true, messages: true}
 		});
-		this.updateChanSetting(chan, modif, server);
+		await this.updateChanSetting(chan, modif, server);
 		for (let user of chan.admins
 			.concat(chan.users)
 			.concat(chan.mutes)
@@ -533,14 +562,19 @@ export class ChatService {
 			server.to(user.socketId).emit("modifChan", modif);
 	}
 
-	updateChanSetting(chan: ChannelEntity, modif: ModifChanDto, server: Server) {
+	async updateChanSetting(chan: ChannelEntity, modif: ModifChanDto, server: Server) {
 		if (modif.psw != undefined) {
 			console.log(`Modif chan psw : ${modif.psw == "" ? "no psw" : modif.psw}`)
 			modif.psw == "" ?
 				chan.password = null : chan.password = modif.psw; 
 		}
-		// else if (modif.invitUser)
-		// 	return modifChanInvitUser(server, modif.chan, modif.invitUser);
+		// else if (modif.invitUser) {
+		// 	console.log(`Modif chan '${modif.chan}' : user '${modif.invitUser}' is invited`)
+		// 	let user = await this.userRepository.findOne({
+		// 		where: {login : modif.invitUser}
+		// 	});
+		// 	chan.users.push(user);
+		// }
 		else if (modif.priv != undefined) {
 			console.log(`Modif chan '${modif.chan}' : private = ${modif.priv}`)
 			chan.private = modif.priv;
@@ -630,8 +664,7 @@ export class ChatService {
 			}
 		}, 1000);
 	}
-
-
+	
 	printChanDto(chan: ChannelDto) {
 		console.log(`psw = ${chan.psw}`);
 		console.log(`creation = ${chan.creation}`);
@@ -660,9 +693,6 @@ export class ChatService {
 		console.log(`mutes : ${chan.mutes.map(mute => `'` + mute.login + `'`)}`);
 		console.log(`bans : ${chan.bans.map(ban => ban.login + ', ')}`);
 		console.log(`msgs : ${chan.messages.map(msg => `'` + msg.message + `'`)}`);
-		// chan.messages.forEach(msg => {
-		// 	console.log(`${msg.message}, created at ${msg.createdAt.toLocaleTimeString("fr")}`)
-		// })
 	}
 
 	async printChans(chans: ChannelEntity[]) {

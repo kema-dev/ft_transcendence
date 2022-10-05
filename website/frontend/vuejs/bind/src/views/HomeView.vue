@@ -232,7 +232,6 @@ socket.on('newChanMsg', (data: { msg: MessageDto; name: string }) => {
 		new MessageDto(data.msg.user, data.msg.msg, new Date(data.msg.date)),
 	);
 	chansRef.value[i].readed = false;
-	// printChans(chansRef.value);
 	if (data.msg.user != me && !nbChanNR.value.includes(chansRef.value[i].name))
 		nbChanNR.value.push(chansRef.value[i].name);
 	if (i != 0) putChanFirst(i);
@@ -240,12 +239,12 @@ socket.on('newChanMsg', (data: { msg: MessageDto; name: string }) => {
 
 socket.on("newChannel", (data: ChannelDto) => {
 	if (!chansRef.value.map(chan => chan.name).includes(data.name)) {
+		console.log(`invited in channel '${data.name}'`);
 		let newChan = data;
 		newChan.creation = new Date(newChan.creation);
 		newChan.messages.forEach(msg => msg.date = new Date(msg.date));
 		chansRef.value.unshift(newChan);
 	}
-
 });
 
 socket.on('newChannelUser', (data: { name: string; user: BasicUserDto }) => {

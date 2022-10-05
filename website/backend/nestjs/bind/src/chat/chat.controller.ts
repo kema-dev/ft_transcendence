@@ -39,6 +39,12 @@ export class ChatController {
 	}
 
 	// @UseGuards(AuthGuard)
+	@Get('invitChanUser/:chan/:login')
+	async invitChanUser(@Param() params : {chan:string, login: string}) {
+		return this.chatService.invitChanUser(params.chan, params.login);
+	}
+
+	// @UseGuards(AuthGuard)
 	@Get('getServerUsersFiltred/:login/:filter')
 	async getServerUsersFiltred(
 		@Param() params: { login: string; filter: string },
@@ -61,16 +67,16 @@ export class ChatController {
 	}
 
 	// @UseGuards(AuthGuard)
-	@Post('CreateChan')
+	@Post('createChan')
 	async createChan( @Body() data: NewChanDto) {
 		return await this.chatService.createNewChan(data);
 	}
 
 	// @UseGuards(AuthGuard)
-	@Post('JoinChannel')
-	async joinChannel(
+	@Post('joinChanRequest')
+	async joinChanRequest(
 		@Body() data: {requestor: string, chanName: string, psw: string | undefined}
 	) {
-		return await this.chatService.joinChannelReq(data);
+		return await this.chatService.joinChanRequest(data);
 	}
 }

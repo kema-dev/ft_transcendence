@@ -114,7 +114,7 @@ function joinChannel() {
 				((input.value!) as HTMLInputElement).classList.add("invalidPsw");
 			}, 50);
 	}
-	HTTP.post(apiPath + "chat/JoinChannel/", {
+	HTTP.post(apiPath + "chat/joinChanRequest/", {
 		requestor: me.value.login,
 		chanName: props.infos.name,
 		psw: props.infos.psw ? psw.value : undefined,
@@ -124,7 +124,7 @@ function joinChannel() {
 			newChan.creation = new Date(newChan.creation);
 			newChan.messages.forEach(msg => msg.date = new Date(msg.date));
 			chansRef.value.push(newChan);
-			mySocket.emit("newChannelUser", {chan: props.infos.name, login: myName})
+			mySocket.emit("newChannelUser", {chan: props.infos.name, login: myName});
 			router.push({name: 'ChanConv', params: {conv_name: props.infos.name }});
 		})
 		.catch((e) => {

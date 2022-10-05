@@ -70,20 +70,23 @@
 				/>
 				<!-- <ConversationTab v-else :name-conv="data.name" :avatar="data.avatar" :date="data.creation" :chan="true" class="center"/> -->
 			</div>
-			<h2 v-if="chansRef.length == 0" class="no_results">No conversations</h2>
+			<h2 v-if="chansRef.length == 0" class="no_results">No channels</h2>
 			<h2 v-else-if="chansFiltred!.length == 0" class="no_results">
 				No results
 			</h2>
 		</div>
+		<h2 v-else-if="findChannel && !search.length" class="no_results">
+			Type in the search bar
+		</h2>
 		<div
 			v-if="findChannel && search.length > 0 && serverChans.length > 0"
 			class="findChannelResults left column"
 		>
-			<!-- <div v-if="search.length > 0 && serverChans.length > 0" class="left column"> -->
 			<ChannelTab v-for="(data, i) in serverChans" :key="i" :infos="data" />
 		</div>
-		<h2 v-else-if="findChannel && search.length > 0 && serverChans.length == 0">No results</h2>
-		<!-- </div> -->
+		<h2 v-else-if="findChannel && search.length > 0 && serverChans.length == 0" class="no_results">
+			No results
+		</h2>
 		<form
 			v-if="newChannel"
 			@submit.prevent="submitChannel"
@@ -237,9 +240,7 @@ function submitChannel() {
 	let chanName = data.get("newChanName") as string;
 	let chanPsw = data.get("pswInput") as string;
 	let priv = privateCheck.value;
-	// console.log(`chanName = ${chanName}`);
-	// console.log(`chanPsw = ${chanPsw}`);
-	HTTP.post(apiPath + "chat/CreateChan", new NewChanDto(chanName, me, priv, chanPsw))
+	HTTP.post(apiPath + "chat/createChan", new NewChanDto(chanName, me, priv, chanPsw))
 	.then(res => {
 		let newChan = res.data as ChannelDto;
 		newChan.creation = new Date(newChan.creation);
@@ -322,50 +323,6 @@ onBeforeUnmount(() => {
 		opacity: 1;
 	}
 }
-
-/* .buttons_cont{
-	width: 20%;
-}
-.button_cont {
-	border-radius: 50%;
-	margin: 5px;
-	position: static;
-}
-.button_cont:hover {
-	background-color: white;
-	box-shadow: 0px 0px 4px #aaa;
-}
-.new_msg_img {
-	height: 28px;
-	width: 28px;
-	filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg) brightness(86%) contrast(83%);
-}
-.infoButtonText {
-	visibility: hidden;
-	opacity: 0;
-	font-size: 0.8rem;
-	width: auto;
-	background-color: rgba(0,0,0,0.6);
-	color: #fff;
-	text-align: center;
-	padding: 5px;
-	border-radius: 6px;
-	position: absolute;
-	z-index: 1;
-	bottom: 100%;
-}
-.button_cont:hover .infoButtonText {
-	visibility: visible;
-	opacity: 0;
-	animation: displayButtonInfo 0.3s;
-	animation-delay: 0.3s;
-	animation-fill-mode: forwards;
-}
-@keyframes displayButtonInfo {
-	from { opacity: 0; }
-	to { opacity: 1; }
-} */
-
 .findChannelResults {
 	margin-top: 10px;
 	width: 90%;
@@ -421,16 +378,32 @@ onBeforeUnmount(() => {
 	box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
 	cursor: pointer;
 }
-
-/* TRANSITION ROUTER VIEW */
-
-/* .myFade-enter-active,
-.myFade-leave-active {
-	transition: opacity 3s ease;
+.invalidInput {
+	animation: shake 0.4s linear;
 }
-
-.myFade-enter-from,
-.myFade-leave-to {
-	opacity: 0;
-} */
+@keyframes shake {
+	0%,
+	100% {
+		transform: translateX(0);
+	}
+	10%,
+	30%,
+	50%,
+	70%,
+	90% {
+		transform: translateX(-5px);
+	}
+	20%,
+	40%,
+	60%,
+	80% {
+		transform: translateX(5px);
+	}
+	0% {
+		background-color: rgb(255, 178, 178);
+	}
+	100.0% {
+		background-color: white;
+	}
+}
 </style>

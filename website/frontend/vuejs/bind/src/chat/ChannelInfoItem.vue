@@ -300,17 +300,23 @@ function showNewUser() {
 function addUserReq() {
 	let newUserInput = document.getElementById("newUserInput");
 	newUserInput?.classList.remove("invalidInput");
-	HTTP.get(apiPath + "chat/userExist/" + newUser.value)
+	if (!newUser.value)
+		return setTimeout(() => {
+			newUserInput?.classList.add("invalidInput");
+		})
+	HTTP.get(`${apiPath}chat/invitChanUser/${chanName}/${newUser.value}`)
 	.then(res => {
-		mySocket.emit("newChannelUser", {chan: chanName, login: newUser.value});
+		// mySocket.emit("modifChan", 
+		// 	new ModifChanDto(chanName, 'invitUser', newUser.value));
+		mySocket.emit("newChannelUser", {chan: chanName, login: newUser.value})
 		newUser.value = "";
 		invitUser.value = false;
 	})
 	.catch(e => {
-		if (e.response.data.message === 'USER_ALREADY_EXIST') {
-			return setTimeout(() => {
+		if (e.response.data.message == 'DO_NOT_EXIST'
+			|| e.response.data.message == 'ALREADY_USER'
+			|| e.response.data.message == 'IS_BANNED') {
 				newUserInput?.classList.add("invalidInput");
-			}, 50);
 		}
 	});
 }
