@@ -6,7 +6,6 @@
 
 * add link to security page
 * security page's UI
-* add AuthGuards to all endpoints (except login, etc...)
 * check identity of users istead of just checking if they are logged in (send session + login and check login against decoded session)
 * change readme's images using a gif of a live game and some screenshots of the website
 
