@@ -1,10 +1,11 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Socket } from 'socket.io';
 import { Repository } from 'typeorm';
-import { MatchEntity } from './match.entity';
-import { MatchDto } from './objects/match.dto';
+import Game from '../game2.0/Game';
 import { UsersService } from '../users/users.service';
+import { MatchEntity } from './match.entity';
+
+// NOTE - API's documentation can be found at `docs/api/v1.md`
 
 @Injectable()
 export class MatchService {
@@ -14,93 +15,133 @@ export class MatchService {
 		private usersService: UsersService,
 	) {}
 
-	async flush_user_lobby(user: string) {
-		console.log('flushUserLobby: Starting');
-		const match = await this.matchRepository.find({
-			where: { owner: user },
-		});
-		for (let i = 0; i < match.length; i++) {
-			await this.matchRepository.remove(match[i]);
+	async debug() {
+		console.log('        Debug: from MatchService');
+	}
+
+	async add_match(game: Game) {
+		const game_players = game.profiles.map((profile) => profile.login);
+		const game_scores = game.profiles.map((profile) => profile.score);
+		console.log('match players: ', game_players);
+		console.log('match scores: ', game_scores);
+		const ranks = [];
+		for (let i = 0; i < game_scores.length; i++) {
+			ranks.push(1);
+			for (let j = 0; j < game_scores.length; j++) {
+				if (game_scores[j] > game_scores[i]) {
+					ranks[i]++;
+				}
+			}
 		}
-		console.log('flushUserLobby: Match flushed, returning ✔');
-		return true;
+		const match = await this.matchRepository.save({
+			player_count: game.nbrPlayer,
+			ball_count: game.nbrBall,
+			lobby_name: game.lobby_name,
+			owner: game.owner,
+			players: game_players,
+			scores: game_scores,
+			ranks: ranks,
+		});
+		// console.log(match);
+		for (const profile of game.profiles) {
+			await this.assign_match_to_user(profile.login, match.id);
+		}
 	}
 
-	async create_match(match: MatchDto) {
-		console.log('createMatch: Starting');
-		await this.flush_user_lobby(match.owner);
-		console.log('createMatch: User flushed, creating match: ', match);
-		const newMatch = await this.matchRepository.create(match);
-		await this.matchRepository.save(newMatch);
-		console.log('createMatch: Match created successfully, returning ✔');
-		return newMatch;
+	async assign_match_to_user(login: string, match_id: number) {
+		// if (login == 'search') {
+		// 	return;
+		// }
+		await this.usersService.assign_match_to_user(login, match_id);
 	}
 
-	async get_match(name: string) {
-		console.log('getMatch: Starting');
+	async get_match(id: number) {
+		console.log('get_match: Starting for id ' + id);
 		const match = await this.matchRepository.findOne({
-			where: { lobby_name: name },
+			where: { id: id },
 		});
 		if (!match) {
-			// throw new HttpException('Match not found', HttpStatus.NOT_FOUND);
-			console.log('getMatch: Match not found, , returning ✘');
+			return null;
 		}
-		console.log('getMatch: Match found, returning ✔');
+		console.log('get_match: Returning for id ' + id);
 		return match;
 	}
 
-	async start_match(name: string) {
-		console.log('startMatch: Starting');
-		const match = await this.matchRepository.findOne({
-			where: { lobby_name: name },
-		});
-		if (!match) {
-			// throw new HttpException('Match not found', HttpStatus.NOT_FOUND);
-			console.log('startMatch: Match not found, , returning ✘');
-			return false;
+	async get_user_matches(login: string) {
+		console.log('get_user_matches: Starting');
+		const usr = await this.usersService.getByAny(login);
+		if (!usr || !usr.match || usr.match == undefined) {
+			return null;
 		}
-		match.start = true;
-		await this.matchRepository.save(match);
-		console.log('startMatch: Match started, returning ✔');
-		return match;
+		console.log('get_user_matches: matches: ', usr.match);
+		const matches = [];
+		for (const match_id of usr.match) {
+			const match = await this.get_match(match_id);
+			if (match) {
+				matches.push(match);
+			}
+		}
+		matches.reverse();
+		console.log('get_user_matches: Returning');
+		return matches;
 	}
 
-	async get_lobby_list() {
-		console.log('getLobbyList: Starting');
-		const match = await this.matchRepository.find({
-			where: { open: true },
-		});
-		if (!match) {
-			throw new HttpException('Match not found', HttpStatus.NOT_FOUND);
+	async get_user_stats(login: string) {
+		console.log('get_user_stats: Starting');
+		const matches = await this.get_user_matches(login);
+		if (!matches) {
+			return {
+				total: 0,
+				wins: 0,
+				loses: 0,
+				average_rank: 0.5,
+			};
 		}
-		console.log('getLobbyList: Match found, returning ✔');
-		return match;
+		// console.log('     get_user_stats: matches: ');
+		const stats = {
+			total: matches.length,
+			wins: 0,
+			loses: 0,
+			average_rank: 0,
+		};
+		for (const match of matches) {
+			let winner_score = 0;
+			for (let i = 0; i < match.scores.length; i++) {
+				if (match.scores[i] > winner_score) {
+					winner_score = match.scores[i];
+				}
+			}
+			const index = match.players.indexOf(login);
+			if (match.scores[index] == 0) {
+				stats.loses += 1;
+			} else if (match.scores[index] == winner_score) {
+				stats.wins += 1;
+			}
+			stats.average_rank += (match.ranks[index] - 1) / (match.player_count - 1);
+		}
+		if (stats.total < 1) {
+			stats.average_rank = 0.5;
+		} else {
+			stats.average_rank /= stats.total;
+		}
+		console.log('get_user_stats: Returning');
+		return stats;
 	}
 
-	async join_lobby(user: string, lobby: string, client: Socket) {
-		console.log('joinLobby: Starting for user ' + user + ' in lobby ' + lobby);
-		const match = await this.matchRepository.findOne({
-			where: { lobby_name: lobby },
-		});
-		console.log('new match: ', match);
-		if (!match) {
-			console.log('Match not found');
-		} else if (match.players.length >= 7) {
-			console.log('Match full');
-		} else if (match.players.includes(user)) {
-			console.log('User already in lobby');
-		}
-		await this.flush_user_lobby(user);
-		match.players.push(user);
-		// console.log('match: ', match);
-		await this.matchRepository.save(match);
-		for (let i = 0; i < match.players.length; i++) {
-			const usr = await this.usersService.getByAny(match.players[i]);
-			// console.log('usr: ', usr.login);
-			client.to(usr.socketId).emit('player_update', match.players);
-			console.log('joinLobby: Player ' + usr.login + ' update sent');
-		}
-		console.log('joinLobby: Match joined, returning ✔');
-		return match;
-	}
+	// async simulate_5_matches() {
+	// 	for (let i = 0; i < 5; i++) {
+	// 		const match = await this.matchRepository.create({
+	// 			player_count: 2,
+	// 			ball_count: 2,
+	// 			lobby_name: 'lobby_name',
+	// 			owner: 'owner',
+	// 			players: ['q', 'w'],
+	// 			scores: [1, 0],
+	// 			ranks: [0, 1],
+	// 		});
+	// 		for (const profile of match.players) {
+	// 			this.assign_match_to_user(profile, match.id);
+	// 		}
+	// 	}
+	// }
 }

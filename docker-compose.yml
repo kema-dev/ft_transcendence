@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 
 networks:
   n_backend:
@@ -12,7 +12,7 @@ services:
   s_postgresql:
     build:
       context: ./website/backend/postgresql/
-    image: 's_postgres'
+    image: "s_postgres"
     networks:
       - n_backend
     restart: unless-stopped
@@ -20,11 +20,16 @@ services:
       - POSTGRES_DB=${POSTGRESQL_DATABASE}
       - POSTGRES_PASSWORD=${POSTGRESQL_PASSWORD}
       - POSTGRES_USER=${POSTGRESQL_USERNAME}
+    healthcheck:
+      test: pg_isready -U ${POSTGRESQL_USERNAME}
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   s_pgadmin:
     build:
       context: ./website/backend/pgadmin/
-    image: 's_pgadmin'
+    image: "s_pgadmin"
     networks:
       - n_backend
     ports:
@@ -35,17 +40,20 @@ services:
     #   - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD}
     #   - GUNICORN_ACCESS_LOGFILE=/dev/null
     environment:
-      PGADMIN_DEFAULT_EMAIL: 'pgadmin@example.com'
-      PGADMIN_DEFAULT_PASSWORD: 'pgadmin_pass'
-      GUNICORN_ACCESS_LOGFILE: '/dev/null'
-      PGADMIN_CONFIG_UPGRADE_CHECK_ENABLED: 'False'
-    # logging: 
+      PGADMIN_DEFAULT_EMAIL: "pgadmin@example.com"
+      PGADMIN_DEFAULT_PASSWORD: "pgadmin_pass"
+      GUNICORN_ACCESS_LOGFILE: "/dev/null"
+      PGADMIN_CONFIG_UPGRADE_CHECK_ENABLED: "False"
+    # logging:
     #   driver: none
+    depends_on:
+      s_postgresql:
+        condition: service_healthy
 
   s_nestjs:
     build:
       context: ./website/backend/nestjs/
-    image: 's_nestjs'
+    image: "s_nestjs"
     networks:
       - n_backend
     ports:
@@ -62,23 +70,30 @@ services:
       - FQDN=${FQDN}
       # - JWT_SECRET=${JWT_SECRET}
     command: "sh -c '\
-              echo \"POSTGRES_PORT=${POSTGRESQL_PORT}\\nPOSTGRES_USER=${POSTGRESQL_USERNAME}\\nPOSTGRES_PASSWORD=${POSTGRESQL_PASSWORD}\\nPOSTGRES_DB=${POSTGRESQL_DATABASE}\\nJWT_MAX_AGE=${JWT_MAX_AGE}\\nJWT_SECRET=`date +%s%N | cut -b10-19 | md5sum | head -c 20`\\nAPI_42_UID=${API_42_UID}\\nAPI_42_SECRET=${API_42_SECRET}\\nAPI_42_REDIRECT_URI=${API_42_REDIRECT_URI}\\nFQDN=${FQDN}\" > .env && \
-              mkdir -p /secrets && \
-              openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /secrets/key.pem -out /secrets/cert.pem -subj \"/C=FR/ST=France/L=Paris/O=42/OU=42/CN=ft_transcendence\" && \
-              chown 1000:1000 /secrets/key.pem && \
-              chown 1000:1000 /secrets/cert.pem && \
-              npm config set fund false && \
-              npm install && \
-              npm run ${NEST_PHASE} \
-              '"
+      echo \"POSTGRES_PORT=${POSTGRESQL_PORT}\\nPOSTGRES_USER=${POSTGRESQL_USERNAME}\\nPOSTGRES_PASSWORD=${POSTGRESQL_PASSWORD}\\nPOSTGRES_DB=${POSTGRESQL_DATABASE}\\nJWT_MAX_AGE=${JWT_MAX_AGE}\\nJWT_SECRET=`date +%s%N | cut -b10-19 | md5sum | head -c 20`\\nAPI_42_UID=${API_42_UID}\\nAPI_42_SECRET=${API_42_SECRET}\\nAPI_42_REDIRECT_URI=${API_42_REDIRECT_URI}\\nFQDN=${FQDN}\" > .env && \
+      mkdir -p /secrets && \
+      openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /secrets/key.pem -out /secrets/cert.pem -subj \"/C=FR/ST=France/L=Paris/O=42/OU=42/CN=ft_transcendence\" && \
+      chmod 777 /secrets/key.pem && \
+      chmod 777 /secrets/cert.pem && \
+      npm config set fund false && \
+      npm install && \
+      npm run ${NEST_PHASE} \
+      '"
     restart: "no"
     depends_on:
-      - s_postgresql
+      s_postgresql:
+        condition: service_healthy
+    healthcheck:
+      test: curl -kf https://localhost:3000/api/v1/auth/status || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 100s
 
   s_vuejs:
     build:
       context: ./website/frontend/vuejs/
-    image: 's_vuejs'
+    image: "s_vuejs"
     networks:
       - n_backend
       - n_frontend
@@ -89,28 +104,35 @@ services:
       - ./website/frontend/vuejs/bind:/app
       - ./website/shared:/shared
     command: "sh -c '\
-              echo \"{\\\"API_42_UID\\\":\\\"$API_42_UID\\\",\\\"API_42_REDIRECT_URI\\\":\\\"$API_42_REDIRECT_URI\\\",\\\"FQDN\\\":\\\"$FQDN\\\"}\" > .env.json && \
-              mkdir -p /secrets && \
-              openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /secrets/key.pem -out /secrets/cert.pem -subj \"/C=FR/ST=France/L=Paris/O=42/OU=42/CN=ft_transcendence\" && \
-              chown 1000:1000 /secrets/key.pem && \
-              chown 1000:1000 /secrets/cert.pem && \
-              yarn install --ignore-engines && \
-              yarn run ${VUE_PHASE} \
-              '"
+      echo \"{\\\"API_42_UID\\\":\\\"$API_42_UID\\\",\\\"API_42_REDIRECT_URI\\\":\\\"$API_42_REDIRECT_URI\\\",\\\"FQDN\\\":\\\"$FQDN\\\"}\" > .env.json && \
+      mkdir -p /secrets && \
+      openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /secrets/key.pem -out /secrets/cert.pem -subj \"/C=FR/ST=France/L=Paris/O=42/OU=42/CN=ft_transcendence\" && \
+      chown 1000:1000 /secrets/key.pem && \
+      chown 1000:1000 /secrets/cert.pem && \
+      yarn install --ignore-engines && \
+      yarn run ${VUE_PHASE} \
+      '"
     restart: "no"
     environment:
       - API_42_UID=${API_42_UID}
       - API_42_REDIRECT_URI=${API_42_REDIRECT_URI}
       - FQDN=${FQDN}
     depends_on:
-      - s_nestjs
+      s_nestjs:
+        condition: service_started
+    healthcheck:
+      test: curl -kf https://localhost:443 || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 100s
 
   s_nginx_frontend:
     build:
       context: ./website/frontend/nginx/
     profiles:
       - "prod"
-    image: 's_nginx'
+    image: "s_nginx"
     networks:
       - n_frontend
     ports:
@@ -123,3 +145,9 @@ services:
     depends_on:
       s_vuejs:
         condition: service_completed_successfully
+    healthcheck:
+      test: curl -kf https://localhost:443 || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s

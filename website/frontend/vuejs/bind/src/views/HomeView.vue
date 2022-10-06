@@ -66,7 +66,6 @@ socket.on("userUpdate", (data: any) => {
 	if (data && data.login == me) {
 		// console.log(`userUpdate`)
 		userRef.value = data;
-		// console.log(userRef.value);
 		notifs.value = data.requestFriend.length;
 		userDone.value = true;
 	}
@@ -75,6 +74,8 @@ socket.emit("userUpdate", { login: me });
 provide('notifs', notifs);
 provide("user", userRef);
 provide("userDone", userDone);
+provide('isCreate', ref(false));
+provide('isJoin', ref(false));
 
 
 //	========== RESIZE WINDOW

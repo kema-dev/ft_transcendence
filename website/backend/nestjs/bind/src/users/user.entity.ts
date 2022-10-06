@@ -142,5 +142,10 @@ export class UserEntity extends TimestampEntites {
 		onDelete: 'SET NULL',
 	})
 	chansMute: ChannelEntity[];
-}
 
+	@Column()
+	public lobby_name: string;
+
+	@Column({ type: 'simple-array' })
+	public match: number[];
+}

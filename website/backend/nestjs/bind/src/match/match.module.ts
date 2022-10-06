@@ -1,15 +1,14 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Module } from '@nestjs/common';
-import { HttpModule } from '@nestjs/axios'
-import { AuthenticationService } from '../authentication/authentication.service';
-import { UsersModule } from '../users/users.module';
-import { AuthenticationController } from '../authentication/authentication.controller';
-import { PassportModule } from '@nestjs/passport';
-import { JwtModule } from '@nestjs/jwt';
-import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MatchService } from './match.service';
-import { MatchController } from './match.controller';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { MatchEntity } from './match.entity';
-import { TypeOrmModule } from '@nestjs/typeorm/dist/typeorm.module';
+import { HttpModule } from '@nestjs/axios';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
+import { UsersModule } from '../users/users.module';
+import { MatchController } from './match.controller';
 
 @Module({
 	imports: [
@@ -18,9 +17,10 @@ import { TypeOrmModule } from '@nestjs/typeorm/dist/typeorm.module';
 			timeout: 5000,
 			maxRedirects: 5,
 		}),
-		UsersModule,
+		MatchModule,
 		PassportModule,
 		ConfigModule,
+		UsersModule,
 		JwtModule.registerAsync({
 			inject: [ConfigService],
 			imports: [ConfigModule],
@@ -30,7 +30,8 @@ import { TypeOrmModule } from '@nestjs/typeorm/dist/typeorm.module';
 			}),
 		}),
 	],
-	providers: [MatchService, MatchEntity],
+	providers: [MatchService],
+	exports: [MatchService],
 	controllers: [MatchController],
 })
 export class MatchModule {}

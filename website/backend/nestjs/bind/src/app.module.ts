@@ -8,14 +8,9 @@ import { UsersModule } from './users/users.module';
 import { ChatModule } from './chat/chat.module';
 import { AppGateway } from './app.gateway';
 import { MatchModule } from './match/match.module';
-import { MatchService } from './match/match.service';
-import { MatchEntity } from './match/match.entity';
-import { TypeOrmModule } from '@nestjs/typeorm';
-// import { SocketModule } from './socket/socket.module';
 
 @Module({
 	imports: [
-		TypeOrmModule.forFeature([MatchEntity]),
 		ConfigModule.forRoot({
 			validationSchema: Joi.object({
 				POSTGRES_HOST: Joi.string().required(),
@@ -35,10 +30,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 		AuthenticationModule,
 		UsersModule,
 		ChatModule,
-		// SocketModule
+		MatchModule,
 	],
 	controllers: [],
-	providers: [AppGateway, MatchModule, MatchService],
-	// providers: [MatchModule, MatchService],
+	providers: [AppGateway],
 })
-export class AppModule { }
+export class AppModule {}

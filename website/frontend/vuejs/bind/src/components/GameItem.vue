@@ -4,7 +4,7 @@
 	</div>
 </template>
 <script setup lang="ts">
-import { inject, onMounted, defineProps, onUnmounted, ref, Ref } from 'vue';
+import { inject, onMounted, onUnmounted, ref, Ref } from 'vue';
 import Konva from 'konva';
 import { Socket } from 'socket.io-client';
 import { GameDto } from '@/dto/GameDto';
@@ -14,19 +14,10 @@ import ProfileUserDto from '@/dto/ProfileUserDto';
 let socket: Socket = inject('socket')!;
 let run = true;
 // let nbrPlayer = ref(props.nbrPlayer)
-let me: Ref<ProfileUserDto> = inject("user")!;
+let me: Ref<ProfileUserDto> = inject('user')!;
 let rotation = 0;
 let gameDto: GameDto | undefined = undefined;
-
-let props = defineProps<{
-	nbrPlayer: number;
-	nbrBall: number;
-	players: Array<string>;
-	lobby_name: string;
-	start: boolean;
-	owner: string;
-}>();
-
+let isOwner = inject('isOwner')!;
 var mov = 0;
 let rackets: Konva.Rect[] = [];
 let walls: Konva.Rect[] = [];
@@ -41,13 +32,6 @@ function focus() {
 	container.focus();
 }
 async function update() {
-	socket.emit('newRoom', {
-		nbrBall: props.nbrBall,
-		nbrPlayer: props.nbrPlayer,
-		players: props.players,
-		lobby_name: props.lobby_name,
-		owner: props.owner,
-	});
 	socket.on('update_game', (game: string) => {
 		// console.log(game)
 		gameDto = JSON.parse(game);
@@ -93,6 +77,9 @@ async function update() {
 
 	while (gameDto === undefined) {
 		await delay(100);
+	}
+	if (gameDto.owner === me.value.login) {
+		isOwner.value = true;
 	}
 	for (let player of gameDto.profiles) {
 		if (me?.value?.login == player.login) break;
@@ -162,7 +149,11 @@ async function update() {
 		} else {
 			return;
 		}
-		socket.emit("setMov", { mov: mov, login: me?.value?.login });
+		socket.emit('setMov', {
+			mov: mov,
+			login: me?.value?.login,
+			lobby_name: me?.value?.lobby_name,
+		});
 		e.preventDefault();
 	});
 	container.addEventListener('keyup', function (e: any) {
@@ -173,7 +164,11 @@ async function update() {
 		} else {
 			return;
 		}
-		socket.emit("setMov", { mov: mov, login: me?.value?.login });
+		socket.emit('setMov', {
+			mov: mov,
+			login: me?.value?.login,
+			lobby_name: me?.value?.lobby_name,
+		});
 		e.preventDefault();
 	});
 }

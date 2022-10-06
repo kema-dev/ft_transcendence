@@ -20,7 +20,7 @@
 </template>
 
 <script setup lang="ts">
-import { inject, onMounted, provide, ref } from 'vue';
+import { inject, onMounted, provide, defineProps, ref, Ref } from 'vue';
 import { Socket } from 'socket.io-client';
 import { VueCookies } from 'vue-cookies';
 import { useToast } from 'vue-toastification';
@@ -31,8 +31,14 @@ let define = inject('colors');
 let socket: Socket = inject('socket')!;
 const $cookies = inject<VueCookies>('$cookies');
 
-let lobbies = ref([]);
 let lobby_name = ref($cookies.get('login') + "'s lobby");
+let lobbies = ref([]);
+
+let start: Ref = inject('playing');
+let isCreate: Ref = inject('isCreate');
+
+let start: Ref = inject('playing');
+let isCreate: Ref = inject('create');
 
 onMounted(() => {
 	socket.off('lobby_list');
@@ -44,9 +50,11 @@ onMounted(() => {
 
 async function join(lobby_name: string) {
 	socket.emit('join_lobby', {
-		username: $cookies.get('login'),
+		login: $cookies.get('login'),
 		lobby: lobby_name,
 	});
+	isCreate.value = true;
+	start.value = true;
 }
 </script>
 
