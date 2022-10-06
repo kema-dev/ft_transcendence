@@ -41,11 +41,6 @@ const routes: Array<RouteRecordRaw> = [
 		component: SecurityView,
 	},
 	{
-		name: 'debug',
-		path: '/debug',
-		component: DebugView,
-	},
-	{
 		name: 'home',
 		path: '/home',
 		components: { default: Home },
