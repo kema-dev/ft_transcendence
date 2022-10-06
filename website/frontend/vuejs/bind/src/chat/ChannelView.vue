@@ -4,7 +4,7 @@
 			<SearchItem v-if="!newChannel" v-model:search="search"/>
 			<!-- <div v-if="newChannel" class="newChannelTitle">Create a new Channel</div> -->
 			<div v-if="newChannel" class="newChannelTitle center">
-				<span class="newChannelTitleText">Create a new Channel</span>
+				<span class="newChannelTitleText">Create new Channel</span>
 			</div>
 			<div class="option_buttons space-around raw stack">
 				<button
@@ -91,24 +91,31 @@
 			v-if="newChannel"
 			@submit.prevent="submitChannel"
 			id="channelForm"
-			class="channelForm left column"
+			class="channelForm center column"
 		>
-			<div class="elemForm_cont left column">
-				<label for="newChanName" class="labelForm">Name</label>
-				<input type="text" name="newChanName" required id="newChanName" class="inputForm" />
+			<div class="elemFormCont left_center column">
+				<div class=" elemFormTopCont left_center raw">
+					<img src="@/assets/name_logo.svg" alt="Name Channel" class="newChanImg">
+					<label for="newChanName" class="labelForm">Name :</label>
+				</div>
+				<input v-model="nameInput" type="text" name="newChanName" 
+					id="newChanName" class="inputForm" 
+				/>
 			</div>
-			<div class="elemForm_cont left_center raw">
-				<label for="privateCheckbox" class="labelForm">Private?</label>
+			<div class="elemFormCont left_center raw">
+				<img src="@/assets/private.svg" alt="Private Channel" class="newChanImg">
+				<label for="privateCheckbox" class="labelForm">Private :</label>
 				<input
-						v-model="privateCheck"
+						v-model="privCB"
 						type="checkbox"
 						name="privateCheckbox"
 						id="privateCheckbox"
 					/>
 			</div>
-			<div class="elemForm_cont left column">
-				<div class="left_center raw">
-					<label for="pswCheckbox" class="labelForm">Password ?</label>
+			<div class="elemFormCont left_center column">
+				<div class="elemFormTopCont left_center raw">
+					<img src="@/assets/lock_logo.svg" alt="Password Channel" class="newChanImg">
+					<label for="pswCheckbox" class="labelForm">Password :</label>
 					<input
 						v-model="pswCheck"
 						type="checkbox"
@@ -117,13 +124,8 @@
 						value="psw required"
 					/>
 				</div>
-				<input
-					type="text"
-					name="pswInput"
-					id="pswInput"
-					class="inputForm"
-					:disabled="!pswCheck"
-					:required="pswCheck"
+				<input v-model="pswInput" type="text" name="pswInput"
+					id="pswInput" class="inputForm" :disabled="!pswCheck"
 				/>
 			</div>
 			<input type="submit" value="Create" id="submitButton" />
@@ -142,7 +144,6 @@ import {
 	nextTick,
 	watch,
 } from "vue";
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import HTTP from "../components/axios";
 import { Socket } from "socket.io-client";
 import { useToast } from 'vue-toastification';
@@ -152,15 +153,11 @@ import ConversationTab from "@/chat/ConversationTab.vue";
 import { ChannelDto } from "@/chat/dto/ChannelDto";
 import { ChannelTabDto } from "@/chat/dto/ChannelTabDto ";
 import { NewChanDto } from "@/chat/dto/NewChanDto"
-import { MessageDto } from "@/chat/dto/MessageDto";
-import { BasicUserDto } from "@/chat/dto/BasicUserDto";
-// import { chansRef, printChans }  from "@/globals"
 	
 	
 const toast = useToast();
 let colors = inject("colors");
 let me : string = inject("me")!;
-let mySocket: Socket = inject("socket")!;
 let apiPath: string = inject("apiPath")!;
 
 let chansRef : Ref<ChannelDto[]> = inject("chans")!;
@@ -174,16 +171,15 @@ const search = ref("");
 const findChannel = ref(false);
 const newChannel = ref(false);
 const pswCheck = ref(false);
-const privateCheck = ref(false);
+const privCB = ref(false);
+const nameInput = ref("");
+const pswInput = ref("");
 
 watch(chanDone, () => {
-	// console.log(`chanDone = ${chanDone.value}`);
 	chansFiltred.value = chansRef.value;
-	// nbPrivNR.reset();
 });
 
 watch(search, () => {
-	// console.log(`search Change`);
 	chanServReqDone.value = false;
 	chansFiltred.value = chansRef.value?.filter(function (chan) {
 		return chan.name.toUpperCase().startsWith(search.value.toUpperCase());
@@ -229,29 +225,40 @@ function findChannelFn() {
 }
 function newChannelFn() {
 	newChannel.value = !newChannel.value;
+	pswInput.value = "";
+	nameInput.value = "";
 	nextTick(() => {
 		document.getElementById("newChanName")?.focus();
 	})
 }
 
 function submitChannel() {
-	let form = document.getElementById('channelForm') as HTMLFormElement;
-	const data = new FormData(form);
-	let chanName = data.get("newChanName") as string;
-	let chanPsw = data.get("pswInput") as string;
-	let priv = privateCheck.value;
-	HTTP.post(apiPath + "chat/createChan", new NewChanDto(chanName, me, priv, chanPsw))
-	.then(res => {
-		let newChan = res.data as ChannelDto;
-		newChan.creation = new Date(newChan.creation);
-		chansRef.value.unshift(newChan);
-	})
-	.catch(e => {
-		if (e.response.data.message === 'CHAN_ALREADY_EXIST') {
-			toast.warning("This channel name already exist");
-		}
-	});
-	newChannel.value = false;
+	let nameElem = document.getElementById('newChanName');
+	let pswElem = document.getElementById('pswInput');
+	nameElem!.classList.remove("invalidInput");
+	pswElem?.classList.remove("invalidInput");
+	if (nameInput.value == '')
+		return setTimeout(() => {
+			nameElem!.classList.add("invalidInput");
+		})
+	if (pswCheck.value && pswInput.value == '')
+		return setTimeout(() => {
+			pswElem!.classList.add("invalidInput");
+		})
+	HTTP.post(apiPath + "chat/createChan", 
+		new NewChanDto(nameInput.value, me, privCB.value, pswInput.value))
+		.then(res => {
+			let newChan = res.data as ChannelDto;
+			newChan.creation = new Date(newChan.creation);
+			chansRef.value.unshift(newChan);
+			newChannel.value = false;
+		})
+		.catch(e => {
+			if (e.response.data.message === 'CHAN_ALREADY_EXIST') {
+				nameElem!.classList.add("invalidInput");
+			}
+		});
+
 }
 
 onMounted(() => {
@@ -346,17 +353,29 @@ onBeforeUnmount(() => {
 }
 .channelForm {
 	width: 80%;
+	margin-top: 20px;
 }
-.elemForm_cont {
-	padding-bottom: 10px;
+.elemFormCont {
+	margin-bottom: 15px;
+}
+.elemFormTopCont {
+	margin-bottom: 5px;
+}
+.newChanImg {
+	width: 20px;
+	height: 20px;
+	margin-right: 10px;
+	filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg)
+		brightness(86%) contrast(83%);
+	/* display: none; */
 }
 .labelForm {
-	/* font-family: "Orbitron", sans-serif; */
+	font-family: "Orbitron", sans-serif;
 	font-weight: 400;
 }
 .inputForm {
-	padding: 0 5px;
-	border-radius: 5px;
+	padding: 0 8px;
+	border-radius: calc(1.5rem / 2);
 	height: 1.5rem;
 	outline: none;
 }
@@ -373,8 +392,6 @@ onBeforeUnmount(() => {
 	font-family: 'Orbitron', sans-serif;
 }
 #submitButton:hover {
-	/* font-weight: 500; */
-	/* box-shadow: 3px 3px 3px rgba(0,0,0,0.2); */
 	box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
 	cursor: pointer;
 }

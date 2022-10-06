@@ -174,6 +174,8 @@ export class AppGateway
 
 	// ============================ CHAT =====================================
 
+		// ========== PRIVATES
+
 	@SubscribeMessage('newPrivMsg')
 	async NewPrivMsg(
 		@MessageBody() data: NewPrivMsgDto,
@@ -199,6 +201,7 @@ export class AppGateway
 			);
 			this.server.to(receiver.socketId).emit('newPrivConv', privSenderDto);
 			this.server.to(sender.socketId).emit('newPrivConv', privReceiverDto);
+			this.server.to(sender.socketId).emit('findNewPriv');
 		} else {
 			this.server
 				.to(receiver.socketId)
@@ -207,29 +210,6 @@ export class AppGateway
 				.to(sender.socketId)
 				.emit('newPrivMsg', { msg: msg, id: priv.id });
 		}
-	}
-
-	@SubscribeMessage('newChanMsg')
-	async NewChanMsg(
-		@MessageBody() data: NewChanMsgDto,
-		@ConnectedSocket() client: Socket,
-	) {
-		const chan = await this.chatService.addChanMsg(data);
-		const sendSocketId = (await this.userService.getByLogin(data.userSend))
-			.socketId;
-		const msg = new MessageDto(
-			data.userSend,
-			data.message,
-			new Date(data.date),
-		);
-		for(let admin of chan.admins)
-			this.server
-			.to(admin.socketId)
-			.emit('newChanMsg', { msg: msg, name: chan.name });
-		for(let user of chan.users)
-			this.server
-			.to(user.socketId)
-			.emit('newChanMsg', { msg: msg, name: chan.name });
 	}
 
 	@SubscribeMessage('getUsersByLoginFiltred')
@@ -254,13 +234,32 @@ export class AppGateway
 		console.log(
 			`privReaded AppGateway , sender = ${data.userSend}, receiver = ${data.userReceive}`,
 		);
-		// console.log(`userSend = ${data.userSend}, userReceive = ${data.userReceive}`);
 		const priv = await this.chatService.getPriv([
 			data.userSend,
 			data.userReceive,
 		]);
 		if (!priv) return console.log(`Error privReaded`);
 		await this.chatService.markPrivReaded(priv);
+	}
+
+	// ========== CHANNELS
+
+	@SubscribeMessage('newChanMsg')
+	async NewChanMsg(
+		@MessageBody() data: NewChanMsgDto,
+		@ConnectedSocket() client: Socket,
+	) {
+		const chan = await this.chatService.addChanMsg(data);
+		const msg = new MessageDto(
+			data.userSend,
+			data.message,
+			new Date(data.date),
+		);
+		for (let user of chan.admins.concat(chan.users).concat(chan.mutes)) {
+			this.server
+				.to(user.socketId)
+				.emit('newChanMsg', { msg: msg, name: chan.name });
+		}
 	}
 
 	@SubscribeMessage('newChannelUser')

@@ -101,6 +101,9 @@ HTTP.get(apiPath + "chat/chanExist/" + chanName)
 		// console.log(`Chan Exist : ${res.data}`)
 		chanExist.value = res.data;
 		chanExistDone.value = true;
+		nextTick(() => {
+			scrollAndFocus();
+		})
 	})
 	.catch((e) => console.log(e));
 
@@ -113,6 +116,7 @@ const chanBan: Ref<string> = inject("chanBan")!;
 index.value = chansRef.value.findIndex((chan) => chan.name == chanName);
 if (index.value != -1) {
 	chanMsgRead();
+	scrollAndFocus();
 	watch(chansRef.value[index.value].messages, () => {
 		chanMsgRead();
 		let msgsCont = document.getElementById("msgsCont");
@@ -132,8 +136,7 @@ watch(chanDone, () => {
 	index.value = chansRef.value.findIndex((chan) => chan.name == chanName);
 	if (index.value != -1) {
 		nextTick(() => {
-			let msgCont = document.getElementById("msgsCont");
-			msgCont!.scrollTop = msgCont!.scrollHeight;
+			scrollAndFocus();
 			chanMsgRead();
 			watch(chansRef.value[index.value].messages, () => {
 				chanMsgRead();
@@ -182,6 +185,13 @@ function chanMsgRead() {
 		// mySocket.emit("chanReaded", { userSend: userName, userReceive: me });
 		// markReaded(index.value, true);
 	}
+}
+
+function scrollAndFocus() {
+	let msgCont = document.getElementById("msgsCont");
+	if (msgCont)
+		msgCont.scrollTop = msgCont.scrollHeight;
+		document.getElementById("sendbox")?.focus();
 }
 
 function findAvatar(login: string) {

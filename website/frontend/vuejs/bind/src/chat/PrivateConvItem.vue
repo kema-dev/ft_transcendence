@@ -118,13 +118,10 @@ let index = ref(-1);
 // VERIFY IF CHAN EXIST
 HTTP.get(apiPath + "chat/userExist/" + userName)
 	.then((res) => {
-		console.log(`user Exist`);
 		userExist.value = res.data;
 		userExistDone.value = true;
 		nextTick(() => {
-			let msgCont = document.getElementById("msgsCont");
-			if (msgCont)
-				msgCont.scrollTop = msgCont!.scrollHeight;
+			scrollAndFocus();
 		})
 	})
 	.catch((e) => {
@@ -142,6 +139,7 @@ index.value = privsRef.value
 	.findIndex((priv) => priv.user.login == userName);
 if (index.value != -1) {
 	privMsgRead(index.value, true);
+	scrollAndFocus();
 	watch(privsRef.value[index.value].messages, () => {
 		privMsgRead(index.value, true);
 		let msgsCont = document.getElementById("msgsCont");
@@ -163,10 +161,8 @@ watch(privDone, () => {
 		.findIndex((priv) => priv.user.login == userName);
 	if (index.value != -1) {
 		nextTick(() => {
-			let msgCont = document.getElementById("msgsCont");
-			if (msgCont)
-				msgCont.scrollTop = msgCont!.scrollHeight;
 			privMsgRead(index.value, true);
+			scrollAndFocus();
 			watch(privsRef.value[index.value].messages, () => {
 				privMsgRead(index.value, true);
 				let msgsCont = document.getElementById("msgsCont");
@@ -193,6 +189,16 @@ watch(privDone, () => {
 // })
 
 
+// ===================== LISTENERS =====================
+
+mySocket.on("findNewPriv", () => {
+	setTimeout(() => {
+		index.value = privsRef.value
+			.findIndex((priv) => priv.user.login == userName);
+	}, 100);
+})
+
+
 // ===================== METHODS =====================
 
 function sendMsg() {
@@ -204,6 +210,13 @@ function sendMsg() {
 
 function banUser() {
 	// DEMMANDER DE BAN LE USER AU BACK
+}
+
+function scrollAndFocus() {
+	let msgCont = document.getElementById("msgsCont");
+	if (msgCont)
+		msgCont.scrollTop = msgCont.scrollHeight;
+		document.getElementById("sendbox")?.focus();
 }
 
 function checkDate(i: number) {
@@ -258,6 +271,7 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+	mySocket.off('findNewPriv');
 	const box = document.getElementById("privateTabText");
 	if (box != null) box.classList.remove("chatTabActive");
 });
