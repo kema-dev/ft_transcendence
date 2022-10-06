@@ -16,6 +16,7 @@ import Player from '@/menu/PlayerTab.vue';
 import API from '../components/axios';
 import { useCookies } from 'vue3-cookies';
 import { useToast } from 'vue-toastification';
+import DebugView from '@/views/DebugView.vue';
 
 const data = require('../../.env')
 

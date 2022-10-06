@@ -58,6 +58,8 @@ import { inject, Ref, ref, defineProps, onMounted } from 'vue';
 import { MatchDto } from '../dto/MatchDto';
 import ProfileUserDto from '../dto/ProfileUserDto';
 import API from './axios';
+import { useCookies } from 'vue3-cookies';
+const { cookies } = useCookies();
 
 let define = inject('colors');
 let me: Ref<ProfileUserDto> = inject('user')!;
@@ -87,6 +89,10 @@ let avatar = ref([]);
 async function get_avatars() {
 	for (let i = 0; i < props.match.players.length; i++) {
 		await API.post('/user/get_user_avatar', {
+			headers: {
+				login: cookies.get('login'),
+				token: cookies.get('session'),
+			},
 			login: props.match.players[i],
 		})
 			.then((res) => {

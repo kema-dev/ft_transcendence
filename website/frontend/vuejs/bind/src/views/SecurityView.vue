@@ -29,7 +29,8 @@ import API from '../components/axios';
 import { FQDN } from '../../.env.json';
 import { VueCookies } from 'vue-cookies';
 import { useToast } from 'vue-toastification';
-
+import { useCookies } from 'vue3-cookies';
+const { cookies } = useCookies();
 const toast = useToast();
 const $cookies = inject<VueCookies>('$cookies');
 
@@ -40,6 +41,10 @@ let code = ref('');
 
 function get_totp_url() {
 	API.post('auth/set_tmp_totp', {
+		headers: {
+			login: cookies.get('login'),
+			token: cookies.get('session'),
+		},
 		email: email.value,
 	})
 		.then((response) => {
@@ -53,6 +58,10 @@ function get_totp_url() {
 
 function debug() {
 	API.post('auth/debug', {
+		headers: {
+			login: cookies.get('login'),
+			token: cookies.get('session'),
+		},
 		email: email.value,
 	})
 		.then((response) => {
@@ -66,6 +75,10 @@ function debug() {
 function verify() {
 	console.log(email.value, code.value);
 	API.post('auth/verify_tmp_totp', {
+		headers: {
+			login: cookies.get('login'),
+			token: cookies.get('session'),
+		},
 		name: email.value,
 		code: code.value,
 	})
@@ -83,6 +96,10 @@ function verify() {
 
 async function get_infos() {
 	await API.get('user/getEmail/' + $cookies.get('login'), {
+		headers: {
+			login: cookies.get('login'),
+			token: cookies.get('session'),
+		},
 		params: {
 			login: $cookies.get('login'),
 		},

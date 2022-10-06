@@ -34,6 +34,8 @@ import MatchItem from '@/components/MatchItem.vue';
 import { ProfileUserDto } from '../dto/ProfileUserDto';
 import API from '../components/axios';
 import { createWebHistory } from 'vue-router';
+import { useCookies } from 'vue3-cookies';
+const { cookies } = useCookies();
 let define = inject('colors');
 let me: Ref<ProfileUserDto> = inject('user')!;
 let socket = inject('socket')!;
@@ -96,6 +98,10 @@ onMounted(async () => {
 		duration: 1400,
 	});
 	await API.post('/match/get_user_stats', {
+		headers: {
+			login: cookies.get('login'),
+			token: cookies.get('session'),
+		},
 		login: me?.value?.login,
 	}).then((res) => {
 		user_stats.value = res.data;
@@ -105,6 +111,10 @@ onMounted(async () => {
 	console.log('user_ratio:', user_ratio.value);
 	bar.animate(1 - user_ratio.value);
 	await API.post('/match/get_user_history', {
+		headers: {
+			login: cookies.get('login'),
+			token: cookies.get('session'),
+		},
 		login: me?.value?.login,
 	}).then((res) => {
 		user_history.value = res.data;
