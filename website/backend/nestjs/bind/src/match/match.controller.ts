@@ -16,6 +16,7 @@ import { MatchService } from './match.service';
 export class MatchController {
 	constructor(private matchService: MatchService) {}
 
+	@UseGuards(AuthGuard)
 	@Post('get_user_ratio')
 	async get_ratio(@Body() body: any) {
 		console.log('get_user_ratio: Starting');
@@ -24,6 +25,7 @@ export class MatchController {
 		return stats.average_rank;
 	}
 
+	@UseGuards(AuthGuard)
 	@Post('get_user_history')
 	async get_history(@Body() body: any) {
 		console.log('get_user_history: Starting');
@@ -32,6 +34,7 @@ export class MatchController {
 		return matches;
 	}
 
+	@UseGuards(AuthGuard)
 	@Post('get_user_stats')
 	async get_user_stats(@Body() body: any) {
 		console.log('get_stats: Starting');

@@ -6,17 +6,21 @@ import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-	constructor(
-		private readonly authenticationService: AuthenticationService,
-		private readonly jwtService: JwtService,
-	) { }
+	constructor(private readonly jwtService: JwtService) {}
 	canActivate(
 		context: ExecutionContext,
 	): boolean | Promise<boolean> | Observable<boolean> {
 		console.log('AuthGuard: Starting');
-		const cookies = context.switchToHttp().getRequest().cookies;
-		console.log('AuthGuard: decoded:', this.jwtService.decode(cookies.session));
-		const check = this.jwtService.verify(cookies.session);
+		// console.log('AuthGuard: Headers: ', context.switchToHttp().getRequest().headers);
+		console.log(
+			'AuthGuard: decoded:',
+			this.jwtService.decode(
+				context.switchToHttp().getRequest().headers.session,
+			),
+		);
+		const check = this.jwtService.verify(
+			context.switchToHttp().getRequest().headers.session,
+		);
 		console.log('AuthGuard: Returning:', check);
 		return check;
 	}

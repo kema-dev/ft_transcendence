@@ -21,9 +21,14 @@ export class AuthenticationController {
 
 	@UseGuards(AuthGuard)
 	@Get('debug')
-	async debug(@Headers() headers: any) {
-		// console.log('Debug');
-		console.log(headers);
+	async debug_get(@Headers() headers: any) {
+		console.log('Debug headers: ' + JSON.stringify(headers));
+	}
+
+	@UseGuards(AuthGuard)
+	@Post('debug')
+	async debug_post(@Headers() headers: any) {
+		console.log('Debug headers: ' + JSON.stringify(headers));
 	}
 
 	@Post('register')
@@ -63,21 +68,25 @@ export class AuthenticationController {
 		return this.authenticationService.validate_token(credentials);
 	}
 
+	@UseGuards(AuthGuard)
 	@Post('set_totp')
 	set_totp(@Body('email') email: string) {
 		return this.authenticationService.set_totp(email);
 	}
 
+	@UseGuards(AuthGuard)
 	@Post('set_tmp_totp')
 	set_tmp_totp(@Body('email') email: string) {
 		return this.authenticationService.set_tmp_totp(email);
 	}
 
+	@UseGuards(AuthGuard)
 	@Post('verify_totp')
 	verify_totp(@Body() request: TotpDto) {
 		return this.authenticationService.verify_totp(request);
 	}
 
+	@UseGuards(AuthGuard)
 	@Post('verify_tmp_totp')
 	verify_tmp_totp(@Body() request: TotpDto) {
 		return this.authenticationService.verify_tmp_totp(request);
@@ -111,6 +120,7 @@ export class AuthenticationController {
 		};
 	}
 
+	@UseGuards(AuthGuard)
 	@HttpCode(200)
 	@Post('logout')
 	async logOut(@Body() body: { login: string }) {

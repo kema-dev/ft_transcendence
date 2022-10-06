@@ -147,6 +147,8 @@ provide('defaultState', switch_value);
 
 const toast = useToast();
 const $cookies = inject<VueCookies>('$cookies');
+import { useCookies } from 'vue3-cookies';
+const { cookies } = useCookies();
 
 function register() {
 	if (
@@ -159,6 +161,10 @@ function register() {
 		return;
 	}
 	API.post('auth/register', {
+		headers: {
+			login: cookies.get('login'),
+			token: cookies.get('session'),
+		},
 		email: email_register.value,
 		login: login_register.value,
 		password: password_register.value,
@@ -202,6 +208,10 @@ async function auth() {
 		return;
 	}
 	API.post('auth/login', {
+		headers: {
+			login: cookies.get('login'),
+			token: cookies.get('session'),
+		},
 		email: email_auth.value,
 		password: password_auth.value,
 		mfa: totp_val.value,
@@ -255,6 +265,10 @@ onMounted(() => {
 	let code = urlParams.get('code');
 	if (code) {
 		API.post('auth/login42', {
+			headers: {
+				login: cookies.get('login'),
+				token: cookies.get('session'),
+			},
 			code: code,
 		})
 			.then((response) => {

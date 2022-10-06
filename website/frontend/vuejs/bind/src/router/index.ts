@@ -16,6 +16,7 @@ import Player from '@/menu/PlayerTab.vue';
 import API from '../components/axios';
 import { useCookies } from 'vue3-cookies';
 import { useToast } from 'vue-toastification';
+import DebugView from '@/views/DebugView.vue';
 
 const data = require('../../.env')
 
@@ -38,6 +39,11 @@ const routes: Array<RouteRecordRaw> = [
 		name: 'security',
 		path: '/security',
 		component: SecurityView,
+	},
+	{
+		name: 'debug',
+		path: '/debug',
+		component: DebugView,
 	},
 	{
 		name: 'home',

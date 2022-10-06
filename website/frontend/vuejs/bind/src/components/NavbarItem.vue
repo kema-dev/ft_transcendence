@@ -38,9 +38,15 @@ import API from '../components/axios';
 let define = inject('colors');
 
 const $cookies = inject<VueCookies>('$cookies');
+import { useCookies } from 'vue3-cookies';
+const { cookies } = useCookies();
 
 function logout() {
 	API.post('auth/logout', {
+		headers: {
+			login: cookies.get('login'),
+			token: cookies.get('session'),
+		},
 		login: $cookies.get('login'),
 	}).then(() => {
 		$cookies.remove('session');
