@@ -159,7 +159,6 @@ export class ChatService {
 			let login: string;
 			if (priv.users[0].login == requestor) login = priv.users[1].login;
 			else login = priv.users[0].login;
-			console.log(`login = ${login}`);
 			const user = await this.userService.getByLogin(login);
 			const basicUser = new BasicUserDto(user.login, user.avatar);
 			const read = priv.readed;
@@ -452,13 +451,27 @@ export class ChatService {
 	}
 
 	async userExist (login: string) {
+		console.log(`verify if user '${login}' exist`)
 		let user = await this.userRepository.findOne({
 			where: {login: login}
 		});
 		if (user)
+			return new BasicUserDto(user.login, user.avatar);
+			// return user.avatar;
+			// return true;
+		else
+			throw new HttpException('DO_NOT_EXIST', HttpStatus.NOT_FOUND);
+	}
+
+	async chanExist (chanName: string) {
+		console.log(`verify if channel '${chanName}' exist`)
+		let chan = await this.channelRepository.findOne({
+			where: {name: chanName}
+		});
+		if (chan)
 			return true;
 		else
-			throw new HttpException('USER_ALREADY_EXIST', HttpStatus.CONFLICT);
+			return false;
 	}
 
 	async invitChanUser(chanName: string, login: string) {

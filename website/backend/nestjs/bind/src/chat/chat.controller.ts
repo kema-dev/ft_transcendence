@@ -39,6 +39,12 @@ export class ChatController {
 	}
 
 	// @UseGuards(AuthGuard)
+	@Get('chanExist/:chan')
+	async chanExist(@Param() params : {chan: string}) {
+		return this.chatService.chanExist(params.chan);
+	}
+
+	// @UseGuards(AuthGuard)
 	@Get('invitChanUser/:chan/:login')
 	async invitChanUser(@Param() params : {chan:string, login: string}) {
 		return this.chatService.invitChanUser(params.chan, params.login);

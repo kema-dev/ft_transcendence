@@ -1,8 +1,8 @@
 <template>
-	<div  id="conversation_view" class="stack">
+	<div v-if="userExistDone && userExist && privDone" id="conversation_view" class="stack">
 		<div class="userTopBar center raw space-between">
 			<div class="avatar_cont center">
-				<img v-if="selectPriv()" :src="privsRef[index].user.avatar" 
+				<img :src="userExist.avatar"
 					class="avatar" alt="avatar"
 				/>
 			</div>
@@ -35,23 +35,19 @@
 			</div>
 		</div>
 		<div class="conversation_content">
-			<div id="messages_cont" ref="msgsCont" class="messages">
-				<div v-if="privDone && selectPriv()">
-					<div
-						v-for="(message, i) in privsRef[index].messages"
-						:key="i"
-						class="center column"
-					>
-						<div v-if="checkDate(i)" class="date">
-							{{ displayDate(message.date, i) }}
-						</div>
-						<MessageItem
-							:userAvatar="privsRef[index].user.avatar"
-							:userLogin="message.user"
-							:message="message.msg"
-							:date="message.date"
-						/>
+			<div v-if="index != -1" id="msgsCont" class="messages">
+				<div v-for="(message, i) in privsRef[index].messages" 
+					:key="i" class="center column"
+				>
+					<div v-if="checkDate(i)" class="date">
+						{{ displayDate(message.date, i) }}
 					</div>
+					<MessageItem
+						:userAvatar="privsRef[index].user.avatar"
+						:userLogin="message.user"
+						:message="message.msg"
+						:date="message.date"
+					/>
 				</div>
 			</div>
 			<div class="sendbox_cont">
@@ -67,7 +63,8 @@
 		</div>
 		<WarningMsg
 			v-if="blockWarn"
-			msg="Are you sure to block this User? You will not receive message from him/her anymore"
+			msg="Are you sure to block this User? 
+				You will not receive message from him/her anymore"
 			:img="require('@/assets/warning_logo.png')"
 		>
 			<template #buttons>
@@ -78,11 +75,13 @@
 			</template>
 		</WarningMsg>
 	</div>
+	<div v-else-if="userExistDone && !userExist" class="wrongPath center">
+		<span class="wrongPathMsg">This user do not exist &#129301;</span>
+	</div>
 </template>
 
 <script setup lang="ts">
 /* eslint @typescript-eslint/no-var-requires: "off" */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
 	inject,
 	onMounted,
@@ -90,8 +89,7 @@ import {
 	ref,
 	Ref,
 	onBeforeUnmount,
-	onUpdated,
-	onBeforeUpdate,
+	nextTick,
 } from "vue";
 import { useRoute } from "vue-router";
 import { Socket } from "socket.io-client";
@@ -103,47 +101,99 @@ import { PrivConvDto } from "@/chat/dto/PrivConvDto";
 import { BasicUserDto } from "./dto/BasicUserDto";
 
 
-// =============== INIT
+// ===================== INIT =====================
 
+// INIT COMPONENT VARIABLES
 let colors = inject("colors");
 let mySocket: Socket = inject("socket")!;
 let me: string = inject("me")!;
 let apiPath: string = inject("apiPath")!;
 const userName = useRoute().params.conv_name as string;
-// let receiver : BasicUserDto;
-
-
-// ==== PRIV
-let privsRef: Ref<PrivConvDto[]> = inject("privs")!;
-let markReaded: (index: number, readed: boolean) => void =
-	inject("markReaded")!;
-let index = ref(-1);
-if (privsRef?.value.length) {
-	index.value = privsRef!.value.findIndex((priv) => priv.user.login == userName);
-	if (index.value != -1) {
-		// receiver = privsRef.value[index.value].user;
-		if (privsRef.value[index.value].messages.at(-1)?.user != me) {
-			mySocket.emit("privReaded", { userSend: userName, userReceive: me });
-			markReaded(index.value, true);
-		}
-	}
-}
-const privDone: Ref<boolean> = inject("privDone")!;
-
-// ==== RECEIVER
-// if (privDone && index.value == -1)
-// 	receiver = new BasicUserDto(userName, require("@/assets/avatars/(1).jpg"));
-// let receiver: BasicUserDto;
-// let avatDone = ref(false);
-// HTTP.get(apiPath + "user/getBasicUser/" + userName)
-// 	.then(res => { receiver = res.data; avatDone.value = true; })
-// 	.catch(e => console.log(e));
-
 let myMsg = ref("");
 let blockWarn = ref(false);
-let msgsCont = ref(null);
+let userExistDone = ref(false);
+let userExist : Ref<BasicUserDto| undefined> = ref(undefined);
+let index = ref(-1);
 
-// ====================== METHODS ======================
+// VERIFY IF CHAN EXIST
+HTTP.get(apiPath + "chat/userExist/" + userName)
+	.then((res) => {
+		console.log(`user Exist`);
+		userExist.value = res.data;
+		userExistDone.value = true;
+		nextTick(() => {
+			let msgCont = document.getElementById("msgsCont");
+			if (msgCont)
+				msgCont.scrollTop = msgCont!.scrollHeight;
+		})
+	})
+	.catch((e) => {
+			userExistDone.value = true;
+	});
+
+// GET PRIVS REFS
+let privsRef: Ref<PrivConvDto[]> = inject("privs")!;
+let privMsgRead: (index: number, readed: boolean) => void =
+	inject("privMsgRead")!;
+const privDone: Ref<boolean> = inject("privDone")!;
+
+// GET PRIV INDEX
+index.value = privsRef.value
+	.findIndex((priv) => priv.user.login == userName);
+if (index.value != -1) {
+	privMsgRead(index.value, true);
+	watch(privsRef.value[index.value].messages, () => {
+		privMsgRead(index.value, true);
+		let msgsCont = document.getElementById("msgsCont");
+		if (msgsCont) {
+			let oldScrollTop = msgsCont!.scrollTop;
+			let oldScrollHeight = msgsCont!.scrollHeight;
+			let oldClientHeight = msgsCont!.clientHeight;
+			let lastMsg = msgsCont.lastElementChild!.clientHeight;
+			if (oldScrollTop + oldClientHeight + lastMsg == oldScrollHeight)
+				msgsCont!.scrollTop = msgsCont!.scrollHeight;
+		}
+	}, {flush: 'post'})
+}
+
+// GET PRIV INDEX IF REFRESH PAGE
+watch(privDone, () => {
+	console.log(`privDone OK = ${privDone.value}`);
+	index.value = privsRef.value
+		.findIndex((priv) => priv.user.login == userName);
+	if (index.value != -1) {
+		nextTick(() => {
+			let msgCont = document.getElementById("msgsCont");
+			if (msgCont)
+				msgCont.scrollTop = msgCont!.scrollHeight;
+			privMsgRead(index.value, true);
+			watch(privsRef.value[index.value].messages, () => {
+				privMsgRead(index.value, true);
+				let msgsCont = document.getElementById("msgsCont");
+				if (msgsCont) {
+					let oldScrollTop = msgsCont!.scrollTop;
+					let oldScrollHeight = msgsCont!.scrollHeight;
+					let oldClientHeight = msgsCont!.clientHeight;
+					let lastMsg = msgsCont.lastElementChild!.clientHeight;
+					if (oldScrollTop + oldClientHeight + lastMsg == oldScrollHeight)
+					msgsCont!.scrollTop = msgsCont!.scrollHeight;
+				}
+			})
+		})
+	}
+}, {flush: 'post'})
+
+
+// ===================== WATCHERS =====================
+
+// watch(blocked, () => {
+// 	if (blocked.value == privsRef.value[index.value].name) {
+// 		router.push({name: 'private'});
+// 	}
+// })
+
+
+// ===================== METHODS =====================
 
 function sendMsg() {
 	if (myMsg.value != "") {
@@ -156,42 +206,30 @@ function banUser() {
 	// DEMMANDER DE BAN LE USER AU BACK
 }
 
-function selectPriv() {
-	let priv = privsRef?.value.find((priv) => priv.user.login == userName);
-	return priv;
-}
-
 function checkDate(i: number) {
-	// console.log(`checkDate(), i = ${i}`)
 	if (i == 0) return true;
 	else if (
 		Math.ceil(
-			(selectPriv()!.messages[i].date.getTime() -
-				selectPriv()!.messages[i - 1].date.getTime()) /
+			(privsRef.value[index.value].messages[i].date.getTime() -
+				privsRef.value[index.value].messages[i - 1].date.getTime()) /
 				(1000 * 60)
 		) > 15
-	) {
-		// console.log(`checkDate = true`);
+	)
 		return true;
-	} else {
-		// console.log(`checkDate = false`);
+	else
 		return false;
-	}
 }
 
 function displayDate(date: Date, i: number) {
-	// console.log(`displayDate()`)
 	let minutes: string | number;
 	if (date.getMinutes() < 10) minutes = "0" + date.getMinutes().toString();
 	else minutes = date.getMinutes();
-	// console.log(`test`);
 	let hours: string | number;
 	if (date.getHours() < 10) hours = "0" + date.getHours().toString();
 	else hours = date.getHours();
 	const day = date.getUTCDate();
 	const month = date.toLocaleString("default", { month: "long" });
 	const year = date.getFullYear();
-	// console.log(`displayDate() avant returns`)
 	if (i == 0)
 		return `Created the ${day} ${month} ${year} at ${hours}:${minutes}`;
 	const now = new Date();
@@ -207,51 +245,13 @@ function displayDate(date: Date, i: number) {
 	else return `${day} ${month} ${year} at ${hours}:${minutes}`;
 }
 
-// ====================== LIFECYCLES HOOKS ======================
 
-// watch(privDone, () => {
-	
-// });
-
-let scroll = true;
-let oldNbMsg = -1;
-let newMsg = false;
-
-onBeforeUpdate(() => {
-	// Find index of PrivsRef and get receiver
-	if (privsRef?.value.length && index.value == -1) 
-		index.value = privsRef!.value.findIndex((priv) => priv.user.login == userName);
-	if (
-		index.value != -1 &&
-		oldNbMsg != privsRef!.value[index.value].messages.length
-	) {
-		newMsg = true;
-		oldNbMsg = privsRef!.value[index.value].messages.length;
-	} else newMsg = false;
-	let oldScrollTop = (msgsCont.value! as HTMLElement).scrollTop;
-	let oldScrollHeight = (msgsCont.value! as HTMLElement).scrollHeight;
-	let oldClientHeight = (msgsCont.value! as HTMLElement).clientHeight;
-	if (oldScrollTop + oldClientHeight == oldScrollHeight) scroll = true;
-	else scroll = false;
-});
-
-onUpdated(() => {
-	if (scroll == true) {
-		(msgsCont.value! as HTMLElement).scrollTop = (
-			msgsCont.value! as HTMLElement
-		).scrollHeight;
-	}
-	if (newMsg && privsRef!.value[index.value].messages.at(-1)?.user != me) {
-		mySocket.emit("privReaded", { userSend: userName, userReceive: me });
-		markReaded(index.value, true);
-	}
-});
+// ===================== LIFECYCLES HOOKS =====================
 
 onMounted(() => {
-	if (msgsCont.value)
-		(msgsCont.value! as HTMLElement).scrollTop = (
-			msgsCont.value! as HTMLElement
-		).scrollHeight;
+	let msgsCont = document.getElementById("msgsCont");
+	if (msgsCont)
+		msgsCont!.scrollTop = msgsCont!.scrollHeight;
 	document.getElementById("sendbox")?.focus();
 	const box = document.getElementById("privateTabText");
 	if (box != null) box.classList.add("chatTabActive");
@@ -261,6 +261,7 @@ onBeforeUnmount(() => {
 	const box = document.getElementById("privateTabText");
 	if (box != null) box.classList.remove("chatTabActive");
 });
+
 
 // ====================== UTILS ======================
 
@@ -289,8 +290,6 @@ function printPrivs(privs: PrivConvDto[] | undefined) {
 	width: 100%;
 	height: var(--height);
 	background-color: white;
-	/* margin-top: 5px; */
-
 	box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.1), 0px -4px 4px rgba(0, 0, 0, 0.1);
 }
 .avatar_cont {
@@ -394,22 +393,14 @@ function printPrivs(privs: PrivConvDto[] | undefined) {
 	transition: width 0.3s ease-in-out;
 	width: 80%;
 }
-
-/* TRANSITION ROUTER VIEW */
-
-/* .mySlide-leave-active,
-.mySlide-enter-active {
-	transition: 1s;
+.wrongPath {
+	height: calc(100vh - 180px);
+	font-family: "Orbitron", sans-serif;
+	font-size: 1.2rem;
+	position: relative;
 }
-.mySlide-leave-to,
-.mySlide-enter-from {
-	transform: translateY(100%);
-} */
-
-/* .mySlide-enter-from {
-	transform: translateY(100%);
+.wrongPathMsg {
+	position: absolute;
+	top: 30%;
 }
-.mySlide-leave-to {
-	transform: translateY(-100%);
-} */
 </style>

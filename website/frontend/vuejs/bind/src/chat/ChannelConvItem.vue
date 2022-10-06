@@ -1,5 +1,5 @@
 <template>
-	<div v-if="chanDone" id="channel_view" class="stack">
+	<div v-if="chanExistDone && chanExist && chanDone" id="channel_view" class="stack">
 		<div class="userTopBar center raw space-between">
 			<div class="avatar_cont center">
 				<img src="~@/assets/group_logo.svg"  class="avatar" alt="avatar" />
@@ -33,7 +33,9 @@
 		<div v-if="!info" class="conversation_content stack">
 			<div v-if="index != -1" id="msgsCont" class="messages">
 				<div class="date">{{displayDate(chansRef[index].creation, 0)}}</div>
-				<div v-for="(message, i) in chansRef[index].messages" :key="i" class="center column">
+				<div v-for="(message, i) in chansRef[index].messages" 
+					:key="i" class="center column"
+				>
 					<div v-if="checkDate(i)" class="date">
 						{{displayDate(message.date, i)}}
 					</div>
@@ -58,34 +60,49 @@
 		</div>
 		<ChannelInfoItem v-if="info && index != -1" :i="index"/>
 	</div>
+	<div v-else-if="chanExistDone && !chanExist" class="wrongPath center">
+		<span class="wrongPathMsg">This channel does not exist &#129301;</span>
+	</div>
 </template>
 
 <script setup lang="ts">
 /* eslint @typescript-eslint/no-var-requires: "off" */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import { inject, onMounted, ref, Ref, onBeforeUnmount, watch, onBeforeUpdate, onUpdated, nextTick } from "vue";
+import { inject, onMounted, ref, Ref, onBeforeUnmount, watch, nextTick } from "vue";
 import { useRoute } from "vue-router";
 import { Socket } from "socket.io-client";
+import HTTP from "../components/axios";
 import MessageItem from "@/chat/MessageItem.vue";
 import ChannelInfoItem from "./ChannelInfoItem.vue";
-import { MessageDto } from "@/chat/dto/MessageDto";
 import { NewChanMsgDto } from "@/chat/dto/NewChanMsgDto";
 import { ChannelDto } from "./dto/ChannelDto";
 import { ProfileUserDto } from "@/dto/ProfileUserDto"
 import router from "@/router";
+
 
 // ================= INIT =================
 
 // INIT COMPONENT VARIABLES
 const route = useRoute();
 let chanName = route.params.conv_name as string;
+let apiPath: string = inject("apiPath")!;
 let colors = inject("colors");
 let mySocket: Socket = inject("socket")!;
 let myName: string = inject("me")!;
 let me: Ref<ProfileUserDto> = inject("user")!;
 let myMsg = ref("");
 let info = ref(false);
+let chanExist = ref(false);
+let chanExistDone = ref(false);
 let index = ref(-1);
+
+// VERIFY IF CHAN EXIST
+HTTP.get(apiPath + "chat/chanExist/" + chanName)
+	.then((res) => {
+		// console.log(`Chan Exist : ${res.data}`)
+		chanExist.value = res.data;
+		chanExistDone.value = true;
+	})
+	.catch((e) => console.log(e));
 
 // GET CHANS REFS
 let chansRef : Ref<ChannelDto[]> = inject("chans")!;
@@ -138,9 +155,7 @@ watch(chanDone, () => {
 // ================= WATCHERS =================
 
 watch(chanBan, () => {
-	// console.log(`chanBan change for ${chanBan.value}`)
 	if (chanBan.value == chansRef.value[index.value].name) {
-		// console.log(`Exit chan because banned`)
 		router.push({name: 'channels'});
 	}
 })
@@ -170,18 +185,6 @@ function chanMsgRead() {
 }
 
 function findAvatar(login: string) {
-	// let isAdmin = chansRef.value[index.value].admins.find(admin => admin.login == login);
-	// // console.log(`isAdmin = ${isAdmin}`)
-	// if (isAdmin)
-	// 	return isAdmin.avatar;
-	// let isUser = chansRef.value[index.value].users.find(user => user.login == login);
-	// // console.log(`isUser = ${isUser}`)
-	// if (isUser)
-	// 	return isUser.avatar;
-	// let isMuted = chansRef.value[index.value].mutes.find(mute => mute.login == login);
-	// // console.log(`isUser = ${isUser}`)
-	// if (isMuted)
-	// 	return isMuted.avatar;
 	let isInChan = chansRef.value[index.value].admins
 		.concat(chansRef.value[index.value].users)
 		.concat(chansRef.value[index.value].mutes)
@@ -275,8 +278,6 @@ function printChan(chan: ChannelDto) {
 	width: 100%;
 	height: var(--height);
 	background-color: white;
-	/* margin-top: 5px; */
-
 	box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.1), 0px -4px 4px rgba(0, 0, 0, 0.1);
 }
 .avatar_cont {
@@ -299,8 +300,6 @@ function printChan(chan: ChannelDto) {
 .login:hover {
 	color: v-bind("colors.color2");
 }
-
-
 .option_buttons {
 	width: auto;
 	margin-right: 8px;
@@ -319,7 +318,6 @@ function printChan(chan: ChannelDto) {
 	background-color: white;
 	box-shadow: 0px 0px 4px #aaa;
 }
-
 .infoButtonText {
 	visibility: hidden;
 	font-size: 0.8rem;
@@ -350,8 +348,6 @@ function printChan(chan: ChannelDto) {
 		opacity: 1;
 	}
 }
-
-
 .conversation_content {
 	height: calc(100% - 70px);
 	width: 100%;
@@ -368,12 +364,10 @@ function printChan(chan: ChannelDto) {
 	font-size: 0.8rem;
 	white-space: pre;
 }
-
 .sendbox_cont {
 	position: absolute;
 	bottom: 1rem;
 }
-
 .sendbox {
 	width: 40%;
 	height: 2.2rem;
@@ -415,23 +409,14 @@ function printChan(chan: ChannelDto) {
 		background-color: white;
 	}
 }
-
-
-/* TRANSITION ROUTER VIEW */
-
-/* .mySlide-leave-active,
-.mySlide-enter-active {
-	transition: 1s;
+.wrongPath {
+	height: calc(100vh - 180px);
+	font-family: "Orbitron", sans-serif;
+	font-size: 1.2rem;
+	position: relative;
 }
-.mySlide-leave-to,
-.mySlide-enter-from {
-	transform: translateY(100%);
-} */
-
-/* .mySlide-enter-from {
-	transform: translateY(100%);
+.wrongPathMsg {
+	position: absolute;
+	top: 30%;
 }
-.mySlide-leave-to {
-	transform: translateY(-100%);
-} */
 </style>

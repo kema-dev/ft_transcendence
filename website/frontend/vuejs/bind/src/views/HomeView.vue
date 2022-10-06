@@ -96,7 +96,7 @@ function resetNbPrivNR() {
 	nbPrivNR.value = [];
 }
 let privDone = ref(false);
-function privReaded(index : number, readed: boolean) {
+function privMsgRead(index : number, readed: boolean) {
 	privsRef.value[index].readed = readed;
 }
 getPrivsRequest();
@@ -104,7 +104,7 @@ provide('privs', privsRef);
 // provide('nbPrivNR', {nbPrivMsg: nbPrivNR, editNbPrivMsg: editNbPrivNR});
 provide('nbPrivNR', { n: nbPrivNR, reset: resetNbPrivNR });
 
-provide('markReaded', privReaded);
+provide('privMsgRead', privMsgRead);
 provide('privDone', privDone);
 
 function getPrivsRequest() {
