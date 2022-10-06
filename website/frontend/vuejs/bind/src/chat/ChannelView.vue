@@ -145,7 +145,6 @@ import {
 	watch,
 } from "vue";
 import HTTP from "../components/axios";
-import { Socket } from "socket.io-client";
 import { useToast } from 'vue-toastification';
 import ChannelTab from "@/chat/ChannelTab.vue";
 import SearchItem from "@/components/SearchItem.vue";
@@ -197,23 +196,9 @@ function getServerChans() {
 				);
 			});
 			serverChans.value = chansTmp;
-			// filterServerChans();
 			chanServReqDone.value = true;
 		})
 		.catch((e) => console.log(e));
-}
-
-function filterServerChans() {
-	serverChans.value = serverChans.value!.filter((chan, i) => {
-		let isAlreadyKnow = true;
-		for (let chanKnown of chansFiltred.value) {
-			if (chanKnown.name == chan.name) {
-				isAlreadyKnow = false;
-				break;
-			}
-		}
-		return isAlreadyKnow;
-	});
 }
 
 function findChannelFn() {
