@@ -2,10 +2,9 @@
 
 ## ongoing
 
-* add link to security page
-* security page's UI
 * change readme's images using a gif of a live game and some screenshots of the website
 * add kind of Auth Guards to app.gateway.ts
+* fix build testing Github Action (healthchecks are not working as expected)
 
 ## optional
 
