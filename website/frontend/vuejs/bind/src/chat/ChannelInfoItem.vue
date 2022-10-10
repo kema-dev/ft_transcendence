@@ -129,7 +129,7 @@
 				</span>
 			</div>
 			<div v-for="(data, i) in chansRef[props.i].admins" :key="i" class="left_center">
-				<BasicProfil :avatar="data.avatar" 
+				<BasicProfil :avatar="data.avatar" @click="toProfile(data.login)" 
 					:login="data.login" class="basicUser"/>
 				<setUserChan v-if="iAmAdmin && data.login != myName" 
 					:login="data.login" :chan="chanName" group="admins" 
@@ -150,7 +150,8 @@
 				</span>
 			</div>
 			<div v-for="(data, i) in chansRef[props.i].users" :key="i" class="left_center">
-				<BasicProfil :avatar="data.avatar" :login="data.login" class="basicUser"/>
+				<BasicProfil @click="toProfile(data.login)" 
+					:avatar="data.avatar" :login="data.login" class="basicUser"/>
 				<setUserChan v-if="iAmAdmin && data.login != myName" 
 					:login="data.login" :chan="chanName" group="users"
 					:promote="true" :mute="true" :ban="true"/>
@@ -170,8 +171,8 @@
 				</span>
 			</div>
 			<div v-for="(data, i) in chansRef[props.i].mutes" :key="i" class="left_center">
-				<BasicProfil :avatar="data.avatar" 
-					:login="data.login" class="basicUser"/>
+				<BasicProfil @click="toProfile(data.login)" 
+					:avatar="data.avatar" :login="data.login" class="basicUser"/>
 				<setUserChan v-if="iAmAdmin && data.login != myName" 
 					:login="data.login" :chan="chanName" group="mutes"
 					:restore="true" :ban="true"/>
@@ -191,8 +192,8 @@
 				</span>
 			</div>
 			<div v-for="(data, i) in chansRef[props.i].bans" :key="i" class="left_center">
-				<BasicProfil :avatar="data.avatar" 
-					:login="data.login" class="basicUser"/>
+				<BasicProfil @click="toProfile(data.login)" 
+					:avatar="data.avatar" :login="data.login" class="basicUser"/>
 				<setUserChan v-if="iAmAdmin && data.login != myName" 
 					:login="data.login" :chan="chanName" group="bans"
 					:restore="true"/>
@@ -369,6 +370,7 @@ function modifPswReq() {
 // ================= PRIVATE =================
 
 
+
 function showPriv() {
 	privShow.value = !privShow.value;
 	privCheck.value = chansRef.value[props.i].priv;
@@ -380,6 +382,13 @@ function modifPrivReq() {
 		mySocket.emit("modifChan",
 			new ModifChanDto(chanName, "priv", privCheck.value));
 	privShow.value = false;
+}
+
+
+// ================= PROFILE =================
+
+function toProfile(player: string) {
+	router.push({name: 'player', params: { name: player }});
 }
 
 
@@ -495,6 +504,7 @@ function printChan(chan: ChannelDto) {
 }
 .basicUser {
 	margin: 5px 10px;
+	cursor: pointer;
 }
 .invitButton {
 	height: 1.5rem;

@@ -39,11 +39,15 @@
 					<div v-if="checkDate(i)" class="date">
 						{{displayDate(message.date, i)}}
 					</div>
+					<div v-if="checkUserName(i)" class="msgUserName">
+						{{message.user}}
+					</div>
 					<MessageItem
 						:userAvatar="findAvatar(message.user)"
 						:userLogin="message.user"
 						:message="message.msg"
 						:date="message.date"
+						:displayAvatar="checkAvatar(i)"
 					/>
 				</div>
 			</div>
@@ -220,6 +224,36 @@ function checkDate(i: number) {
 		return false;
 }
 
+
+
+function checkUserName(i: number) {
+	if (myName == chansRef.value[index.value].messages[i].user)
+		return false;
+	if (i == 0) 
+		return true;
+	if (
+		chansRef.value[index.value].messages[i].user == 
+		chansRef.value[index.value].messages[i - 1].user
+	)
+		return false;
+	else
+		return true;
+}
+
+function checkAvatar(i: number) {
+	if (myName == chansRef.value[index.value].messages[i].user)
+		return false;
+	if (i == 0 || i == chansRef.value[index.value].messages.length - 1) 
+		return true;
+	if (
+		chansRef.value[index.value].messages[i].user == 
+		chansRef.value[index.value].messages[i + 1].user
+	)
+		return false;
+	else
+		return true;
+}
+
 function displayDate(date: Date, i: number) {
 	let minutes: string | number;
 	if (date.getMinutes() < 10) minutes = "0" + date.getMinutes().toString();
@@ -373,6 +407,14 @@ function printChan(chan: ChannelDto) {
 	margin: 15px 0;
 	font-size: 0.8rem;
 	white-space: pre;
+}
+.msgUserName {
+	width: auto;
+	font-family: "Orbitron", sans-serif;
+	font-size: 0.7rem;
+	margin-right: auto;
+	margin-left: 47px;
+	justify-self: flex-start;
 }
 .sendbox_cont {
 	position: absolute;

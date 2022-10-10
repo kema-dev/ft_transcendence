@@ -47,6 +47,7 @@
 						:userLogin="message.user"
 						:message="message.msg"
 						:date="message.date"
+						:displayAvatar="checkAvatar(i)"
 					/>
 				</div>
 			</div>
@@ -99,6 +100,7 @@ import WarningMsg from "@/components/WarningMsg.vue";
 import { NewPrivMsgDto } from "@/chat/dto/NewPrivMsgDto";
 import { PrivConvDto } from "@/chat/dto/PrivConvDto";
 import { BasicUserDto } from "./dto/BasicUserDto";
+import router from "@/router";
 
 
 // ===================== INIT =====================
@@ -201,6 +203,10 @@ mySocket.on("findNewPriv", () => {
 
 // ===================== METHODS =====================
 
+function toProfile() {
+	router.push({name: 'player', params: { name: userName }});
+}
+
 function sendMsg() {
 	if (myMsg.value != "") {
 		mySocket.emit("newPrivMsg", new NewPrivMsgDto(me, userName, myMsg.value));
@@ -231,6 +237,20 @@ function checkDate(i: number) {
 		return true;
 	else
 		return false;
+}
+
+function checkAvatar(i: number) {
+	if (me == privsRef.value[index.value].messages[i].user)
+		return false;
+	if (i == 0 || i == privsRef.value[index.value].messages.length - 1) 
+		return true;
+	if (
+		privsRef.value[index.value].messages[i].user == 
+		privsRef.value[index.value].messages[i + 1].user
+	)
+		return false;
+	else
+		return true;
 }
 
 function displayDate(date: Date, i: number) {
