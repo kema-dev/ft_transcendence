@@ -1,8 +1,4 @@
 <template>
-	<!-- <router-link
-		v-if="!infos?.psw"
-		:to="{name: 'ChannelConv', params: {conv_name: infos!.name }}"
-	> -->
 	<button v-if="!infos.psw" @click="joinChannel">
 		<div class="channelTab center row stack">
 			<div class="avatar_cont center">
@@ -15,8 +11,6 @@
 			</div>
 		</div>
 	</button>
-
-	<!-- </router-link> -->
 	<button v-else class="channelPsw center column stack">
 		<div @click="showPswDiv()" class="channelTab center row stack">
 			<div class="avatar_cont center">
@@ -93,19 +87,6 @@ function showPswDiv() {
 	}
 }
 
-// function checkPsw() {
-// 	// faire le check du password en back ============================================
-// 	(input.value! as HTMLInputElement).classList.remove("invalidPsw");
-// 	// setTimeout(() => {
-// 	//   if (psw.value == props.infos?.psw) {
-// 	//     router.push({name: 'PrivConv', params: {conv_name: props.infos.name }});
-// 	//   } else {
-// 	//     ((input.value!) as HTMLInputElement).classList.add("invalidPsw");
-// 	//   }
-// 	// }, 50);
-// }
-
-
 function joinChannel() {
 	if (props.infos.psw){
 		(input.value! as HTMLInputElement).classList.remove("invalidPsw");
@@ -123,7 +104,7 @@ function joinChannel() {
 			let newChan = res.data as ChannelDto;
 			newChan.creation = new Date(newChan.creation);
 			newChan.messages.forEach(msg => msg.date = new Date(msg.date));
-			chansRef.value.push(newChan);
+			chansRef.value.unshift(newChan);
 			mySocket.emit("newChannelUser", {chan: props.infos.name, login: myName});
 			router.push({name: 'ChanConv', params: {conv_name: props.infos.name }});
 		})

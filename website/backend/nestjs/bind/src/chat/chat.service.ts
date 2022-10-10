@@ -282,20 +282,20 @@ export class ChatService {
 		return chan;
 	}
 
-	async sortChans(chans: ChannelEntity[]) {
+	sortChans(chans: ChannelDto[]) {
 		console.log(`Sort Channels`)
 		chans.sort(function (x, y) {
 			let date1: number;
 			let date2: number;
 			if (!x.messages.length) {
-				date1 = x.createdAt.getTime();
+				date1 = x.creation.getTime();
 			} else {
-				date1 = x.messages.at(-1).createdAt.getTime();
+				date1 = x.messages.at(-1).date.getTime();
 			}
 			if (!y.messages.length) {
-				date1 = y.createdAt.getTime();
+				date2 = y.creation.getTime();
 			} else {
-				date1 = y.messages.at(-1).createdAt.getTime();
+				date2 = y.messages.at(-1).date.getTime();
 			}
 			if ( date1 < date2) 
 				return 1;
@@ -310,7 +310,7 @@ export class ChatService {
 		let psw = chan.password;
 		let creation = chan.createdAt;
 		let priv = chan.private;
-		let read = chan.readed;
+		let read = true;
 		let avatar = chan.avatar;
 		let admins : BasicUserDto[] = [];
 		chan.admins.forEach(admin => admins
@@ -371,7 +371,7 @@ export class ChatService {
 		const chan = await this.getChan(data.chanName);
 		if (chan) {
 			chan.messages.push(msg);
-			chan.readed = false;
+			// chan.readed = false;
 			await this.channelRepository
 				.save(chan)
 				.catch((e) => console.log('Save chan error'));

@@ -93,6 +93,7 @@ let colors = inject("colors");
 let mySocket: Socket = inject("socket")!;
 let myName: string = inject("me")!;
 let me: Ref<ProfileUserDto> = inject("user")!;
+const newIndex : Ref<string> = inject("newIndex")!;
 let myMsg = ref("");
 let info = ref(false);
 let chanExist = ref(false);
@@ -102,7 +103,6 @@ let index = ref(-1);
 // VERIFY IF CHAN EXIST
 HTTP.get(apiPath + "chat/chanExist/" + chanName)
 	.then((res) => {
-		// console.log(`Chan Exist : ${res.data}`)
 		chanExist.value = res.data;
 		chanExistDone.value = true;
 		nextTick(() => {
@@ -113,16 +113,18 @@ HTTP.get(apiPath + "chat/chanExist/" + chanName)
 
 // GET CHANS REFS
 let chansRef : Ref<ChannelDto[]> = inject("chans")!;
+let chanRead: (index: number, readed: boolean) => void =
+	inject("chanReaded")!;
 const chanDone: Ref<boolean> = inject("chanDone")!;
 const chanBan: Ref<string> = inject("chanBan")!;
 
 // GET CHAN INDEX
 index.value = chansRef.value.findIndex((chan) => chan.name == chanName);
 if (index.value != -1) {
-	chanMsgRead();
+	chanRead(index.value, true);
 	scrollAndFocus();
 	watch(chansRef.value[index.value].messages, () => {
-		chanMsgRead();
+		chanRead(index.value, true);
 		let msgsCont = document.getElementById("msgsCont");
 		if (msgsCont) {
 			let oldScrollTop = msgsCont!.scrollTop;
@@ -141,9 +143,9 @@ watch(chanDone, () => {
 	if (index.value != -1) {
 		nextTick(() => {
 			scrollAndFocus();
-			chanMsgRead();
+			chanRead(index.value, true);
 			watch(chansRef.value[index.value].messages, () => {
-				chanMsgRead();
+				chanRead(index.value, true);
 				let msgsCont = document.getElementById("msgsCont");
 				if (msgsCont) {
 					let oldScrollTop = msgsCont!.scrollTop;
@@ -167,6 +169,16 @@ watch(chanBan, () => {
 	}
 })
 
+watch(newIndex, () => {
+	if (newIndex.value != '') {
+		// console.log(`Find new Index chan ${chanName} : old Index = ${index.value}`)
+		index.value = chansRef.value.findIndex((chan) => chan.name == chanName);
+		// console.log(`Find new Index chan ${chanName} : new Index = ${index.value}`)
+		chanRead(index.value, true);
+		newIndex.value == '';
+	}
+}, {flush: 'post'})
+
 
 // ================= METHODS =================
 
@@ -178,16 +190,8 @@ function sendMsg() {
 			input!.classList.add("invalidInput");
 		}, 50);
 	if (myMsg.value != '') {
-		mySocket.emit("newChanMsg", new NewChanMsgDto(me.value.login, chanName, myMsg.value));
+		mySocket.emit("newChanMsg", new NewChanMsgDto(myName, chanName, myMsg.value));
 		myMsg.value = "";
-	}
-}
-
-function chanMsgRead() {
-	if (chansRef!.value[index.value].messages?.at(-1)?.user != myName) {
-		// ================= MARGER MESSAGE LU
-		// mySocket.emit("chanReaded", { userSend: userName, userReceive: me });
-		// markReaded(index.value, true);
 	}
 }
 
@@ -195,7 +199,7 @@ function scrollAndFocus() {
 	let msgCont = document.getElementById("msgsCont");
 	if (msgCont)
 		msgCont.scrollTop = msgCont.scrollHeight;
-		document.getElementById("sendbox")?.focus();
+	document.getElementById("sendbox")?.focus();
 }
 
 function findAvatar(login: string) {

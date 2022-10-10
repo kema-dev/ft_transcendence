@@ -121,7 +121,6 @@ if (privDone.value && userDone.value)
 let serverUsers = ref<BasicUserDto[]>();
 
 
-
 if (privsRef.value.length) {
 	nbPrivNR.reset();
 }

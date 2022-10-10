@@ -3,8 +3,12 @@
 		<div id="nav_menu" class="center row">
 			<router-link to="/home/chat" class="nav_menu_link stack">
 				<h2 class="nav_menu_text">CHAT</h2>
-				<div v-if="nbPrivNR.n.value.length" class="notifMsgCont center">
-					<div class="notifMsgNumber">{{ nbPrivNR.n.value.length }}</div>
+				<div v-if="nbPrivNR.n.value.length + nbChanNR.n.value.length"
+					class="notifMsgCont center"
+				>
+					<div class="notifMsgNumber">
+						{{ nbPrivNR.n.value.length + nbChanNR.n.value.length}}
+					</div>
 				</div>
 			</router-link>
 			<h1 class="pipe">|</h1>
@@ -33,12 +37,14 @@ import { inject, Ref } from 'vue';
 let colors = inject('colors');
 let notifs = inject('notifs');
 let nbPrivNR: { n: Ref<number[]>; reset: () => void } = inject('nbPrivNR')!;
+let nbChanNR: { n: Ref<string[]>; reset: () => void } = inject('nbChanNR')!;
 </script>
 
 <style scoped>
 #menu {
 	height: calc(100vh - 60px);
-	width: 30vw;
+	/* width: 30vw; */
+	width: 345px;
 	background: v-bind('colors.color3');
 	box-shadow: -4px 0px 4px rgba(0, 0, 0, 0.25);
 	margin-top: 60px;
@@ -64,7 +70,8 @@ let nbPrivNR: { n: Ref<number[]>; reset: () => void } = inject('nbPrivNR')!;
 	width: 30%;
 }
 .nav_menu_text {
-	font-size: clamp(0.5rem, 1.5vw, 1.3rem);
+	/* font-size: clamp(0.5rem, 1.5vw, 1.3rem); */
+	font-size: 1.1rem;
 	font-weight: 100;
 }
 .router-link-active > .nav_menu_text {

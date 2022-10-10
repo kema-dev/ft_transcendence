@@ -93,18 +93,16 @@ onMounted(() => {
 //	========== GET PRIVS
 let privsRef: Ref<PrivConvDto[]> = ref([]);
 let nbPrivNR: Ref<number[]> = ref([]);
+let privDone = ref(false);
 function resetNbPrivNR() {
 	nbPrivNR.value = [];
 }
-let privDone = ref(false);
 function privMsgRead(index : number, readed: boolean) {
 	privsRef.value[index].readed = readed;
 }
 getPrivsRequest();
 provide('privs', privsRef);
-// provide('nbPrivNR', {nbPrivMsg: nbPrivNR, editNbPrivMsg: editNbPrivNR});
 provide('nbPrivNR', { n: nbPrivNR, reset: resetNbPrivNR });
-
 provide('privMsgRead', privMsgRead);
 provide('privDone', privDone);
 
@@ -188,6 +186,7 @@ const chansRef : Ref<ChannelDto[]> = ref([]);
 const nbChanNR : Ref<string[]> = ref([]);
 const chanDone = ref(false);
 const chanBan = ref("");
+const newIndex = ref("");
 function resetNbChanNR() {
 	nbChanNR.value = [];
 }
@@ -195,13 +194,13 @@ function chanReaded(index : number, readed: boolean) {
 	chansRef.value[index].readed = readed;
 }
 
-
 getChansRequest();
 provide('chans', chansRef);
 provide('nbChanNR', {n: nbChanNR, reset: resetNbChanNR});
 provide('chanReaded', chanReaded);
 provide('chanDone', chanDone);
 provide('chanBan', chanBan);
+provide('newIndex', newIndex);
 
 
 function getChansRequest() {
@@ -233,9 +232,16 @@ socket.on('newChanMsg', (data: { msg: MessageDto; name: string }) => {
 		new MessageDto(data.msg.user, data.msg.msg, new Date(data.msg.date)),
 	);
 	chansRef.value[i].readed = false;
-	if (data.msg.user != me && !nbChanNR.value.includes(chansRef.value[i].name))
-		nbChanNR.value.push(chansRef.value[i].name);
-	if (i != 0) putChanFirst(i);
+	if (data.msg.user != me 
+		&& !nbChanNR.value.includes(chansRef.value[i].name)
+		&& route.path != "/home/chat/channel/" + data.name) {
+			console.log(`New chan notif`);
+			nbChanNR.value.push(chansRef.value[i].name);
+		}
+	if (i != 0) {
+		putChanFirst(i);
+		newIndex.value = data.name;
+	} 
 });
 
 socket.on("newChannel", (data: ChannelDto) => {
@@ -267,7 +273,6 @@ socket.on('userQuitChan', (data: {login: string, chan: string}) => {
 		.filter(user => user.login != data.login);
 	chansRef.value[i].mutes = chansRef.value[i].mutes
 		.filter(mute => mute.login != data.login);
-	// printChan(chansRef.value[i]);
 });
 
 socket.on('modifChan', (data: ModifChanDto) => {
@@ -338,13 +343,14 @@ socket.on('modifChan', (data: ModifChanDto) => {
 })
 
 
+//	========== UTILS CHAN
+
 function putChanFirst(index: number) {
 	if (chansRef.value.length == 2)
 		return ([chansRef.value[0], chansRef.value[1]] = [
 			chansRef.value[1],
 			chansRef.value[0],
 		]);
-	console.log(`index = ${index}`);
 	let chanTmp1 = chansRef.value[0];
 	let chanTmp2: ChannelDto;
 	chansRef.value[0] = chansRef.value[index];
@@ -384,13 +390,10 @@ function printChans(chans: ChannelDto[]) {
 }
 #game {
 	width: 70vw;
+	width: calc(100vw - 345px);
 	/* height: 100%; */
 	padding-top: 60px;
 }
-/* #field {
-	width: clamp(0px, 50vw, 80vh);
-	height: clamp(0px, 50vw, 80vh);
-} */
 
 @media screen and (max-width: 1000px) {
 	#game {

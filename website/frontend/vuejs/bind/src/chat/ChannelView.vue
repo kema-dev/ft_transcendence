@@ -65,10 +65,10 @@
 					v-else
 					:name-conv="data.name"
 					:date="data.creation"
+					:read="data.readed"
 					:chan="true"
 					class="center"
 				/>
-				<!-- <ConversationTab v-else :name-conv="data.name" :avatar="data.avatar" :date="data.creation" :chan="true" class="center"/> -->
 			</div>
 			<h2 v-if="chansRef.length == 0" class="no_results">No channels</h2>
 			<h2 v-else-if="chansFiltred!.length == 0" class="no_results">
@@ -143,6 +143,7 @@ import {
 	Ref,
 	nextTick,
 	watch,
+	onUpdated,
 } from "vue";
 import HTTP from "../components/axios";
 import { useToast } from 'vue-toastification';
@@ -162,6 +163,11 @@ let apiPath: string = inject("apiPath")!;
 let chansRef : Ref<ChannelDto[]> = inject("chans")!;
 let chansFiltred : Ref<ChannelDto[]> = ref(chansRef.value);
 const chanDone: Ref<boolean> = inject("chanDone")!;
+let nbChanNR: { n: Ref<string[]>; reset: () => void } = inject("nbChanNR")!;
+
+if (chansRef.value.length) {
+	nbChanNR.reset();
+}
 
 let serverChans : Ref<ChannelTabDto[]> = ref([]);
 let chanServReqDone = ref(false);
@@ -245,6 +251,10 @@ function submitChannel() {
 		});
 
 }
+
+onUpdated(() => {
+	if (nbChanNR.n.value.length) nbChanNR.reset();
+});
 
 onMounted(() => {
 	const box = document.getElementById("channelsTabText");

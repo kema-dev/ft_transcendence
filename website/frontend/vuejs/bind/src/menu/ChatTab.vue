@@ -7,8 +7,11 @@
 					<div class="notifMsgNumber">{{ nbPrivNR.n.value.length }}</div>
 				</div>
 			</router-link>
-			<router-link to="/home/chat/channels" class="chat_item">
+			<router-link to="/home/chat/channels" class="chat_item stack">
 				<h2 id="channelsTabText" class="chat_item_text">CHANNELS</h2>
+				<div v-if="nbChanNR.n.value.length" class="notifMsgCont center">
+					<div class="notifMsgNumber">{{ nbChanNR.n.value.length }}</div>
+				</div>
 			</router-link>
 		</div>
 		<div class="content" id="chatContent">
@@ -22,6 +25,7 @@ import { inject, Ref } from 'vue';
 
 let colors = inject('colors');
 let nbPrivNR: { n: Ref<number[]>; reset: () => void } = inject('nbPrivNR')!;
+let nbChanNR: { n: Ref<string[]>; reset: () => void } = inject('nbChanNR')!;
 </script>
 
 <style>

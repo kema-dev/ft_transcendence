@@ -16,13 +16,8 @@ import { UserEntity } from '../../users/user.entity';
 export class ChannelEntity extends TimestampEntites {
 	constructor() {
 		super();
-		this.readed = true;
+		// this.readed = false;
 		// this.avatar = avatars[Math.floor(Math.random() * 5)];
-
-		// this.messages = [];
-		// this.users = [];
-		// this.bans = [];
-		// this.mutes = [];
 	}
 	@PrimaryGeneratedColumn()
 	id: number;
@@ -38,9 +33,6 @@ export class ChannelEntity extends TimestampEntites {
 
 	@Column({ nullable: true })
 	password: string;
-
-	@Column()
-	readed: boolean;
 
 	@ManyToMany( type => UserEntity, (user) => user.chansAdmin, {
 		onDelete: 'CASCADE'
