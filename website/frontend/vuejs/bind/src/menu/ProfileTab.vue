@@ -7,28 +7,25 @@
 			</div>
 		</div>
 		<input id="none" type="file" />
-		<!-- <h2 class="info">{{ user.rank }}</h2> -->
 		<h1 id="name">{{ me?.login }}</h1>
+		<MultiFactorAuthItem />
 		<h2 class="avg_rank">Average rank: Top {{ user_ratio_rounded }}%</h2>
 		<h2 class="w_l">
 			Total: {{ user_stats.total }} - Wins: {{ user_stats.wins }} - Loses:
 			{{ user_stats.loses }}
 		</h2>
-		<!-- <h2 class="info" style="margin-bottom: 40px">level {{ me?.level }}</h2> -->
 		<h2 class="match_history_title">Match history</h2>
 		<MatchItem
 			v-for="match in user_history"
 			v-bind:match="match"
 			:key="match.creation_date"
 		/>
-		<!-- <ScoreItem :player="user.name" :adversary="match.adversary" :points1="match.points1" :points2="match.points2"/> -->
-		<!-- <MatchItem :match="match" /> -->
-		<!-- </div> -->
 	</div>
 </template>
 
 <script setup lang="ts">
 import { onMounted, inject, Ref, ref } from 'vue';
+import MultiFactorAuthItem from '../components/MultiFactorAuthItem.vue';
 import ScoreItem from '../components/ScoreItem.vue';
 import MatchItem from '@/components/MatchItem.vue';
 import { ProfileUserDto } from '../dto/ProfileUserDto';
@@ -178,5 +175,13 @@ function change_avatar() {
 .match_history_title {
 	margin-bottom: 10px;
 	font-size: 200%;
+}
+#security {
+	margin-top: 15px;
+	margin-bottom: 15px;
+	font-size: 1.5rem;
+	font-weight: bold;
+	color: #2c3e50;
+	text-decoration: underline;
 }
 </style>

@@ -1,23 +1,31 @@
 <template>
 	<div class="security-view">
-		<h1>Security</h1>
-		<div class="mfa_input">
-			<button @click="get_totp_url">Enable / Change MFA</button>
-			<input type="text" v-model="code" placeholder="TOTP Code" />
-			<button @click="verify">VERIFY TOTP</button>
-		</div>
-		<!-- <div class="debug">
-			<button @click="debug">DEBUG</button>
-		</div> -->
-		<div id="qrcode" class="mfa_content">
+		<p class="hint" v-show="totp_code">
+			Scan this QR code (or enter the code manually) then verify your TOTP code
+			to enable 2FA
+		</p>
+		<div class="mfa_content" v-show="totp_code">
 			<qrcode-vue
-				id="qr_img"
 				:value="totp_url"
 				:size="300"
 				level="H"
-				class="qr"
+				class="qr_img"
+				id="qr_img"
 			/>
-			<p id="qr_text" class="qr">Code: {{ totp_code }}</p>
+			<p id="qr_text">Code: {{ totp_code }}</p>
+		</div>
+		<div class="mfa_input">
+			<button @click="get_totp_url" v-show="!totp_code">
+				Enable / Change MFA
+			</button>
+			<input
+				class="totp_text_verif"
+				type="text"
+				v-model="code"
+				placeholder="TOTP Code"
+				v-show="totp_code"
+			/>
+			<button @click="verify" v-show="totp_code">VERIFY TOTP</button>
 		</div>
 	</div>
 </template>
@@ -113,36 +121,62 @@ async function get_infos() {
 }
 
 onMounted(() => {
-	document.getElementById('qrcode').style.height = '20vh';
-	document.getElementById('qr_img').style.filter = 'opacity(1)';
-	document.getElementById('qr_text').style.filter = 'opacity(1)';
 	get_infos();
 });
 </script>
 
-<style>
+<style scoped>
 .security-view {
-	height: 100vh;
-	width: 100%;
+	margin: 30px;
+	height: fit-content;
 	display: flex;
-	justify-content: center;
+	justify-content: top;
 	align-items: center;
 	flex-direction: column;
-	position: relative;
+	margin-bottom: 30px;
+}
+
+.hint {
+	font-size: 1.2rem;
+	margin: 10px;
+	padding: 0;
+}
+
+.qr_img {
+	margin-top: 15px;
+	display: flex;
+	justify-content: top;
+	align-items: center;
+	flex-direction: column;
+	object-fit: contain;
+	max-width: 80%;
+}
+
+#qr_text {
+	text-align: center;
+	font-size: 1em;
+	word-wrap: break-word;
+	max-width: 80%;
+}
+
+.totp_text_verif {
+	text-align: center;
+	width: 100%;
+	max-width: 80%;
+	height: 40px;
+	font-size: 1.2rem;
+	margin: 10px;
+	padding: 0;
 }
 
 .mfa_content {
 	position: relative;
-	height: 0;
-	/* transition: 2s ease; */
-	display: block;
-}
-
-.qr {
-	position: inherit;
-	filter: opacity(0);
-	transition: cubic-bezier(0.075, 0.82, 0.165, 1);
-	/* transition-delay: 2s; */
+	display: flex;
+	justify-content: top;
+	align-items: center;
+	flex-direction: column;
+	height: fit-content;
+	margin-bottom: 20px;
 }
 
 .mfa_input {
@@ -152,9 +186,9 @@ onMounted(() => {
 	justify-content: center;
 	align-items: center;
 	flex-direction: column;
-}
-
-.debug {
-	z-index: 1;
+	width: fit-content;
+	border-radius: 10px;
+	border: 3px solid #2c3e50;
+	box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
 }
 </style>
