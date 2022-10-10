@@ -25,6 +25,9 @@ let apiPath = FQDN + ':3000/api/v1/';
 let BACKEND_DOWN_MESSAGE =
 	'🖱️ Backend is down, please authorize our self-signed certificate manually by clicking this text';
 
+let BACKEND_DOWN_MESSAGE_NOTIF =
+	'🖱️ Backend is down, please authorize our self-signed certificate manually by clicking anywhere on this page';
+
 let BACKEND_UP_MESSAGE = '😊 Backend is up, you can now login';
 
 let backend_status = ref(false);
@@ -46,7 +49,7 @@ onMounted(() => {
 		.catch(() => {
 			setTimeout(() => {
 				backend_status.value = false;
-				toast.error(BACKEND_DOWN_MESSAGE);
+				toast.error(BACKEND_DOWN_MESSAGE_NOTIF);
 			}, 0.5);
 		});
 });
