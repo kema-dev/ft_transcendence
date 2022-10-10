@@ -211,8 +211,13 @@ export class AppGateway
 	}
 	@SubscribeMessage('getUserByLogin')
 	async getUserByLogin(client: Socket, payload: any): Promise<void> {
-		const user = await this.userService.getByLogin(payload.login);
-		client.emit('getUserByLogin', new ProfileUserDto(user));
+		try{
+			const user = await this.userService.getByLogin(payload.login);
+			client.emit('getUserByLogin', new ProfileUserDto(user));
+		}
+		catch {
+			client.emit('getUserByLogin', null);
+		}
 	}
 	@SubscribeMessage('addFriend')
 	addFriend(client: Socket, payload: any): void {

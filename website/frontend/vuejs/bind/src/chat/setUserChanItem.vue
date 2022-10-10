@@ -1,9 +1,12 @@
 <template>
-	<div class="moreButCont center row">
+	<div class="moreButCont center row stack">
 		<button
 			@click="showMore = !showMore"
 			class="setUserCont center"
 		>
+			<span v-if="showMore" class="infoButtonText">
+				Hide
+			</span>
 			<img v-if="!showMore"
 				src='~@/assets/more.svg'
 				alt="User setting"
@@ -15,50 +18,92 @@
 				class="infoImg"
 			/>
 		</button>
-		<button v-if="props.promote && showMore"
+		<button v-if="showMore"
+			@click="sendPrivMsg()"
+			class="setUserCont center"
+		>
+			<span class="infoButtonText">
+				Private message
+			</span>
+			<img
+				src='~@/assets/new_msg.svg'
+				alt="Send private message"
+				class="infoImg"
+			/>
+		</button>
+		<button v-if="showMore"
+			@click="invitInGame()"
+			class="setUserCont center"
+		>
+			<span class="infoButtonText">
+				Invit in game
+			</span>
+			<img
+				src='~@/assets/ball_logo.svg'
+				alt="Send private message"
+				class="infoImg"
+			/>
+		</button>
+		<button v-if="props.isAdmin && props.group == 'users' && showMore"
 			@click="promote()"
 			class="setUserCont center"
 		>
+			<span class="infoButtonText">
+				Promote Admin
+			</span>
 			<img
 				src='~@/assets/arrow_up.svg'
 				alt="User setting"
 				class="infoImg"
 			/>
 		</button>
-		<button v-if="props.demote && showMore"
+		<button v-if="props.isAdmin && props.group == 'admins' && showMore"
 			@click="demote()"
 			class="setUserCont center"
 		>
+			<span class="infoButtonText">
+				Demote User
+			</span>
 			<img
 				src='~@/assets/arrow_down.svg'
 				alt="User setting"
 				class="infoImg"
 			/>
 		</button>
-		<button v-if="props.mute && showMore"
+		<button v-if="props.isAdmin && showMore"
 			@click="updateSanction('mute')"
 			class="setUserCont center"
 		>
+			<span class="infoButtonText">
+				Mute
+			</span>
 			<img
 				src='~@/assets/mute.svg'
 				alt="User setting"
 				class="infoImg"
 			/>
 		</button>
-		<button v-if="props.restore && showMore"
+		<button v-if="props.isAdmin && showMore
+			&& (props.group == 'bans' || props.group == 'mutes')"
 			@click="restoreUser()"
 			class="setUserCont center"
 		>
+			<span class="infoButtonText">
+				{{props.group == 'mutes' ? 'Unmute' : 'Unban'}}
+			</span>
 			<img
 				src='~@/assets/restore.svg'
 				alt="User setting"
 				class="infoImg"
 			/>
 		</button>
-		<button v-if="props.ban && showMore"
+		<button v-if="props.isAdmin && showMore"
 			@click="updateSanction('ban')"
 			class="setUserCont center"
 		>
+			<span class="infoButtonText">
+				Ban
+			</span>
 			<img
 				src='~@/assets/block_logo.svg'
 				alt="User setting"
@@ -66,34 +111,29 @@
 			/>
 		</button>
 	</div>
-	<!-- <WarningMsg v-if="muteBool"
-			msg="For how many time you want to mute this user?"
-			msg2="(hh:mm:ss)"
-			:img="require('@/assets/mute2.svg')"
-		> -->
 	<WarningMsg v-if="sanction != ''"
-			:msg="'For how many time you want to ' 
-				+ sanction + ' this user?'"
-			msg2="(hh:mm:ss)"
-			:img="sanction == 'mute' ? 
-				require('@/assets/mute2.svg') : require('@/assets/banned_logo.png')"
-		>
-			<template #content>
-				<form
-					@submit.prevent="muteBan(sanction)"
-					id="timeForm"
-					class="center raw"
-				>
-					<input @keypress.enter="muteBan(sanction)" type="time" name="timeInput" id="timeInput" step="1" required/>
-				</form>
-			</template>
-			<template #buttons>
-				<div class="blockAdvertButtons center raw">
-					<button @click="muteBan(sanction)">OK</button>
-					<button @click="resetSanction()">Back</button>
-				</div>
-			</template>
-		</WarningMsg>
+		:msg="'For how many time you want to ' 
+			+ sanction + ' this user?'"
+		msg2="(hh:mm:ss)"
+		:img="sanction == 'mute' ? 
+			require('@/assets/mute2.svg') : require('@/assets/banned_logo.png')"
+	>
+		<template #content>
+			<form
+				@submit.prevent="muteBan(sanction)"
+				id="timeForm"
+				class="center raw"
+			>
+				<input @keypress.enter="muteBan(sanction)" type="time" name="timeInput" id="timeInput" step="1" required/>
+			</form>
+		</template>
+		<template #buttons>
+			<div class="blockAdvertButtons center raw">
+				<button @click="muteBan(sanction)">OK</button>
+				<button @click="resetSanction()">Back</button>
+			</div>
+		</template>
+	</WarningMsg>
 </template>
 
 <script setup lang="ts">
@@ -101,6 +141,7 @@ import { inject, defineProps, onMounted, ref, nextTick } from "vue";
 import { Socket } from "socket.io-client";
 import { ModifChanDto } from "@/chat/dto/ModifChanDto"
 import WarningMsg from "@/components/WarningMsg.vue";
+import router from "@/router";
 
 
 let colors = inject('colors');
@@ -127,11 +168,15 @@ const props = defineProps({
 		type: String,
 		required: true,
 	},
-	promote : Boolean,
-	demote : Boolean,
-	mute : Boolean,
-	ban : Boolean,
-	restore : Boolean,
+	isAdmin: {
+		type: Boolean,
+		required: true,
+	},
+	// promote : Boolean,
+	// demote : Boolean,
+	// mute : Boolean,
+	// ban : Boolean,
+	// restore : Boolean,
 });
 
 function promote() {
@@ -142,6 +187,15 @@ function promote() {
 function demote() {
 	mySocket.emit("modifChan", 
 		new ModifChanDto(props.chan, "demotUser", props.login));
+}
+
+function sendPrivMsg() {
+	console.log(`login = ${props.login}`)
+	router.push({name: 'PrivConv', params: { conv_name: props.login }});
+}
+
+function invitInGame() {
+
 }
 
 function muteBan(sanction: string) {
@@ -247,6 +301,37 @@ function restoreUser() {
 	}
 	100.0% {
 		background-color: white;
+	}
+}
+.infoButtonText {
+	visibility: hidden;
+	font-size: 0.8rem;
+	width: 135px;
+	/* width: auto; */
+	background-color: rgba(0, 0, 0, 0.6);
+	color: #fff;
+	text-align: center;
+	padding: 5px 0;
+	border-radius: 6px;
+	position: absolute;
+	z-index: 1;
+	bottom: 110%;
+	right: 50%;
+	transform: translate(50%);
+}
+.setUserCont:hover .infoButtonText {
+	visibility: visible;
+	opacity: 0;
+	animation: displayButtonInfo 0.3s;
+	animation-delay: 0.3s;
+	animation-fill-mode: forwards;
+}
+@keyframes displayButtonInfo {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
 	}
 }
 </style>

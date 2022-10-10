@@ -9,7 +9,7 @@
 			<button @click="toProfile" class="login">{{ userName }}</button>
 			<div class="option_buttons center raw stack">
 				<button @click="inviteGame" class="button_cont center">
-					<span class="infoButtonText">Invite in room</span>
+					<span class="infoButtonText">Invite in game</span>
 					<img
 						src="~@/assets/ball_logo.svg"
 						alt="Invite game button"

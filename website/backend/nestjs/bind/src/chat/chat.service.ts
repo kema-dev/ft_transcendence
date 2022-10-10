@@ -230,44 +230,31 @@ export class ChatService {
 			relations: {
 				chansAdmin : {admins: true, users: true, mutes: true,
 					 bans: true, messages: {user: true}},
-				chansUser : {admins: true, users: true, mutes: true,
-					 bans: true, messages: {user: true}},
 			},
 			where: {login: login},
-			// order: {
-			// 	chansAdmin: { messages: { createdAt: 'ASC'} },
-			// 	chansUser: { messages: { createdAt: 'ASC'} },
-			// 	chansMute: { messages: { createdAt: 'ASC'} },
-			// 	chansBan: { messages: { createdAt: 'ASC'} },
-			// }
+			order: {
+				chansAdmin: { messages: { createdAt: 'ASC'} },
+			}
 		});
-		// console.log(`find Admin Chan Done`);
 		const userChans = await this.userRepository.findOne({
 			relations: {
 				chansUser : {admins: true, users: true, mutes: true,
 					 bans: true, messages: {user: true}},
 			},
 			where: {login: login},
-			// order: {
-			// 	chansAdmin: { messages: { createdAt: 'ASC'} },
-			// 	chansUser: { messages: { createdAt: 'ASC'} },
-			// 	chansMute: { messages: { createdAt: 'ASC'} },
-			// 	chansBan: { messages: { createdAt: 'ASC'} },
-			// }
+			order: {
+				chansUser: { messages: { createdAt: 'ASC'} },
+			}
 		});
-		// console.log(`find User Chan Done`);
 		const muteChans = await this.userRepository.findOne({
 			relations: {
 				chansMute : {admins: true, users: true, mutes: true,
 					 bans: true, messages: {user: true}},
 			},
 			where: {login: login},
-			// order: {
-			// 	chansAdmin: { messages: { createdAt: 'ASC'} },
-			// 	chansUser: { messages: { createdAt: 'ASC'} },
-			// 	chansMute: { messages: { createdAt: 'ASC'} },
-			// 	chansBan: { messages: { createdAt: 'ASC'} },
-			// }
+			order: {
+				chansMute: { messages: { createdAt: 'ASC'} },
+			}
 		});
 		return admChans.chansAdmin
 			.concat(userChans.chansUser)

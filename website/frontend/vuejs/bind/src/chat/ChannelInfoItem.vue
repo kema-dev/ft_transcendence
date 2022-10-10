@@ -131,9 +131,9 @@
 			<div v-for="(data, i) in chansRef[props.i].admins" :key="i" class="left_center">
 				<BasicProfil :avatar="data.avatar" @click="toProfile(data.login)" 
 					:login="data.login" class="basicUser"/>
-				<setUserChan v-if="iAmAdmin && data.login != myName" 
+				<setUserChan v-if="data.login != myName" 
 					:login="data.login" :chan="chanName" group="admins" 
-					:demote="true" :mute="true" :ban="true"/>
+					:isAdmin="isAdmin()"/>
 			</div>
 		</div>
 		<span class="diviserBar"></span>
@@ -152,9 +152,9 @@
 			<div v-for="(data, i) in chansRef[props.i].users" :key="i" class="left_center">
 				<BasicProfil @click="toProfile(data.login)" 
 					:avatar="data.avatar" :login="data.login" class="basicUser"/>
-				<setUserChan v-if="iAmAdmin && data.login != myName" 
+				<setUserChan v-if="data.login != myName" 
 					:login="data.login" :chan="chanName" group="users"
-					:promote="true" :mute="true" :ban="true"/>
+					:isAdmin="isAdmin()"/>
 			</div>
 		</div>
 		<span class="diviserBar"></span>
@@ -173,9 +173,9 @@
 			<div v-for="(data, i) in chansRef[props.i].mutes" :key="i" class="left_center">
 				<BasicProfil @click="toProfile(data.login)" 
 					:avatar="data.avatar" :login="data.login" class="basicUser"/>
-				<setUserChan v-if="iAmAdmin && data.login != myName" 
+				<setUserChan v-if="data.login != myName" 
 					:login="data.login" :chan="chanName" group="mutes"
-					:restore="true" :ban="true"/>
+					:isAdmin="isAdmin()"/>
 			</div>
 		</div>
 		<span class="diviserBar"></span>
@@ -194,9 +194,9 @@
 			<div v-for="(data, i) in chansRef[props.i].bans" :key="i" class="left_center">
 				<BasicProfil @click="toProfile(data.login)" 
 					:avatar="data.avatar" :login="data.login" class="basicUser"/>
-				<setUserChan v-if="iAmAdmin && data.login != myName" 
+				<setUserChan v-if="data.login != myName" 
 					:login="data.login" :chan="chanName" group="bans"
-					:restore="true"/>
+					:isAdmin="isAdmin()"/>
 			</div>
 		</div>
 		<WarningMsg v-if="invitUser"

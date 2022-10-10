@@ -27,6 +27,10 @@ let nbPrivNR: { n: Ref<number[]>; reset: () => void } = inject('nbPrivNR')!;
 <style>
 #chatTopBar {
 	height: 60px;
+	z-index: 2;
+}
+.chatContent {
+	z-index: 1;
 }
 
 .chat_item_text {

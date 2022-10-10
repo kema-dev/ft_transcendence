@@ -232,8 +232,9 @@ function checkUserName(i: number) {
 	if (i == 0) 
 		return true;
 	if (
-		chansRef.value[index.value].messages[i].user == 
-		chansRef.value[index.value].messages[i - 1].user
+		chansRef.value[index.value].messages[i].user 
+		== chansRef.value[index.value].messages[i - 1].user
+		&& !checkDate(i)
 	)
 		return false;
 	else
@@ -246,8 +247,9 @@ function checkAvatar(i: number) {
 	if (i == 0 || i == chansRef.value[index.value].messages.length - 1) 
 		return true;
 	if (
-		chansRef.value[index.value].messages[i].user == 
-		chansRef.value[index.value].messages[i + 1].user
+		chansRef.value[index.value].messages[i].user
+		== chansRef.value[index.value].messages[i + 1].user
+		&& !checkDate(i + 1)
 	)
 		return false;
 	else
