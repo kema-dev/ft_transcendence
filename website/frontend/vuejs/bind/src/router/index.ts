@@ -17,6 +17,7 @@ import API from '../components/axios';
 import { useCookies } from 'vue3-cookies';
 import { useToast } from 'vue-toastification';
 import { BasicUserDto } from '@/chat/dto/BasicUserDto';
+import DebugView from '@/views/DebugView.vue';
 
 const data = require('../../.env')
 

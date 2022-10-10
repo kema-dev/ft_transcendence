@@ -14,7 +14,7 @@ import { NewChanDto } from './dto/NewChanDto';
 export class ChatController {
 	constructor(private readonly chatService: ChatService) {}
 
-	// @UseGuards(AuthGuard)
+	@UseGuards(AuthGuard)
 	@Get('getPrivs/:login')
 	async getPrivs(@Param() params: { login: string }) {
 		console.log(`getPrivs for user ${params.login}`);
@@ -23,6 +23,7 @@ export class ChatController {
 		return await this.chatService.createPrivsDto(params.login, privs);
 	}
 
+	// @UseGuards(AuthGuard)
 	@Get('getChans/:login')
 	async getChans(@Param() params : {login: string}) {
 		console.log(`getChans for user ${params.login }`);
@@ -86,4 +87,5 @@ export class ChatController {
 	) {
 		return await this.chatService.joinChanRequest(data);
 	}
+
 }

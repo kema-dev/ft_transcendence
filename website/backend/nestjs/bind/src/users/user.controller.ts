@@ -22,7 +22,7 @@ export class UsersController {
 	private logger: Logger = new Logger('UsersController');
 	constructor(private readonly usersService: UsersService) {}
 
-	// @UseGuards(AuthGuard)
+	@UseGuards(AuthGuard)
 	@Get('getBasicUser/:login')
 	async getBasicUser(@Param() params: { login: string }) {
 		console.log(`login = ${params.login}`)
@@ -30,13 +30,14 @@ export class UsersController {
 		return new BasicUserDto(user.login, user.avatar);
 	}
 
+	@UseGuards(AuthGuard)
 	@Get('getEmail/:login')
 	async getEmail(@Param() params: { login: string }) {
 		const user = await this.usersService.getByLogin(params.login);
 		return user.email;
 	}
 
-	// @UseGuards(JwtAuthenticationGuard) FIXME
+	@UseGuards(AuthGuard)
 	@Post('getUser')
 	async getUser(@Body() params: any) {
 		console.log('getUser: starting for ' + params.login);
@@ -46,6 +47,7 @@ export class UsersController {
 		this.logger.log('getUser: ' + test.login);
 		return test;
 	}
+	@UseGuards(AuthGuard)
 	@Post('getUsers')
 	async getUsers(@Body() str: string) {
 		this.logger.log('getUsers: starting for ' + str.toString());
@@ -55,6 +57,7 @@ export class UsersController {
 	// async getAnyByLogin(@Body() params: any) {
 	// 	return this.usersService.getAnyByLogin(params.login, params.infos);
 	// }
+	@UseGuards(AuthGuard)
 	@Post('get_user_avatar')
 	async get_user_avatar(@Body() params: any) {
 		return this.usersService.get_user_avatar(params.login);

@@ -15,6 +15,8 @@ import { useToast } from 'vue-toastification';
 import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { FQDN } from '../../.env.json';
+import { useCookies } from 'vue3-cookies';
+const { cookies } = useCookies();
 
 const router = useRouter();
 
@@ -30,7 +32,12 @@ let backend_status = ref(false);
 const toast = useToast();
 
 onMounted(() => {
-	API.get('auth/status')
+	API.get('auth/status', {
+		headers: {
+			login: cookies.get('login'),
+			token: cookies.get('session'),
+		},
+	})
 		.then(() => {
 			backend_status.value = true;
 			toast.info(BACKEND_UP_MESSAGE);
