@@ -16,6 +16,7 @@ import Player from '@/menu/PlayerTab.vue';
 import API from '../components/axios';
 import { useCookies } from 'vue3-cookies';
 import { useToast } from 'vue-toastification';
+import { BasicUserDto } from '@/chat/dto/BasicUserDto';
 import DebugView from '@/views/DebugView.vue';
 
 const data = require('../../.env')
@@ -57,42 +58,28 @@ const routes: Array<RouteRecordRaw> = [
 				components: { menu: Chat },
 				redirect: '/home/chat/private',
 				children: [
-					// {
-					// 	name: 'in-game',
-					// 	path: '/home/chat/in-game',
-					// 	components: {chat_menu: InGame},
-					// },
 					{
 						name: 'private',
 						path: '/home/chat/private',
 						components: { chat_menu: Private },
-						meta: { transition: 'myFade' },
 					},
 					{
 						name: 'channels',
 						path: '/home/chat/channels',
 						components: { chat_menu: Channels },
-						meta: { transition: 'myFade' },
 					},
 					{
 						name: 'PrivConv',
 						path: '/home/chat/private/:conv_name',
 						components: { chat_menu: PrivateConv },
-						meta: { transition: 'mySlide' },
 					},
 					{
-						name: 'ChannelConv',
+						name: 'ChanConv',
 						path: '/home/chat/channel/:conv_name',
 						components: { chat_menu: ChannelConv },
-						meta: { transition: 'mySlide' },
 					},
 				],
 			},
-			// {
-			// 	name: 'in-game',
-			// 	path: '/home/chat/in-game',
-			// 	component: {menu: inGame}
-			// },
 			{
 				name: 'profile',
 				path: '/home/profile',

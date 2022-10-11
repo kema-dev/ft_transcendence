@@ -1,29 +1,25 @@
 <template>
 	<div class="msg_cont">
-		<!-- <span class="date">{{getDateMsg()}}</span> -->
 		<div v-if="me == userLogin" class="myMsg_cont raw right">
-			<!-- <span class="date">{{ getDateMsg() }}</span> -->
 			<div class="myMsg_text">
 				{{ message }}
 			</div>
+
 		</div>
 		<div v-else class="userMsg_cont raw left">
-			<img :src="userAvatar" alt="Avatar" class="avatar" />
+			<img :src="userAvatar" @click="toProfile(userLogin)" 
+				alt="Avatar" class="avatar" />
 			<div class="userMsg_text">
 				{{ message }}
 			</div>
-			<!-- <span class="date">{{ getDateMsg() }}</span> -->
 		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
 /* eslint @typescript-eslint/no-var-requires: "off" */
+import router from '@/router';
 import { inject, defineProps, onMounted, ref } from 'vue';
-// import Conversation from '@/chat/Conversation';
-// import User from "@/chat/objects/User";
-// import Message from "@/chat/objects/Message";
-// import BasicUser from "./dto/BasicUserDto";
 
 let colors = inject("colors");
 let me: string = inject("me")!;
@@ -44,18 +40,18 @@ const props = defineProps({
 		type: Date,
 		required: true,
 	},
+	displayAvatar: Boolean
 });
 
-function getDateMsg(): string {
-	let ret = props.date.getHours() + ":" + props.date.getMinutes();
-	ret += "\n" + props.date.toLocaleDateString("fr");
-	return ret;
+function toProfile(player: string) {
+	router.push({name: 'player', params: { name: player }});
 }
+
 </script>
 
 <style scoped>
 * {
-	--height: 35px;
+	--height: 27px;
 }
 .myMsg_cont {
 	width: 100%;
@@ -91,12 +87,16 @@ function getDateMsg(): string {
 }
 
 .avatar {
+	opacity: v-bind("displayAvatar ? 1 : 0");
 	width: var(--height);
 	height: var(--height);
 	border-radius: 50%;
+	cursor: pointer;
 }
+
 .date {
 	font-size: 0.8rem;
 	white-space: pre;
 }
+
 </style>

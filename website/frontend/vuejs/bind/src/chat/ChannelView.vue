@@ -1,10 +1,10 @@
 <template>
 	<div id="channel_view" class="center column stack">
 		<div class="option_private center raw">
-			<SearchItem v-model:search="search" />
+			<SearchItem v-if="!newChannel" v-model:search="search"/>
 			<!-- <div v-if="newChannel" class="newChannelTitle">Create a new Channel</div> -->
 			<div v-if="newChannel" class="newChannelTitle center">
-				<span class="newChannelTitleText">Create a new Channel</span>
+				<span class="newChannelTitleText">Create new Channel</span>
 			</div>
 			<div class="option_buttons space-around raw stack">
 				<button
@@ -16,14 +16,14 @@
 					<img
 						v-if="!findChannel"
 						src="~@/assets/logo_search.svg"
-						alt="New message"
+						alt="Find Channel Button"
 						class="button_img"
 					/>
 					<span v-if="findChannel" class="infoButtonText">Back</span>
 					<img
 						v-if="findChannel"
 						src="~@/assets/undo_logo.svg"
-						alt="New message"
+						alt="Undo Button"
 						class="button_img"
 					/>
 				</button>
@@ -49,12 +49,11 @@
 				</button>
 			</div>
 		</div>
-		<div v-if="!findChannel && !newChannel" class="myChannels center column">
+		<div v-if="chanDone && !findChannel && !newChannel" class="myChannels center column">
 			<div v-for="(data, i) in chansFiltred" :key="i" class="center">
 				<ConversationTab
 					v-if="data.messages.length > 0"
 					:name-conv="data.name"
-					:avatar="data.avatar"
 					:message="data.messages.at(-1)!.msg"
 					:date="data.messages.at(-1)!.date"
 					:last-msg-user="data.messages.at(-1)!.user"
@@ -65,40 +64,58 @@
 				<ConversationTab
 					v-else
 					:name-conv="data.name"
-					:avatar="data.avatar"
 					:date="data.creation"
+					:read="data.readed"
 					:chan="true"
 					class="center"
 				/>
-				<!-- <ConversationTab v-else :name-conv="data.name" :avatar="data.avatar" :date="data.creation" :chan="true" class="center"/> -->
 			</div>
-			<h2 v-if="chansRef.length == 0" class="no_results">No conversations</h2>
+			<h2 v-if="chansRef.length == 0" class="no_results">No channels</h2>
 			<h2 v-else-if="chansFiltred!.length == 0" class="no_results">
 				No results
 			</h2>
 		</div>
+		<h2 v-else-if="findChannel && !search.length" class="no_results">
+			Type in the search bar
+		</h2>
 		<div
-			v-if="findChannel && serverChans.length > 0"
+			v-if="findChannel && search.length > 0 && serverChans.length > 0"
 			class="findChannelResults left column"
 		>
-			<!-- <div v-if="search.length > 0 && serverChans.length > 0" class="left column"> -->
 			<ChannelTab v-for="(data, i) in serverChans" :key="i" :infos="data" />
 		</div>
-		<h2 v-else-if="findChannel && serverChans.length == 0">No results</h2>
-		<!-- </div> -->
+		<h2 v-else-if="findChannel && search.length > 0 && serverChans.length == 0" class="no_results">
+			No results
+		</h2>
 		<form
 			v-if="newChannel"
 			@submit.prevent="submitChannel"
 			id="channelForm"
-			class="channelForm left column"
+			class="channelForm center column"
 		>
-			<div class="elemForm_cont left column">
-				<label for="name" class="labelForm">Channel name</label>
-				<input type="text" name="name" required id="name" class="inputForm" />
+			<div class="elemFormCont left_center column">
+				<div class=" elemFormTopCont left_center raw">
+					<img src="@/assets/name_logo.svg" alt="Name Channel" class="newChanImg">
+					<label for="newChanName" class="labelForm">Name :</label>
+				</div>
+				<input v-model="nameInput" type="text" name="newChanName" 
+					id="newChanName" class="inputForm" 
+				/>
 			</div>
-			<div class="elemForm_cont left column">
-				<div class="left_center raw">
-					<label for="pswCheckbox" class="labelForm">Password ?</label>
+			<div class="elemFormCont left_center raw">
+				<img src="@/assets/private.svg" alt="Private Channel" class="newChanImg">
+				<label for="privateCheckbox" class="labelForm">Private :</label>
+				<input
+						v-model="privCB"
+						type="checkbox"
+						name="privateCheckbox"
+						id="privateCheckbox"
+					/>
+			</div>
+			<div class="elemFormCont left_center column">
+				<div class="elemFormTopCont left_center raw">
+					<img src="@/assets/lock_logo.svg" alt="Password Channel" class="newChanImg">
+					<label for="pswCheckbox" class="labelForm">Password :</label>
 					<input
 						v-model="pswCheck"
 						type="checkbox"
@@ -107,19 +124,10 @@
 						value="psw required"
 					/>
 				</div>
-				<input
-					type="text"
-					name="pswInput"
-					id="pswInput"
-					class="inputForm"
-					:disabled="!pswCheck"
-					:required="pswCheck"
+				<input v-model="pswInput" type="text" name="pswInput"
+					id="pswInput" class="inputForm" :disabled="!pswCheck"
 				/>
 			</div>
-			<!-- <div class="elemForm_cont left column">
-				<label for="users" class="labelForm">User to invite in channel</label>
-				<input type="text" name="usersChann" id="usersChann" class="inputForm">
-			</div> -->
 			<input type="submit" value="Create" id="submitButton" />
 		</form>
 	</div>
@@ -135,51 +143,57 @@ import {
 	Ref,
 	nextTick,
 	watch,
+	onUpdated,
 } from "vue";
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import ConversationTab from "@/chat/ConversationTab.vue";
 import HTTP from "../components/axios";
+import { useToast } from 'vue-toastification';
 import ChannelTab from "@/chat/ChannelTab.vue";
 import SearchItem from "@/components/SearchItem.vue";
+import ConversationTab from "@/chat/ConversationTab.vue";
 import { ChannelDto } from "@/chat/dto/ChannelDto";
 import { ChannelTabDto } from "@/chat/dto/ChannelTabDto ";
-import { Message } from "@/chat/dto/MessageDto";
-import { BasicUserDto } from "@/chat/dto/BasicUserDto";
-import { chansRef, printChans } from "@/globals";
-
+import { NewChanDto } from "@/chat/dto/NewChanDto"
+	
+	
+const toast = useToast();
 let colors = inject("colors");
-let me: string = inject("me")!;
+let me : string = inject("me")!;
 let apiPath: string = inject("apiPath")!;
 
-let chansFiltred: Ref<ChannelDto[]> = ref(chansRef.value);
-let serverChans: Ref<ChannelTabDto[]> = ref([]);
-const newMsg = ref(false);
-let userServReqDone = ref(false);
+let chansRef : Ref<ChannelDto[]> = inject("chans")!;
+let chansFiltred : Ref<ChannelDto[]> = ref(chansRef.value);
+const chanDone: Ref<boolean> = inject("chanDone")!;
+let nbChanNR: { n: Ref<string[]>; reset: () => void } = inject("nbChanNR")!;
+
+if (chansRef.value.length) {
+	nbChanNR.reset();
+}
+
+let serverChans : Ref<ChannelTabDto[]> = ref([]);
+let chanServReqDone = ref(false);
 
 const search = ref("");
 const findChannel = ref(false);
 const newChannel = ref(false);
-const searchKey = ref(0);
 const pswCheck = ref(false);
+const privCB = ref(false);
+const nameInput = ref("");
+const pswInput = ref("");
 
-let test = new ChannelDto("second Channel", [new BasicUserDto(me)]);
-
-console.log(`Before push`);
-printChans(chansRef.value);
-chansRef.value.push(test);
-console.log(`After push`);
-printChans(chansRef.value);
+watch(chanDone, () => {
+	chansFiltred.value = chansRef.value;
+});
 
 watch(search, () => {
-	userServReqDone.value = false;
+	chanServReqDone.value = false;
 	chansFiltred.value = chansRef.value?.filter(function (chan) {
 		return chan.name.toUpperCase().startsWith(search.value.toUpperCase());
 	});
-	if (newMsg.value && search.value != "") getServerChans();
+	if (findChannel.value && search.value != "") getServerChans();
 });
 
 function getServerChans() {
-	HTTP.get(apiPath + "chat/getServerUsersFiltred/" + me + "/" + search.value)
+	HTTP.get(apiPath + "chat/getServerChansFiltred/" + me + "/" + search.value)
 		.then((res) => {
 			let chansTmp: ChannelTabDto[] = [];
 			res.data.forEach((chan: ChannelTabDto) => {
@@ -188,64 +202,59 @@ function getServerChans() {
 				);
 			});
 			serverChans.value = chansTmp;
-			filterServerUsers();
-			userServReqDone.value = true;
+			chanServReqDone.value = true;
 		})
 		.catch((e) => console.log(e));
 }
 
-function filterServerUsers() {
-	serverChans.value = serverChans.value!.filter((chan, i) => {
-		let isAlreadyKnow = true;
-		for (let chanKnown of chansFiltred.value) {
-			if (chanKnown.name == chan.name) {
-				isAlreadyKnow = false;
-				break;
-			}
-		}
-		return isAlreadyKnow;
-		// ========== AJOUTER FRIENDS ===========
-	});
-}
-
-// function knownPeople() : Channel[] {
-// 	let res : Channel[] = [];
-// 	for (let i = 0; i < convsFiltred.value.length; i++) {
-// 		res.push(convsFiltred.value[i]);
-// 	}
-// 	return res;
-// }
-
-// function otherPeople() : User[] {
-// 	let others = [user4, user5];
-// 	return others.filter(function(value) {
-// 		return value.name.toUpperCase().startsWith(search.value.toUpperCase());
-// 	});
-// }
-
 function findChannelFn() {
 	findChannel.value = !findChannel.value;
-	searchKey.value += 1;
+	search.value = "";
 	nextTick(() => {
 		document.getElementById("search")?.focus();
 	});
 }
 function newChannelFn() {
 	newChannel.value = !newChannel.value;
+	pswInput.value = "";
+	nameInput.value = "";
+	nextTick(() => {
+		document.getElementById("newChanName")?.focus();
+	})
 }
 
 function submitChannel() {
-	let form = document.getElementById('channelForm') as HTMLFormElement;
-	const data = new FormData(form);
-	if (data.get("pswInput") as string) {
-		// conversations.push(new Channel(data.get('name') as string, [me], data.get("pswInput") as string));
-	} else {
-		// conversations.push(new Channel(data.get('name') as string, [me]));
-	}
-	// convsFiltred.value = conversations;
-	newChannel.value = false;
-	console.log(data.get("name") as string);
+	let nameElem = document.getElementById('newChanName');
+	let pswElem = document.getElementById('pswInput');
+	nameElem!.classList.remove("invalidInput");
+	pswElem?.classList.remove("invalidInput");
+	if (nameInput.value == '')
+		return setTimeout(() => {
+			nameElem!.classList.add("invalidInput");
+		})
+	if (pswCheck.value && pswInput.value == '')
+		return setTimeout(() => {
+			pswElem!.classList.add("invalidInput");
+		})
+	HTTP.post(apiPath + "chat/createChan", 
+		new NewChanDto(nameInput.value, me, privCB.value, pswInput.value))
+		.then(res => {
+			let newChan = res.data as ChannelDto;
+			newChan.creation = new Date(newChan.creation);
+			chansRef.value.unshift(newChan);
+			newChannel.value = false;
+		})
+		.catch(e => {
+			if (e.response.data.message === 'CHAN_ALREADY_EXIST') {
+				nameElem!.classList.add("invalidInput");
+			}
+		});
+
 }
+
+onUpdated(() => {
+	if (nbChanNR.n.value.length) nbChanNR.reset();
+});
 
 onMounted(() => {
 	const box = document.getElementById("channelsTabText");
@@ -316,50 +325,6 @@ onBeforeUnmount(() => {
 		opacity: 1;
 	}
 }
-
-/* .buttons_cont{
-	width: 20%;
-}
-.button_cont {
-	border-radius: 50%;
-	margin: 5px;
-	position: static;
-}
-.button_cont:hover {
-	background-color: white;
-	box-shadow: 0px 0px 4px #aaa;
-}
-.new_msg_img {
-	height: 28px;
-	width: 28px;
-	filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg) brightness(86%) contrast(83%);
-}
-.infoButtonText {
-	visibility: hidden;
-	opacity: 0;
-	font-size: 0.8rem;
-	width: auto;
-	background-color: rgba(0,0,0,0.6);
-	color: #fff;
-	text-align: center;
-	padding: 5px;
-	border-radius: 6px;
-	position: absolute;
-	z-index: 1;
-	bottom: 100%;
-}
-.button_cont:hover .infoButtonText {
-	visibility: visible;
-	opacity: 0;
-	animation: displayButtonInfo 0.3s;
-	animation-delay: 0.3s;
-	animation-fill-mode: forwards;
-}
-@keyframes displayButtonInfo {
-	from { opacity: 0; }
-	to { opacity: 1; }
-} */
-
 .findChannelResults {
 	margin-top: 10px;
 	width: 90%;
@@ -383,20 +348,33 @@ onBeforeUnmount(() => {
 }
 .channelForm {
 	width: 80%;
+	margin-top: 20px;
 }
-.elemForm_cont {
-	padding-bottom: 10px;
+.elemFormCont {
+	margin-bottom: 15px;
+}
+.elemFormTopCont {
+	margin-bottom: 5px;
+}
+.newChanImg {
+	width: 20px;
+	height: 20px;
+	margin-right: 10px;
+	filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg)
+		brightness(86%) contrast(83%);
+	/* display: none; */
 }
 .labelForm {
-	/* font-family: "Orbitron", sans-serif; */
+	font-family: "Orbitron", sans-serif;
 	font-weight: 400;
 }
 .inputForm {
-	padding: 0 5px;
-	border-radius: 5px;
+	padding: 0 8px;
+	border-radius: calc(1.5rem / 2);
 	height: 1.5rem;
 	outline: none;
 }
+#privateCheckbox,
 #pswCheckbox {
 	margin-left: 10px;
 }
@@ -409,21 +387,35 @@ onBeforeUnmount(() => {
 	font-family: 'Orbitron', sans-serif;
 }
 #submitButton:hover {
-	/* font-weight: 500; */
-	/* box-shadow: 3px 3px 3px rgba(0,0,0,0.2); */
 	box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
 	cursor: pointer;
 }
-
-/* TRANSITION ROUTER VIEW */
-
-/* .myFade-enter-active,
-.myFade-leave-active {
-	transition: opacity 3s ease;
+.invalidInput {
+	animation: shake 0.4s linear;
 }
-
-.myFade-enter-from,
-.myFade-leave-to {
-	opacity: 0;
-} */
+@keyframes shake {
+	0%,
+	100% {
+		transform: translateX(0);
+	}
+	10%,
+	30%,
+	50%,
+	70%,
+	90% {
+		transform: translateX(-5px);
+	}
+	20%,
+	40%,
+	60%,
+	80% {
+		transform: translateX(5px);
+	}
+	0% {
+		background-color: rgb(255, 178, 178);
+	}
+	100.0% {
+		background-color: white;
+	}
+}
 </style>

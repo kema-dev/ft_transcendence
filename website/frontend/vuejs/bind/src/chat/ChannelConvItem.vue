@@ -1,55 +1,55 @@
 <template>
-	<div id="channel_view" class="stack">
+	<div v-if="chanExistDone && chanExist && chanDone" id="channel_view" class="stack">
 		<div class="userTopBar center raw space-between">
 			<div class="avatar_cont center">
-				<img :src="conv.user.avatar" class="avatar" alt="avatar" />
+				<img src="~@/assets/group_logo.svg"  class="avatar" alt="avatar" />
 			</div>
 			<span class="login">{{ route.params.conv_name }}</span>
+
 			<div class="option_buttons center raw stack">
-				<!-- <button @click="inviteGame" class="button_cont infoButton center">
-						<span class="infoButtonText">Invite in room</span>
-						<img src="~@/assets/play_button.png" alt="Invite game button" class="logo_img">
-					</button> -->
-				<button @click="info = !info" class="button_cont infoButton center">
-					<span class="infoButtonText">Info</span>
-					<img
-						v-if="!info"
+				<button @click="info = !info" class="button_cont center">
+					<span class="infoButtonText">Infos</span>
+					<img v-if="!info"
 						src="~@/assets/info_logo.svg"
-						alt="Info button"
-						class="logo_img"
+						alt="Infos button"
+						class="button_img"
 					/>
-					<img
-						v-else
+					<img v-else
 						src="~@/assets/undo_logo.svg"
-						alt="Info button"
-						class="logo_img"
+						alt="Undo button"
+						class="button_img"
 					/>
 				</button>
-				<button onclick="history.back();" class="button_cont infoButton center">
+				<button onclick="history.back();" class="button_cont center">
 					<span class="infoButtonText">Close</span>
 					<img
 						src="~@/assets/close_logo.svg"
 						alt="Invite game button"
-						class="logo_img"
+						class="button_img"
 					/>
 				</button>
 			</div>
 		</div>
 		<div v-if="!info" class="conversation_content stack">
-			<div id="messages_cont" ref="msgsCont" class="messages">
-				<!-- <div v-if="chanDone && selectPriv()">
-						<div v-for="(message, i) in selectPriv()!.messages" :key="i" class="center column">
-							<div v-if="checkDate(i)" class="date">
-								{{displayDate(message.date, i)}}
-							</div>
-							<MessageItem
-								:userAvatar="receiver.avatar"
-								:userLogin="message.user"
-								:message="message.msg"
-								:date="message.date"
-							/>
-						</div>
-					</div> -->
+			<div v-if="index != -1" id="msgsCont" class="messages">
+				<div class="date">{{displayDate(chansRef[index].creation, 0)}}</div>
+				<div v-for="(message, i) in chansRef[index].messages" 
+					:key="i" class="center column"
+				>
+					<div v-if="checkDate(i)" class="date">
+						{{displayDate(message.date, i)}}
+					</div>
+					<div v-if="checkUserName(i)" class="msgUserName">
+						{{message.user}}
+					</div>
+					<MessageItem
+						:userAvatar="findAvatar(message.user)"
+						:userLogin="message.user"
+						:message="message.msg"
+						:date="message.date"
+						:displayAvatar="checkAvatar(i)"
+					/>
+				</div>
 			</div>
 			<div class="sendbox_cont">
 				<input
@@ -62,146 +62,259 @@
 				/>
 			</div>
 		</div>
-		<div v-else class="infoCont left column">
-			<div class="infoElemCont left column" id="passwordInfo">
-				<div class="infoElemHead left_center raw">
-					<div class="infoElemImgCont center">
-						<img src="~@/assets/key_logo.svg" alt="Password" class="infoImg" />
-					</div>
-					<span class="infoText">Password :</span>
-					<img
-						v-if="password == ''"
-						src="~@/assets/redcross.svg"
-						alt="No Password"
-						class="infoImg"
-					/>
-					<span v-else>{{ password }}</span>
-					<div class="settingsOptions left_center raw stack">
-						<button
-							@click="showSettings = !showSettings"
-							class="settingsBtn center"
-						>
-							<img
-								src="~@/assets/settings_logo.svg"
-								alt="Password"
-								class="infoImg"
-							/>
-						</button>
-						<div
-							v-if="showSettings"
-							class="extendSettingsCont right_center raw"
-						>
-							<button class="extendBtn center">
-								<img
-									src="~@/assets/add2_logo.svg"
-									alt="Add password"
-									class="infoImg"
-								/>
-							</button>
-							<button class="extendBtn center">
-								<img
-									src="~@/assets/edit_logo.svg"
-									alt="Edit password"
-									class="infoImg"
-								/>
-							</button>
-							<button class="extendBtn center">
-								<img
-									src="~@/assets/delete_logo.svg"
-									alt="Delete password"
-									class="infoImg"
-								/>
-							</button>
-						</div>
-					</div>
-				</div>
-				<div class="infoElemBody left">
-					<input type="text" class="passwordInput" />
-				</div>
-			</div>
-			<!-- <div class="infoElemCont center raw" id="AdministratorsInfo">
-					<div class="infoImgCont">
-						<img src="~@/assets/crown_logo.svg" alt="Password" class="infoAvatar">
-					</div>
-					<span class="infoText">Administrators</span>
-					<img v-if="password == ''" src="~@/assets/redcross.svg" alt="" class="svgNoFilter">
-					<button class="infoSettings infoImgCont">
-						<img src="~@/assets/settings_logo.svg" alt="Password" class="infoAvatar">
-					</button>
-				</div>
-				<div class="infoElemCont center raw" id="UsersInfo">
-					<div class="infoImgCont">
-						<img src="~@/assets/group2_logo.svg" alt="Password" class="infoAvatar">
-					</div>
-					<span class="infoText">Users</span>
-					<img v-if="password == ''" src="~@/assets/redcross.svg" alt="" class="svgNoFilter">
-					<button class="infoSettings infoImgCont">
-						<img src="~@/assets/settings_logo.svg" alt="Password" class="infoAvatar">
-					</button>
-				</div> -->
-		</div>
+		<ChannelInfoItem v-if="info && index != -1" :i="index"/>
+	</div>
+	<div v-else-if="chanExistDone && !chanExist" class="wrongPath center">
+		<span class="wrongPathMsg">This channel does not exist &#129301;</span>
 	</div>
 </template>
 
 <script setup lang="ts">
 /* eslint @typescript-eslint/no-var-requires: "off" */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import { inject, onMounted, ref, onBeforeUnmount, watch } from "vue";
+import { inject, onMounted, ref, Ref, onBeforeUnmount, watch, nextTick } from "vue";
 import { useRoute } from "vue-router";
 import { Socket } from "socket.io-client";
+import HTTP from "../components/axios";
 import MessageItem from "@/chat/MessageItem.vue";
-import BlockAdvert from "@/components/BlockItem.vue";
-import { Message } from "@/chat/dto/MessageDto";
+import ChannelInfoItem from "./ChannelInfoItem.vue";
 import { NewChanMsgDto } from "@/chat/dto/NewChanMsgDto";
+import { ChannelDto } from "./dto/ChannelDto";
+import { ProfileUserDto } from "@/dto/ProfileUserDto"
+import router from "@/router";
 
+
+// ================= INIT =================
+
+// INIT COMPONENT VARIABLES
 const route = useRoute();
 let chanName = route.params.conv_name as string;
+let apiPath: string = inject("apiPath")!;
 let colors = inject("colors");
 let mySocket: Socket = inject("socket")!;
-let me: string = inject("me")!;
+let myName: string = inject("me")!;
+let me: Ref<ProfileUserDto> = inject("user")!;
+const newIndex : Ref<string> = inject("newIndex")!;
 let myMsg = ref("");
 let info = ref(false);
-let password = ref("");
-let showSettings = ref(false);
+let chanExist = ref(false);
+let chanExistDone = ref(false);
+let index = ref(-1);
 
-// let user1 = new User("Totolosa", require("@/assets/avatars/(1).jpg"));
-// let user2 = new User("Ocean", require("@/assets/avatars/(2).jpg"));
-// let user3 = new User("Patrick la trick", require("@/assets/avatars/(3).jpg"));
+// VERIFY IF CHAN EXIST
+HTTP.get(apiPath + "chat/chanExist/" + chanName)
+	.then((res) => {
+		chanExist.value = res.data;
+		chanExistDone.value = true;
+		nextTick(() => {
+			scrollAndFocus();
+		})
+	})
+	.catch((e) => console.log(e));
 
-// let msg1 = new Message(user1, "Salut frere ce fait graaaaave longtemps ca fais plaisr! Tu deviens quoi l'ami?", new Date('July 17, 2022 03:24:00'));
-// let msg2 = new Message(user2, "Salut poto", new Date('July 22, 2022 03:25:12'));
-// let msg3 = new Message(user1, "Game?", new Date('July 18, 2022 12:45:45'));
-// let msg4 = new Message(user3, "Non je dois finir de faire le front, et wallah c'est chaud", new Date('July 18, 2022 12:47:55'));
-// let msg5 = new Message(user1, "dsaibciauwncopneejvnjn fcoamsdomvcafosnvonsvonoans", new Date());
-// let msg6 = new Message(user2, "Mais tu sais pas parler en fait", new Date());
+// GET CHANS REFS
+let chansRef : Ref<ChannelDto[]> = inject("chans")!;
+let chanRead: (index: number, readed: boolean) => void =
+	inject("chanReaded")!;
+const chanDone: Ref<boolean> = inject("chanDone")!;
+const chanBan: Ref<string> = inject("chanBan")!;
 
-// let conv = ref(new Private(user2, [msg1, msg2, msg3, msg5, msg6]));
-// // let conv2 = new Conversation(false, [user1, user2, user3], [msg1, msg2]);
-
-function sendMsg() {
-	mySocket.emit("newPrivMsg", new NewChanMsgDto(me, chanName, myMsg.value));
-	myMsg.value = "";
+// GET CHAN INDEX
+index.value = chansRef.value.findIndex((chan) => chan.name == chanName);
+if (index.value != -1) {
+	chanRead(index.value, true);
+	scrollAndFocus();
+	watch(chansRef.value[index.value].messages, () => {
+		chanRead(index.value, true);
+		let msgsCont = document.getElementById("msgsCont");
+		if (msgsCont) {
+			let oldScrollTop = msgsCont!.scrollTop;
+			let oldScrollHeight = msgsCont!.scrollHeight;
+			let oldClientHeight = msgsCont!.clientHeight;
+			let lastMsg = msgsCont.lastElementChild!.clientHeight;
+			if (oldScrollTop + oldClientHeight + lastMsg == oldScrollHeight)
+				msgsCont!.scrollTop = msgsCont!.scrollHeight;
+		}
+	}, {flush: 'post'})
 }
 
-// function blockUser () {
-// 	let advert = document.getElementById("blockAdvert_view");
-// 	if (advert != null) {
-// 		advert.style.setProperty('visibility', 'visible');
-// 	}
-// }
+// GET CHAN INDEX IF REFRESH PAGE
+watch(chanDone, () => {
+	index.value = chansRef.value.findIndex((chan) => chan.name == chanName);
+	if (index.value != -1) {
+		nextTick(() => {
+			scrollAndFocus();
+			chanRead(index.value, true);
+			watch(chansRef.value[index.value].messages, () => {
+				chanRead(index.value, true);
+				let msgsCont = document.getElementById("msgsCont");
+				if (msgsCont) {
+					let oldScrollTop = msgsCont!.scrollTop;
+					let oldScrollHeight = msgsCont!.scrollHeight;
+					let oldClientHeight = msgsCont!.clientHeight;
+					let lastMsg = msgsCont.lastElementChild!.clientHeight;
+					if (oldScrollTop + oldClientHeight + lastMsg == oldScrollHeight)
+					msgsCont!.scrollTop = msgsCont!.scrollHeight;
+				}
+			})
+		})
+	}
+}, {flush: 'post'})
+
+
+// ================= WATCHERS =================
+
+watch(chanBan, () => {
+	if (chanBan.value == chansRef.value[index.value].name) {
+		router.push({name: 'channels'});
+	}
+})
+
+watch(newIndex, () => {
+	if (newIndex.value != '') {
+		// console.log(`Find new Index chan ${chanName} : old Index = ${index.value}`)
+		index.value = chansRef.value.findIndex((chan) => chan.name == chanName);
+		// console.log(`Find new Index chan ${chanName} : new Index = ${index.value}`)
+		chanRead(index.value, true);
+		newIndex.value == '';
+	}
+}, {flush: 'post'})
+
+
+// ================= METHODS =================
+
+function sendMsg() {
+	let input = document.getElementById("sendbox");
+	input?.classList.remove("invalidInput");
+	if (chansRef.value[index.value].mutes.find(m => m.login == myName))
+		return setTimeout(() => {
+			input!.classList.add("invalidInput");
+		}, 50);
+	if (myMsg.value != '') {
+		mySocket.emit("newChanMsg", new NewChanMsgDto(myName, chanName, myMsg.value));
+		myMsg.value = "";
+	}
+}
+
+function scrollAndFocus() {
+	let msgCont = document.getElementById("msgsCont");
+	if (msgCont)
+		msgCont.scrollTop = msgCont.scrollHeight;
+	document.getElementById("sendbox")?.focus();
+}
+
+function findAvatar(login: string) {
+	let isInChan = chansRef.value[index.value].admins
+		.concat(chansRef.value[index.value].users)
+		.concat(chansRef.value[index.value].mutes)
+		.concat(chansRef.value[index.value].bans)
+		.find(user => user.login == login);
+	if (isInChan)
+		return isInChan.avatar;
+	else
+		return require('@/assets/dead.svg')
+}
+
+function checkDate(i: number) {
+	if (i == 0) return false;
+	else if (
+		Math.ceil(
+			(chansRef.value[index.value].messages[i].date.getTime() -
+				chansRef.value[index.value].messages[i - 1].date.getTime()) /
+				(1000 * 60)
+		) > 15
+	)
+		return true;
+	else
+		return false;
+}
+
+
+
+function checkUserName(i: number) {
+	if (myName == chansRef.value[index.value].messages[i].user)
+		return false;
+	if (i == 0) 
+		return true;
+	if (
+		chansRef.value[index.value].messages[i].user 
+		== chansRef.value[index.value].messages[i - 1].user
+		&& !checkDate(i)
+	)
+		return false;
+	else
+		return true;
+}
+
+function checkAvatar(i: number) {
+	if (myName == chansRef.value[index.value].messages[i].user)
+		return false;
+	if (i == 0 || i == chansRef.value[index.value].messages.length - 1) 
+		return true;
+	if (
+		chansRef.value[index.value].messages[i].user
+		== chansRef.value[index.value].messages[i + 1].user
+		&& !checkDate(i + 1)
+	)
+		return false;
+	else
+		return true;
+}
+
+function displayDate(date: Date, i: number) {
+	let minutes: string | number;
+	if (date.getMinutes() < 10) minutes = "0" + date.getMinutes().toString();
+	else minutes = date.getMinutes();
+	let hours: string | number;
+	if (date.getHours() < 10) hours = "0" + date.getHours().toString();
+	else hours = date.getHours();
+	const day = date.getUTCDate();
+	const month = date.toLocaleString("default", { month: "long" });
+	const year = date.getFullYear();
+	if (i == 0)
+		return `Created the ${day} ${month} ${year} at ${hours}:${minutes}`;
+	const now = new Date();
+	const timeDif = date.getTime() - new Date().getTime();
+	const minutesDif = Math.ceil(timeDif / (1000 * 60));
+	const hoursDif = Math.ceil(minutesDif / 60);
+	const daysDif = Math.ceil(hoursDif / 24);
+	if (date.toDateString() == now.toDateString()) return `${hours}:${minutes}`;
+	if (daysDif < 7)
+		return `${date.toLocaleDateString("en-GB", {
+			weekday: "long",
+		})} ${hours}:${minutes}`;
+	else return `${day} ${month} ${year} at ${hours}:${minutes}`;
+}
+
+
+// ====================== LIFECYCLES HOOKS ======================
 
 onMounted(() => {
-	// ((msgsCont.value!) as HTMLElement).scrollTop =
-	// ((msgsCont.value!) as HTMLElement).scrollHeight;
+	let msgsCont = document.getElementById("msgsCont");
+	if (msgsCont)
+		msgsCont!.scrollTop = msgsCont!.scrollHeight;
 	document.getElementById("sendbox")?.focus();
-	const box = document.getElementById("privateTabText");
+	const box = document.getElementById("channelsTabText");
 	if (box != null) box.classList.add("chatTabActive");
 });
 
 onBeforeUnmount(() => {
-	const box = document.getElementById("privateTabText");
+	const box = document.getElementById("channelsTabText");
 	if (box != null) box.classList.remove("chatTabActive");
 });
+
+
+// ====================== UTILS ======================
+
+function printChan(chan: ChannelDto) {
+	console.log(`PRINTCHAN`)
+	console.log(`psw = ${chan.psw}`);
+	console.log(`creation = ${chan.creation}`);
+	console.log(`readed = ${chan.readed}`);
+	console.log(`admins = ${chan.admins.map(admin => admin.login + ', ')}`);
+	console.log(`users = ${chan.users.map(user => user.login + ', ')}`);
+	chan.messages.forEach((msg) => console.log(`${msg.msg}`));
+}
+
 </script>
 
 <style scoped>
@@ -215,8 +328,6 @@ onBeforeUnmount(() => {
 	width: 100%;
 	height: var(--height);
 	background-color: white;
-	/* margin-top: 5px; */
-
 	box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.1), 0px -4px 4px rgba(0, 0, 0, 0.1);
 }
 .avatar_cont {
@@ -241,24 +352,26 @@ onBeforeUnmount(() => {
 }
 .option_buttons {
 	width: auto;
-	position: relative;
-	margin-right: 10px;
+	margin-right: 8px;
 }
-.button_cont {
-	margin: 5px;
-	position: static;
-}
-.logo_img {
+.button_img {
 	width: 30px;
 	height: 30px;
 	filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg)
 		brightness(86%) contrast(83%);
 }
-
+.button_cont {
+	border-radius: 50%;
+	padding: 5px;
+}
+.button_cont:hover {
+	background-color: white;
+	box-shadow: 0px 0px 4px #aaa;
+}
 .infoButtonText {
-	opacity: 0;
+	visibility: hidden;
 	font-size: 0.8rem;
-	width: 120px;
+	width: 70px;
 	background-color: rgba(0, 0, 0, 0.6);
 	color: #fff;
 	text-align: center;
@@ -266,15 +379,28 @@ onBeforeUnmount(() => {
 	border-radius: 6px;
 	position: absolute;
 	z-index: 1;
-	bottom: 100%;
+	bottom: 110%;
 	right: 50%;
 	transform: translate(50%);
 }
-
+.button_cont:hover .infoButtonText {
+	visibility: visible;
+	opacity: 0;
+	animation: displayButtonInfo 0.3s;
+	animation-delay: 0.3s;
+	animation-fill-mode: forwards;
+}
+@keyframes displayButtonInfo {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
 .conversation_content {
 	height: calc(100% - 70px);
 	width: 100%;
-	padding-top: 20px;
 }
 .messages {
 	overflow-y: auto;
@@ -283,12 +409,23 @@ onBeforeUnmount(() => {
 	flex-direction: column;
 	justify-content: flex-start;
 }
-
+.date {
+	margin: 15px 0;
+	font-size: 0.8rem;
+	white-space: pre;
+}
+.msgUserName {
+	width: auto;
+	font-family: "Orbitron", sans-serif;
+	font-size: 0.7rem;
+	margin-right: auto;
+	margin-left: 47px;
+	justify-self: flex-start;
+}
 .sendbox_cont {
 	position: absolute;
 	bottom: 1rem;
 }
-
 .sendbox {
 	width: 40%;
 	height: 2.2rem;
@@ -302,74 +439,42 @@ onBeforeUnmount(() => {
 	transition: width 0.3s ease-in-out;
 	width: 80%;
 }
-
-.infoCont {
-	margin-top: 20px;
+.invalidInput {
+	animation: shake 0.4s linear;
 }
-
-.infoElemCont {
-	width: auto;
-	margin-left: 20px;
+@keyframes shake {
+	0%,
+	100% {
+		transform: translateX(0);
+	}
+	10%,
+	30%,
+	50%,
+	70%,
+	90% {
+		transform: translateX(-5px);
+	}
+	20%,
+	40%,
+	60%,
+	80% {
+		transform: translateX(5px);
+	}
+	0% {
+		background-color: rgb(255, 178, 178);
+	}
+	100.0% {
+		background-color: white;
+	}
 }
-.infoText {
-	font-family: 'Orbitron', sans-serif;
-	width: auto;
-	white-space: nowrap;
-	margin: 0 10px;
+.wrongPath {
+	height: calc(100vh - 180px);
+	font-family: "Orbitron", sans-serif;
+	font-size: 1.2rem;
+	position: relative;
 }
-.passwordInput {
-	padding: 0 5px;
-	border-radius: 5px;
-	height: 1.5rem;
-	outline: none;
-}
-.settingsOptions {
-	margin-left: 20px;
-}
-.infoElemImgCont,
-.settingsBtn,
-.extendBtn {
-	height: 26px;
-	width: 26px;
-}
-.infoImg {
-	height: 20px;
-	width: 20px;
-	filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg)
-		brightness(86%) contrast(83%);
-}
-.settingsBtn,
-.extendSettingsCont {
-	border: solid 1px v-bind("colors.color2");
-	border-radius: 13px;
+.wrongPathMsg {
 	position: absolute;
-	background-color: #fff;
+	top: 30%;
 }
-.settingsBtn {
-	z-index: 1;
-}
-.extendSettingsCont {
-	height: 26px;
-	width: v-bind("4 * 26 + 'px'");
-	z-index: 0;
-	transition: all 0.5 ease-in-out;
-}
-
-/* TRANSITION ROUTER VIEW */
-
-/* .mySlide-leave-active,
-.mySlide-enter-active {
-	transition: 1s;
-}
-.mySlide-leave-to,
-.mySlide-enter-from {
-	transform: translateY(100%);
-} */
-
-/* .mySlide-enter-from {
-	transform: translateY(100%);
-}
-.mySlide-leave-to {
-	transform: translateY(-100%);
-} */
 </style>

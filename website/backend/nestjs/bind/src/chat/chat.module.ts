@@ -12,8 +12,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { UsersModule } from '../users/users.module';
-import { AuthenticationService } from '../authentication/authentication.service';
+// import { AuthenticationService } from '../authentication/authentication.service';
 import { ChannelEntity } from './entites/channel.entity';
+import { AppGateway } from '../app.gateway';
 
 @Module({
 	imports: [
@@ -39,8 +40,10 @@ import { ChannelEntity } from './entites/channel.entity';
 			}),
 		}),
 	],
+	// exports: [ChatService, AppGateway],
+	// providers: [ChatService, UsersService, AppGateway],
 	exports: [ChatService],
-	providers: [ChatService, UsersService, AuthenticationService],
+	providers: [ChatService, UsersService],
 	controllers: [ChatController],
 })
 export class ChatModule {}

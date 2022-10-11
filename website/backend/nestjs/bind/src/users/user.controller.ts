@@ -15,7 +15,7 @@ import { AuthGuard } from '../authentication/auth.guard';
 import ProfileUserDto from 'src/users/dto/ProfileUserDto';
 
 import { UsersService } from './users.service';
-import BasicUserDto from 'src/chat/dto/BasicUserDto';
+import { BasicUserDto } from 'src/chat/dto/BasicUserDto';
 
 @Controller('user')
 export class UsersController {
@@ -25,8 +25,9 @@ export class UsersController {
 	@UseGuards(AuthGuard)
 	@Get('getBasicUser/:login')
 	async getBasicUser(@Param() params: { login: string }) {
+		console.log(`login = ${params.login}`)
 		const user = await this.usersService.getByLogin(params.login);
-		return new BasicUserDto(user.login);
+		return new BasicUserDto(user.login, user.avatar);
 	}
 
 	@UseGuards(AuthGuard)

@@ -5,6 +5,7 @@ import {
 	PrimaryGeneratedColumn,
 	OneToMany,
 	ManyToMany,
+	JoinTable,
 	JoinColumn,
 } from 'typeorm';
 import TimestampEntites from '../../utils/timestamp.enties';
@@ -13,43 +14,56 @@ import { UserEntity } from '../../users/user.entity';
 
 @Entity('channel')
 export class ChannelEntity extends TimestampEntites {
+	constructor() {
+		super();
+		// this.readed = false;
+		// this.avatar = avatars[Math.floor(Math.random() * 5)];
+	}
 	@PrimaryGeneratedColumn()
 	id: number;
 
 	@Column()
 	name: string;
 
-	// @Column({ nullable: true })
-	// avatar: any;
+	@Column()
+	private: boolean;
+
+	@Column({ nullable: true })
+	avatar: string;
 
 	@Column({ nullable: true })
 	password: string;
 
-	@Column()
-	readed: boolean;
-
-	@ManyToMany((type) => UserEntity, (user) => user.chanAdmins, {
-		onDelete: 'SET NULL',
+	@ManyToMany( type => UserEntity, (user) => user.chansAdmin, {
+		onDelete: 'CASCADE'
 	})
+	@JoinTable()
 	admins: UserEntity[];
 
 	@ManyToMany((type) => UserEntity, (user) => user.chansUser, {
-		onDelete: 'SET NULL',
+		onDelete: 'CASCADE',
+		nullable: true,
 	})
+	@JoinTable()
 	users: UserEntity[];
 
 	@OneToMany((type) => MessageEntity, (message) => message.chan, {
 		cascade: true,
+		nullable: true,
 	})
 	messages: MessageEntity[];
 
-	@ManyToMany((type) => UserEntity, (user) => user.bans, {
-		onDelete: 'SET NULL',
+	@ManyToMany((type) => UserEntity, (user) => user.chansBan, {
+		onDelete: 'CASCADE',
+		nullable: true,
 	})
+	@JoinTable()
 	bans: UserEntity[];
 
-	@ManyToMany((type) => UserEntity, (user) => user.mutes, {
-		onDelete: 'SET NULL',
+	@ManyToMany((type) => UserEntity, (user) => user.chansMute, {
+		onDelete: 'CASCADE',
+		nullable: true,
 	})
+	@JoinTable()
 	mutes: UserEntity[];
 }

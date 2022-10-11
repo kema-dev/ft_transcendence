@@ -1,5 +1,5 @@
 <template>
-	<div class="column center" id="test">
+	<div v-if="userExist" class="column center" id="test">
 		<div class="stack avatar-stack">
 			<div id="bar"></div>
 			<div id="avatar">
@@ -14,33 +14,55 @@
 			<MatchItem index="" />
 		</div>
 	</div>
+	<div v-else class="wrongPath center">
+		<span class="wrongPathMsg">This user do not exist &#129301;</span>
+	</div>
 </template>
 
 <script setup lang="ts">
-import { inject, onMounted, ref } from "vue";
+import { inject, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import MatchItem from "@/components/MatchItem.vue";
 
 let socket = inject("socket")!;
 let define = inject("colors");
 const route = useRoute();
+let userExist = ref(false);
 let user = ref();
 let bar: any;
 socket.on("getUserByLogin", (data: any) => {
+	if (data == null)
+		return userExist.value = false;
+	else
+		userExist.value = true;
 	user.value = data;
 	bar.animate(1 - Number(user?.value?.ratio));
 });
 socket.emit("getUserByLogin", { login: route.params.name });
 var ProgressBar = require("progressbar.js");
-onMounted(() => {
-	bar = new ProgressBar.Circle("#bar", {
-		color: define.color2,
-		strokeWidth: 4,
-		trailWidth: 0,
-		easing: "easeInOut",
-		duration: 1400,
-	});
-});
+// onMounted(() => {
+// 	bar = new ProgressBar.Circle("#bar", {
+// 		color: define.color2,
+// 		strokeWidth: 4,
+// 		trailWidth: 0,
+// 		easing: "easeInOut",
+// 		duration: 1400,
+// 	});
+// });
+
+watch(userExist, () => {
+	console.log("userExist");
+	if (userExist.value == true) {
+		bar = new ProgressBar.Circle("#bar", {
+			color: define.color2,
+			strokeWidth: 4,
+			trailWidth: 0,
+			easing: "easeInOut",
+			duration: 1400,
+		});
+	}
+}, {flush: 'post'})
+
 </script>
 
 <style scoped>
@@ -78,5 +100,15 @@ onMounted(() => {
 }
 .info {
 	font-size: 100%;
+}
+.wrongPath {
+	height: calc(100vh - 180px);
+	font-family: "Orbitron", sans-serif;
+	font-size: 1.2rem;
+	position: relative;
+}
+.wrongPathMsg {
+	position: absolute;
+	top: 50%;
 }
 </style>
