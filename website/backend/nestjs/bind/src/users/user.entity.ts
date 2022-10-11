@@ -120,15 +120,13 @@ export class UserEntity extends TimestampEntites {
 		nullable: true,
 		onDelete: 'SET NULL',
 	})
-	@JoinTable()
-	chanAdmins: ChannelEntity[];
-
-	@ManyToMany((type) => ChannelEntity, (chan) => chan.users, {
+	chansAdmin: ChannelEntity[];
+	
+	@ManyToMany(type => ChannelEntity, (chan) => chan.users ,{
 		cascade: true,
 		nullable: true,
 		onDelete: 'SET NULL',
 	})
-	@JoinTable()
 	chansUser: ChannelEntity[];
 
 	@ManyToMany((type) => ChannelEntity, (chan) => chan.bans, {
@@ -136,16 +134,14 @@ export class UserEntity extends TimestampEntites {
 		nullable: true,
 		onDelete: 'SET NULL',
 	})
-	@JoinTable()
-	bans: ChannelEntity[];
+	chansBan: ChannelEntity[];
 
 	@ManyToMany((type) => ChannelEntity, (chan) => chan.mutes, {
 		cascade: true,
 		nullable: true,
 		onDelete: 'SET NULL',
 	})
-	@JoinTable()
-	mutes: ChannelEntity[];
+	chansMute: ChannelEntity[];
 
 	@Column()
 	public lobby_name: string;

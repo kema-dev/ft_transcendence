@@ -1,7 +1,7 @@
 <template>
 	<router-link
 		:to="{
-			name: chan == true ? 'ChannelConv' : 'PrivConv',
+			name: chan == true ? 'ChanConv' : 'PrivConv',
 			params: { conv_name: nameConv },
 		}"
 		class="conv_container left row stack"
@@ -51,12 +51,12 @@ const props = defineProps({
 		type: Date,
 		required: true,
 	},
-	lastMsgUser: {
-		type: String,
-		required: false,
-	},
 	read: {
 		type: Boolean,
+		required: true,
+	},
+	lastMsgUser: {
+		type: String,
 		required: false,
 	},
 
@@ -64,12 +64,14 @@ const props = defineProps({
 	chan: Boolean,
 });
 
-// let displayNotRead : boolean;
 function displayNotRead() {
-	if (props.read == false && props.lastMsgUser != me) return true;
-	else return false;
+	if (props.chan && props.read == false)
+		return true;
+	if (props.read == false && props.lastMsgUser != me)
+		return true;
+	else 
+		return false;
 }
-// console.log(`\ndisplayNotRead = ${displayNotRead()}\nread = ${props.read}\nlastMsgUser = ${props.lastMsgUser}`);
 
 function displayMsg() {
 	if (props.lastMsgUser == me) return `You: ${props.message}`;

@@ -1,13 +1,15 @@
 <template>
-	<div id="conversation_view" class="stack">
+	<div v-if="userExistDone && userExist && privDone" id="conversation_view" class="stack">
 		<div class="userTopBar center raw space-between">
 			<div class="avatar_cont center">
-				<img :src="receiver.avatar" class="avatar" alt="avatar" />
+				<img :src="userExist.avatar"
+					class="avatar" alt="avatar"
+				/>
 			</div>
-			<button @click="toProfile" class="login">{{ receiver!.login }}</button>
+			<button @click="toProfile" class="login">{{ userName }}</button>
 			<div class="option_buttons center raw stack">
 				<button @click="inviteGame" class="button_cont center">
-					<span class="infoButtonText">Invite in room</span>
+					<span class="infoButtonText">Invite in game</span>
 					<img
 						src="~@/assets/ball_logo.svg"
 						alt="Invite game button"
@@ -33,23 +35,20 @@
 			</div>
 		</div>
 		<div class="conversation_content">
-			<div id="messages_cont" ref="msgsCont" class="messages">
-				<div v-if="privDone && selectPriv()">
-					<div
-						v-for="(message, i) in selectPriv()!.messages"
-						:key="i"
-						class="center column"
-					>
-						<div v-if="checkDate(i)" class="date">
-							{{ displayDate(message.date, i) }}
-						</div>
-						<MessageItem
-							:userAvatar="receiver.avatar"
-							:userLogin="message.user"
-							:message="message.msg"
-							:date="message.date"
-						/>
+			<div v-if="index != -1" id="msgsCont" class="messages">
+				<div v-for="(message, i) in privsRef[index].messages" 
+					:key="i" class="center column"
+				>
+					<div v-if="checkDate(i)" class="date">
+						{{ displayDate(message.date, i) }}
 					</div>
+					<MessageItem
+						:userAvatar="privsRef[index].user.avatar"
+						:userLogin="message.user"
+						:message="message.msg"
+						:date="message.date"
+						:displayAvatar="checkAvatar(i)"
+					/>
 				</div>
 			</div>
 			<div class="sendbox_cont">
@@ -65,7 +64,8 @@
 		</div>
 		<WarningMsg
 			v-if="blockWarn"
-			msg="Are you sure to block this User? You will not receive message from him/her anymore"
+			msg="Are you sure to block this User? 
+				You will not receive message from him/her anymore"
 			:img="require('@/assets/warning_logo.png')"
 		>
 			<template #buttons>
@@ -76,118 +76,193 @@
 			</template>
 		</WarningMsg>
 	</div>
+	<div v-else-if="userExistDone && !userExist" class="wrongPath center">
+		<span class="wrongPathMsg">This user do not exist &#129301;</span>
+	</div>
 </template>
 
 <script setup lang="ts">
 /* eslint @typescript-eslint/no-var-requires: "off" */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
 	inject,
 	onMounted,
-	onUnmounted,
+	watch,
 	ref,
 	Ref,
 	onBeforeUnmount,
-	onUpdated,
-	onBeforeUpdate,
+	nextTick,
 } from "vue";
 import { useRoute } from "vue-router";
 import { Socket } from "socket.io-client";
+import HTTP from "../components/axios";
 import MessageItem from "@/chat/MessageItem.vue";
 import WarningMsg from "@/components/WarningMsg.vue";
 import { NewPrivMsgDto } from "@/chat/dto/NewPrivMsgDto";
 import { PrivConvDto } from "@/chat/dto/PrivConvDto";
 import { BasicUserDto } from "./dto/BasicUserDto";
+import router from "@/router";
 
+
+// ===================== INIT =====================
+
+// INIT COMPONENT VARIABLES
 let colors = inject("colors");
 let mySocket: Socket = inject("socket")!;
 let me: string = inject("me")!;
+let apiPath: string = inject("apiPath")!;
 const userName = useRoute().params.conv_name as string;
-let receiver: BasicUserDto = new BasicUserDto(userName);
-let privs: Ref<PrivConvDto[]> | undefined = inject("privs");
-let markReaded: (index: number, readed: boolean) => void =
-	inject("markReaded")!;
-let index = ref(-1);
-if (privs?.value.length) {
-	index.value = privs!.value.findIndex((priv) => priv.user.login == userName);
-	if (
-		index.value != -1 &&
-		privs.value[index.value].messages.at(-1)?.user != me
-	) {
-		mySocket.emit("privReaded", { userSend: userName, userReceive: me });
-		markReaded(index.value, true);
-	}
-}
-const privDone: Ref<boolean> = inject("privDone")!;
-// let p : {privs: Ref<PrivConv[]>, (index : number, readed: boolean) : void } | undefined = inject("privsPackage");
-// printPrivs(privs.value);
-// let privRef : Ref<PrivConv> | undefined;
-// if (privs) {
-// }
-
-// let priv = privs.value.find(priv => priv.user.login == userName);
-// let privRef = ref(priv);
-// let privRef = ref(privs.value.find(priv => priv.user.login == userName));
-// let privRef = privs.value.find(priv => priv.user.login == userName);
-
-// printPriv(privRef.value);
-
-// console.log("Priv debut PrivConvItem :")
-// printPriv(priv);
-
 let myMsg = ref("");
 let blockWarn = ref(false);
-let msgsCont = ref(null);
+let userExistDone = ref(false);
+let userExist : Ref<BasicUserDto| undefined> = ref(undefined);
+let index = ref(-1);
 
-// ====================== METHODS ======================
+// VERIFY IF CHAN EXIST
+HTTP.get(apiPath + "chat/userExist/" + userName)
+	.then((res) => {
+		userExist.value = res.data;
+		userExistDone.value = true;
+		nextTick(() => {
+			scrollAndFocus();
+		})
+	})
+	.catch((e) => {
+			userExistDone.value = true;
+	});
+
+// GET PRIVS REFS
+let privsRef: Ref<PrivConvDto[]> = inject("privs")!;
+let privMsgRead: (index: number, readed: boolean) => void =
+	inject("privMsgRead")!;
+const privDone: Ref<boolean> = inject("privDone")!;
+
+// GET PRIV INDEX
+index.value = privsRef.value
+	.findIndex((priv) => priv.user.login == userName);
+if (index.value != -1) {
+	privMsgRead(index.value, true);
+	scrollAndFocus();
+	watch(privsRef.value[index.value].messages, () => {
+		privMsgRead(index.value, true);
+		let msgsCont = document.getElementById("msgsCont");
+		if (msgsCont) {
+			let oldScrollTop = msgsCont!.scrollTop;
+			let oldScrollHeight = msgsCont!.scrollHeight;
+			let oldClientHeight = msgsCont!.clientHeight;
+			let lastMsg = msgsCont.lastElementChild!.clientHeight;
+			if (oldScrollTop + oldClientHeight + lastMsg == oldScrollHeight)
+				msgsCont!.scrollTop = msgsCont!.scrollHeight;
+		}
+	}, {flush: 'post'})
+}
+
+// GET PRIV INDEX IF REFRESH PAGE
+watch(privDone, () => {
+	console.log(`privDone OK = ${privDone.value}`);
+	index.value = privsRef.value
+		.findIndex((priv) => priv.user.login == userName);
+	if (index.value != -1) {
+		nextTick(() => {
+			privMsgRead(index.value, true);
+			scrollAndFocus();
+			watch(privsRef.value[index.value].messages, () => {
+				privMsgRead(index.value, true);
+				let msgsCont = document.getElementById("msgsCont");
+				if (msgsCont) {
+					let oldScrollTop = msgsCont!.scrollTop;
+					let oldScrollHeight = msgsCont!.scrollHeight;
+					let oldClientHeight = msgsCont!.clientHeight;
+					let lastMsg = msgsCont.lastElementChild!.clientHeight;
+					if (oldScrollTop + oldClientHeight + lastMsg == oldScrollHeight)
+					msgsCont!.scrollTop = msgsCont!.scrollHeight;
+				}
+			})
+		})
+	}
+}, {flush: 'post'})
+
+
+// ===================== WATCHERS =====================
+
+// watch(blocked, () => {
+// 	if (blocked.value == privsRef.value[index.value].name) {
+// 		router.push({name: 'private'});
+// 	}
+// })
+
+
+// ===================== LISTENERS =====================
+
+mySocket.on("findNewPriv", () => {
+	setTimeout(() => {
+		index.value = privsRef.value
+			.findIndex((priv) => priv.user.login == userName);
+	}, 100);
+})
+
+
+// ===================== METHODS =====================
+
+function toProfile() {
+	router.push({name: 'player', params: { name: userName }});
+}
 
 function sendMsg() {
-	mySocket.emit("newPrivMsg", new NewPrivMsgDto(me, userName, myMsg.value));
-	myMsg.value = "";
+	if (myMsg.value != "") {
+		mySocket.emit("newPrivMsg", new NewPrivMsgDto(me, userName, myMsg.value));
+		myMsg.value = "";
+	}
 }
 
 function banUser() {
 	// DEMMANDER DE BAN LE USER AU BACK
 }
 
-function selectPriv() {
-	// console.log(`selectPriv()`);
-	let priv = privs?.value.find((priv) => priv.user.login == userName);
-	// console.log(`selectPriv = ${priv}`);
-	return priv;
+function scrollAndFocus() {
+	let msgCont = document.getElementById("msgsCont");
+	if (msgCont)
+		msgCont.scrollTop = msgCont.scrollHeight;
+		document.getElementById("sendbox")?.focus();
 }
 
 function checkDate(i: number) {
-	// console.log(`checkDate(), i = ${i}`)
 	if (i == 0) return true;
 	else if (
 		Math.ceil(
-			(selectPriv()!.messages[i].date.getTime() -
-				selectPriv()!.messages[i - 1].date.getTime()) /
+			(privsRef.value[index.value].messages[i].date.getTime() -
+				privsRef.value[index.value].messages[i - 1].date.getTime()) /
 				(1000 * 60)
 		) > 15
-	) {
-		// console.log(`checkDate = true`);
+	)
 		return true;
-	} else {
-		// console.log(`checkDate = false`);
+	else
 		return false;
-	}
+}
+
+function checkAvatar(i: number) {
+	if (me == privsRef.value[index.value].messages[i].user)
+		return false;
+	if (i == 0 || i == privsRef.value[index.value].messages.length - 1) 
+		return true;
+	if (
+		privsRef.value[index.value].messages[i].user == 
+		privsRef.value[index.value].messages[i + 1].user
+	)
+		return false;
+	else
+		return true;
 }
 
 function displayDate(date: Date, i: number) {
-	// console.log(`displayDate()`)
 	let minutes: string | number;
 	if (date.getMinutes() < 10) minutes = "0" + date.getMinutes().toString();
 	else minutes = date.getMinutes();
-	// console.log(`test`);
 	let hours: string | number;
 	if (date.getHours() < 10) hours = "0" + date.getHours().toString();
 	else hours = date.getHours();
-	const day = date.getDay();
+	const day = date.getUTCDate();
 	const month = date.toLocaleString("default", { month: "long" });
 	const year = date.getFullYear();
-	// console.log(`displayDate() avant returns`)
 	if (i == 0)
 		return `Created the ${day} ${month} ${year} at ${hours}:${minutes}`;
 	const now = new Date();
@@ -203,70 +278,24 @@ function displayDate(date: Date, i: number) {
 	else return `${day} ${month} ${year} at ${hours}:${minutes}`;
 }
 
-// ====================== LIFECYCLES HOOKS ======================
 
-let scroll = true;
-let oldNbMsg = -1;
-let newMsg = false;
-
-onBeforeUpdate(() => {
-	if (privs?.value.length)
-		index.value = privs!.value.findIndex((priv) => priv.user.login == userName);
-	if (
-		index.value != -1 &&
-		oldNbMsg != privs!.value[index.value].messages.length
-	) {
-		newMsg = true;
-		oldNbMsg = privs!.value[index.value].messages.length;
-	} else newMsg = false;
-	let oldScrollTop = (msgsCont.value! as HTMLElement).scrollTop;
-	let oldScrollHeight = (msgsCont.value! as HTMLElement).scrollHeight;
-	let oldClientHeight = (msgsCont.value! as HTMLElement).clientHeight;
-	if (oldScrollTop + oldClientHeight == oldScrollHeight) scroll = true;
-	else scroll = false;
-});
-
-onUpdated(() => {
-	// console.log(`PrivConvItem Updated`);
-
-	// if (privs?.value.length) {
-	// 	index.value = privs!.value.findIndex(priv => priv.user.login == userName);
-	// }
-
-	// index = privs!.value.findIndex(priv => {
-	// 	console.log(`priv.user.login = ${priv.user.login}, userName = ${userName}`);
-	// 	if (priv.user.login == userName)
-	// 		return true;
-	// });
-	// console.log(`index priv of privConvItem = ${index.value}`);
-	// console.log(`onUpdate scrollTop =  ${((msgsCont.value!) as HTMLElement).scrollTop}`);
-	// console.log(`onUpdate scrollHeight =  ${((msgsCont.value!) as HTMLElement).scrollHeight}`);
-	if (scroll == true) {
-		(msgsCont.value! as HTMLElement).scrollTop = (
-			msgsCont.value! as HTMLElement
-		).scrollHeight;
-	}
-
-	// if (index.value != -1 && privs!.value[index.value].messages.at(-1)?.user != me) {
-	if (newMsg && privs!.value[index.value].messages.at(-1)?.user != me) {
-		mySocket.emit("privReaded", { userSend: userName, userReceive: me });
-		markReaded(index.value, true);
-	}
-});
+// ===================== LIFECYCLES HOOKS =====================
 
 onMounted(() => {
-	(msgsCont.value! as HTMLElement).scrollTop = (
-		msgsCont.value! as HTMLElement
-	).scrollHeight;
+	let msgsCont = document.getElementById("msgsCont");
+	if (msgsCont)
+		msgsCont!.scrollTop = msgsCont!.scrollHeight;
 	document.getElementById("sendbox")?.focus();
 	const box = document.getElementById("privateTabText");
 	if (box != null) box.classList.add("chatTabActive");
 });
 
 onBeforeUnmount(() => {
+	mySocket.off('findNewPriv');
 	const box = document.getElementById("privateTabText");
 	if (box != null) box.classList.remove("chatTabActive");
 });
+
 
 // ====================== UTILS ======================
 
@@ -295,8 +324,6 @@ function printPrivs(privs: PrivConvDto[] | undefined) {
 	width: 100%;
 	height: var(--height);
 	background-color: white;
-	/* margin-top: 5px; */
-
 	box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.1), 0px -4px 4px rgba(0, 0, 0, 0.1);
 }
 .avatar_cont {
@@ -400,22 +427,14 @@ function printPrivs(privs: PrivConvDto[] | undefined) {
 	transition: width 0.3s ease-in-out;
 	width: 80%;
 }
-
-/* TRANSITION ROUTER VIEW */
-
-/* .mySlide-leave-active,
-.mySlide-enter-active {
-	transition: 1s;
+.wrongPath {
+	height: calc(100vh - 180px);
+	font-family: "Orbitron", sans-serif;
+	font-size: 1.2rem;
+	position: relative;
 }
-.mySlide-leave-to,
-.mySlide-enter-from {
-	transform: translateY(100%);
-} */
-
-/* .mySlide-enter-from {
-	transform: translateY(100%);
+.wrongPathMsg {
+	position: absolute;
+	top: 30%;
 }
-.mySlide-leave-to {
-	transform: translateY(-100%);
-} */
 </style>

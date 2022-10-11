@@ -3,13 +3,21 @@
 		<div class="blockAdvert center column">
 			<img :src="img" alt="Warning" class="warning_img" />
 			<span class="blockAdvertText">{{ msg }}</span>
+			<span v-if="props.msg2" class="blockAdvertText">{{ msg2 }}</span>
+			<slot name="content"></slot>
 			<slot name="buttons"></slot>
 		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { inject } from "vue";
+import { inject, defineProps } from "vue";
+
+const props = defineProps({
+	msg : String,
+	msg2 : String,
+	img: String,
+})
 
 let colors = inject("colors");
 </script>

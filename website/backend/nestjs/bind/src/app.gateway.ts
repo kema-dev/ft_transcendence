@@ -8,7 +8,7 @@ import {
 	MessageBody,
 	ConnectedSocket,
 } from '@nestjs/websockets';
-import { Logger } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import { Socket, Server } from 'socket.io';
 import Vector from './game2.0/objects/Vector';
 import Game from './game2.0/Game';
@@ -16,11 +16,13 @@ import { ChatService } from './chat/chat.service';
 import { UsersService } from './users/users.service';
 import { BallDto } from './game2.0/dto/BallDto';
 import { NewPrivMsgDto } from './chat/dto/NewPrivMsgDto';
+import { NewChanMsgDto } from './chat/dto/NewChanMsgDto';
 import { PrivConvDto } from './chat/dto/PrivConvDto';
 import { MessageDto } from './chat/dto/MessageDto';
 import ProfileUserDto from 'src/users/dto/ProfileUserDto';
 import ResumUserDto from 'src/users/dto/ResumUserDto';
-import BasicUserDto from 'src/chat/dto/BasicUserDto';
+import { BasicUserDto } from 'src/chat/dto/BasicUserDto';
+import { ModifChanDto } from './chat/dto/ModifChanDto';
 import { UserEntity } from 'src/users/user.entity';
 import { MatchDto } from 'src/match/match.dto';
 import { MatchService } from './match/match.service';
@@ -30,6 +32,8 @@ import { MatchService } from './match/match.service';
 		origin: '*',
 	},
 })
+
+@Injectable()
 export class AppGateway
 	implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
 	@WebSocketServer() server: Server;
@@ -37,6 +41,8 @@ export class AppGateway
 	private logger: Logger = new Logger('AppGateway');
 
 	constructor(
+		// @Inject(forwardRef(() => ChatService))
+    // private chatService: ChatService,
 		private readonly chatService: ChatService,
 		private readonly userService: UsersService,
 		private readonly matchService: MatchService,
@@ -46,11 +52,9 @@ export class AppGateway
 
 	// Connection
 	async handleConnection(@ConnectedSocket() client: Socket) {
-		// console.log('query = ', client.handshake.query.login);
+		console.log(`Client connected : ${client.handshake.query.login}, ${client.id}`);
 		let login = client.handshake.query.login as string;
 		await this.userService.saveSocket(login, client.id);
-		// handleConnection(@ConnectedSocket() client: Socket, login: string) {
-		// console.log(`Client connected : ${client.id}, login = ${login}`);
 	}
 	// Disconnection
 	async handleDisconnect(client: Socket) {
@@ -207,8 +211,13 @@ export class AppGateway
 	}
 	@SubscribeMessage('getUserByLogin')
 	async getUserByLogin(client: Socket, payload: any): Promise<void> {
-		const user = await this.userService.getByLogin(payload.login);
-		client.emit('getUserByLogin', new ProfileUserDto(user));
+		try{
+			const user = await this.userService.getByLogin(payload.login);
+			client.emit('getUserByLogin', new ProfileUserDto(user));
+		}
+		catch {
+			client.emit('getUserByLogin', null);
+		}
 	}
 	@SubscribeMessage('addFriend')
 	addFriend(client: Socket, payload: any): void {
@@ -263,70 +272,41 @@ export class AppGateway
 
 	// ============================ CHAT =====================================
 
-	// @SubscribeMessage('message')
-	// handleMessage(
-	// 	@MessageBody() data: string,
-	// 	@ConnectedSocket() client: Socket,
-	// ) {
-	// 	console.log(`Client message : ${data}`);
-	// 	this.server.emit('message', client.id, data);
-	// }
-
-	// @SubscribeMessage('getMsgs')
-	// async getMsgs(@ConnectedSocket() client: Socket) {
-	// 	this.chatService.getMessages().then((res) => {
-	// 		console.log(res);
-	// 		client.emit('getMsgs', res);
-	// 	});
-	// }
-
-	// @SubscribeMessage('getPrivConvs')
-	// async getPrivConvs(@ConnectedSocket() client: Socket) {
-	// 	this.chatService.getPrivConvs().then((res) => {
-	// 		console.log(res);
-	// 		client.emit('getMsgs', res);
-	// 	});
-	// }
+		// ========== PRIVATES
 
 	@SubscribeMessage('newPrivMsg')
 	async NewPrivMsg(
 		@MessageBody() data: NewPrivMsgDto,
 		@ConnectedSocket() client: Socket,
 	) {
-		// console.log(`controller newPrivMsg:  userSend = ${data.userSend}, userReceive = ${data.userReceive}`)
 		const priv = await this.chatService.addPrivMsg(data);
-		// console.log("ici");
-		const sendSocketId = (await this.userService.getByLogin(data.userSend))
-			.socketId;
-		const receiveSocketId = (
-			await this.userService.getByLogin(data.userReceive)
-		).socketId;
+		const sender = await this.userService.getByLogin(data.userSend);
+		const receiver = await this.userService.getByLogin(data.userReceive);
 		const msg = new MessageDto(
 			data.userSend,
 			data.message,
 			new Date(data.date),
 		);
-		// console.log(`sendId = ${sendSocketId}\nreceiveId = ${receiveSocketId}`);
 		if (priv.messages.length == 1) {
-			const userSend = new BasicUserDto(data.userSend);
-			const userReceive = new BasicUserDto(data.userReceive);
-			const newPrivSenderDto = new PrivConvDto(userSend, [msg], false, priv.id);
-			const newPrivReceiverDto = new PrivConvDto(
+			const userSend = new BasicUserDto(sender.login, sender.avatar);
+			const userReceive = new BasicUserDto(receiver.login, receiver.avatar);
+			const privSenderDto = new PrivConvDto(userSend, [msg], false, priv.id);
+			const privReceiverDto = new PrivConvDto(
 				userReceive,
 				[msg],
 				false,
 				priv.id,
 			);
-			this.server.to(receiveSocketId).emit('newPrivConv', newPrivSenderDto);
-			this.server.to(sendSocketId).emit('newPrivConv', newPrivReceiverDto);
+			this.server.to(receiver.socketId).emit('newPrivConv', privSenderDto);
+			this.server.to(sender.socketId).emit('newPrivConv', privReceiverDto);
+			this.server.to(sender.socketId).emit('findNewPriv');
 		} else {
 			this.server
-				.to(receiveSocketId)
+				.to(receiver.socketId)
 				.emit('newPrivMsg', { msg: msg, id: priv.id });
 			this.server
-				.to(sendSocketId)
+				.to(sender.socketId)
 				.emit('newPrivMsg', { msg: msg, id: priv.id });
-			// console.log(`newPrivMsg '${data.message}' emited`)
 		}
 	}
 
@@ -352,7 +332,6 @@ export class AppGateway
 		console.log(
 			`privReaded AppGateway , sender = ${data.userSend}, receiver = ${data.userReceive}`,
 		);
-		// console.log(`userSend = ${data.userSend}, userReceive = ${data.userReceive}`);
 		const priv = await this.chatService.getPriv([
 			data.userSend,
 			data.userReceive,
@@ -360,4 +339,49 @@ export class AppGateway
 		if (!priv) return console.log(`Error privReaded`);
 		await this.chatService.markPrivReaded(priv);
 	}
+
+	// ========== CHANNELS
+
+	@SubscribeMessage('newChanMsg')
+	async NewChanMsg(
+		@MessageBody() data: NewChanMsgDto,
+		@ConnectedSocket() client: Socket,
+	) {
+		const chan = await this.chatService.addChanMsg(data);
+		const msg = new MessageDto(
+			data.userSend,
+			data.message,
+			new Date(data.date),
+		);
+		for (let user of chan.admins.concat(chan.users).concat(chan.mutes)) {
+			this.server
+				.to(user.socketId)
+				.emit('newChanMsg', { msg: msg, name: chan.name });
+		}
+	}
+
+	@SubscribeMessage('newChannelUser')
+	async newChannelUser(
+		@MessageBody() data: {chan: string, login: string},
+		@ConnectedSocket() client: Socket,
+	) {
+		this.chatService.newChannelUser(this.server, data);
+	}
+
+	@SubscribeMessage('userQuitChan')
+	async userQuitChan(
+		@MessageBody() data: {login: string, chan: string},
+		@ConnectedSocket() client: Socket,
+	) {
+		this.chatService.userQuitChan(this.server, data);
+	}
+
+	@SubscribeMessage('modifChan')
+	async modifChan(
+		@MessageBody() data: ModifChanDto,
+		@ConnectedSocket() client: Socket,
+	) {
+		this.chatService.modifChan(this.server, data);
+	}
+
 }
