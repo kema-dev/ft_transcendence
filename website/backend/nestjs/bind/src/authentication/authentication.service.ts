@@ -95,10 +95,10 @@ export class AuthenticationService {
 			if (error?.code === PostgresErrorCode.UniqueViolation) {
 				console.error(
 					'register: email: ' +
-						registrationData.email +
-						' and/or login: ' +
-						registrationData.login +
-						' already exists, returning ✘',
+					registrationData.email +
+					' and/or login: ' +
+					registrationData.login +
+					' already exists, returning ✘',
 				);
 				throw new HttpException(
 					'E_EMAIL_OR_LOGIN_ALREADY_EXISTS',
@@ -143,8 +143,8 @@ export class AuthenticationService {
 				if (mfa_check == false) {
 					console.error(
 						'getAuthenticatedUser: ' +
-							name +
-							' totp code check failed, returning ✘',
+						name +
+						' totp code check failed, returning ✘',
 					);
 					throw new HttpException('E_TOTP_FAIL', HttpStatus.BAD_REQUEST);
 				}
@@ -156,8 +156,8 @@ export class AuthenticationService {
 			await this.verifyPassword(password, user.password);
 			console.log(
 				'getAuthenticatedUser: ' +
-					user.login +
-					' authenticated successfully, returning ✔',
+				user.login +
+				' authenticated successfully, returning ✔',
 			);
 			return { login: user.login, success: true };
 		} catch (error) {
@@ -354,6 +354,7 @@ export class AuthenticationService {
 		const secret = crypto.randomBytes(16).toString('hex').toUpperCase();
 		this.usersService.change_totp_code(user, secret);
 		let url = '';
+		let img_src = '';
 		await axios
 			.post('https://www.authenticatorapi.com/api.asmx/Pair', {
 				appName: 'pong.io',
@@ -362,6 +363,7 @@ export class AuthenticationService {
 			})
 			.then((response) => {
 				const elem = response.data.d.Html;
+				img_src = /src='(.*?)'/.exec(elem)[1];
 				url = /chl=(.*?)["']/.exec(elem)[1];
 			})
 			.catch(() => {
@@ -374,7 +376,10 @@ export class AuthenticationService {
 				);
 			});
 		console.log('set_totp: ' + 'code computed, returning ✔');
-		return { url: url };
+		return {
+			url: url,
+			img_src: img_src,
+		};
 	}
 
 	public async set_tmp_totp(name: string) {
@@ -393,6 +398,7 @@ export class AuthenticationService {
 		const secret = crypto.randomBytes(16).toString('hex').toUpperCase();
 		this.usersService.change_tmp_totp_code(user, secret);
 		let url = '';
+		let img_src = '';
 		await axios
 			.post('https://www.authenticatorapi.com/api.asmx/Pair', {
 				appName: 'pong.io',
@@ -401,6 +407,7 @@ export class AuthenticationService {
 			})
 			.then((response) => {
 				const elem = response.data.d.Html;
+				img_src = /src='(.*?)'/.exec(elem)[1];
 				url = /chl=(.*?)["']/.exec(elem)[1];
 			})
 			.catch(() => {
@@ -413,7 +420,10 @@ export class AuthenticationService {
 				);
 			});
 		console.log('set_tmp_totp: ' + 'code computed, returning ✔');
-		return { url: url };
+		return {
+			url: url,
+			img_src: img_src,
+		};
 	}
 
 	public async verify_totp(request: TotpDto) {
@@ -531,9 +541,9 @@ export class AuthenticationService {
 			.catch((error) => {
 				console.error(
 					'check_tmp_totp_code: ' +
-						'unexpected error : ' +
-						error +
-						', returning ✘',
+					'unexpected error : ' +
+					error +
+					', returning ✘',
 				);
 				throw new HttpException(
 					'E_GOOGLE_API',

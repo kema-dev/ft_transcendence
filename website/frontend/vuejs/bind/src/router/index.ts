@@ -2,7 +2,6 @@ import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
 import Home from '@/views/HomeView.vue';
 import LogpageView from '@/views/LogpageView.vue';
 import BackendDownView from '@/views/BackendDownView.vue';
-import SecurityView from '@/views/SecurityView.vue';
 import Friends from '@/menu/FriendsTab.vue';
 import Chat from '@/menu/ChatTab.vue';
 import InGame from '@/chat/InGameTab.vue';
@@ -17,7 +16,6 @@ import API from '../components/axios';
 import { useCookies } from 'vue3-cookies';
 import { useToast } from 'vue-toastification';
 import { BasicUserDto } from '@/chat/dto/BasicUserDto';
-import DebugView from '@/views/DebugView.vue';
 
 const data = require('../../.env')
 
@@ -35,11 +33,6 @@ const routes: Array<RouteRecordRaw> = [
 		name: 'backend_down',
 		path: '/backend_down',
 		component: BackendDownView,
-	},
-	{
-		name: 'security',
-		path: '/security',
-		component: SecurityView,
 	},
 	{
 		name: 'home',

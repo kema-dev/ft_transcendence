@@ -217,13 +217,13 @@ async function auth() {
 		mfa: totp_val.value,
 	})
 		.then((response) => {
-			// console.log(response);
 			$cookies.set(response.data.key, response.data.value);
 			$cookies.set('login', response.data.login);
 			toast.success(
 				'Authentication success, welcome ' + response.data.login + ' !',
 			);
 			router.push('/home');
+			router.go(0);
 		})
 		.catch((error) => {
 			console.log(error);
