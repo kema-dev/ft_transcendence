@@ -26,7 +26,7 @@ You can find complete subject <a href="docs/subject">here</a>.
 * <a href="https://www.docker.com/" target="_blank" title="Docker's website">Docker</a>
 * <a href="https://nestjs.com/" target="_blank" title="NestJS's website">NestJS</a>
 * <a href="https://vuejs.org/" target="_blank" title="Vue.js's website">Vue.js</a>
-* <a href="https://www.postgresql.org/" target="_blank" title="postgreSQL's website">PostgreSQL</a>
+* <a href="https://www.postgresql.org/" target="_blank" title="postgreSQL's website">PostgreSQL</a> / <a href="https://typeorm.io/" target="_blank" title="TypeORM's website">TypeORM</a>
 
 <!-- GETTING STARTED -->
 ## Getting Started
