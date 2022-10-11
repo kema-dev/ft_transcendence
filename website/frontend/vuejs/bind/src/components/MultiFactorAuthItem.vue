@@ -5,13 +5,7 @@
 			to enable 2FA
 		</p>
 		<div class="mfa_content" v-show="totp_code">
-			<qrcode-vue
-				:value="totp_url"
-				:size="300"
-				level="H"
-				class="qr_img"
-				id="qr_img"
-			/>
+			<img class="qr_img" id="qr_img" v-bind:src="totp_url" alt="">
 			<p id="qr_text">Code: {{ totp_code }}</p>
 		</div>
 		<div class="mfa_input">
@@ -31,7 +25,6 @@
 </template>
 
 <script setup lang="ts">
-import QrcodeVue from 'qrcode.vue';
 import { inject, onMounted, ref } from 'vue';
 import API from '../components/axios';
 import { FQDN } from '../../.env.json';
@@ -56,7 +49,8 @@ function get_totp_url() {
 		email: email.value,
 	})
 		.then((response) => {
-			totp_url.value = response.data.url;
+			totp_url.value = response.data.img_src;
+			console.log(response.data.img_src);
 			totp_code.value = response.data.url.match(/secret%3D(.*)%26/)[1];
 		})
 		.catch((error) => {
@@ -143,6 +137,8 @@ onMounted(() => {
 }
 
 .qr_img {
+	height: 300px;
+	width: 300px;
 	margin-top: 15px;
 	display: flex;
 	justify-content: top;
