@@ -150,7 +150,7 @@ const $cookies = inject<VueCookies>('$cookies');
 import { useCookies } from 'vue3-cookies';
 const { cookies } = useCookies();
 
-function register() {
+async function register() {
 	if (
 		email_register.value === '' ||
 		login_register.value === '' ||
@@ -178,6 +178,11 @@ function register() {
 				'Registration success, welcome ' + response.data.login + ' !',
 			);
 			router.push('/home');
+			try {
+				router.go(0);
+			} catch (error) {
+				console.error('on refresh:', error);
+			}
 		})
 		.catch((error) => {
 			if (error.response.data.message === 'E_EMAIL_OR_LOGIN_ALREADY_EXISTS') {
@@ -207,7 +212,7 @@ async function auth() {
 		toast.warning('📝 At least one field is empty, please fill all of them');
 		return;
 	}
-	API.post('auth/login', {
+	await API.post('auth/login', {
 		headers: {
 			login: cookies.get('login'),
 			token: cookies.get('session'),
@@ -223,7 +228,11 @@ async function auth() {
 				'Authentication success, welcome ' + response.data.login + ' !',
 			);
 			router.push('/home');
-			router.go(0);
+			try {
+				router.go(0);
+			} catch (error) {
+				console.error('on refresh:', error);
+			}
 		})
 		.catch((error) => {
 			console.log(error);
@@ -254,7 +263,7 @@ function resize() {
 	console.log(heightField);
 	console.log(widthField);
 }
-onMounted(() => {
+onMounted(async () => {
 	if ($cookies.get('session')) {
 		router.push('/home');
 	}
@@ -264,7 +273,7 @@ onMounted(() => {
 	let urlParams = new URLSearchParams(window.location.search);
 	let code = urlParams.get('code');
 	if (code) {
-		API.post('auth/login42', {
+		await API.post('auth/login42', {
 			headers: {
 				login: cookies.get('login'),
 				token: cookies.get('session'),
@@ -279,17 +288,22 @@ onMounted(() => {
 					'Authentication success, welcome ' + response.data.login + ' !',
 				);
 				router.push('/home');
+				try {
+					router.go(0);
+				} catch (error) {
+					console.error('on refresh:', error);
+				}
 			})
 			.catch((error) => {
 				if (error.response.data.message === 'E_NO_CODE_PROVIDED') {
 					toast.warning(E_NO_CODE_PROVIDED);
 				} else if (error.response.data.message === 'E_CODE_IN_USE') {
-					toast.warning(E_CODE_IN_USE);
+					// toast.warning(E_CODE_IN_USE);
 				} else if (error.response.data.message === 'E_UNEXPECTED_ERROR') {
-					toast.error(E_UNEXPECTED_ERROR);
+					// toast.error(E_UNEXPECTED_ERROR);
 					console.error(error);
 				} else {
-					toast.error(E_UNEXPECTED_ERROR);
+					// toast.error(E_UNEXPECTED_ERROR);
 					console.error(error);
 				}
 			});
@@ -299,7 +313,7 @@ onMounted(() => {
 onUnmounted(() => {
 	window.removeEventListener('resize', resize);
 });
-document.documentElement.style.overflow = 'hidden'
+document.documentElement.style.overflow = 'hidden';
 </script>
 
 <style scoped>
