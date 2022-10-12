@@ -119,13 +119,15 @@
 			require('@/assets/mute2.svg') : require('@/assets/banned_logo.png')"
 	>
 		<template #content>
-			<form
-				@submit.prevent="muteBan(sanction)"
-				id="timeForm"
-				class="center raw"
-			>
-				<input @keypress.enter="muteBan(sanction)" type="time" name="timeInput" id="timeInput" step="1" required/>
-			</form>
+			<div id="timeCont" class="center raw">
+				<input type="number" name="hoursBan" id="hoursBan" class="timeInput"
+					value="0" min="0" max="99">
+				<input type="number" name="minutesBan" id="minutesBan" class="timeInput"
+					value="0" min="0" max="99">
+				<input type="number" name="secondsBan" id="secondsBan" class="timeInput"
+					value="0" min="0" max="99">
+				<!-- <input @keypress.enter="muteBan(sanction)" type="time" name="timeInput" id="timeInput" step="1" required/> -->
+			</div>
 		</template>
 		<template #buttons>
 			<div class="blockAdvertButtons center raw">
@@ -148,8 +150,6 @@ let colors = inject('colors');
 let showMore = ref(false);
 let mySocket: Socket = inject("socket")!;
 let sanction = ref("");
-// let muteBool = ref(false);
-// let banBool = ref(false);
 let seconds = ref(0);
 let minutes = ref(0);
 let hours = ref(0);
@@ -172,11 +172,6 @@ const props = defineProps({
 		type: Boolean,
 		required: true,
 	},
-	// promote : Boolean,
-	// demote : Boolean,
-	// mute : Boolean,
-	// ban : Boolean,
-	// restore : Boolean,
 });
 
 function promote() {
@@ -199,23 +194,40 @@ function invitInGame() {
 }
 
 function muteBan(sanction: string) {
-	let input = document.getElementById("timeInput")!;
-	input.classList.remove("invalidInput");
-	let form = document.getElementById('timeForm') as HTMLFormElement;
-	const data = new FormData(form);
-	let timeData  = data.get("timeInput") as string;
-	if (!timeData || timeData.split(':').length < 3)
+	// let input = document.getElementById("timeInput")!;
+	// input.classList.remove("invalidInput");
+	// let form = document.getElementById('timeForm') as HTMLFormElement;
+	// const data = new FormData(form);
+	// let timeData  = data.get("timeInput") as string;
+	// if (!timeData || timeData.split(':').length < 3)
+	// 	return setTimeout(() => {
+	// 		input!.classList.add("invalidInput");
+	// 	}, 50);
+	// let timeArray = timeData.split(':');
+	// let hours = Number(timeArray[0]);
+	// let minutes = Number(timeArray[1]);
+	// let seconds = Number(timeArray[2]);
+
+	// let timeInput = document.getElementById("timeCont")!;
+	// timeInput.classList.remove("invalidInput");
+	let hoursInput  = document.getElementById("hoursBan")!;
+	let minutesInput  = document.getElementById("minutesBan")!;
+	let secondsInput  = document.getElementById("secondsBan")!;
+	hoursInput.classList.remove("invalidInput");
+	minutesInput.classList.remove("invalidInput");
+	secondsInput.classList.remove("invalidInput");
+	let hours : number  = document.getElementById("hoursBan")!.value;
+	let minutes : number  = document.getElementById("minutesBan")!.value;
+	let seconds : number  = document.getElementById("secondsBan")!.value;
+	let time : number = +seconds + +minutes * 60 + +hours * 3600;
+	console.log(`total = ${time}, hours = ${hours}, 
+		minutes = ${minutes}, seconds = ${seconds}`)
+	if (time < 1 || hours < 0 || minutes < 0 || seconds < 0)
 		return setTimeout(() => {
-			input!.classList.add("invalidInput");
-		}, 50);
-	let timeArray = timeData.split(':');
-	let hours = Number(timeArray[0]);
-	let minutes = Number(timeArray[1]);
-	let seconds = Number(timeArray[2]);
-	let time = seconds + minutes * 60 + hours * 3600;
-	if (time < 1)
-		return setTimeout(() => {
-			input!.classList.add("invalidInput");
+			// timeInput!.classList.add("invalidInput");
+			hoursInput.classList.add("invalidInput");
+			minutesInput.classList.add("invalidInput");
+			secondsInput.classList.add("invalidInput");
 		}, 50);
 	mySocket.emit("modifChan", 
 		new ModifChanDto(props.chan, sanction, props.login, props.group, time));
@@ -266,14 +278,20 @@ function restoreUser() {
 	filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg)
 		brightness(86%) contrast(83%);
 }
-#timeForm {
+#timeCont {
+	width: 190px;
 	margin-bottom: 15px;
-
-}
-#timeInput {
-	font-family: 'Orbitron', sans-serif;
 	border-radius: 5px;
-	outline: none;
+}
+.timeInput {
+	font-family: 'Orbitron', sans-serif;
+	border: solid 1px v-bind("colors.color2");
+	border-radius: 5px;
+	width: 50px;
+	margin: 0 5px;
+	text-align: center;
+
+	/* outline: none; */
 }
 .invalidInput {
 	animation: shake 0.4s linear;

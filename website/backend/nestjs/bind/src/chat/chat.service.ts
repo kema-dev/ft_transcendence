@@ -629,6 +629,7 @@ export class ChatService {
 		let seconds = 0;
 		let idInterval = setInterval(() => {
 			seconds += 1;
+			console.log(`seconds = ${seconds}, limit = ${modif.time}`); 
 			if (seconds >= modif.time) {
 				clearInterval(idInterval);
 				let login: string;
