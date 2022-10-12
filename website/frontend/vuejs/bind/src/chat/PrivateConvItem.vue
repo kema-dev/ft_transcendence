@@ -70,7 +70,7 @@
 		>
 			<template #buttons>
 				<div class="blockAdvertButtons center raw">
-					<button @click="banUser()">Yes</button>
+					<button @click="blockUser">Yes</button>
 					<button @click="blockWarn = false">No</button>
 				</div>
 			</template>
@@ -214,8 +214,9 @@ function sendMsg() {
 	}
 }
 
-function banUser() {
-	// DEMMANDER DE BAN LE USER AU BACK
+function blockUser() {
+	mySocket.emit("blockUser", {blocker: me, blocked: userName});
+	router.push({name: 'private'});
 }
 
 function scrollAndFocus() {

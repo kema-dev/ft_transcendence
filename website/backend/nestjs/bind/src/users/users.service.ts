@@ -49,13 +49,13 @@ export class UsersService {
 	}
 
 	async getByLogin(logname: string, relations?: any) {
-		console.log('getByLogin: starting for ' + logname);
+		// console.log('getByLogin: starting for ' + logname);
 		let params;
 		if (relations) params = { where: { login: logname }, relations: relations };
 		else params = { where: { login: logname } };
 		const user = await this.usersRepository.findOne(params);
 		if (user) {
-			console.log('getByLogin: found ' + logname + ', returning ✔');
+			// console.log('getByLogin: found ' + logname + ', returning ✔');
 			return user;
 		}
 		console.error('getByLogin: ' + logname + ' not found, returning ✘');
@@ -371,4 +371,27 @@ export class UsersService {
 		console.log('get_user_avatar: ', user, ', returning ✔');
 		return usr.avatar;
 	}
+
+	async blockUser(data : {blocker: string, blocked: string}) {
+		console.log(`User '${data.blocker}' block '${data.blocked}'`);
+		let blocker = await this.getByLogin(data.blocker, {blockeds: true});
+		let blocked = await this.getByLogin(data.blocked);
+		blocker.blockeds.push(blocked);
+		await this.usersRepository.save(blocker)
+			.catch((e) => console.log('Save User error'));
+		return blocked;
+	}
+
+	async unblockUser(data : {blocker: string, blocked: string}) {
+		console.log(`User '${data.blocker}' unblock '${data.blocked}'`);
+		let blocker = await this.getByLogin(data.blocker, {blockeds: true});
+		let blocked = await this.getByLogin(data.blocked);
+		let i = blocker.blockeds.findIndex(b => b.login == data.blocked)
+		blocker.blockeds.splice(i, 1);
+		await this.usersRepository.save(blocker)
+			.catch((e) => console.log('Save User error'));
+		return blocked;
+	}
+
+
 }

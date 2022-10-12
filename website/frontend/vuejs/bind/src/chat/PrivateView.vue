@@ -113,12 +113,32 @@ let userServReqDone = ref(false);
 // PRIVSREFS
 let privsRef: Ref<PrivConvDto[]> = inject("privs")!;
 let nbPrivNR: { n: Ref<number[]>; reset: () => void } = inject("nbPrivNR")!;
-let privsFiltred = ref(privsRef.value);
+// let privsFiltred = ref(privsRef.value);
+let privsFiltred = ref(privsRef.value.filter(priv => {
+	return !me.value.blockeds.map(b => b.login).includes(priv.user.login)
+}));
 const privDone: Ref<boolean> = inject("privDone")!;
 let knownPeople = ref<BasicUserDto[]>();
-if (privDone.value && userDone.value)
-	knownPeople = ref(setKnownPeople());
 let serverUsers = ref<BasicUserDto[]>();
+
+// INIT
+if (privDone.value && userDone.value) {
+	knownPeople = ref(setKnownPeople());
+	privsFiltred.value = privsRef.value.filter(priv => {
+		return !me.value.blockeds.map(b => b.login).includes(priv.user.login)
+	});
+	watch(me.value.blockeds, () => {
+		console.log(`me.blocked changed`);
+		privsFiltred.value = privsRef.value.filter(priv => {
+			!me.value.blockeds.map(b => b.login)
+			.includes(priv.user.login)
+		}).filter(priv => {
+			return priv.user.login
+				.toUpperCase()
+				.startsWith(search.value.toUpperCase());
+		});
+	})
+}
 
 
 if (privsRef.value.length) {
@@ -126,20 +146,62 @@ if (privsRef.value.length) {
 }
 
 watch(privDone, () => {
-	privsFiltred.value = privsRef.value;
+	// privsFiltred.value = privsRef.value;
+	// nbPrivNR.reset();
+	// if (userDone.value)
+	// 	knownPeople.value = setKnownPeople();
+	
 	nbPrivNR.reset();
-	if (userDone.value)
+	if (userDone.value) {
 		knownPeople.value = setKnownPeople();
+		privsFiltred.value = privsRef.value.filter(priv => {
+			return !me.value.blockeds.map(b => b.login).includes(priv.user.login)
+		});
+		watch(me.value.blockeds, () => {
+			console.log(`me.blocked changed`);
+			privsFiltred.value = privsRef.value.filter(priv => {
+				!me.value.blockeds.map(b => b.login)
+				.includes(priv.user.login)
+			}).filter(priv => {
+				return priv.user.login
+					.toUpperCase()
+					.startsWith(search.value.toUpperCase());
+			});
+		})
+	}
+
 });
 
 watch(userDone, () => {
-	if (privDone.value)
+	// if (privDone.value) 
+	// 	knownPeople.value = setKnownPeople();
+
+	if (privDone.value) {
 		knownPeople.value = setKnownPeople();
+		privsFiltred.value = privsRef.value.filter(priv => {
+			return !me.value.blockeds.map(b => b.login).includes(priv.user.login)
+		});
+		watch(me.value.blockeds, () => {
+			console.log(`me.blocked changed`);
+			privsFiltred.value = privsRef.value.filter(priv => {
+				!me.value.blockeds.map(b => b.login)
+				.includes(priv.user.login)
+			}).filter(priv => {
+				return priv.user.login
+					.toUpperCase()
+					.startsWith(search.value.toUpperCase());
+			});
+		})
+	}
+
 })
+
 
 onUpdated(() => {
 	if (nbPrivNR.n.value.length) nbPrivNR.reset();
 });
+
+
 
 function setKnownPeople() {
 	// console.log(`setKnowPeople`);
@@ -165,8 +227,8 @@ function setKnownPeople() {
 
 watch(search, () => {
 	userServReqDone.value = false;
-	privsFiltred.value = privsRef.value?.filter(function (value) {
-		return value.user.login
+	privsFiltred.value = privsRef.value?.filter(priv => {
+		return priv.user.login
 			.toUpperCase()
 			.startsWith(search.value.toUpperCase());
 	});

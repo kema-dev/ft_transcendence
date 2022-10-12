@@ -93,7 +93,7 @@
 			</span>
 			<img
 				src='~@/assets/restore.svg'
-				alt="User setting"
+				alt="Restore User"
 				class="infoImg"
 			/>
 		</button>

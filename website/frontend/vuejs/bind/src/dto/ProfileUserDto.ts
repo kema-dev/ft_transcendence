@@ -14,11 +14,15 @@ export class ProfileUserDto {
 			this.ratio = "0.5";
 		this.requestFriend = [];
 		this.friends = [];
+		this.blockeds = [];
 		for (let i in user.friends) {
 			this.friends.push(new ResumUserDto(user.friends[i]));
 		}
 		for (let i in user.requestFriend) {
 			this.requestFriend.push(new ResumUserDto(user.requestFriend[i]));
+		}
+		for (let i in user.blockeds) {
+			this.blockeds.push(new ResumUserDto(user.blockeds[i]));
 		}
 	}
 	login: string;
@@ -29,6 +33,7 @@ export class ProfileUserDto {
 	requestFriend: ResumUserDto[];
 	friends: ResumUserDto[];
 	lobby_name: string;
+	blockeds: ResumUserDto[];
 }
 
 export default ProfileUserDto;

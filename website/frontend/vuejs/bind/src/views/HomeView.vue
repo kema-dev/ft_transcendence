@@ -29,6 +29,7 @@ import ProfileUserDto from "@/dto/ProfileUserDto";
 import { routeLocationKey } from "vue-router";
 import { NewChanMsgDto } from "@/chat/dto/NewChanMsgDto";
 import { ModifChanDto } from "@/chat/dto/ModifChanDto";
+import ResumUserDto from "@/dto/ResumUserDto";
 
 
 //  ========== COOKIES + APIPATCH + ROUTE
@@ -59,12 +60,11 @@ provide('socket', socket);
 // 			console.log(error);
 // 		});
 // }
-let userRef = ref();
+let userRef : Ref<ProfileUserDto> = ref();
 let notifs = ref(0);
 let userDone = ref(false);
 socket.on("userUpdate", (data: any) => {
 	if (data && data.login == me) {
-		// console.log(`userUpdate`)
 		userRef.value = data;
 		notifs.value = data.requestFriend.length;
 		userDone.value = true;
@@ -77,6 +77,16 @@ provide("userDone", userDone);
 provide('isCreate', ref(false));
 provide('isJoin', ref(false));
 
+socket.on("userBlock", (data : ResumUserDto) => {
+	console.log(`User ${data.login} blocked`);
+	userRef.value.blockeds.push(data);
+});
+
+socket.on("userUnblock", (data : string) => {
+	console.log(`User ${data} unblocked`);
+	let i = userRef.value.blockeds.findIndex(b => b.login == data);
+	userRef.value.blockeds.splice(i, 1);
+});
 
 //	========== RESIZE WINDOW
 

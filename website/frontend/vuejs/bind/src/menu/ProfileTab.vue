@@ -20,22 +20,48 @@
 			v-bind:match="match"
 			:key="match.creation_date"
 		/>
+		<div v-if="userDone">
+			<button @click="showBlocks = !showBlocks" id="showBlocksBtn">
+				{{(showBlocks? 'Hide' : 'Show') + ' blocked users'}}
+			</button>
+			<div v-if="showBlocks">
+				<div v-for="block in me.blockeds" class="center column">
+					<div class="center raw">
+						<BasicProfil :avatar="block.avatar" :login="block.login"/>
+						<button @click="unblockUser(block.login)" 
+							class="restoreBtn center"
+						>
+							<img
+								src='~@/assets/restore.svg'
+								alt="Restore User"
+								class="restoreImg"
+							/>
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
 import { onMounted, inject, Ref, ref } from 'vue';
+import { Socket } from "socket.io-client";
 import MultiFactorAuthItem from '../components/MultiFactorAuthItem.vue';
 import ScoreItem from '../components/ScoreItem.vue';
 import MatchItem from '@/components/MatchItem.vue';
+import BasicProfil from '@/components/BasicProfilItem.vue'
 import { ProfileUserDto } from '../dto/ProfileUserDto';
 import API from '../components/axios';
 import { createWebHistory } from 'vue-router';
 import { useCookies } from 'vue3-cookies';
+
 const { cookies } = useCookies();
 let define = inject('colors');
 let me: Ref<ProfileUserDto> = inject('user')!;
-let socket = inject('socket')!;
+let userDone = inject('userDone')!;
+let socket : Socket = inject('socket')!;
+let showBlocks = ref(false);
 
 var ProgressBar = require('progressbar.js');
 
@@ -72,6 +98,11 @@ let user_stats = ref({});
 // 		date: 3
 // 	},
 // ];
+
+function unblockUser(blocked: string) {
+	socket.emit("unblockUser", 
+		{blocker: me.value.login, blocked: blocked});
+}
 
 onMounted(async () => {
 	let input = document.querySelector('#none');
@@ -183,5 +214,33 @@ function change_avatar() {
 	font-weight: bold;
 	color: #2c3e50;
 	text-decoration: underline;
+}
+#showBlocksBtn {
+	margin-top: 30px;
+	margin-bottom: 10px;
+	height: 1.5rem;
+	width: auto;
+	border-radius: calc(1.5rem / 2);
+	font-weight: 500;
+	background-color: v-bind("define.color2");
+	color: white;
+	padding: 0 10px;
+	box-shadow: 0px 0px 4px #aaa;
+}
+.restoreBtn {
+	height: 30px;
+	width: 30px;
+	margin-left: 10px;
+	border-radius: 13px;
+}
+.restoreBtn:hover {
+	box-shadow: 0px 0px 4px #aaa;
+	background-color: white;
+}
+.restoreImg {
+	height: 26px;
+	width: 26px;
+	filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg)
+		brightness(86%) contrast(83%);
 }
 </style>

@@ -444,8 +444,6 @@ export class ChatService {
 		});
 		if (user)
 			return new BasicUserDto(user.login, user.avatar);
-			// return user.avatar;
-			// return true;
 		else
 			throw new HttpException('DO_NOT_EXIST', HttpStatus.NOT_FOUND);
 	}

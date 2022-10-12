@@ -33,7 +33,13 @@
 		<div v-if="!info" class="conversation_content stack">
 			<div v-if="index != -1" id="msgsCont" class="messages">
 				<div class="date">{{displayDate(chansRef[index].creation, 0)}}</div>
-				<div v-for="(message, i) in chansRef[index].messages" 
+				<!-- <div v-for="(message, i) in chansRef[index].messages" 
+					:key="i" class="center column"
+				> -->
+				<!-- <div v-for="(message, i) in filtredMsgs" 
+					:key="i" class="center column"
+				> -->
+				<div v-for="(message, i) in filterMsg()" 
 					:key="i" class="center column"
 				>
 					<div v-if="checkDate(i)" class="date">
@@ -81,6 +87,7 @@ import { NewChanMsgDto } from "@/chat/dto/NewChanMsgDto";
 import { ChannelDto } from "./dto/ChannelDto";
 import { ProfileUserDto } from "@/dto/ProfileUserDto"
 import router from "@/router";
+import { MessageDto } from "./dto/MessageDto";
 
 
 // ================= INIT =================
@@ -93,12 +100,14 @@ let colors = inject("colors");
 let mySocket: Socket = inject("socket")!;
 let myName: string = inject("me")!;
 let me: Ref<ProfileUserDto> = inject("user")!;
+let userDone: Ref<boolean> = inject("userDone")!;
 const newIndex : Ref<string> = inject("newIndex")!;
 let myMsg = ref("");
 let info = ref(false);
 let chanExist = ref(false);
 let chanExistDone = ref(false);
 let index = ref(-1);
+let filtredMsgs: MessageDto[] = [];
 
 // VERIFY IF CHAN EXIST
 HTTP.get(apiPath + "chat/chanExist/" + chanName)
@@ -120,44 +129,14 @@ const chanBan: Ref<string> = inject("chanBan")!;
 
 // GET CHAN INDEX
 index.value = chansRef.value.findIndex((chan) => chan.name == chanName);
-if (index.value != -1) {
-	chanRead(index.value, true);
-	scrollAndFocus();
-	watch(chansRef.value[index.value].messages, () => {
-		chanRead(index.value, true);
-		let msgsCont = document.getElementById("msgsCont");
-		if (msgsCont) {
-			let oldScrollTop = msgsCont!.scrollTop;
-			let oldScrollHeight = msgsCont!.scrollHeight;
-			let oldClientHeight = msgsCont!.clientHeight;
-			let lastMsg = msgsCont.lastElementChild!.clientHeight;
-			if (oldScrollTop + oldClientHeight + lastMsg == oldScrollHeight)
-				msgsCont!.scrollTop = msgsCont!.scrollHeight;
-		}
-	}, {flush: 'post'})
-}
+if (index.value != -1)
+	init();
 
 // GET CHAN INDEX IF REFRESH PAGE
 watch(chanDone, () => {
 	index.value = chansRef.value.findIndex((chan) => chan.name == chanName);
-	if (index.value != -1) {
-		nextTick(() => {
-			scrollAndFocus();
-			chanRead(index.value, true);
-			watch(chansRef.value[index.value].messages, () => {
-				chanRead(index.value, true);
-				let msgsCont = document.getElementById("msgsCont");
-				if (msgsCont) {
-					let oldScrollTop = msgsCont!.scrollTop;
-					let oldScrollHeight = msgsCont!.scrollHeight;
-					let oldClientHeight = msgsCont!.clientHeight;
-					let lastMsg = msgsCont.lastElementChild!.clientHeight;
-					if (oldScrollTop + oldClientHeight + lastMsg == oldScrollHeight)
-					msgsCont!.scrollTop = msgsCont!.scrollHeight;
-				}
-			})
-		})
-	}
+	if (index.value != -1)
+		nextTick(() => { init(); })
 }, {flush: 'post'})
 
 
@@ -182,17 +161,29 @@ watch(newIndex, () => {
 
 // ================= METHODS =================
 
-function sendMsg() {
-	let input = document.getElementById("sendbox");
-	input?.classList.remove("invalidInput");
-	if (chansRef.value[index.value].mutes.find(m => m.login == myName))
-		return setTimeout(() => {
-			input!.classList.add("invalidInput");
-		}, 50);
-	if (myMsg.value != '') {
-		mySocket.emit("newChanMsg", new NewChanMsgDto(myName, chanName, myMsg.value));
-		myMsg.value = "";
-	}
+function init() {
+	// filtredMsgs = filterMsg();
+	chanRead(index.value, true);
+	scrollAndFocus();
+	watch(chansRef.value[index.value].messages, () => {
+		chanRead(index.value, true);
+		let msgsCont = document.getElementById("msgsCont");
+		if (msgsCont) {
+			let oldScrollTop = msgsCont!.scrollTop;
+			let oldScrollHeight = msgsCont!.scrollHeight;
+			let oldClientHeight = msgsCont!.clientHeight;
+			let lastMsg = msgsCont.lastElementChild!.clientHeight;
+			if (oldScrollTop + oldClientHeight + lastMsg == oldScrollHeight)
+			msgsCont!.scrollTop = msgsCont!.scrollHeight;
+		}
+	}, {flush: 'post'})
+}
+
+function filterMsg() {
+	return chansRef.value[index.value].messages.filter(msg => {
+		// console.log(`msg = ${msg.msg}, user = ${msg.user}`)
+		return !me.value.blockeds.map(b => b.login).includes(msg.user)
+	})
 }
 
 function scrollAndFocus() {
@@ -228,9 +219,8 @@ function checkDate(i: number) {
 		return false;
 }
 
-
-
 function checkUserName(i: number) {
+	// console.log(`i = ${i}, myname = ${myName}, msg.user = ${chansRef.value[index.value].messages[i].user}`)
 	if (myName == chansRef.value[index.value].messages[i].user)
 		return false;
 	if (i == 0) 
@@ -283,6 +273,19 @@ function displayDate(date: Date, i: number) {
 			weekday: "long",
 		})} ${hours}:${minutes}`;
 	else return `${day} ${month} ${year} at ${hours}:${minutes}`;
+}
+
+function sendMsg() {
+	let input = document.getElementById("sendbox");
+	input?.classList.remove("invalidInput");
+	if (chansRef.value[index.value].mutes.find(m => m.login == myName))
+		return setTimeout(() => {
+			input!.classList.add("invalidInput");
+		}, 50);
+	if (myMsg.value != '') {
+		mySocket.emit("newChanMsg", new NewChanMsgDto(myName, chanName, myMsg.value));
+		myMsg.value = "";
+	}
 }
 
 

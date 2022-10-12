@@ -98,8 +98,8 @@
 					<img src="@/assets/name_logo.svg" alt="Name Channel" class="newChanImg">
 					<label for="newChanName" class="labelForm">Name :</label>
 				</div>
-				<input v-model="nameInput" type="text" name="newChanName" 
-					id="newChanName" class="inputForm" 
+				<input v-model="nameInput" @keypress.enter="submitChannel" type="text" 
+					name="newChanName" id="newChanName" class="inputForm" 
 				/>
 			</div>
 			<div class="elemFormCont left_center raw">
@@ -124,8 +124,8 @@
 						value="psw required"
 					/>
 				</div>
-				<input v-model="pswInput" type="text" name="pswInput"
-					id="pswInput" class="inputForm" :disabled="!pswCheck"
+				<input v-model="pswInput" type="text" @keypress.enter="submitChannel"
+					name="pswInput" id="pswInput" class="inputForm" :disabled="!pswCheck"
 				/>
 			</div>
 			<input type="submit" value="Create" id="submitButton" />

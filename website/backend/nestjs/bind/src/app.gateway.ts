@@ -206,6 +206,7 @@ export class AppGateway
 		let user = await this.userService.getByLogin(payload.login, {
 			requestFriend: true,
 			friends: true,
+			blockeds: true,
 		});
 		this.server.to(user.socketId).emit('userUpdate', new ProfileUserDto(user));
 	}
@@ -265,10 +266,23 @@ export class AppGateway
 		this.userService.changeAvatar(payload.login, payload.avatar);
 	}
 
-	// @SubscribeMessage('connection')
-	// saveSocket(@ConnectedSocket() client: Socket, ...args: any[]) {
-	// 	console.log('debut saveSocket');
-	// }
+	@SubscribeMessage('blockUser')
+	async blockUser(
+		@MessageBody() data: {blocker: string, blocked: string},
+		@ConnectedSocket() client: Socket,
+	) {
+		let blocked = await this.userService.blockUser(data);
+		client.emit('userBlock', new ResumUserDto(blocked));
+	}
+
+	@SubscribeMessage('unblockUser')
+	async unblockUser(
+		@MessageBody() data: {blocker: string, blocked: string},
+		@ConnectedSocket() client: Socket,
+	) {
+		let unblocked = await this.userService.unblockUser(data);
+		client.emit('userUnblock', unblocked.login);
+	}
 
 	// ============================ CHAT =====================================
 
