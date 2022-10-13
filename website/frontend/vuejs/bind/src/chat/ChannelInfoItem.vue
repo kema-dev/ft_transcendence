@@ -67,7 +67,7 @@
 				/>
 			</form>
 		</div>
-		<span class="diviserBar"></span>
+		<hr class="diviserBar">
 		<div class="ElemCont left_center column">
 			<div class="ElemHeadCont left_center raw">
 				<div class="titleImgCont center">
@@ -115,7 +115,7 @@
 				</button>
 			</div>
 		</div>
-		<span class="diviserBar"></span>
+		<hr class="diviserBar">
 		<div class="ElemCont left_center column">
 			<div class="ElemHeadCont left_center raw">
 				<div class="titleImgCont center">
@@ -136,7 +136,7 @@
 					:isAdmin="isAdmin()"/>
 			</div>
 		</div>
-		<span class="diviserBar"></span>
+		<hr class="diviserBar">
 		<div class="ElemCont left_center column">
 			<div class="ElemHeadCont left_center raw">
 				<div class="titleImgCont center">
@@ -157,7 +157,7 @@
 					:isAdmin="isAdmin()"/>
 			</div>
 		</div>
-		<span class="diviserBar"></span>
+		<hr class="diviserBar">
 		<div class="ElemCont left_center column">
 			<div class="ElemHeadCont left_center raw">
 				<div class="titleImgCont center">
@@ -178,7 +178,7 @@
 					:isAdmin="isAdmin()"/>
 			</div>
 		</div>
-		<span class="diviserBar"></span>
+		<hr class="diviserBar">
 		<div class="ElemCont left_center column">
 			<div class="ElemHeadCont left_center raw">
 				<div class="titleImgCont center">
@@ -410,10 +410,15 @@ function printChan(chan: ChannelDto) {
 
 /* GENERAL */
 .infoCont {
-	padding: 10px 0;
+	height: calc(100vh - 250px);
+	overflow-y: auto;
+	justify-content: flex-start;
 }
 .topButsCont {
-	margin-bottom: 20px;
+	margin: 20px 0;
+	margin-top: 30px;
+	margin-bottom: 15px;
+	height: auto;
 }
 
 .ElemCont {
@@ -422,12 +427,9 @@ function printChan(chan: ChannelDto) {
 }
 .diviserBar{
 	width: 200px;
-	height: 1px;
+	height: 1px !important;
 	background-color: v-bind("colors.color2");
 }
-/* .ElemHeadCont {
-
-} */
 .titleText {
 	font-family: 'Orbitron', sans-serif;
 	width: auto;
@@ -438,8 +440,6 @@ function printChan(chan: ChannelDto) {
 .titleValueText {
 	font-family: 'Orbitron', sans-serif;
 	margin-left: 10px;
-	/* width: auto;
-	white-space: nowrap; */
 }
 .titleImgCont,
 .setUserCont,
@@ -453,7 +453,6 @@ function printChan(chan: ChannelDto) {
 }
 .setUserCont:hover,
 .settingsBtnCont:hover {
-	/* border: solid 1px v-bind("colors.color2"); */
 	background-color: #fff;
 	box-shadow: 0px 0px 4px #aaa;
 }
@@ -492,7 +491,6 @@ function printChan(chan: ChannelDto) {
 	}
 }
 
-/* SPECIFIC */
 .inputForm {
 	font-family: 'Orbitron', sans-serif;
 	font-size: 0.8rem;
@@ -512,11 +510,9 @@ function printChan(chan: ChannelDto) {
 	border-radius: calc(1.5rem / 2);
 	font-weight: 500;
 	background-color: v-bind("colors.color2");
-	/* background-color: rgba(255, 178, 178, 0.616); */
 	color: white;
 	padding: 0 10px;
 	margin: auto;
-	margin-top: 20px;
 	box-shadow: 0px 0px 4px #aaa;
 }
 #newUserInput {
@@ -535,12 +531,10 @@ function printChan(chan: ChannelDto) {
 	width: 135px;
 	border-radius: calc(1.5rem / 2);
 	font-weight: 500;
-	/* background-color: v-bind("colors.color2"); */
 	background-color: rgb(246, 129, 129);
 	color: white;
 	padding: 0 10px;
 	margin: auto;
-	margin-top: 20px;
 	box-shadow: 0px 0px 4px #aaa;
 }
 </style>

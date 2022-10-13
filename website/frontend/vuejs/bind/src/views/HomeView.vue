@@ -50,21 +50,24 @@ provide('me', me);
 let socket = io(FQDN + ':3000', { query: { login: me } });
 provide('socket', socket);
 
-// function post(url: string, args: any, fct: any) {
-// 	let data;
-// 	axios
-// 		.post(FQDN + ":3000/api/v1/" + url, args)
-// 		.then(fct)
-// 		.catch((error) => {
-// 			console.log(url + ": failed request.\nargs: " + args);
-// 			console.log(error);
-// 		});
-// }
 let userRef : Ref<ProfileUserDto> = ref();
 let notifs = ref(0);
 let userDone = ref(false);
+
+// getMyProfile();
+// function getMyProfile() {
+// 	HTTP.get(apiPath + "user/getMyProfile/" + me)
+// 	.then(res => {
+// 		userRef.value = res.data;
+// 		userDone.value = true;
+// 		console.log(`getMyProfile Done`)
+// 	})
+// 	.catch(e => console.log(e));
+// }
+
 socket.on("userUpdate", (data: any) => {
 	if (data && data.login == me) {
+		console.log(`userUpdate`);
 		userRef.value = data;
 		notifs.value = data.requestFriend.length;
 		userDone.value = true;

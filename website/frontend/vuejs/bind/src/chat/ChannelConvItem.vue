@@ -1,5 +1,5 @@
 <template>
-	<div v-if="chanExistDone && chanExist && chanDone" id="channel_view" class="stack">
+	<div v-if="chanExistDone && chanExist && chanDone && userDone" id="channel_view" class="stack">
 		<div class="userTopBar center raw space-between">
 			<div class="avatar_cont center">
 				<img src="~@/assets/group_logo.svg"  class="avatar" alt="avatar" />
@@ -33,13 +33,7 @@
 		<div v-if="!info" class="conversation_content stack">
 			<div v-if="index != -1" id="msgsCont" class="messages">
 				<div class="date">{{displayDate(chansRef[index].creation, 0)}}</div>
-				<!-- <div v-for="(message, i) in chansRef[index].messages" 
-					:key="i" class="center column"
-				> -->
-				<!-- <div v-for="(message, i) in filtredMsgs" 
-					:key="i" class="center column"
-				> -->
-				<div v-for="(message, i) in filterMsg()" 
+				<div v-for="(message, i) in filterBlockMsgs()" 
 					:key="i" class="center column"
 				>
 					<div v-if="checkDate(i)" class="date">
@@ -138,6 +132,11 @@ watch(chanDone, () => {
 	if (index.value != -1)
 		nextTick(() => { init(); })
 }, {flush: 'post'})
+watch(userDone, () => {
+	index.value = chansRef.value.findIndex((chan) => chan.name == chanName);
+	if (index.value != -1)
+		nextTick(() => { init(); })
+}, {flush: 'post'})
 
 
 // ================= WATCHERS =================
@@ -150,9 +149,7 @@ watch(chanBan, () => {
 
 watch(newIndex, () => {
 	if (newIndex.value != '') {
-		// console.log(`Find new Index chan ${chanName} : old Index = ${index.value}`)
 		index.value = chansRef.value.findIndex((chan) => chan.name == chanName);
-		// console.log(`Find new Index chan ${chanName} : new Index = ${index.value}`)
 		chanRead(index.value, true);
 		newIndex.value == '';
 	}
@@ -162,28 +159,31 @@ watch(newIndex, () => {
 // ================= METHODS =================
 
 function init() {
-	// filtredMsgs = filterMsg();
-	chanRead(index.value, true);
-	scrollAndFocus();
-	watch(chansRef.value[index.value].messages, () => {
+	if (chanDone.value && userDone.value) {
+		// filtredMsgs = filterBlockMsgs();
 		chanRead(index.value, true);
-		let msgsCont = document.getElementById("msgsCont");
-		if (msgsCont) {
-			let oldScrollTop = msgsCont!.scrollTop;
-			let oldScrollHeight = msgsCont!.scrollHeight;
-			let oldClientHeight = msgsCont!.clientHeight;
-			let lastMsg = msgsCont.lastElementChild!.clientHeight;
-			if (oldScrollTop + oldClientHeight + lastMsg == oldScrollHeight)
-			msgsCont!.scrollTop = msgsCont!.scrollHeight;
-		}
-	}, {flush: 'post'})
+		scrollAndFocus();
+		watch(chansRef.value[index.value].messages, () => {
+			chanRead(index.value, true);
+			let msgsCont = document.getElementById("msgsCont");
+			if (msgsCont) {
+				let oldScrollTop = msgsCont!.scrollTop;
+				let oldScrollHeight = msgsCont!.scrollHeight;
+				let oldClientHeight = msgsCont!.clientHeight;
+				let lastMsg = msgsCont.lastElementChild!.clientHeight;
+				if (oldScrollTop + oldClientHeight + lastMsg == oldScrollHeight)
+				msgsCont!.scrollTop = msgsCont!.scrollHeight;
+			}
+		}, {flush: 'post'})
+	}
 }
 
-function filterMsg() {
-	return chansRef.value[index.value].messages.filter(msg => {
-		// console.log(`msg = ${msg.msg}, user = ${msg.user}`)
+function filterBlockMsgs() {
+	// console.log(`filtredMsgs recalculated`);
+	filtredMsgs = chansRef.value[index.value].messages.filter(msg => {
 		return !me.value.blockeds.map(b => b.login).includes(msg.user)
-	})
+	});
+	return filtredMsgs;
 }
 
 function scrollAndFocus() {
@@ -220,14 +220,16 @@ function checkDate(i: number) {
 }
 
 function checkUserName(i: number) {
-	// console.log(`i = ${i}, myname = ${myName}, msg.user = ${chansRef.value[index.value].messages[i].user}`)
-	if (myName == chansRef.value[index.value].messages[i].user)
+	// if (myName == chansRef.value[index.value].messages[i].user)
+	if (myName == filtredMsgs[i].user)
 		return false;
 	if (i == 0) 
 		return true;
 	if (
-		chansRef.value[index.value].messages[i].user 
-		== chansRef.value[index.value].messages[i - 1].user
+		// chansRef.value[index.value].messages[i].user 
+		// == chansRef.value[index.value].messages[i - 1].user
+		filtredMsgs[i].user 
+		== filtredMsgs[i - 1].user
 		&& !checkDate(i)
 	)
 		return false;
