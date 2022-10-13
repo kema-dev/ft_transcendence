@@ -54,17 +54,6 @@ let userRef : Ref<ProfileUserDto> = ref();
 let notifs = ref(0);
 let userDone = ref(false);
 
-// getMyProfile();
-// function getMyProfile() {
-// 	HTTP.get(apiPath + "user/getMyProfile/" + me)
-// 	.then(res => {
-// 		userRef.value = res.data;
-// 		userDone.value = true;
-// 		console.log(`getMyProfile Done`)
-// 	})
-// 	.catch(e => console.log(e));
-// }
-
 socket.on("userUpdate", (data: any) => {
 	if (data && data.login == me) {
 		console.log(`userUpdate`);
@@ -110,13 +99,9 @@ let privDone = ref(false);
 function resetNbPrivNR() {
 	nbPrivNR.value = [];
 }
-function privMsgRead(index : number, readed: boolean) {
-	privsRef.value[index].readed = readed;
-}
 getPrivsRequest();
 provide('privs', privsRef);
 provide('nbPrivNR', { n: nbPrivNR, reset: resetNbPrivNR });
-provide('privMsgRead', privMsgRead);
 provide('privDone', privDone);
 
 function getPrivsRequest() {
@@ -129,7 +114,11 @@ function getPrivsRequest() {
 			privsTmp.forEach(priv => {
 				priv.messages.forEach(msg => msg.date = new Date(msg.date))
 			})
+			nbPrivNR.value = privsTmp
+				.filter(p => p.readed? false : true)
+				.map(p => p.id)
 			privsRef.value = privsTmp;
+
 		}
 		privDone.value = true;
 		console.log(`getPrivs Done`)
@@ -151,12 +140,15 @@ socket.on('newPrivConv', (data: PrivConvDto) => {
 socket.on('newPrivMsg', (data: { msg: MessageDto; id: number }) => {
 	console.log(`New Private message received : ${data.msg.msg}`);
 	let i = privsRef.value.findIndex((priv) => priv.id == data.id);
-	privsRef.value[i].messages.push(
-		new MessageDto(data.msg.user, data.msg.msg, new Date(data.msg.date)));
+	privsRef.value[i].messages
+		.push( new MessageDto(data.msg.user, data.msg.msg, new Date(data.msg.date)));
 	privsRef.value[i].readed = false;
+	let blocked = userRef.value.blockeds.map(b => b.login).includes(data.msg.user);
 	if (data.msg.user != me 
 		&& !nbPrivNR.value.includes(privsRef.value[i].id)
-		&& route.path != "/home/chat/private/" + data.msg.user)
+		&& route.path != "/home/chat/private/" + data.msg.user
+		&& !blocked
+		)
 		nbPrivNR.value.push(privsRef.value[i].id);
 	if (i != 0) putPrivFirst(i);
 });
@@ -245,12 +237,15 @@ socket.on('newChanMsg', (data: { msg: MessageDto; name: string }) => {
 		new MessageDto(data.msg.user, data.msg.msg, new Date(data.msg.date)),
 	);
 	chansRef.value[i].readed = false;
+	let blocked = userRef.value.blockeds.map(b => b.login).includes(data.msg.user);
 	if (data.msg.user != me 
 		&& !nbChanNR.value.includes(chansRef.value[i].name)
-		&& route.path != "/home/chat/channel/" + data.name) {
-			console.log(`New chan notif`);
-			nbChanNR.value.push(chansRef.value[i].name);
-		}
+		&& route.path != "/home/chat/channel/" + data.name
+		&& !blocked
+		) {
+		// console.log(`New chan notif`);
+		nbChanNR.value.push(chansRef.value[i].name);
+	}
 	if (i != 0) {
 		putChanFirst(i);
 		newIndex.value = data.name;

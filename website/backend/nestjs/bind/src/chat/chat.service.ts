@@ -105,12 +105,11 @@ export class ChatService {
 		return priv;
 	}
 
+
 	async addPrivMsg(data: NewPrivMsgDto) {
 		console.log(`addPrivMsg Chatservice, msg = '${data.message}'`);
-		// Find users
 		const userSend = await this.userService.getByLogin(data.userSend);
 		const userReceive = await this.userService.getByLogin(data.userReceive);
-		// Create and save Msg
 		const msg = this.msgRepository.create({
 			user: userSend,
 			message: data.message,
@@ -118,11 +117,8 @@ export class ChatService {
 		await this.msgRepository
 			.save(msg)
 			.catch((e) => console.log('Save msg error'));
-		// Check if PrivConv exist
 		const priv = await this.getPriv([data.userSend, data.userReceive]);
-		// If PrivateConv exist => add message to the existing one
 		if (priv) {
-			console.log(`PrivConv already exist`);
 			priv.messages.push(msg);
 			priv.readed = false;
 			await this.privateRepository
@@ -130,7 +126,6 @@ export class ChatService {
 				.catch((e) => console.log('Save priv error'));
 			return priv;
 		}
-		// else => Create a new PrivateConv
 		else {
 			console.log('creation New PrivateConv');
 			const newPriv = this.privateRepository.create({ readed: false });
@@ -183,7 +178,10 @@ export class ChatService {
 		return basicInfos;
 	}
 
-	async markPrivReaded(priv: PrivateEntity) {
+	// async markPrivReaded(priv: PrivateEntity) {
+	async markPrivReaded(sender: string, receiver: string) {
+		console.log(`sender '${sender}' read private of '${receiver}'`);
+		let priv = await this.getPriv([sender, receiver]);
 		priv.readed = true;
 		this.privateRepository.save(priv);
 		return priv;
@@ -547,7 +545,6 @@ export class ChatService {
 	
 
 	async modifChan(server: Server, modif: ModifChanDto) {
-		console.log(`Modif Chan:`);
 		let chan = await this.channelRepository.findOne({
 			where: {name: modif.chan},
 			relations: {admins: true, users: true, mutes: true, bans: true, messages: true}
@@ -657,7 +654,6 @@ export class ChatService {
 					.catch((e) => console.log('Save Channel error'));
 				console.log(`User '${login}' from channel '${chan.name}' is restored`);
 				for (let user of chan.admins.concat(chan.users).concat(chan.mutes)) {
-					console.log(`restore : login = ${user.login}`);
 					server.to(user.socketId).emit("modifChan", modif);
 				}
 			}

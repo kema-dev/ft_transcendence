@@ -340,18 +340,10 @@ export class AppGateway
 
 	@SubscribeMessage('privReaded')
 	async privReaded(
-		@MessageBody() data: { userSend: string; userReceive: string },
+		@MessageBody() data: { sender: string; receiver: string },
 		@ConnectedSocket() client: Socket,
 	) {
-		console.log(
-			`privReaded AppGateway , sender = ${data.userSend}, receiver = ${data.userReceive}`,
-		);
-		const priv = await this.chatService.getPriv([
-			data.userSend,
-			data.userReceive,
-		]);
-		if (!priv) return console.log(`Error privReaded`);
-		await this.chatService.markPrivReaded(priv);
+		this.chatService.markPrivReaded(data.sender, data.receiver);
 	}
 
 	// ========== CHANNELS

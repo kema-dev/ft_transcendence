@@ -118,32 +118,29 @@ let userExist : Ref<BasicUserDto| undefined> = ref(undefined);
 let index = ref(-1);
 
 // VERIFY IF CHAN EXIST
-HTTP.get(apiPath + "chat/userExist/" + userName)
-	.then((res) => {
-		userExist.value = res.data;
-		userExistDone.value = true;
-		nextTick(() => {
-			scrollAndFocus();
-		})
-	})
-	.catch((e) => {
-			userExistDone.value = true;
-	});
+userExistFn();
 
 // GET PRIVS REFS
 let privsRef: Ref<PrivConvDto[]> = inject("privs")!;
-let privMsgRead: (index: number, readed: boolean) => void =
-	inject("privMsgRead")!;
 const privDone: Ref<boolean> = inject("privDone")!;
 
 // GET PRIV INDEX
 index.value = privsRef.value
 	.findIndex((priv) => priv.user.login == userName);
-if (index.value != -1) {
-	privMsgRead(index.value, true);
+if (index.value != -1) init();
+
+// GET PRIV INDEX IF REFRESH PAGE
+watch(privDone, () => {
+	index.value = privsRef.value
+		.findIndex((priv) => priv.user.login == userName);
+	if (index.value != -1) nextTick(() => init())
+}, {flush: 'post'})
+
+function init() {
+	privMsgRead();
 	scrollAndFocus();
 	watch(privsRef.value[index.value].messages, () => {
-		privMsgRead(index.value, true);
+		privMsgRead();
 		let msgsCont = document.getElementById("msgsCont");
 		if (msgsCont) {
 			let oldScrollTop = msgsCont!.scrollTop;
@@ -151,36 +148,10 @@ if (index.value != -1) {
 			let oldClientHeight = msgsCont!.clientHeight;
 			let lastMsg = msgsCont.lastElementChild!.clientHeight;
 			if (oldScrollTop + oldClientHeight + lastMsg == oldScrollHeight)
-				msgsCont!.scrollTop = msgsCont!.scrollHeight;
+			msgsCont!.scrollTop = msgsCont!.scrollHeight;
 		}
 	}, {flush: 'post'})
 }
-
-// GET PRIV INDEX IF REFRESH PAGE
-watch(privDone, () => {
-	console.log(`privDone OK = ${privDone.value}`);
-	index.value = privsRef.value
-		.findIndex((priv) => priv.user.login == userName);
-	if (index.value != -1) {
-		nextTick(() => {
-			privMsgRead(index.value, true);
-			scrollAndFocus();
-			watch(privsRef.value[index.value].messages, () => {
-				privMsgRead(index.value, true);
-				let msgsCont = document.getElementById("msgsCont");
-				if (msgsCont) {
-					let oldScrollTop = msgsCont!.scrollTop;
-					let oldScrollHeight = msgsCont!.scrollHeight;
-					let oldClientHeight = msgsCont!.clientHeight;
-					let lastMsg = msgsCont.lastElementChild!.clientHeight;
-					if (oldScrollTop + oldClientHeight + lastMsg == oldScrollHeight)
-					msgsCont!.scrollTop = msgsCont!.scrollHeight;
-				}
-			})
-		})
-	}
-}, {flush: 'post'})
-
 
 // ===================== WATCHERS =====================
 
@@ -203,6 +174,18 @@ mySocket.on("findNewPriv", () => {
 
 // ===================== METHODS =====================
 
+function userExistFn() {
+	HTTP.get(apiPath + "chat/userExist/" + userName)
+		.then((res) => {
+			userExist.value = res.data;
+			userExistDone.value = true;
+			nextTick(() => scrollAndFocus() )
+		})
+		.catch((e) => {
+				userExistDone.value = true;
+		});
+}
+
 function toProfile() {
 	router.push({name: 'player', params: { name: userName }});
 }
@@ -211,6 +194,15 @@ function sendMsg() {
 	if (myMsg.value != "") {
 		mySocket.emit("newPrivMsg", new NewPrivMsgDto(me, userName, myMsg.value));
 		myMsg.value = "";
+	}
+}
+
+function privMsgRead() {
+	if (privsRef.value[index.value].messages.at(-1)!.user != me
+		&& privsRef.value[index.value].readed == false
+	) {
+		privsRef.value[index.value].readed = true;
+		mySocket.emit('privReaded', {sender: userName, receiver: me});
 	}
 }
 

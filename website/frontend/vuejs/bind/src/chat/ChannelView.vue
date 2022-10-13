@@ -2,7 +2,6 @@
 	<div id="channel_view" class="center column stack">
 		<div class="option_private center raw">
 			<SearchItem v-if="!newChannel" v-model:search="search"/>
-			<!-- <div v-if="newChannel" class="newChannelTitle">Create a new Channel</div> -->
 			<div v-if="newChannel" class="newChannelTitle center">
 				<span class="newChannelTitleText">Create new Channel</span>
 			</div>
@@ -146,32 +145,20 @@ import {
 	onUpdated,
 } from "vue";
 import HTTP from "../components/axios";
-import { useToast } from 'vue-toastification';
 import ChannelTab from "@/chat/ChannelTab.vue";
 import SearchItem from "@/components/SearchItem.vue";
 import ConversationTab from "@/chat/ConversationTab.vue";
 import { ChannelDto } from "@/chat/dto/ChannelDto";
 import { ChannelTabDto } from "@/chat/dto/ChannelTabDto ";
 import { NewChanDto } from "@/chat/dto/NewChanDto"
-	
-	
-const toast = useToast();
-let colors = inject("colors");
-let me : string = inject("me")!;
-let apiPath: string = inject("apiPath")!;
 
-let chansRef : Ref<ChannelDto[]> = inject("chans")!;
-let chansFiltred : Ref<ChannelDto[]> = ref(chansRef.value);
-const chanDone: Ref<boolean> = inject("chanDone")!;
-let nbChanNR: { n: Ref<string[]>; reset: () => void } = inject("nbChanNR")!;
 
-if (chansRef.value.length) {
-	nbChanNR.reset();
-}
+// ================= INIT =================
 
-let serverChans : Ref<ChannelTabDto[]> = ref([]);
-let chanServReqDone = ref(false);
-
+// INIT COMPONENT VARIABLES
+const colors = inject("colors");
+const me : string = inject("me")!;
+const apiPath: string = inject("apiPath")!;
 const search = ref("");
 const findChannel = ref(false);
 const newChannel = ref(false);
@@ -179,10 +166,22 @@ const pswCheck = ref(false);
 const privCB = ref(false);
 const nameInput = ref("");
 const pswInput = ref("");
+const chanServReqDone = ref(false);
+const serverChans : Ref<ChannelTabDto[]> = ref([]);
 
+// GET CHANS REFS
+const chansRef : Ref<ChannelDto[]> = inject("chans")!;
+const chansFiltred : Ref<ChannelDto[]> = ref(chansRef.value);
+const chanDone: Ref<boolean> = inject("chanDone")!;
+const nbChanNR: { n: Ref<string[]>; reset: () => void } = inject("nbChanNR")!;
+
+// INIT IF REFRESH PAGE
 watch(chanDone, () => {
 	chansFiltred.value = chansRef.value;
 });
+
+
+// ================= WATCHERS =================
 
 watch(search, () => {
 	chanServReqDone.value = false;
@@ -191,6 +190,9 @@ watch(search, () => {
 	});
 	if (findChannel.value && search.value != "") getServerChans();
 });
+
+
+// ================= METHODS =================
 
 function getServerChans() {
 	HTTP.get(apiPath + "chat/getServerChansFiltred/" + me + "/" + search.value)
@@ -214,6 +216,7 @@ function findChannelFn() {
 		document.getElementById("search")?.focus();
 	});
 }
+
 function newChannelFn() {
 	newChannel.value = !newChannel.value;
 	pswInput.value = "";
@@ -249,14 +252,17 @@ function submitChannel() {
 				nameElem!.classList.add("invalidInput");
 			}
 		});
-
 }
+
+
+// ====================== LIFECYCLES HOOKS ======================
 
 onUpdated(() => {
 	if (nbChanNR.n.value.length) nbChanNR.reset();
 });
 
 onMounted(() => {
+	if (chansRef.value.length) nbChanNR.reset();
 	const box = document.getElementById("channelsTabText");
 	if (box != null) box.classList.add("chatTabActive");
 });
@@ -265,6 +271,7 @@ onBeforeUnmount(() => {
 	const box = document.getElementById("channelsTabText");
 	if (box != null) box.classList.remove("chatTabActive");
 });
+
 </script>
 
 <style scoped>
@@ -288,7 +295,6 @@ onBeforeUnmount(() => {
 .button_cont {
 	border-radius: 50%;
 	padding: 5px;
-	/* position: static; */
 }
 .button_cont:hover {
 	background-color: white;
@@ -308,7 +314,6 @@ onBeforeUnmount(() => {
 	z-index: 1;
 	bottom: 110%;
 	right: 0;
-	/* transform: translate(50%); */
 }
 .button_cont:hover .infoButtonText {
 	visibility: visible;
@@ -362,7 +367,6 @@ onBeforeUnmount(() => {
 	margin-right: 10px;
 	filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg)
 		brightness(86%) contrast(83%);
-	/* display: none; */
 }
 .labelForm {
 	font-family: "Orbitron", sans-serif;

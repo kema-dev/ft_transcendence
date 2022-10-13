@@ -96,7 +96,6 @@ import { Socket } from "socket.io-client";
 import HTTP from "../components/axios";
 import { PrivConvDto } from "@/chat/dto/PrivConvDto";
 import { ProfileUserDto } from "@/dto/ProfileUserDto"
-import ResumUserDto from "@/dto/ResumUserDto";
 
 // INJECTS
 let colors = inject("colors");
@@ -104,22 +103,17 @@ let me: Ref<ProfileUserDto> = inject("user")!;
 let userDone : Ref<boolean> = inject("userDone")!;
 let mySocket: Socket = inject("socket")!;
 let apiPath: string = inject("apiPath")!;
-
-// REFS COMPONENTS
 const search = ref("");
 const newMsg = ref(false);
 let userServReqDone = ref(false);
-
-// PRIVSREFS
-let privsRef: Ref<PrivConvDto[]> = inject("privs")!;
-let nbPrivNR: { n: Ref<number[]>; reset: () => void } = inject("nbPrivNR")!;
-// let privsFiltred = ref(privsRef.value);
-let privsFiltred = ref(privsRef.value.filter(priv => {
-	return !me.value.blockeds.map(b => b.login).includes(priv.user.login)
-}));
-const privDone: Ref<boolean> = inject("privDone")!;
 let knownPeople = ref<BasicUserDto[]>();
 let serverUsers = ref<BasicUserDto[]>();
+
+// GET PRIVS REFS
+let privsRef: Ref<PrivConvDto[]> = inject("privs")!;
+let nbPrivNR: { n: Ref<number[]>; reset: () => void } = inject("nbPrivNR")!;
+let privsFiltred : Ref<PrivConvDto[]> = ref([]);
+const privDone: Ref<boolean> = inject("privDone")!;
 
 // INIT
 if (privDone.value && userDone.value) {

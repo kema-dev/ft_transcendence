@@ -426,8 +426,9 @@ function printChan(chan: ChannelDto) {
 	margin: 10px;
 }
 .diviserBar{
+	flex-shrink: 0;
 	width: 200px;
-	height: 1px !important;
+	height: 1px;
 	background-color: v-bind("colors.color2");
 }
 .titleText {
