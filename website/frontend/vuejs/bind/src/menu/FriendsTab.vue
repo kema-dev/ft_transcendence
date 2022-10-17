@@ -13,7 +13,9 @@
 				</button>
 			</div> -->
 			<!-- <SearchItem v-model="search"/> -->
-			<input type="text" placeholder="Recherche" id="search" ref="search" />
+
+			<!-- <input type="text" placeholder="Recherche" id="search" ref="search" /> -->
+			<SearchItem v-model:search="search"/>
 			<div v-if="search.value == ''" class="column center">
 				<div v-if="me?.requestFriend.length != 0" class="column center">
 					<h2>Friend request</h2>
@@ -124,6 +126,7 @@ import { Socket } from 'engine.io-client';
 import FriendContentItem from '../components/FriendContentItem.vue';
 
 let define = inject('colors');
+const myName: string = inject("me")!;
 let me = inject('user')!;
 let socket: Socket = inject('socket')!;
 let notifs: Ref<number> = inject('notifs')!;
@@ -161,7 +164,7 @@ onMounted(() => {
 		search.value = input.value;
 		if (search.value != '') {
 			// users.value = post('user/getUsers', search.value);
-			socket.emit('getByLoginFiltred', search.value);
+			socket.emit('getByLoginFiltred', {me: myName, search: search.value});
 		}
 	});
 	// notifs.value = 0;

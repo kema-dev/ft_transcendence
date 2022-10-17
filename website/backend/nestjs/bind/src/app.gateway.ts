@@ -236,10 +236,12 @@ export class AppGateway
 	}
 	@SubscribeMessage('getByLoginFiltred')
 	async getByLoginFiltred(
-		@MessageBody() data: string,
+		@MessageBody() data: {me: string, search: string},
 		@ConnectedSocket() client: Socket,
 	) {
-		const users = await this.userService.getByLoginFiltred(data);
+		console.log(`me = ${data.me}, search = ${data.search}`)
+		let users = await this.userService.getByLoginFiltred(data.search);
+		users = users.filter(u => u.login != data.me);
 		let UsersDto: ResumUserDto[] = [];
 		for (let i = 0; i < users.length; i++) {
 			UsersDto.push(new ResumUserDto(users[i]));
@@ -278,7 +280,7 @@ export class AppGateway
 		@MessageBody() data: {blocker: string, blocked: string},
 		@ConnectedSocket() client: Socket,
 	) {
-		let priv = await this.chatService.unblockUser(data, server);
+		let priv = await this.chatService.unblockUser(data, this.server);
 		client.emit('userUnblock', priv);
 	}
 
