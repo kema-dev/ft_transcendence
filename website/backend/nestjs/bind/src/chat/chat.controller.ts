@@ -23,7 +23,7 @@ export class ChatController {
 		return await this.chatService.createPrivsDto(params.login, privs);
 	}
 
-	// @UseGuards(AuthGuard)
+	@UseGuards(AuthGuard)
 	@Get('getChans/:login')
 	async getChans(@Param() params : {login: string}) {
 		console.log(`getChans for user ${params.login }`);
@@ -34,25 +34,25 @@ export class ChatController {
 		return chansDto
 	}
 
-	// @UseGuards(AuthGuard)
+	@UseGuards(AuthGuard)
 	@Get('userExistOrBlocked/:login/:requestor')
 	async userExist(@Param() params : {login: string, requestor: string}) {
 		return this.chatService.userExistOrBlocked(params.login, params.requestor);
 	}
 
-	// @UseGuards(AuthGuard)
+	@UseGuards(AuthGuard)
 	@Get('chanExist/:chan')
 	async chanExist(@Param() params : {chan: string}) {
 		return this.chatService.chanExist(params.chan);
 	}
 
-	// @UseGuards(AuthGuard)
+	@UseGuards(AuthGuard)
 	@Get('invitChanUser/:chan/:login')
 	async invitChanUser(@Param() params : {chan:string, login: string}) {
 		return this.chatService.invitChanUser(params.chan, params.login);
 	}
 
-	// @UseGuards(AuthGuard)
+	@UseGuards(AuthGuard)
 	@Get('getServerUsersFiltred/:login/:filter')
 	async getServerUsersFiltred(
 		@Param() params: { login: string; filter: string },
@@ -63,7 +63,7 @@ export class ChatController {
 		);
 	}
 
-	// @UseGuards(AuthGuard)
+	@UseGuards(AuthGuard)
 	@Get('getServerChansFiltred/:login/:filter')
 	async getServerChansFiltred(
 		@Param() params: { login: string; filter: string },
@@ -74,13 +74,13 @@ export class ChatController {
 		);
 	}
 
-	// @UseGuards(AuthGuard)
+	@UseGuards(AuthGuard)
 	@Post('createChan')
 	async createChan( @Body() data: NewChanDto) {
 		return await this.chatService.createNewChan(data);
 	}
 
-	// @UseGuards(AuthGuard)
+	@UseGuards(AuthGuard)
 	@Post('joinChanRequest')
 	async joinChanRequest(
 		@Body() data: {requestor: string, chanName: string, psw: string | undefined}
