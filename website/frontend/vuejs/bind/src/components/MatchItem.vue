@@ -18,7 +18,7 @@
 					</div>
 				</div>
 			</div>
-			<div class="more">
+			<div class="more" v-if="size">
 				<div class="match_detail_first"></div>
 				<div class="list">
 					<div
