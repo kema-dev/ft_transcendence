@@ -1,25 +1,25 @@
 <template>
 	<form class="search_groupe center row stack">
-	<input
-		:value="search"
-		placeholder="Search"
-		id="search"
-		@input="$emit('update:search', $event.target!.value)"
-	/>
+		<input
+			:value="search"
+			placeholder="Search"
+			id="search"
+			@input="$emit('update:search', $event.target!.value)"
+		/>
 	</form>
 </template>
 
 <script setup lang="ts">
-import { defineProps, defineEmits, onMounted } from "vue";
+import { defineProps, defineEmits, onMounted } from 'vue';
 
 const props = defineProps({
 	search: String,
 });
 
-defineEmits(["update:search"]);
+defineEmits(['update:search']);
 
 onMounted(() => {
-	document.getElementById("search")?.focus();
+	document.getElementById('search')?.focus();
 });
 </script>
 
@@ -32,7 +32,7 @@ onMounted(() => {
 	top: 0px;
 	width: 90%;
 	height: 40px;
-	background-image: url("~@/assets/logo_search.png");
+	background-image: url('~@/assets/logo_search.png');
 	background-position: left 10px top 50%;
 	background-size: 20px 20px;
 	background-repeat: no-repeat;

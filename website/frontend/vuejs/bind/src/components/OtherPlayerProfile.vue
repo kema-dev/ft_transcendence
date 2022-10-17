@@ -1,19 +1,12 @@
 <template>
-	<div class="column center">
-		<h2 id="player_search_title">Search for another player's profile</h2>
-		<SearchItem v-model:search="other_player_login"/>
-		<OtherPlayerProfile
-			v-bind:other_player="other_player"
-		/>
-		<div class="stack avatar-stack">
-			<div id="bar"></div>
+	<div class="column center" v-if="other_player">
+		<!-- <div class="stack avatar-stack">
 			<div v-on:click="change_avatar()" id="avatar">
 				<img :src="me?.avatar" id="img" />
 			</div>
 		</div>
 		<input id="none" type="file" />
 		<h1 id="name">{{ me?.login }}</h1>
-		<MultiFactorAuthItem />
 		<h2 class="avg_rank">Average rank: Top {{ user_ratio_rounded }}%</h2>
 		<h2 class="w_l">
 			Total: {{ user_stats.total }} - Wins: {{ user_stats.wins }} - Loses:
@@ -24,117 +17,38 @@
 			v-for="match in user_history"
 			v-bind:match="match"
 			:key="match.creation_date"
-		/>
-		<div v-if="userDone">
-			<button @click="showBlocks = !showBlocks" id="showBlocksBtn">
-				{{(showBlocks? 'Hide' : 'Show') + ' blocked users'}}
-			</button>
-			<div v-if="showBlocks">
-				<div v-for="block in me.blockeds" class="center column">
-					<div class="center raw">
-						<BasicProfil :avatar="block.avatar" :login="block.login"/>
-						<button @click="unblockUser(block.login)" 
-							class="restoreBtn center"
-						>
-							<img
-								src='~@/assets/restore.svg'
-								alt="Restore User"
-								class="restoreImg"
-							/>
-						</button>
-					</div>
-				</div>
-			</div>
-		</div>
+		/> -->
+		<h1>Other player {{ other_player }}</h1>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, inject, Ref, ref, provide } from 'vue';
+import { onMounted, inject, Ref, ref } from 'vue';
 import { Socket } from "socket.io-client";
-import MultiFactorAuthItem from '../components/MultiFactorAuthItem.vue';
-import SearchItem from '../components/SearchItem.vue';
-import ScoreItem from '../components/ScoreItem.vue';
-import MatchItem from '@/components/MatchItem.vue';
-import BasicProfil from '@/components/BasicProfilItem.vue';
-import OtherPlayerProfile from '../components/OtherPlayerProfile.vue';
+import MatchItem from '../components/MatchItem.vue';
 import { ProfileUserDto } from '../dto/ProfileUserDto';
 import API from '../components/axios';
-import { createWebHistory } from 'vue-router';
 import { useCookies } from 'vue3-cookies';
 
 const { cookies } = useCookies();
 let define = inject('colors');
-let me: Ref<ProfileUserDto> = inject('user')!;
+let other_player: Ref<ProfileUserDto> = inject('other_player')!;
+let me: Ref<ProfileUserDto> = inject('me')!;
 let userDone = inject('userDone')!;
 let socket : Socket = inject('socket')!;
 let showBlocks = ref(false);
 
-
-var ProgressBar = require('progressbar.js');
-
-// console.log('me:', me?.value);
+console.log('other_player:', other_player?.value);
 
 let user_ratio = ref(0.5);
 let user_ratio_rounded = ref(50);
 let user_history = ref([]);
 let user_stats = ref({});
-let other_player_login = ref('');
-let other_player = ref(ProfileUserDto);
-
-// let user = {
-// 	name: 'zeus',
-// 	level: '1000',
-// 	avatar: require('@/assets/avatars/(2).jpg'),
-// 	friends: ['Jane', 'John', 'Jacksdfgtertwdsfadfsafdertert'],
-// 	status: 'offline',
-// 	rank: '1st',
-// };
-
-// let user_history = [
-// 	{
-// 		points1: 10,
-// 		points2: 5,
-// 		date: 1
-// 	},
-// 	{
-// 		points1: 7,
-// 		points2: 5,
-// 		date: 2
-// 	},
-// 	{
-// 		points1: 3,
-// 		points2: 5,
-// 		date: 3
-// 	},
-// ];
-
-function unblockUser(blocked: string) {
-	socket.emit("unblockUser", 
-		{blocker: me.value.login, blocked: blocked});
-}
 
 onMounted(async () => {
-	let input = document.querySelector('#none');
-	input?.addEventListener('change', () => {
-		const reader = new FileReader();
-		reader.addEventListener('load', () => {
-			let image = reader.result;
-			document.querySelector('#img').src = `${image}`;
-			socket.emit('changeAvatar', {
-				login: me.value.login,
-				avatar: `${image}`,
-			});
-		});
-		reader.readAsDataURL(input.files[0]);
-	});
-	var bar = new ProgressBar.Circle('#bar', {
-		color: define.color2,
-		strokeWidth: 4,
-		trailWidth: 0,
-		easing: 'easeInOut',
-		duration: 1400,
-	});
+	if (other_player?.value) {
+		console.log('other_player:', other_player?.value);
+	}
 	await API.post('/match/get_user_stats', {
 		headers: {
 			login: cookies.get('login'),
@@ -147,7 +61,6 @@ onMounted(async () => {
 		user_ratio_rounded.value = Math.round(res.data.average_rank * 100);
 	});
 	console.log('user_ratio:', user_ratio.value);
-	bar.animate(1 - user_ratio.value);
 	await API.post('/match/get_user_history', {
 		headers: {
 			login: cookies.get('login'),
@@ -158,20 +71,9 @@ onMounted(async () => {
 		user_history.value = res.data;
 	});
 });
-function change_avatar() {
-	let input = document.querySelector('#none');
-	input.click();
-}
 </script>
 
 <style scoped>
-#player_search_title {
-	font-size: 1.5em;
-	font-weight: bold;
-	margin: 0;
-	color: #2c3e50;
-}
-
 .avatar-stack {
 	margin-top: 50px;
 	width: 200px;
