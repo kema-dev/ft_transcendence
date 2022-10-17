@@ -1,5 +1,5 @@
 <template>
-	<div v-if="chanExistDone && chanExist && chanDone" id="channel_view" class="stack">
+	<div v-if="chanExistDone && chanExist && chanDone && userDone" id="channel_view" class="stack">
 		<div class="userTopBar center raw space-between">
 			<div class="avatar_cont center">
 				<img src="~@/assets/group_logo.svg"  class="avatar" alt="avatar" />
@@ -33,7 +33,7 @@
 		<div v-if="!info" class="conversation_content stack">
 			<div v-if="index != -1" id="msgsCont" class="messages">
 				<div class="date">{{displayDate(chansRef[index].creation, 0)}}</div>
-				<div v-for="(message, i) in chansRef[index].messages" 
+				<div v-for="(message, i) in filterBlockMsgs()" 
 					:key="i" class="center column"
 				>
 					<div v-if="checkDate(i)" class="date">
@@ -81,6 +81,7 @@ import { NewChanMsgDto } from "@/chat/dto/NewChanMsgDto";
 import { ChannelDto } from "./dto/ChannelDto";
 import { ProfileUserDto } from "@/dto/ProfileUserDto"
 import router from "@/router";
+import { MessageDto } from "./dto/MessageDto";
 
 
 // ================= INIT =================
@@ -93,12 +94,14 @@ let colors = inject("colors");
 let mySocket: Socket = inject("socket")!;
 let myName: string = inject("me")!;
 let me: Ref<ProfileUserDto> = inject("user")!;
+let userDone: Ref<boolean> = inject("userDone")!;
 const newIndex : Ref<string> = inject("newIndex")!;
 let myMsg = ref("");
 let info = ref(false);
 let chanExist = ref(false);
 let chanExistDone = ref(false);
 let index = ref(-1);
+let filtredMsgs: MessageDto[] = [];
 
 // VERIFY IF CHAN EXIST
 HTTP.get(apiPath + "chat/chanExist/" + chanName)
@@ -120,44 +123,19 @@ const chanBan: Ref<string> = inject("chanBan")!;
 
 // GET CHAN INDEX
 index.value = chansRef.value.findIndex((chan) => chan.name == chanName);
-if (index.value != -1) {
-	chanRead(index.value, true);
-	scrollAndFocus();
-	watch(chansRef.value[index.value].messages, () => {
-		chanRead(index.value, true);
-		let msgsCont = document.getElementById("msgsCont");
-		if (msgsCont) {
-			let oldScrollTop = msgsCont!.scrollTop;
-			let oldScrollHeight = msgsCont!.scrollHeight;
-			let oldClientHeight = msgsCont!.clientHeight;
-			let lastMsg = msgsCont.lastElementChild!.clientHeight;
-			if (oldScrollTop + oldClientHeight + lastMsg == oldScrollHeight)
-				msgsCont!.scrollTop = msgsCont!.scrollHeight;
-		}
-	}, {flush: 'post'})
-}
+if (index.value != -1)
+	init();
 
 // GET CHAN INDEX IF REFRESH PAGE
 watch(chanDone, () => {
 	index.value = chansRef.value.findIndex((chan) => chan.name == chanName);
-	if (index.value != -1) {
-		nextTick(() => {
-			scrollAndFocus();
-			chanRead(index.value, true);
-			watch(chansRef.value[index.value].messages, () => {
-				chanRead(index.value, true);
-				let msgsCont = document.getElementById("msgsCont");
-				if (msgsCont) {
-					let oldScrollTop = msgsCont!.scrollTop;
-					let oldScrollHeight = msgsCont!.scrollHeight;
-					let oldClientHeight = msgsCont!.clientHeight;
-					let lastMsg = msgsCont.lastElementChild!.clientHeight;
-					if (oldScrollTop + oldClientHeight + lastMsg == oldScrollHeight)
-					msgsCont!.scrollTop = msgsCont!.scrollHeight;
-				}
-			})
-		})
-	}
+	if (index.value != -1)
+		nextTick(() => { init(); })
+}, {flush: 'post'})
+watch(userDone, () => {
+	index.value = chansRef.value.findIndex((chan) => chan.name == chanName);
+	if (index.value != -1)
+		nextTick(() => { init(); })
 }, {flush: 'post'})
 
 
@@ -171,9 +149,7 @@ watch(chanBan, () => {
 
 watch(newIndex, () => {
 	if (newIndex.value != '') {
-		// console.log(`Find new Index chan ${chanName} : old Index = ${index.value}`)
 		index.value = chansRef.value.findIndex((chan) => chan.name == chanName);
-		// console.log(`Find new Index chan ${chanName} : new Index = ${index.value}`)
 		chanRead(index.value, true);
 		newIndex.value == '';
 	}
@@ -182,17 +158,31 @@ watch(newIndex, () => {
 
 // ================= METHODS =================
 
-function sendMsg() {
-	let input = document.getElementById("sendbox");
-	input?.classList.remove("invalidInput");
-	if (chansRef.value[index.value].mutes.find(m => m.login == myName))
-		return setTimeout(() => {
-			input!.classList.add("invalidInput");
-		}, 50);
-	if (myMsg.value != '') {
-		mySocket.emit("newChanMsg", new NewChanMsgDto(myName, chanName, myMsg.value));
-		myMsg.value = "";
+function init() {
+	if (chanDone.value && userDone.value) {
+		// filtredMsgs = filterBlockMsgs();
+		chanRead(index.value, true);
+		scrollAndFocus();
+		watch(chansRef.value[index.value].messages, () => {
+			chanRead(index.value, true);
+			let msgsCont = document.getElementById("msgsCont");
+			if (msgsCont) {
+				let oldScrollTop = msgsCont!.scrollTop;
+				let oldScrollHeight = msgsCont!.scrollHeight;
+				let oldClientHeight = msgsCont!.clientHeight;
+				let lastMsg = msgsCont.lastElementChild!.clientHeight;
+				if (oldScrollTop + oldClientHeight + lastMsg == oldScrollHeight)
+				msgsCont!.scrollTop = msgsCont!.scrollHeight;
+			}
+		}, {flush: 'post'})
 	}
+}
+
+function filterBlockMsgs() {
+	filtredMsgs = chansRef.value[index.value].messages.filter(msg => {
+		return !me.value.blockeds.map(b => b.login).includes(msg.user)
+	});
+	return filtredMsgs;
 }
 
 function scrollAndFocus() {
@@ -218,8 +208,10 @@ function checkDate(i: number) {
 	if (i == 0) return false;
 	else if (
 		Math.ceil(
-			(chansRef.value[index.value].messages[i].date.getTime() -
-				chansRef.value[index.value].messages[i - 1].date.getTime()) /
+			// (chansRef.value[index.value].messages[i].date.getTime() -
+			// 	chansRef.value[index.value].messages[i - 1].date.getTime()) /
+			(filtredMsgs[i].date.getTime() -
+				filtredMsgs[i - 1].date.getTime()) /
 				(1000 * 60)
 		) > 15
 	)
@@ -228,16 +220,17 @@ function checkDate(i: number) {
 		return false;
 }
 
-
-
 function checkUserName(i: number) {
-	if (myName == chansRef.value[index.value].messages[i].user)
+	// if (myName == chansRef.value[index.value].messages[i].user)
+	if (myName == filtredMsgs[i].user)
 		return false;
 	if (i == 0) 
 		return true;
 	if (
-		chansRef.value[index.value].messages[i].user 
-		== chansRef.value[index.value].messages[i - 1].user
+		// chansRef.value[index.value].messages[i].user 
+		// == chansRef.value[index.value].messages[i - 1].user
+		filtredMsgs[i].user 
+		== filtredMsgs[i - 1].user
 		&& !checkDate(i)
 	)
 		return false;
@@ -246,13 +239,17 @@ function checkUserName(i: number) {
 }
 
 function checkAvatar(i: number) {
-	if (myName == chansRef.value[index.value].messages[i].user)
+	// if (myName == chansRef.value[index.value].messages[i].user)
+	if (myName == filtredMsgs[i].user)
 		return false;
-	if (i == 0 || i == chansRef.value[index.value].messages.length - 1) 
+	// if (i == 0 || i == chansRef.value[index.value].messages.length - 1) 
+	if (i == 0 || i == filtredMsgs.length - 1) 
 		return true;
 	if (
-		chansRef.value[index.value].messages[i].user
-		== chansRef.value[index.value].messages[i + 1].user
+		// chansRef.value[index.value].messages[i].user
+		// == chansRef.value[index.value].messages[i + 1].user
+		filtredMsgs[i].user
+		== filtredMsgs[i + 1].user
 		&& !checkDate(i + 1)
 	)
 		return false;
@@ -283,6 +280,19 @@ function displayDate(date: Date, i: number) {
 			weekday: "long",
 		})} ${hours}:${minutes}`;
 	else return `${day} ${month} ${year} at ${hours}:${minutes}`;
+}
+
+function sendMsg() {
+	let input = document.getElementById("sendbox");
+	input?.classList.remove("invalidInput");
+	if (chansRef.value[index.value].mutes.find(m => m.login == myName))
+		return setTimeout(() => {
+			input!.classList.add("invalidInput");
+		}, 50);
+	if (myMsg.value != '') {
+		mySocket.emit("newChanMsg", new NewChanMsgDto(myName, chanName, myMsg.value));
+		myMsg.value = "";
+	}
 }
 
 

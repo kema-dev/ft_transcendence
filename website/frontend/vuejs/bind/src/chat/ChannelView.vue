@@ -2,7 +2,6 @@
 	<div id="channel_view" class="center column stack">
 		<div class="option_private center raw">
 			<SearchItem v-if="!newChannel" v-model:search="search"/>
-			<!-- <div v-if="newChannel" class="newChannelTitle">Create a new Channel</div> -->
 			<div v-if="newChannel" class="newChannelTitle center">
 				<span class="newChannelTitleText">Create new Channel</span>
 			</div>
@@ -49,14 +48,28 @@
 				</button>
 			</div>
 		</div>
-		<div v-if="chanDone && !findChannel && !newChannel" class="myChannels center column">
-			<div v-for="(data, i) in chansFiltred" :key="i" class="center">
-				<ConversationTab
+		<div v-if="chanDone && !findChannel && !newChannel && userDone"
+			class="myChannels center column"
+		>
+			<div v-for="(data, i) in chansFiltred" :key="i" 
+				:set="ind = findIndexMsg(data.messages)" class="center"
+			>
+				<!-- <ConversationTab
 					v-if="data.messages.length > 0"
 					:name-conv="data.name"
 					:message="data.messages.at(-1)!.msg"
 					:date="data.messages.at(-1)!.date"
 					:last-msg-user="data.messages.at(-1)!.user"
+					:read="data.readed"
+					:chan="true"
+					class="center"
+				/> -->
+				<ConversationTab
+					v-if="data.messages.length > 0 && ind >= 0"
+					:name-conv="data.name"
+					:message="data.messages.at(ind)!.msg"
+					:date="data.messages.at(ind)!.date"
+					:last-msg-user="data.messages.at(ind)!.user"
 					:read="data.readed"
 					:chan="true"
 					class="center"
@@ -98,8 +111,8 @@
 					<img src="@/assets/name_logo.svg" alt="Name Channel" class="newChanImg">
 					<label for="newChanName" class="labelForm">Name :</label>
 				</div>
-				<input v-model="nameInput" type="text" name="newChanName" 
-					id="newChanName" class="inputForm" 
+				<input v-model="nameInput" type="text" 
+					name="newChanName" id="newChanName" class="inputForm" 
 				/>
 			</div>
 			<div class="elemFormCont left_center raw">
@@ -124,8 +137,8 @@
 						value="psw required"
 					/>
 				</div>
-				<input v-model="pswInput" type="text" name="pswInput"
-					id="pswInput" class="inputForm" :disabled="!pswCheck"
+				<input v-model="pswInput" type="text"
+					name="pswInput" id="pswInput" class="inputForm" :disabled="!pswCheck"
 				/>
 			</div>
 			<input type="submit" value="Create" id="submitButton" />
@@ -146,32 +159,24 @@ import {
 	onUpdated,
 } from "vue";
 import HTTP from "../components/axios";
-import { useToast } from 'vue-toastification';
-import ChannelTab from "@/chat/ChannelTab.vue";
+import ChannelTab from "@/chat/ChannelSearchTab.vue";
 import SearchItem from "@/components/SearchItem.vue";
 import ConversationTab from "@/chat/ConversationTab.vue";
 import { ChannelDto } from "@/chat/dto/ChannelDto";
 import { ChannelTabDto } from "@/chat/dto/ChannelTabDto ";
 import { NewChanDto } from "@/chat/dto/NewChanDto"
-	
-	
-const toast = useToast();
-let colors = inject("colors");
-let me : string = inject("me")!;
-let apiPath: string = inject("apiPath")!;
+import { MessageDto } from "./dto/MessageDto";
+import { ProfileUserDto } from "@/dto/ProfileUserDto"
 
-let chansRef : Ref<ChannelDto[]> = inject("chans")!;
-let chansFiltred : Ref<ChannelDto[]> = ref(chansRef.value);
-const chanDone: Ref<boolean> = inject("chanDone")!;
-let nbChanNR: { n: Ref<string[]>; reset: () => void } = inject("nbChanNR")!;
 
-if (chansRef.value.length) {
-	nbChanNR.reset();
-}
+// ================= INIT =================
 
-let serverChans : Ref<ChannelTabDto[]> = ref([]);
-let chanServReqDone = ref(false);
-
+// INIT COMPONENT VARIABLES
+let ind : number;
+const colors = inject("colors");
+const myName: string = inject("me")!;
+const me: Ref<ProfileUserDto> = inject("user")!;
+const apiPath: string = inject("apiPath")!;
 const search = ref("");
 const findChannel = ref(false);
 const newChannel = ref(false);
@@ -179,10 +184,24 @@ const pswCheck = ref(false);
 const privCB = ref(false);
 const nameInput = ref("");
 const pswInput = ref("");
+const chanServReqDone = ref(false);
+const serverChans : Ref<ChannelTabDto[]> = ref([]);
+const userDone : Ref<boolean> = inject("userDone")!;
 
+
+// GET CHANS REFS
+const chansRef : Ref<ChannelDto[]> = inject("chans")!;
+const chansFiltred : Ref<ChannelDto[]> = ref(chansRef.value);
+const chanDone: Ref<boolean> = inject("chanDone")!;
+const nbChanNR: { n: Ref<string[]>; reset: () => void } = inject("nbChanNR")!;
+
+// INIT IF REFRESH PAGE
 watch(chanDone, () => {
 	chansFiltred.value = chansRef.value;
 });
+
+
+// ================= WATCHERS =================
 
 watch(search, () => {
 	chanServReqDone.value = false;
@@ -191,6 +210,9 @@ watch(search, () => {
 	});
 	if (findChannel.value && search.value != "") getServerChans();
 });
+
+
+// ================= METHODS =================
 
 function getServerChans() {
 	HTTP.get(apiPath + "chat/getServerChansFiltred/" + me + "/" + search.value)
@@ -214,6 +236,7 @@ function findChannelFn() {
 		document.getElementById("search")?.focus();
 	});
 }
+
 function newChannelFn() {
 	newChannel.value = !newChannel.value;
 	pswInput.value = "";
@@ -221,6 +244,16 @@ function newChannelFn() {
 	nextTick(() => {
 		document.getElementById("newChanName")?.focus();
 	})
+}
+
+function findIndexMsg(msgs: MessageDto[]) {
+	let i : number;
+	let blockeds = me.value.blockeds.map(b => b.login);
+	for (i = msgs.length - 1; i >= 0; i--) {
+		if (!blockeds.includes(msgs[i].user))
+			break;
+	}
+	return i;
 }
 
 function submitChannel() {
@@ -237,7 +270,7 @@ function submitChannel() {
 			pswElem!.classList.add("invalidInput");
 		})
 	HTTP.post(apiPath + "chat/createChan", 
-		new NewChanDto(nameInput.value, me, privCB.value, pswInput.value))
+		new NewChanDto(nameInput.value, myName, privCB.value, pswInput.value))
 		.then(res => {
 			let newChan = res.data as ChannelDto;
 			newChan.creation = new Date(newChan.creation);
@@ -249,14 +282,17 @@ function submitChannel() {
 				nameElem!.classList.add("invalidInput");
 			}
 		});
-
 }
+
+
+// ====================== LIFECYCLES HOOKS ======================
 
 onUpdated(() => {
 	if (nbChanNR.n.value.length) nbChanNR.reset();
 });
 
 onMounted(() => {
+	if (chansRef.value.length) nbChanNR.reset();
 	const box = document.getElementById("channelsTabText");
 	if (box != null) box.classList.add("chatTabActive");
 });
@@ -265,6 +301,7 @@ onBeforeUnmount(() => {
 	const box = document.getElementById("channelsTabText");
 	if (box != null) box.classList.remove("chatTabActive");
 });
+
 </script>
 
 <style scoped>
@@ -288,7 +325,6 @@ onBeforeUnmount(() => {
 .button_cont {
 	border-radius: 50%;
 	padding: 5px;
-	/* position: static; */
 }
 .button_cont:hover {
 	background-color: white;
@@ -308,7 +344,6 @@ onBeforeUnmount(() => {
 	z-index: 1;
 	bottom: 110%;
 	right: 0;
-	/* transform: translate(50%); */
 }
 .button_cont:hover .infoButtonText {
 	visibility: visible;
@@ -362,7 +397,6 @@ onBeforeUnmount(() => {
 	margin-right: 10px;
 	filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg)
 		brightness(86%) contrast(83%);
-	/* display: none; */
 }
 .labelForm {
 	font-family: "Orbitron", sans-serif;

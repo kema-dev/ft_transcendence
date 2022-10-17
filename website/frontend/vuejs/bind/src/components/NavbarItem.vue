@@ -6,6 +6,8 @@
 				<h1 class="text_logo">PONG.IO</h1>
 			</div>
 			<div style="height: 100%" class="center row right">
+				<img v-if="userDone" @click="toProfile" 
+					:src="me.avatar" alt="My avatar" class="avatar">
 				<!-- <lottie-player
 					:src="require('@/assets/json/settings.json')"
 					speed="2"
@@ -31,15 +33,22 @@
 </template>
 
 <script setup lang="ts">
+import router from '@/router';
 import { inject } from 'vue';
 import { VueCookies } from 'vue-cookies';
 import API from '../components/axios';
 
 let define = inject('colors');
+let userDone = inject('userDone');
+let me = inject('user');
 
 const $cookies = inject<VueCookies>('$cookies');
 import { useCookies } from 'vue3-cookies';
 const { cookies } = useCookies();
+
+function toProfile() {
+	router.push({name: 'profile'});
+}
 
 function logout() {
 	API.post('auth/logout', {
@@ -99,6 +108,13 @@ nav {
 .icon {
 	height: 100%;
 	width: 50px;
+	cursor: pointer;
+}
+.avatar {
+	width: 50px;
+	height: 50px;
+	border-radius: 25px;
+	margin-right: 10px;
 	cursor: pointer;
 }
 </style>

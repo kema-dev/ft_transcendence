@@ -70,14 +70,17 @@
 		>
 			<template #buttons>
 				<div class="blockAdvertButtons center raw">
-					<button @click="banUser()">Yes</button>
+					<button @click="blockUser">Yes</button>
 					<button @click="blockWarn = false">No</button>
 				</div>
 			</template>
 		</WarningMsg>
 	</div>
+	<div v-else-if="userExistDone && userBlocked" class="wrongPath center">
+		<span class="wrongPathMsg">This user is blocked &#129301;</span>
+	</div>
 	<div v-else-if="userExistDone && !userExist" class="wrongPath center">
-		<span class="wrongPathMsg">This user do not exist &#129301;</span>
+		<span class="wrongPathMsg">Bad userName &#129301;</span>
 	</div>
 </template>
 
@@ -113,37 +116,35 @@ let apiPath: string = inject("apiPath")!;
 const userName = useRoute().params.conv_name as string;
 let myMsg = ref("");
 let blockWarn = ref(false);
+let userBlocked = ref(false);
 let userExistDone = ref(false);
 let userExist : Ref<BasicUserDto| undefined> = ref(undefined);
 let index = ref(-1);
 
 // VERIFY IF CHAN EXIST
-HTTP.get(apiPath + "chat/userExist/" + userName)
-	.then((res) => {
-		userExist.value = res.data;
-		userExistDone.value = true;
-		nextTick(() => {
-			scrollAndFocus();
-		})
-	})
-	.catch((e) => {
-			userExistDone.value = true;
-	});
+userExistOrBlocked();
 
 // GET PRIVS REFS
 let privsRef: Ref<PrivConvDto[]> = inject("privs")!;
-let privMsgRead: (index: number, readed: boolean) => void =
-	inject("privMsgRead")!;
 const privDone: Ref<boolean> = inject("privDone")!;
 
 // GET PRIV INDEX
 index.value = privsRef.value
 	.findIndex((priv) => priv.user.login == userName);
-if (index.value != -1) {
-	privMsgRead(index.value, true);
+if (index.value != -1) init();
+
+// GET PRIV INDEX IF REFRESH PAGE
+watch(privDone, () => {
+	index.value = privsRef.value
+		.findIndex((priv) => priv.user.login == userName);
+	if (index.value != -1) nextTick(() => init())
+}, {flush: 'post'})
+
+function init() {
+	privMsgRead();
 	scrollAndFocus();
 	watch(privsRef.value[index.value].messages, () => {
-		privMsgRead(index.value, true);
+		privMsgRead();
 		let msgsCont = document.getElementById("msgsCont");
 		if (msgsCont) {
 			let oldScrollTop = msgsCont!.scrollTop;
@@ -151,36 +152,10 @@ if (index.value != -1) {
 			let oldClientHeight = msgsCont!.clientHeight;
 			let lastMsg = msgsCont.lastElementChild!.clientHeight;
 			if (oldScrollTop + oldClientHeight + lastMsg == oldScrollHeight)
-				msgsCont!.scrollTop = msgsCont!.scrollHeight;
+			msgsCont!.scrollTop = msgsCont!.scrollHeight;
 		}
 	}, {flush: 'post'})
 }
-
-// GET PRIV INDEX IF REFRESH PAGE
-watch(privDone, () => {
-	console.log(`privDone OK = ${privDone.value}`);
-	index.value = privsRef.value
-		.findIndex((priv) => priv.user.login == userName);
-	if (index.value != -1) {
-		nextTick(() => {
-			privMsgRead(index.value, true);
-			scrollAndFocus();
-			watch(privsRef.value[index.value].messages, () => {
-				privMsgRead(index.value, true);
-				let msgsCont = document.getElementById("msgsCont");
-				if (msgsCont) {
-					let oldScrollTop = msgsCont!.scrollTop;
-					let oldScrollHeight = msgsCont!.scrollHeight;
-					let oldClientHeight = msgsCont!.clientHeight;
-					let lastMsg = msgsCont.lastElementChild!.clientHeight;
-					if (oldScrollTop + oldClientHeight + lastMsg == oldScrollHeight)
-					msgsCont!.scrollTop = msgsCont!.scrollHeight;
-				}
-			})
-		})
-	}
-}, {flush: 'post'})
-
 
 // ===================== WATCHERS =====================
 
@@ -203,6 +178,26 @@ mySocket.on("findNewPriv", () => {
 
 // ===================== METHODS =====================
 
+function userExistOrBlocked() {
+	HTTP.get(`${apiPath}chat/userExistOrBlocked/${userName}/${me}`)
+		.then((res) => {
+			userExist.value = res.data;
+			userExistDone.value = true;
+			nextTick(() => scrollAndFocus() )
+		})
+		.catch((e) => {
+			userExistDone.value = true;
+			if (e.response.data.message === 'DO_NOT_EXIST')
+				console.error(`This user do not exist`)
+			if (e.response.data.message === 'IS_YOU')
+			console.error(`Bad userName, it's yours`)
+			else if (e.response.data.message === 'USER_BLOCKED') {
+				userBlocked.value = true;
+				console.error(`This user is blocked`)
+			}
+		});
+}
+
 function toProfile() {
 	router.push({name: 'player', params: { name: userName }});
 }
@@ -214,8 +209,18 @@ function sendMsg() {
 	}
 }
 
-function banUser() {
-	// DEMMANDER DE BAN LE USER AU BACK
+function privMsgRead() {
+	if (privsRef.value[index.value].messages.at(-1)!.user != me
+		&& privsRef.value[index.value].readed == false
+	) {
+		privsRef.value[index.value].readed = true;
+		mySocket.emit('privReaded', {sender: userName, receiver: me});
+	}
+}
+
+function blockUser() {
+	mySocket.emit("blockUser", {blocker: me, blocked: userName});
+	router.push({name: 'private'});
 }
 
 function scrollAndFocus() {
@@ -242,7 +247,7 @@ function checkDate(i: number) {
 function checkAvatar(i: number) {
 	if (me == privsRef.value[index.value].messages[i].user)
 		return false;
-	if (i == 0 || i == privsRef.value[index.value].messages.length - 1) 
+	if (i == privsRef.value[index.value].messages.length - 1) 
 		return true;
 	if (
 		privsRef.value[index.value].messages[i].user == 

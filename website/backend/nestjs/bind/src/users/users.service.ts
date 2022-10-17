@@ -49,13 +49,13 @@ export class UsersService {
 	}
 
 	async getByLogin(logname: string, relations?: any) {
-		console.log('getByLogin: starting for ' + logname);
+		// console.log('getByLogin: starting for ' + logname);
 		let params;
 		if (relations) params = { where: { login: logname }, relations: relations };
 		else params = { where: { login: logname } };
 		const user = await this.usersRepository.findOne(params);
 		if (user) {
-			console.log('getByLogin: found ' + logname + ', returning ✔');
+			// console.log('getByLogin: found ' + logname + ', returning ✔');
 			return user;
 		}
 		console.error('getByLogin: ' + logname + ' not found, returning ✘');
@@ -65,24 +65,13 @@ export class UsersService {
 	async getByLoginFiltred(filter: string) {
 		const maxUsers = 20;
 		console.log("getByLoginFiltred: starting for '" + filter + "'");
-		const users = await this.usersRepository.find({
+		let users = await this.usersRepository.find({
 			where: { login: Like(filter + '%') },
 			take: maxUsers,
 		});
+		// users = users.filter(u => u.login != requestor);
 		return users;
 	}
-
-	// async getAnyByLogin(name: string, infos: [string]) {
-	// 	console.log('getAnyByLogin: starting for ' + name);
-	// 	for (let i = 0; i < infos.length; ++i)
-	// 		infos[i] = ("user." + infos[i]);
-	// 	return await this.usersRepository
-	// 		.createQueryBuilder()
-	// 		.select(infos)
-	// 		.from(User, "user")
-	// 		.where("user.login = :login", { login: name })
-	// 		.getOne();
-	// }
 
 	async getByAny(name: string) {
 		console.log('getByAny: starting for ' + name);

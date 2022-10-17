@@ -29,6 +29,7 @@ import ProfileUserDto from "@/dto/ProfileUserDto";
 import { routeLocationKey } from "vue-router";
 import { NewChanMsgDto } from "@/chat/dto/NewChanMsgDto";
 import { ModifChanDto } from "@/chat/dto/ModifChanDto";
+import ResumUserDto from "@/dto/ResumUserDto";
 
 
 //  ========== COOKIES + APIPATCH + ROUTE
@@ -41,30 +42,21 @@ const route = useRoute()
 //	========== GET MY NAME + AVATAR
 
 const me: string = $cookies.get('login');
-console.log(`i am ${me}`)
 provide('me', me);
+console.log(`i am ${me}`)
 
 //	========== CREATE SOCKET
 
 let socket = io(FQDN + ':3000', { query: { login: me } });
 provide('socket', socket);
 
-// function post(url: string, args: any, fct: any) {
-// 	let data;
-// 	axios
-// 		.post(FQDN + ":3000/api/v1/" + url, args)
-// 		.then(fct)
-// 		.catch((error) => {
-// 			console.log(url + ": failed request.\nargs: " + args);
-// 			console.log(error);
-// 		});
-// }
-let userRef = ref();
+let userRef : Ref<ProfileUserDto> = ref();
 let notifs = ref(0);
 let userDone = ref(false);
+
 socket.on("userUpdate", (data: any) => {
 	if (data && data.login == me) {
-		// console.log(`userUpdate`)
+		console.log(`userUpdate`);
 		userRef.value = data;
 		notifs.value = data.requestFriend.length;
 		userDone.value = true;
@@ -77,6 +69,21 @@ provide("userDone", userDone);
 provide('isCreate', ref(false));
 provide('isJoin', ref(false));
 
+socket.on("userBlock", (data : ResumUserDto) => {
+	console.log(`User ${data.login} blocked`);
+	let i = privsRef.value.findIndex(p => p.user.login == data.login);
+	privsRef.value.splice(i, 1);
+	userRef.value.blockeds.push(data);
+});
+
+socket.on("userUnblock", (data : PrivConvDto) => {
+	console.log(`User ${data.user.login} unblocked`);
+	let priv = data;
+	priv.messages.forEach(m => m.date = new Date(m.date));
+	let i = userRef.value.blockeds.findIndex(b => b.login == priv.user.login);
+	userRef.value.blockeds.splice(i, 1);
+	privsRef.value.unshift(priv);
+});
 
 //	========== RESIZE WINDOW
 
@@ -97,13 +104,9 @@ let privDone = ref(false);
 function resetNbPrivNR() {
 	nbPrivNR.value = [];
 }
-function privMsgRead(index : number, readed: boolean) {
-	privsRef.value[index].readed = readed;
-}
 getPrivsRequest();
 provide('privs', privsRef);
 provide('nbPrivNR', { n: nbPrivNR, reset: resetNbPrivNR });
-provide('privMsgRead', privMsgRead);
 provide('privDone', privDone);
 
 function getPrivsRequest() {
@@ -116,7 +119,11 @@ function getPrivsRequest() {
 			privsTmp.forEach(priv => {
 				priv.messages.forEach(msg => msg.date = new Date(msg.date))
 			})
+			nbPrivNR.value = privsTmp
+				.filter(p => p.readed || p.messages.at(-1)!.user == me ? false : true)
+				.map(p => p.id)
 			privsRef.value = privsTmp;
+
 		}
 		privDone.value = true;
 		console.log(`getPrivs Done`)
@@ -136,14 +143,19 @@ socket.on('newPrivConv', (data: PrivConvDto) => {
 });
 
 socket.on('newPrivMsg', (data: { msg: MessageDto; id: number }) => {
+	if (userRef.value.blockeds.map(m => m.login).includes(data.msg.user))
+		return;
 	console.log(`New Private message received : ${data.msg.msg}`);
 	let i = privsRef.value.findIndex((priv) => priv.id == data.id);
-	privsRef.value[i].messages.push(
-		new MessageDto(data.msg.user, data.msg.msg, new Date(data.msg.date)));
+	privsRef.value[i].messages
+		.push( new MessageDto(data.msg.user, data.msg.msg, new Date(data.msg.date)));
 	privsRef.value[i].readed = false;
+	let blocked = userRef.value.blockeds.map(b => b.login).includes(data.msg.user);
 	if (data.msg.user != me 
 		&& !nbPrivNR.value.includes(privsRef.value[i].id)
-		&& route.path != "/home/chat/private/" + data.msg.user)
+		&& route.path != "/home/chat/private/" + data.msg.user
+		&& !blocked
+		)
 		nbPrivNR.value.push(privsRef.value[i].id);
 	if (i != 0) putPrivFirst(i);
 });
@@ -231,13 +243,16 @@ socket.on('newChanMsg', (data: { msg: MessageDto; name: string }) => {
 	chansRef.value[i].messages.push(
 		new MessageDto(data.msg.user, data.msg.msg, new Date(data.msg.date)),
 	);
-	chansRef.value[i].readed = false;
+	let blocked = userRef.value.blockeds.map(b => b.login).includes(data.msg.user);
+	if (!blocked)
+		chansRef.value[i].readed = false;
 	if (data.msg.user != me 
 		&& !nbChanNR.value.includes(chansRef.value[i].name)
-		&& route.path != "/home/chat/channel/" + data.name) {
-			console.log(`New chan notif`);
-			nbChanNR.value.push(chansRef.value[i].name);
-		}
+		&& route.path != "/home/chat/channel/" + data.name
+		&& !blocked
+		) {
+		nbChanNR.value.push(chansRef.value[i].name);
+	}
 	if (i != 0) {
 		putChanFirst(i);
 		newIndex.value = data.name;

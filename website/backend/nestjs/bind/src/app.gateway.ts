@@ -41,8 +41,6 @@ export class AppGateway
 	private logger: Logger = new Logger('AppGateway');
 
 	constructor(
-		// @Inject(forwardRef(() => ChatService))
-    // private chatService: ChatService,
 		private readonly chatService: ChatService,
 		private readonly userService: UsersService,
 		private readonly matchService: MatchService,
@@ -52,7 +50,7 @@ export class AppGateway
 
 	// Connection
 	async handleConnection(@ConnectedSocket() client: Socket) {
-		console.log(`Client connected : ${client.handshake.query.login}, ${client.id}`);
+		console.log(`Client connected : ${client.handshake.query.login}`);
 		let login = client.handshake.query.login as string;
 		await this.userService.saveSocket(login, client.id);
 	}
@@ -206,6 +204,7 @@ export class AppGateway
 		let user = await this.userService.getByLogin(payload.login, {
 			requestFriend: true,
 			friends: true,
+			blockeds: true,
 		});
 		this.server.to(user.socketId).emit('userUpdate', new ProfileUserDto(user));
 	}
@@ -237,10 +236,12 @@ export class AppGateway
 	}
 	@SubscribeMessage('getByLoginFiltred')
 	async getByLoginFiltred(
-		@MessageBody() data: string,
+		@MessageBody() data: {me: string, search: string},
 		@ConnectedSocket() client: Socket,
 	) {
-		const users = await this.userService.getByLoginFiltred(data);
+		console.log(`me = ${data.me}, search = ${data.search}`)
+		let users = await this.userService.getByLoginFiltred(data.search);
+		users = users.filter(u => u.login != data.me);
 		let UsersDto: ResumUserDto[] = [];
 		for (let i = 0; i < users.length; i++) {
 			UsersDto.push(new ResumUserDto(users[i]));
@@ -265,10 +266,23 @@ export class AppGateway
 		this.userService.changeAvatar(payload.login, payload.avatar);
 	}
 
-	// @SubscribeMessage('connection')
-	// saveSocket(@ConnectedSocket() client: Socket, ...args: any[]) {
-	// 	console.log('debut saveSocket');
-	// }
+	@SubscribeMessage('blockUser')
+	async blockUser(
+		@MessageBody() data: {blocker: string, blocked: string},
+		@ConnectedSocket() client: Socket,
+	) {
+		let blocked = await this.chatService.blockUser(data);
+		client.emit('userBlock', new ResumUserDto(blocked));
+	}
+
+	@SubscribeMessage('unblockUser')
+	async unblockUser(
+		@MessageBody() data: {blocker: string, blocked: string},
+		@ConnectedSocket() client: Socket,
+	) {
+		let priv = await this.chatService.unblockUser(data, this.server);
+		client.emit('userUnblock', priv);
+	}
 
 	// ============================ CHAT =====================================
 
@@ -310,34 +324,12 @@ export class AppGateway
 		}
 	}
 
-	@SubscribeMessage('getUsersByLoginFiltred')
-	async getUserFiltred(
-		@MessageBody() data: { filter: string; login: string },
-		@ConnectedSocket() client: Socket,
-	) {
-		const users = await this.userService.getByLoginFiltred(data.filter);
-		const basicInfos: { login: string }[] = [];
-		for (let i = 0; i < users.length; i++) {
-			if (data.login != users[i].login)
-				basicInfos.push({ login: users[i].login });
-		}
-		client.emit('getUsersByLoginFiltred', basicInfos);
-	}
-
 	@SubscribeMessage('privReaded')
 	async privReaded(
-		@MessageBody() data: { userSend: string; userReceive: string },
+		@MessageBody() data: { sender: string; receiver: string },
 		@ConnectedSocket() client: Socket,
 	) {
-		console.log(
-			`privReaded AppGateway , sender = ${data.userSend}, receiver = ${data.userReceive}`,
-		);
-		const priv = await this.chatService.getPriv([
-			data.userSend,
-			data.userReceive,
-		]);
-		if (!priv) return console.log(`Error privReaded`);
-		await this.chatService.markPrivReaded(priv);
+		this.chatService.markPrivReaded(data.sender, data.receiver);
 	}
 
 	// ========== CHANNELS

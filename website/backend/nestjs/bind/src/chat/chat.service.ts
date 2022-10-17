@@ -67,7 +67,10 @@ export class ChatService {
 
 	async getUserPrivs(login: string) {
 		const user = await this.userRepository.findOne({
-			relations: { privates: { users: true, messages: { user: true } } },
+			relations: { 
+				blockeds: true, 
+				privates: { users: true, messages: { user: true } } 
+			},
 			where: { login: login },
 			order: {
 				privates: {
@@ -77,7 +80,9 @@ export class ChatService {
 				},
 			},
 		});
-		return user.privates;
+		let privs = user.privates.filter(p => !user.blockeds.map(b => b.login)
+			.some(b => p.users.map(u => u.login).includes(b)));
+		return privs;
 }
 
 	async getPriv(logins: [string, string]) {
@@ -105,12 +110,11 @@ export class ChatService {
 		return priv;
 	}
 
+
 	async addPrivMsg(data: NewPrivMsgDto) {
 		console.log(`addPrivMsg Chatservice, msg = '${data.message}'`);
-		// Find users
 		const userSend = await this.userService.getByLogin(data.userSend);
 		const userReceive = await this.userService.getByLogin(data.userReceive);
-		// Create and save Msg
 		const msg = this.msgRepository.create({
 			user: userSend,
 			message: data.message,
@@ -118,11 +122,8 @@ export class ChatService {
 		await this.msgRepository
 			.save(msg)
 			.catch((e) => console.log('Save msg error'));
-		// Check if PrivConv exist
 		const priv = await this.getPriv([data.userSend, data.userReceive]);
-		// If PrivateConv exist => add message to the existing one
 		if (priv) {
-			console.log(`PrivConv already exist`);
 			priv.messages.push(msg);
 			priv.readed = false;
 			await this.privateRepository
@@ -130,7 +131,6 @@ export class ChatService {
 				.catch((e) => console.log('Save priv error'));
 			return priv;
 		}
-		// else => Create a new PrivateConv
 		else {
 			console.log('creation New PrivateConv');
 			const newPriv = this.privateRepository.create({ readed: false });
@@ -174,16 +174,23 @@ export class ChatService {
 	}
 
 	async getServerUsersFiltred(login: string, filter: string) {
-		const users = await this.userService.getByLoginFiltred(filter);
-		const basicInfos: BasicUserDto[] = [];
-		for (let user of users) {
-			if (login != user.login)
-				basicInfos.push(new BasicUserDto(user.login, user.avatar));
-		}
-		return basicInfos;
+		let requestor = await this.userService.getByLogin(login, {blockeds : true});
+		let users = (await this.userService.getByLoginFiltred(filter))
+			.filter(u => u.login != login)
+			.filter(u => !requestor.blockeds.map(b => b.login).includes(u.login))
+		// const basicInfos: BasicUserDto[] = [];
+		// for (let user of users) {
+		// 	if (login != user.login)
+		// 		basicInfos.push(new BasicUserDto(user.login, user.avatar));
+		// }
+		// return basicInfos;
+		return users.map(u => new BasicUserDto(u.login, u.avatar))
 	}
 
-	async markPrivReaded(priv: PrivateEntity) {
+	// async markPrivReaded(priv: PrivateEntity) {
+	async markPrivReaded(sender: string, receiver: string) {
+		console.log(`sender '${sender}' read private of '${receiver}'`);
+		let priv = await this.getPriv([sender, receiver]);
 		priv.readed = true;
 		this.privateRepository.save(priv);
 		return priv;
@@ -437,17 +444,21 @@ export class ChatService {
 		}
 	}
 
-	async userExist (login: string) {
-		console.log(`verify if user '${login}' exist`)
+	async userExistOrBlocked (login: string, requestor : string) {
+		if (login == requestor)
+			throw new HttpException('IS_YOU', HttpStatus.BAD_REQUEST);
 		let user = await this.userRepository.findOne({
 			where: {login: login}
 		});
-		if (user)
-			return new BasicUserDto(user.login, user.avatar);
-			// return user.avatar;
-			// return true;
-		else
+		if (!user)
 			throw new HttpException('DO_NOT_EXIST', HttpStatus.NOT_FOUND);
+		let asker = await this.userRepository.findOne({
+			where: {login: requestor}, relations: {blockeds: true},
+		});
+		if (asker.blockeds.map(b => b.login).includes(login))
+			throw new HttpException('USER_BLOCKED', HttpStatus.BAD_REQUEST);
+		else
+			return new BasicUserDto(user.login, user.avatar);
 	}
 
 	async chanExist (chanName: string) {
@@ -549,7 +560,6 @@ export class ChatService {
 	
 
 	async modifChan(server: Server, modif: ModifChanDto) {
-		console.log(`Modif Chan:`);
 		let chan = await this.channelRepository.findOne({
 			where: {name: modif.chan},
 			relations: {admins: true, users: true, mutes: true, bans: true, messages: true}
@@ -629,6 +639,7 @@ export class ChatService {
 		let seconds = 0;
 		let idInterval = setInterval(() => {
 			seconds += 1;
+			console.log(`seconds = ${seconds}, limit = ${modif.time}`); 
 			if (seconds >= modif.time) {
 				clearInterval(idInterval);
 				let login: string;
@@ -658,11 +669,37 @@ export class ChatService {
 					.catch((e) => console.log('Save Channel error'));
 				console.log(`User '${login}' from channel '${chan.name}' is restored`);
 				for (let user of chan.admins.concat(chan.users).concat(chan.mutes)) {
-					console.log(`restore : login = ${user.login}`);
 					server.to(user.socketId).emit("modifChan", modif);
 				}
 			}
 		}, 1000);
+	}
+
+	async blockUser(data : {blocker: string, blocked: string}) {
+		console.log(`User '${data.blocker}' block '${data.blocked}'`);
+		let blocker = await this.userService.getByLogin(data.blocker, {blockeds: true});
+		let blocked = await this.userService.getByLogin(data.blocked);
+		blocker.blockeds.push(blocked);
+		await this.userRepository.save(blocker)
+			.catch((e) => console.log('Save User error'));
+		return blocked;
+	}
+
+	async unblockUser(data : {blocker: string, blocked: string}, server: Server) {
+		console.log(`User '${data.blocker}' unblock '${data.blocked}'`);
+		let blocker = await this.userService.getByLogin(data.blocker, {blockeds: true});
+		let i = blocker.blockeds.findIndex(b => b.login == data.blocked)
+		blocker.blockeds.splice(i, 1);
+		await this.userRepository.save(blocker)
+			.catch((e) => console.log('Save User error'));
+		let priv = await this.getPriv([data.blocked,data.blocker]);
+		let basicUser = (priv.users[0].login == data.blocker ? 
+			new BasicUserDto(priv.users[1].login, priv.users[1].avatar)
+			: new BasicUserDto(priv.users[0].login, priv.users[0].avatar))
+		let msgs = priv.messages
+			.map(m => new MessageDto(m.user.login, m.message, m.createdAt));
+		let privDto = new PrivConvDto(basicUser, msgs, priv.readed, priv.id);
+		server.to(blocker.socketId).emit('userUnblock', privDto);
 	}
 	
 	printChanDto(chan: ChannelDto) {

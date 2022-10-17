@@ -62,6 +62,12 @@ export class UserEntity extends TimestampEntites {
 	@JoinTable()
 	public requestFriend: UserEntity[];
 
+	@ManyToMany(type => UserEntity, {
+		onDelete: 'SET NULL'
+	})
+	@JoinTable()
+	public blockeds: UserEntity[];
+
 	@Column()
 	public ft_code: string;
 
@@ -112,8 +118,6 @@ export class UserEntity extends TimestampEntites {
 	})
 	@JoinTable()
 	privates: PrivateEntity[];
-
-	// ======== CHANNELS
 
 	@ManyToMany((type) => ChannelEntity, (chan) => chan.admins, {
 		cascade: true,
