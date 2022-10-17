@@ -41,8 +41,6 @@ export class AppGateway
 	private logger: Logger = new Logger('AppGateway');
 
 	constructor(
-		// @Inject(forwardRef(() => ChatService))
-    // private chatService: ChatService,
 		private readonly chatService: ChatService,
 		private readonly userService: UsersService,
 		private readonly matchService: MatchService,
@@ -52,7 +50,7 @@ export class AppGateway
 
 	// Connection
 	async handleConnection(@ConnectedSocket() client: Socket) {
-		console.log(`Client connected : ${client.handshake.query.login}, ${client.id}`);
+		console.log(`Client connected : ${client.handshake.query.login}`);
 		let login = client.handshake.query.login as string;
 		await this.userService.saveSocket(login, client.id);
 	}
@@ -271,7 +269,7 @@ export class AppGateway
 		@MessageBody() data: {blocker: string, blocked: string},
 		@ConnectedSocket() client: Socket,
 	) {
-		let blocked = await this.userService.blockUser(data);
+		let blocked = await this.chatService.blockUser(data);
 		client.emit('userBlock', new ResumUserDto(blocked));
 	}
 
@@ -280,8 +278,8 @@ export class AppGateway
 		@MessageBody() data: {blocker: string, blocked: string},
 		@ConnectedSocket() client: Socket,
 	) {
-		let unblocked = await this.userService.unblockUser(data);
-		client.emit('userUnblock', unblocked.login);
+		let priv = await this.chatService.unblockUser(data, server);
+		client.emit('userUnblock', priv);
 	}
 
 	// ============================ CHAT =====================================
@@ -322,20 +320,6 @@ export class AppGateway
 				.to(sender.socketId)
 				.emit('newPrivMsg', { msg: msg, id: priv.id });
 		}
-	}
-
-	@SubscribeMessage('getUsersByLoginFiltred')
-	async getUserFiltred(
-		@MessageBody() data: { filter: string; login: string },
-		@ConnectedSocket() client: Socket,
-	) {
-		const users = await this.userService.getByLoginFiltred(data.filter);
-		const basicInfos: { login: string }[] = [];
-		for (let i = 0; i < users.length; i++) {
-			if (data.login != users[i].login)
-				basicInfos.push({ login: users[i].login });
-		}
-		client.emit('getUsersByLoginFiltred', basicInfos);
 	}
 
 	@SubscribeMessage('privReaded')

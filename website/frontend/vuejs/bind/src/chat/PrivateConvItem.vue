@@ -76,8 +76,11 @@
 			</template>
 		</WarningMsg>
 	</div>
+	<div v-else-if="userExistDone && userBlocked" class="wrongPath center">
+		<span class="wrongPathMsg">This user is blocked &#129301;</span>
+	</div>
 	<div v-else-if="userExistDone && !userExist" class="wrongPath center">
-		<span class="wrongPathMsg">This user do not exist &#129301;</span>
+		<span class="wrongPathMsg">Bad userName &#129301;</span>
 	</div>
 </template>
 
@@ -113,12 +116,13 @@ let apiPath: string = inject("apiPath")!;
 const userName = useRoute().params.conv_name as string;
 let myMsg = ref("");
 let blockWarn = ref(false);
+let userBlocked = ref(false);
 let userExistDone = ref(false);
 let userExist : Ref<BasicUserDto| undefined> = ref(undefined);
 let index = ref(-1);
 
 // VERIFY IF CHAN EXIST
-userExistFn();
+userExistOrBlocked();
 
 // GET PRIVS REFS
 let privsRef: Ref<PrivConvDto[]> = inject("privs")!;
@@ -174,15 +178,23 @@ mySocket.on("findNewPriv", () => {
 
 // ===================== METHODS =====================
 
-function userExistFn() {
-	HTTP.get(apiPath + "chat/userExist/" + userName)
+function userExistOrBlocked() {
+	HTTP.get(`${apiPath}chat/userExistOrBlocked/${userName}/${me}`)
 		.then((res) => {
 			userExist.value = res.data;
 			userExistDone.value = true;
 			nextTick(() => scrollAndFocus() )
 		})
 		.catch((e) => {
-				userExistDone.value = true;
+			userExistDone.value = true;
+			if (e.response.data.message === 'DO_NOT_EXIST')
+				console.error(`This user do not exist`)
+			if (e.response.data.message === 'IS_YOU')
+			console.error(`Bad userName, it's yours`)
+			else if (e.response.data.message === 'USER_BLOCKED') {
+				userBlocked.value = true;
+				console.error(`This user is blocked`)
+			}
 		});
 }
 
@@ -235,7 +247,7 @@ function checkDate(i: number) {
 function checkAvatar(i: number) {
 	if (me == privsRef.value[index.value].messages[i].user)
 		return false;
-	if (i == 0 || i == privsRef.value[index.value].messages.length - 1) 
+	if (i == privsRef.value[index.value].messages.length - 1) 
 		return true;
 	if (
 		privsRef.value[index.value].messages[i].user == 

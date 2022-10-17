@@ -35,9 +35,9 @@ export class ChatController {
 	}
 
 	// @UseGuards(AuthGuard)
-	@Get('userExist/:login')
-	async userExist(@Param() params : {login: string}) {
-		return this.chatService.userExist(params.login);
+	@Get('userExistOrBlocked/:login/:requestor')
+	async userExist(@Param() params : {login: string, requestor: string}) {
+		return this.chatService.userExistOrBlocked(params.login, params.requestor);
 	}
 
 	// @UseGuards(AuthGuard)

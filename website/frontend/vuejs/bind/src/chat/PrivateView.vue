@@ -21,7 +21,7 @@
 				</button>
 			</div>
 		</div>
-		<div v-if="!newMsg" class="myConversations center column">
+		<div v-if="!newMsg && userDone" class="myConversations center column">
 			<ConversationTab
 				v-for="(data, i) in privsFiltred"
 				:key="i"
@@ -33,8 +33,11 @@
 				:avatar="data.user.avatar"
 				class="center"
 			/>
-			<h2 v-if="privsRef!.length == 0" class="no_results">No conversations</h2>
-			<h2 v-else-if="privsFiltred!.length == 0" class="no_results">
+			<!-- <h2 v-else class="comment">No conversations</h2> -->
+			<h2 v-if="!privsRef.length" class="comment">
+				No conversations
+			</h2>
+			<h2 v-else-if="!privsFiltred.length && search.length" class="comment">
 				No results
 			</h2>
 		</div>
@@ -65,11 +68,14 @@
 					<BasicProfil :avatar="data.avatar" :login="data.login" />
 				</router-link>
 			</div>
-			<h2 v-if="privsFiltred.length == 0 && search.length == 0
-				&& me.friends.length == 0">
-				No conversation/friend yet, search for a new one !
+			<h2 v-if="!privsFiltred.length && !knownPeople?.length 
+				&& !search.length" class="comment"
+			>
+				Type in the search bar
 			</h2>
-			<h2 v-if="userServReqDone && search.length > 0 && !serverUsers?.length">
+			<h2 v-if="userServReqDone && search.length 
+				&& !serverUsers?.length && !knownPeople?.length" class="comment"
+			>
 				No results
 			</h2>
 		</div>
@@ -97,7 +103,10 @@ import HTTP from "../components/axios";
 import { PrivConvDto } from "@/chat/dto/PrivConvDto";
 import { ProfileUserDto } from "@/dto/ProfileUserDto"
 
-// INJECTS
+
+// ================= INIT =================
+
+// INIT COMPONENT VARIABLES
 let colors = inject("colors");
 let me: Ref<ProfileUserDto> = inject("user")!;
 let userDone : Ref<boolean> = inject("userDone")!;
@@ -116,123 +125,65 @@ let privsFiltred : Ref<PrivConvDto[]> = ref([]);
 const privDone: Ref<boolean> = inject("privDone")!;
 
 // INIT
-if (privDone.value && userDone.value) {
-	knownPeople = ref(setKnownPeople());
-	privsFiltred.value = privsRef.value.filter(priv => {
-		return !me.value.blockeds.map(b => b.login).includes(priv.user.login)
-	});
+if (privDone.value && userDone.value) init();
+
+// INIT IF PAGE REFRESH
+watch(privDone, () => {
+	if (userDone.value) init();
+});
+watch(userDone, () => {
+	if (privDone.value) init();
+})
+
+function init() {
+	nbPrivNR.reset();
+	privsFiltred.value = privsRef.value;
+	// privsFiltred.value = privsRef.value.filter(priv => {
+	// 	return !me.value.blockeds.map(b => b.login).includes(priv.user.login)
+	// });
+	knownPeople.value = setKnownPeople();
 	watch(me.value.blockeds, () => {
 		console.log(`me.blocked changed`);
-		privsFiltred.value = privsRef.value.filter(priv => {
-			!me.value.blockeds.map(b => b.login)
-			.includes(priv.user.login)
-		}).filter(priv => {
-			return priv.user.login
-				.toUpperCase()
-				.startsWith(search.value.toUpperCase());
-		});
+		// privsFiltred.value = privsRef.value.filter(priv => {
+		// 	!me.value.blockeds.map(b => b.login)
+		// 	.includes(priv.user.login)
+		// }).filter(priv => {
+		// 	return priv.user.login
+		// 		.toUpperCase()
+		// 		.startsWith(search.value.toUpperCase());
+		// });
+		privsFiltred.value = privsRef.value
+			.filter(priv => {
+				return priv.user.login
+					.toUpperCase()
+					.startsWith(search.value.toUpperCase());
+			});
 	})
 }
 
 
-if (privsRef.value.length) {
-	nbPrivNR.reset();
-}
-
-watch(privDone, () => {
-	// privsFiltred.value = privsRef.value;
-	// nbPrivNR.reset();
-	// if (userDone.value)
-	// 	knownPeople.value = setKnownPeople();
-	
-	nbPrivNR.reset();
-	if (userDone.value) {
-		knownPeople.value = setKnownPeople();
-		privsFiltred.value = privsRef.value.filter(priv => {
-			return !me.value.blockeds.map(b => b.login).includes(priv.user.login)
-		});
-		watch(me.value.blockeds, () => {
-			console.log(`me.blocked changed`);
-			privsFiltred.value = privsRef.value.filter(priv => {
-				!me.value.blockeds.map(b => b.login)
-				.includes(priv.user.login)
-			}).filter(priv => {
-				return priv.user.login
-					.toUpperCase()
-					.startsWith(search.value.toUpperCase());
-			});
-		})
-	}
-
-});
-
-watch(userDone, () => {
-	// if (privDone.value) 
-	// 	knownPeople.value = setKnownPeople();
-
-	if (privDone.value) {
-		knownPeople.value = setKnownPeople();
-		privsFiltred.value = privsRef.value.filter(priv => {
-			return !me.value.blockeds.map(b => b.login).includes(priv.user.login)
-		});
-		watch(me.value.blockeds, () => {
-			console.log(`me.blocked changed`);
-			privsFiltred.value = privsRef.value.filter(priv => {
-				!me.value.blockeds.map(b => b.login)
-				.includes(priv.user.login)
-			}).filter(priv => {
-				return priv.user.login
-					.toUpperCase()
-					.startsWith(search.value.toUpperCase());
-			});
-		})
-	}
-
-})
-
-
-onUpdated(() => {
-	if (nbPrivNR.n.value.length) nbPrivNR.reset();
-});
-
-
-
-function setKnownPeople() {
-	// console.log(`setKnowPeople`);
-	let convs : BasicUserDto[] = [];
-	if (privsFiltred.value) {
-		convs = privsFiltred.value
-			.map(p => new BasicUserDto(p.user.login, p.user.avatar))
-	}
-	let friends : BasicUserDto[] = [];
-	if (me.value) {
-		friends = me.value.friends.map(f => new BasicUserDto(f.login, f.avatar));
-		friends = friends.filter(f => {
-			let notIn = true;
-			for (let conv of convs)
-				if (conv.login == f.login)
-					notIn = false;
-			if (f.login.startsWith(search.value) && notIn)
-				return new BasicUserDto(f.login, f.avatar);
-		})
-	}
-	return convs.concat(friends);
-}
+// ====================== WATCHERS ======================
 
 watch(search, () => {
 	userServReqDone.value = false;
-	privsFiltred.value = privsRef.value?.filter(priv => {
-		return priv.user.login
-			.toUpperCase()
-			.startsWith(search.value.toUpperCase());
-	});
-
+	privsFiltred.value = privsRef.value
+		// .filter(priv => {
+		// 	return !me.value.blockeds.map(b => b.login)
+		// 		.includes(priv.user.login)
+		// })
+		.filter(priv => {
+			return priv.user.login
+				.toUpperCase()
+				.startsWith(search.value.toUpperCase());
+		});
 	if (newMsg.value) {
 		knownPeople.value = setKnownPeople();
-		if (search.value != "")
-			getServerUsers();
+		if (search.value != "") getServerUsers();
 	}
 });
+
+
+// ====================== METHODS ======================
 
 function getServerUsers() {
 	HTTP.get(apiPath + "chat/getServerUsersFiltred/" + me.value.login + "/" + search.value)
@@ -257,14 +208,44 @@ function filterServerUsers() {
 	});
 }
 
+function setKnownPeople() {
+	// console.log(`setKnowPeople`);
+	let convs : BasicUserDto[] = [];
+	let friends : BasicUserDto[] = [];
+	convs = privsFiltred.value
+		.map(p => new BasicUserDto(p.user.login, p.user.avatar))
+	friends = me.value.friends
+		.map(f => new BasicUserDto(f.login, f.avatar))
+		.filter(f => {
+			let notIn = !convs.map(c => c.login).includes(f.login);
+			let notBan = !me.value.blockeds.map(b => b.login).includes(f.login);
+			let startWithSearch = f.login.startsWith(search.value);
+			if (notIn && notBan && startWithSearch)
+				return true;
+		})
+	return convs.concat(friends);
+}
 
 function createNewMsg() {
 	search.value = "";
 	newMsg.value = !newMsg.value;
+	knownPeople.value = setKnownPeople();
 	nextTick(() => {
 		document.getElementById('search')?.focus();
 	});
 }
+
+// function onlyContBlocked() {
+// 	return privsRef.value.every(p => me.value.blockeds
+// 		.map(b => b.login).includes(p.user.login));
+// }
+
+
+// ====================== LIFECYCLES HOOKS ======================
+
+onUpdated(() => {
+	if (nbPrivNR.n.value.length) nbPrivNR.reset();
+});
 
 onMounted(() => {
 	const box = document.getElementById("privateTabText");
@@ -275,6 +256,7 @@ onBeforeUnmount(() => {
 	const box = document.getElementById("privateTabText");
 	if (box != null) box.classList.remove("chatTabActive");
 });
+
 </script>
 
 <style scoped>
@@ -282,11 +264,9 @@ onBeforeUnmount(() => {
 	height: calc(100vh - 180px);
 	justify-content: flex-start;
 }
-.no_results {
+.comment {
 	margin-top: 1rem;
 }
-
-/* ============= BUTTONS TOPBAR ============= */
 .option_buttons {
 	width: 25%;
 }

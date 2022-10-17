@@ -48,14 +48,28 @@
 				</button>
 			</div>
 		</div>
-		<div v-if="chanDone && !findChannel && !newChannel" class="myChannels center column">
-			<div v-for="(data, i) in chansFiltred" :key="i" class="center">
-				<ConversationTab
+		<div v-if="chanDone && !findChannel && !newChannel && userDone"
+			class="myChannels center column"
+		>
+			<div v-for="(data, i) in chansFiltred" :key="i" 
+				:set="ind = findIndexMsg(data.messages)" class="center"
+			>
+				<!-- <ConversationTab
 					v-if="data.messages.length > 0"
 					:name-conv="data.name"
 					:message="data.messages.at(-1)!.msg"
 					:date="data.messages.at(-1)!.date"
 					:last-msg-user="data.messages.at(-1)!.user"
+					:read="data.readed"
+					:chan="true"
+					class="center"
+				/> -->
+				<ConversationTab
+					v-if="data.messages.length > 0 && ind >= 0"
+					:name-conv="data.name"
+					:message="data.messages.at(ind)!.msg"
+					:date="data.messages.at(ind)!.date"
+					:last-msg-user="data.messages.at(ind)!.user"
 					:read="data.readed"
 					:chan="true"
 					class="center"
@@ -97,7 +111,7 @@
 					<img src="@/assets/name_logo.svg" alt="Name Channel" class="newChanImg">
 					<label for="newChanName" class="labelForm">Name :</label>
 				</div>
-				<input v-model="nameInput" @keypress.enter="submitChannel" type="text" 
+				<input v-model="nameInput" type="text" 
 					name="newChanName" id="newChanName" class="inputForm" 
 				/>
 			</div>
@@ -123,7 +137,7 @@
 						value="psw required"
 					/>
 				</div>
-				<input v-model="pswInput" type="text" @keypress.enter="submitChannel"
+				<input v-model="pswInput" type="text"
 					name="pswInput" id="pswInput" class="inputForm" :disabled="!pswCheck"
 				/>
 			</div>
@@ -145,19 +159,23 @@ import {
 	onUpdated,
 } from "vue";
 import HTTP from "../components/axios";
-import ChannelTab from "@/chat/ChannelTab.vue";
+import ChannelTab from "@/chat/ChannelSearchTab.vue";
 import SearchItem from "@/components/SearchItem.vue";
 import ConversationTab from "@/chat/ConversationTab.vue";
 import { ChannelDto } from "@/chat/dto/ChannelDto";
 import { ChannelTabDto } from "@/chat/dto/ChannelTabDto ";
 import { NewChanDto } from "@/chat/dto/NewChanDto"
+import { MessageDto } from "./dto/MessageDto";
+import { ProfileUserDto } from "@/dto/ProfileUserDto"
 
 
 // ================= INIT =================
 
 // INIT COMPONENT VARIABLES
+let ind : number;
 const colors = inject("colors");
-const me : string = inject("me")!;
+const myName: string = inject("me")!;
+const me: Ref<ProfileUserDto> = inject("user")!;
 const apiPath: string = inject("apiPath")!;
 const search = ref("");
 const findChannel = ref(false);
@@ -168,6 +186,8 @@ const nameInput = ref("");
 const pswInput = ref("");
 const chanServReqDone = ref(false);
 const serverChans : Ref<ChannelTabDto[]> = ref([]);
+const userDone : Ref<boolean> = inject("userDone")!;
+
 
 // GET CHANS REFS
 const chansRef : Ref<ChannelDto[]> = inject("chans")!;
@@ -226,6 +246,16 @@ function newChannelFn() {
 	})
 }
 
+function findIndexMsg(msgs: MessageDto[]) {
+	let i : number;
+	let blockeds = me.value.blockeds.map(b => b.login);
+	for (i = msgs.length - 1; i >= 0; i--) {
+		if (!blockeds.includes(msgs[i].user))
+			break;
+	}
+	return i;
+}
+
 function submitChannel() {
 	let nameElem = document.getElementById('newChanName');
 	let pswElem = document.getElementById('pswInput');
@@ -240,7 +270,7 @@ function submitChannel() {
 			pswElem!.classList.add("invalidInput");
 		})
 	HTTP.post(apiPath + "chat/createChan", 
-		new NewChanDto(nameInput.value, me, privCB.value, pswInput.value))
+		new NewChanDto(nameInput.value, myName, privCB.value, pswInput.value))
 		.then(res => {
 			let newChan = res.data as ChannelDto;
 			newChan.creation = new Date(newChan.creation);

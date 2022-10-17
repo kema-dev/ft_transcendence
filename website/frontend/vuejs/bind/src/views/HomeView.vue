@@ -42,8 +42,8 @@ const route = useRoute()
 //	========== GET MY NAME + AVATAR
 
 const me: string = $cookies.get('login');
-console.log(`i am ${me}`)
 provide('me', me);
+console.log(`i am ${me}`)
 
 //	========== CREATE SOCKET
 
@@ -71,13 +71,18 @@ provide('isJoin', ref(false));
 
 socket.on("userBlock", (data : ResumUserDto) => {
 	console.log(`User ${data.login} blocked`);
+	let i = privsRef.value.findIndex(p => p.user.login == data.login);
+	privsRef.value.splice(i, 1);
 	userRef.value.blockeds.push(data);
 });
 
-socket.on("userUnblock", (data : string) => {
-	console.log(`User ${data} unblocked`);
-	let i = userRef.value.blockeds.findIndex(b => b.login == data);
+socket.on("userUnblock", (data : PrivConvDto) => {
+	console.log(`User ${data.user.login} unblocked`);
+	let priv = data;
+	priv.messages.forEach(m => m.date = new Date(m.date));
+	let i = userRef.value.blockeds.findIndex(b => b.login == priv.user.login);
 	userRef.value.blockeds.splice(i, 1);
+	privsRef.value.unshift(priv);
 });
 
 //	========== RESIZE WINDOW
@@ -115,7 +120,7 @@ function getPrivsRequest() {
 				priv.messages.forEach(msg => msg.date = new Date(msg.date))
 			})
 			nbPrivNR.value = privsTmp
-				.filter(p => p.readed? false : true)
+				.filter(p => p.readed || p.messages.at(-1)!.user == me ? false : true)
 				.map(p => p.id)
 			privsRef.value = privsTmp;
 
@@ -138,6 +143,8 @@ socket.on('newPrivConv', (data: PrivConvDto) => {
 });
 
 socket.on('newPrivMsg', (data: { msg: MessageDto; id: number }) => {
+	if (userRef.value.blockeds.map(m => m.login).includes(data.msg.user))
+		return;
 	console.log(`New Private message received : ${data.msg.msg}`);
 	let i = privsRef.value.findIndex((priv) => priv.id == data.id);
 	privsRef.value[i].messages
@@ -236,14 +243,14 @@ socket.on('newChanMsg', (data: { msg: MessageDto; name: string }) => {
 	chansRef.value[i].messages.push(
 		new MessageDto(data.msg.user, data.msg.msg, new Date(data.msg.date)),
 	);
-	chansRef.value[i].readed = false;
 	let blocked = userRef.value.blockeds.map(b => b.login).includes(data.msg.user);
+	if (!blocked)
+		chansRef.value[i].readed = false;
 	if (data.msg.user != me 
 		&& !nbChanNR.value.includes(chansRef.value[i].name)
 		&& route.path != "/home/chat/channel/" + data.name
 		&& !blocked
 		) {
-		// console.log(`New chan notif`);
 		nbChanNR.value.push(chansRef.value[i].name);
 	}
 	if (i != 0) {

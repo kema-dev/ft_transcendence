@@ -185,7 +185,6 @@ function demote() {
 }
 
 function sendPrivMsg() {
-	console.log(`login = ${props.login}`)
 	router.push({name: 'PrivConv', params: { conv_name: props.login }});
 }
 
