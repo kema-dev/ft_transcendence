@@ -27,10 +27,10 @@
 						:key="i"
 					>
 						<div class="space-between fit_match">
-							<img :src="avatar[i - 1]" class="avatar" />
+							<img :src="avatar[i - 1]" class="avatar" @click="go_to_user_profile(i)" />
 							<div class="info_details center row space-around">
 								<div class="row center">
-									<h1 class="player_login">
+									<h1 class="player_login" @click="go_to_user_profile(i)">
 										{{ get_player_name(props.match.players[i - 1]) }}
 									</h1>
 								</div>
@@ -59,6 +59,7 @@ import { MatchDto } from '../dto/MatchDto';
 import ProfileUserDto from '../dto/ProfileUserDto';
 import API from './axios';
 import { useCookies } from 'vue3-cookies';
+import { useRouter } from 'vue-router';
 const { cookies } = useCookies();
 
 let define = inject('colors');
@@ -67,6 +68,13 @@ let me: Ref<ProfileUserDto> = inject('user')!;
 const props = defineProps(['match']);
 
 let size = ref(0);
+
+const router = useRouter();
+
+function go_to_user_profile(i: number) {
+	router.push('/home/player/' + props.match.players[i - 1]);
+	router.go(0);
+}
 
 function open() {
 	if (size.value) size.value = 0;
