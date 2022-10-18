@@ -8,7 +8,7 @@
 		<div class="stack avatar-stack">
 			<div id="bar"></div>
 			<div v-on:click="change_avatar()" id="avatar">
-				<img :src="me?.avatar" id="img" />
+				<img :src="user_avatar" id="img" />
 			</div>
 		</div>
 		<input id="none" type="file" />
@@ -80,6 +80,7 @@ let user_ratio_rounded = ref(50);
 let user_history = ref([]);
 let user_stats = ref({});
 let search = ref('');
+let user_avatar = ref('');
 
 // let user = {
 // 	name: 'zeus',
@@ -133,6 +134,17 @@ onMounted(async () => {
 		trailWidth: 0,
 		easing: 'easeInOut',
 		duration: 1400,
+	});
+	await API.post('/user/get_user_avatar', {
+		headers: {
+			login: cookies.get('login'),
+			token: cookies.get('session'),
+		},
+		login: me?.value?.login,
+	}).then((res) => {
+		user_avatar.value = res.data;
+	}).catch((err) => {
+		console.log(err);
 	});
 	await API.post('/match/get_user_stats', {
 		headers: {

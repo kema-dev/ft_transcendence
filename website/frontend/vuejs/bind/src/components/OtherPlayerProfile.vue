@@ -91,7 +91,6 @@ watch(props, async (new_search, old_search) => {
 		console.log(err);
 		show.value = false;
 	});
-
 })
 </script>
 
