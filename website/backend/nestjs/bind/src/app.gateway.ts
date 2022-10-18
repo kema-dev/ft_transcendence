@@ -53,6 +53,7 @@ export class AppGateway
 		console.log(`Client connected : ${client.handshake.query.login}`);
 		let login = client.handshake.query.login as string;
 		await this.userService.saveSocket(login, client.id);
+		this.userService.set_status(login, 'online');
 	}
 	// Disconnection
 	async handleDisconnect(client: Socket) {
@@ -182,6 +183,9 @@ export class AppGateway
 		// );
 		let game = this.games.find((game) => game.lobby_name === payload.lobby_name);
 		if (game) {
+			game.players.forEach((player) => {
+				this.userService.set_status(player.login, 'ingame');
+			});
 			game.start = true;
 		}
 		// this.matchService.simulate_5_matches();

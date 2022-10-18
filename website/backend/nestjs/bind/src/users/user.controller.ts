@@ -75,4 +75,10 @@ export class UsersController {
 	async get_user_avatar(@Body() params: any) {
 		return this.usersService.get_user_avatar(params.login);
 	}
+
+	@UseGuards(AuthGuard)
+	@Post('get_user_status')
+	async get_user_status(@Body() params: any) {
+		return this.usersService.get_user_status(params.login);
+	}
 }

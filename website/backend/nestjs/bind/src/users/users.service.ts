@@ -314,6 +314,31 @@ export class UsersService {
 		}
 	}
 
+	async set_status(login: string, status: string) {
+		console.log('set_status: starting for ' + login);
+		const user = await this.getByAny(login);
+		if (user) {
+			console.log('set_status: found ' + login + ', updating ✔');
+			user.status = status;
+			await this.usersRepository.save(user);
+		} else {
+			console.error('set_status: ' + login + ' not found, updating aborted ✘');
+			throw new HttpException('E_USER_NOT_FOUND', HttpStatus.NOT_FOUND);
+		}
+	}
+
+	async get_user_status(login: string) {
+		console.log('get_status: starting for ' + login);
+		const user = await this.getByAny(login);
+		if (user) {
+			console.log('get_status: found ' + login + ', updating ✔');
+			return user.status;
+		} else {
+			console.error('get_status: ' + login + ' not found, updating aborted ✘');
+			throw new HttpException('E_USER_NOT_FOUND', HttpStatus.NOT_FOUND);
+		}
+	}
+
 	async change_totp_code(user: UserEntity, totp_code: string) {
 		console.log('change_totp_code: starting for ' + user.email);
 		console.log(

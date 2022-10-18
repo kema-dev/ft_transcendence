@@ -1,11 +1,11 @@
 <template>
 	<div class="column center" v-if="show">
+		<h1>{{ user_status }}</h1>
 		<div class="stack avatar-stack">
 			<div id="avatar">
 				<img :src="other_user_avatar" id="img" />
 			</div>
 		</div>
-		<input id="none" type="file" />
 		<h1 id="name">{{ props.search }}</h1>
 		<h2 class="avg_rank">Average rank: Top {{ user_ratio_rounded }}%</h2>
 		<h2 class="w_l">
@@ -42,6 +42,7 @@ let user_history = ref([]);
 let user_stats = ref({});
 let show = ref(false);
 let other_user_avatar = ref('');
+let user_status = ref('');
 
 watch(props, async (new_search, old_search) => {
 	const usr_login = cookies.get('login');
@@ -50,7 +51,7 @@ watch(props, async (new_search, old_search) => {
 		show.value = false;
 		return;
 	}
-	await API.post('/match/get_user_stats/', {
+	API.post('/match/get_user_stats/', {
 		headers: {
 			login: usr_login,
 			token: usr_token,
@@ -65,7 +66,7 @@ watch(props, async (new_search, old_search) => {
 		console.log(err);
 		show.value = false;
 	});
-	await API.post('/match/get_user_history', {
+	API.post('/match/get_user_history', {
 		headers: {
 			login: usr_login,
 			token: usr_token,
@@ -78,7 +79,7 @@ watch(props, async (new_search, old_search) => {
 		console.log(err);
 		show.value = false;
 	});
-	await API.post('/user/get_user_avatar', {
+	API.post('/user/get_user_avatar', {
 		headers: {
 			login: usr_login,
 			token: usr_token,
@@ -86,6 +87,19 @@ watch(props, async (new_search, old_search) => {
 		login: props.search,
 	}).then((res) => {
 		other_user_avatar.value = res.data;
+		show.value = true;
+	}).catch((err) => {
+		console.log(err);
+		show.value = false;
+	});
+	API.post('/user/get_user_status', {
+		headers: {
+			login: usr_login,
+			token: usr_token,
+		},
+		login: props.search,
+	}).then((res) => {
+		user_status.value = res.data;
 		show.value = true;
 	}).catch((err) => {
 		console.log(err);
