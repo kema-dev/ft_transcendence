@@ -1,12 +1,12 @@
 <template>
-	<div class="column center" v-if="other_player">
-		<!-- <div class="stack avatar-stack">
-			<div v-on:click="change_avatar()" id="avatar">
-				<img :src="me?.avatar" id="img" />
+	<div class="column center" v-if="show">
+		<div class="stack avatar-stack">
+			<div id="avatar">
+				<img :src="other_user_avatar" id="img" />
 			</div>
 		</div>
 		<input id="none" type="file" />
-		<h1 id="name">{{ me?.login }}</h1>
+		<h1 id="name">{{ props.search }}</h1>
 		<h2 class="avg_rank">Average rank: Top {{ user_ratio_rounded }}%</h2>
 		<h2 class="w_l">
 			Total: {{ user_stats.total }} - Wins: {{ user_stats.wins }} - Loses:
@@ -17,13 +17,12 @@
 			v-for="match in user_history"
 			v-bind:match="match"
 			:key="match.creation_date"
-		/> -->
-		<h1>Other player {{ other_player }}</h1>
+		/>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, inject, Ref, ref } from 'vue';
+import { onMounted, inject, Ref, ref, watch } from 'vue';
 import { Socket } from "socket.io-client";
 import MatchItem from '../components/MatchItem.vue';
 import { ProfileUserDto } from '../dto/ProfileUserDto';
@@ -32,45 +31,68 @@ import { useCookies } from 'vue3-cookies';
 
 const { cookies } = useCookies();
 let define = inject('colors');
-let other_player: Ref<ProfileUserDto> = inject('other_player')!;
-let me: Ref<ProfileUserDto> = inject('me')!;
+let props = defineProps(['search']);
 let userDone = inject('userDone')!;
 let socket : Socket = inject('socket')!;
 let showBlocks = ref(false);
-
-console.log('other_player:', other_player?.value);
 
 let user_ratio = ref(0.5);
 let user_ratio_rounded = ref(50);
 let user_history = ref([]);
 let user_stats = ref({});
+let show = ref(false);
+let other_user_avatar = ref('');
 
-onMounted(async () => {
-	if (other_player?.value) {
-		console.log('other_player:', other_player?.value);
+watch(props, async (new_search, old_search) => {
+	const usr_login = cookies.get('login');
+	const usr_token = cookies.get('session');
+	if (new_search.search == usr_login) {
+		show.value = false;
+		return;
 	}
-	await API.post('/match/get_user_stats', {
+	await API.post('/match/get_user_stats/', {
 		headers: {
-			login: cookies.get('login'),
-			token: cookies.get('session'),
+			login: usr_login,
+			token: usr_token,
 		},
-		login: me?.value?.login,
+		login: props.search,
 	}).then((res) => {
 		user_stats.value = res.data;
 		user_ratio.value = res.data.average_rank;
 		user_ratio_rounded.value = Math.round(res.data.average_rank * 100);
+		show.value = true;
+	}).catch((err) => {
+		console.log(err);
+		show.value = false;
 	});
-	console.log('user_ratio:', user_ratio.value);
 	await API.post('/match/get_user_history', {
 		headers: {
-			login: cookies.get('login'),
-			token: cookies.get('session'),
+			login: usr_login,
+			token: usr_token,
 		},
-		login: me?.value?.login,
+		login: props.search,
 	}).then((res) => {
 		user_history.value = res.data;
+		show.value = true;
+	}).catch((err) => {
+		console.log(err);
+		show.value = false;
 	});
-});
+	await API.post('/user/get_user_avatar', {
+		headers: {
+			login: usr_login,
+			token: usr_token,
+		},
+		login: props.search,
+	}).then((res) => {
+		other_user_avatar.value = res.data;
+		show.value = true;
+	}).catch((err) => {
+		console.log(err);
+		show.value = false;
+	});
+
+})
 </script>
 
 <style scoped>

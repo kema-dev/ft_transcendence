@@ -2,8 +2,6 @@
 
 ## ongoing
 
-* On other player view, add a get back to my profile button
-
 ## optional
 
 * change readme's images using a gif of a live game and some screenshots of the website

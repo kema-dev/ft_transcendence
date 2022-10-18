@@ -1,9 +1,9 @@
 <template>
 	<div class="column center">
 		<h2 id="player_search_title">Search for another player's profile</h2>
-		<SearchItem v-model:search="other_player_login"/>
+		<SearchProfileItem v-model:search="search"/>
 		<OtherPlayerProfile
-			v-bind:other_player="other_player"
+			v-bind:search="search"
 		/>
 		<div class="stack avatar-stack">
 			<div id="bar"></div>
@@ -53,7 +53,7 @@
 import { onMounted, inject, Ref, ref, provide } from 'vue';
 import { Socket } from "socket.io-client";
 import MultiFactorAuthItem from '../components/MultiFactorAuthItem.vue';
-import SearchItem from '../components/SearchItem.vue';
+import SearchProfileItem from '../components/SearchProfileItem.vue';
 import ScoreItem from '../components/ScoreItem.vue';
 import MatchItem from '@/components/MatchItem.vue';
 import BasicProfil from '@/components/BasicProfilItem.vue';
@@ -79,8 +79,7 @@ let user_ratio = ref(0.5);
 let user_ratio_rounded = ref(50);
 let user_history = ref([]);
 let user_stats = ref({});
-let other_player_login = ref('');
-let other_player = ref(ProfileUserDto);
+let search = ref('');
 
 // let user = {
 // 	name: 'zeus',
