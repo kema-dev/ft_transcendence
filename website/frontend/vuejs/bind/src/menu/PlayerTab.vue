@@ -1,67 +1,95 @@
 <template>
-	<div v-if="userExist" class="column center" id="test">
+	<div class="column center" v-if="show">
 		<div class="stack avatar-stack">
-			<div id="bar"></div>
 			<div id="avatar">
-				<img :src="user?.avatar" id="img" />
+				<img :src="other_user_avatar" id="img" />
 			</div>
 		</div>
-		<h2 class="info">{{ user?.rank }}</h2>
-		<h1 id="name">{{ user?.login }}</h1>
-		<h2 class="info" style="margin-bottom: 40px">level {{ user?.level }}</h2>
-		<h2>Match history</h2>
-		<div v-for="match in user?.history" :key="match.adversary">
-			<MatchItem index="" />
-		</div>
-	</div>
-	<div v-else class="wrongPath center">
-		<span class="wrongPathMsg">This user do not exist &#129301;</span>
+		<input id="none" type="file" />
+		<h1 id="name">{{ user_login }}</h1>
+		<h2 class="avg_rank">Average rank: Top {{ user_ratio_rounded }}%</h2>
+		<h2 class="w_l">
+			Total: {{ user_stats.total }} - Wins: {{ user_stats.wins }} - Loses:
+			{{ user_stats.loses }}
+		</h2>
+		<h2 class="match_history_title">Match history</h2>
+		<MatchItem
+			v-for="match in user_history"
+			v-bind:match="match"
+			:key="match.creation_date"
+		/>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { inject, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
-import MatchItem from "@/components/MatchItem.vue";
+import { onMounted, inject, Ref, ref, watch } from 'vue';
+import { Socket } from "socket.io-client";
+import MatchItem from '../components/MatchItem.vue';
+import { ProfileUserDto } from '../dto/ProfileUserDto';
+import API from '../components/axios';
+import { useCookies } from 'vue3-cookies';
 
-let socket = inject("socket")!;
-let define = inject("colors");
 const route = useRoute();
-let userExist = ref(false);
-let user = ref();
-let bar: any;
-socket.on("getUserByLogin", (data: any) => {
-	if (data == null)
-		return userExist.value = false;
-	else
-		userExist.value = true;
-	user.value = data;
-	bar.animate(1 - Number(user?.value?.ratio));
-});
-socket.emit("getUserByLogin", { login: route.params.name });
-var ProgressBar = require("progressbar.js");
-// onMounted(() => {
-// 	bar = new ProgressBar.Circle("#bar", {
-// 		color: define.color2,
-// 		strokeWidth: 4,
-// 		trailWidth: 0,
-// 		easing: "easeInOut",
-// 		duration: 1400,
-// 	});
-// });
+const { cookies } = useCookies();
+let define = inject('colors');
+let user_login = route.params.name;
+let userDone = inject('userDone')!;
+let socket : Socket = inject('socket')!;
+let showBlocks = ref(false);
 
-watch(userExist, () => {
-	console.log("userExist");
-	if (userExist.value == true) {
-		bar = new ProgressBar.Circle("#bar", {
-			color: define.color2,
-			strokeWidth: 4,
-			trailWidth: 0,
-			easing: "easeInOut",
-			duration: 1400,
-		});
-	}
-}, {flush: 'post'})
+let user_ratio = ref(0.5);
+let user_ratio_rounded = ref(50);
+let user_history = ref([]);
+let user_stats = ref({});
+let show = ref(false);
+let other_user_avatar = ref('');
+
+onMounted(async () => {
+	const usr_login = cookies.get('login');
+	const usr_token = cookies.get('session');
+	await API.post('/match/get_user_stats/', {
+		headers: {
+			login: usr_login,
+			token: usr_token,
+		},
+		login: user_login,
+	}).then((res) => {
+		user_stats.value = res.data;
+		user_ratio.value = res.data.average_rank;
+		user_ratio_rounded.value = Math.round(res.data.average_rank * 100);
+		show.value = true;
+	}).catch((err) => {
+		console.log(err);
+		show.value = false;
+	});
+	await API.post('/match/get_user_history', {
+		headers: {
+			login: usr_login,
+			token: usr_token,
+		},
+		login: user_login,
+	}).then((res) => {
+		user_history.value = res.data;
+		show.value = true;
+	}).catch((err) => {
+		console.log(err);
+		show.value = false;
+	});
+	await API.post('/user/get_user_avatar', {
+		headers: {
+			login: usr_login,
+			token: usr_token,
+		},
+		login: user_login,
+	}).then((res) => {
+		other_user_avatar.value = res.data;
+		show.value = true;
+	}).catch((err) => {
+		console.log(err);
+		show.value = false;
+	});
+})
 
 </script>
 
@@ -80,6 +108,10 @@ watch(userExist, () => {
 	cursor: pointer;
 	vertical-align: middle;
 	margin: 7.5px;
+	/* background-image: url("@/assets/avatars/(1).jpg"); */
+	/* background-size: 100%; */
+	/* height: 40%; */
+	/* padding-top: 40%; */
 }
 #img {
 	object-fit: cover;
@@ -93,22 +125,61 @@ watch(userExist, () => {
 	width: 215px;
 	height: 215px;
 }
+#none {
+	display: none;
+}
 #name {
-	margin-top: -5px;
+	margin-top: -20px;
 	/* margin-bottom: -5px; */
 	font-size: 200%;
 }
 .info {
 	font-size: 100%;
 }
-.wrongPath {
-	height: calc(100vh - 180px);
-	font-family: "Orbitron", sans-serif;
-	font-size: 1.2rem;
-	position: relative;
+.avg_rank {
+	margin-top: 10px;
 }
-.wrongPathMsg {
-	position: absolute;
-	top: 50%;
+.w_l {
+	margin-bottom: 10px;
+}
+.match_history_title {
+	margin-bottom: 10px;
+	font-size: 200%;
+}
+#security {
+	margin-top: 15px;
+	margin-bottom: 15px;
+	font-size: 1.5rem;
+	font-weight: bold;
+	color: #2c3e50;
+	text-decoration: underline;
+}
+#showBlocksBtn {
+	margin-top: 30px;
+	margin-bottom: 10px;
+	height: 1.5rem;
+	width: auto;
+	border-radius: calc(1.5rem / 2);
+	font-weight: 500;
+	background-color: v-bind("define.color2");
+	color: white;
+	padding: 0 10px;
+	box-shadow: 0px 0px 4px #aaa;
+}
+.restoreBtn {
+	height: 30px;
+	width: 30px;
+	margin-left: 10px;
+	border-radius: 13px;
+}
+.restoreBtn:hover {
+	box-shadow: 0px 0px 4px #aaa;
+	background-color: white;
+}
+.restoreImg {
+	height: 26px;
+	width: 26px;
+	filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg)
+		brightness(86%) contrast(83%);
 }
 </style>
