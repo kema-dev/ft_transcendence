@@ -73,7 +73,7 @@ const router = useRouter();
 
 function go_to_user_profile(i: number) {
 	router.push('/home/player/' + props.match.players[i - 1]);
-	router.go(0);
+	// router.go(0);
 }
 
 function open() {
