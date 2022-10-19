@@ -39,7 +39,7 @@ export default class Ball {
 		await delay(1000);
 		this.speed = this.initSpeed;
 		let ballX = Math.random() * 5;
-		let ballY = 5 - ballX;
+		let ballY = Math.random() * 3;
 		if (Math.floor(Math.random() * 2) == 1) ballX = -ballX;
 		if (Math.floor(Math.random() * 2) == 1) ballY = -ballY;
 		this.v = new Vector(ballX, ballY);

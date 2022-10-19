@@ -2,12 +2,10 @@
 
 ## ongoing
 
-* change readme's images using a gif of a live game and some screenshots of the website
-* add kind of Auth Guards to app.gateway.ts
-* fix build testing Github Action (healthchecks are not working as expected)
-
 ## optional
 
+* change readme's images using a gif of a live game and some screenshots of the website
+* add kind of Auth Guards to app.gateway.ts
 * clean up warnings in containers creations
 * make a refresh token function in backend and frontend (for frontend, ask for a refresh if $date + x > expiration\\_date$)
 * make backend is up endpoint redirect to frontend

@@ -6,7 +6,7 @@
 				<img :src="other_user_avatar" id="img" />
 			</div>
 		</div>
-		<h1 id="name">{{ user_login }}</h1>
+		<h1 id="name">{{ props.search }}</h1>
 		<h2 class="avg_rank">Average rank: Top {{ user_ratio_rounded }}%</h2>
 		<h2 class="w_l">
 			Total: {{ user_stats.total }} - Wins: {{ user_stats.wins }} - Loses:
@@ -22,7 +22,6 @@
 </template>
 
 <script setup lang="ts">
-import { useRoute } from "vue-router";
 import { onMounted, inject, Ref, ref, watch } from 'vue';
 import { Socket } from "socket.io-client";
 import MatchItem from '../components/MatchItem.vue';
@@ -30,10 +29,9 @@ import { ProfileUserDto } from '../dto/ProfileUserDto';
 import API from '../components/axios';
 import { useCookies } from 'vue3-cookies';
 
-const route = useRoute();
 const { cookies } = useCookies();
 let define = inject('colors');
-let user_login = route.params.name;
+let props = defineProps(['search']);
 let userDone = inject('userDone')!;
 let socket : Socket = inject('socket')!;
 let showBlocks = ref(false);
@@ -46,15 +44,19 @@ let show = ref(false);
 let other_user_avatar = ref('');
 let user_status = ref('');
 
-onMounted(async () => {
+watch(props, async (new_search, old_search) => {
 	const usr_login = cookies.get('login');
 	const usr_token = cookies.get('session');
+	if (new_search.search == usr_login) {
+		show.value = false;
+		return;
+	}
 	API.post('/match/get_user_stats/', {
 		headers: {
 			login: usr_login,
 			token: usr_token,
 		},
-		login: user_login,
+		login: props.search,
 	}).then((res) => {
 		user_stats.value = res.data;
 		user_ratio.value = res.data.average_rank;
@@ -69,7 +71,7 @@ onMounted(async () => {
 			login: usr_login,
 			token: usr_token,
 		},
-		login: user_login,
+		login: props.search,
 	}).then((res) => {
 		user_history.value = res.data;
 		show.value = true;
@@ -82,7 +84,7 @@ onMounted(async () => {
 			login: usr_login,
 			token: usr_token,
 		},
-		login: user_login,
+		login: props.search,
 	}).then((res) => {
 		other_user_avatar.value = res.data;
 		show.value = true;
@@ -95,7 +97,7 @@ onMounted(async () => {
 			login: usr_login,
 			token: usr_token,
 		},
-		login: user_login,
+		login: props.search,
 	}).then((res) => {
 		user_status.value = res.data;
 		show.value = true;
@@ -104,7 +106,6 @@ onMounted(async () => {
 		show.value = false;
 	});
 })
-
 </script>
 
 <style scoped>

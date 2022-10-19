@@ -1,9 +1,14 @@
 <template>
-	<div class="column center" id="test">
+	<div class="column center">
+		<h2 id="player_search_title">Search for another player's profile</h2>
+		<SearchProfileItem v-model:search="search"/>
+		<OtherPlayerProfile
+			v-bind:search="search"
+		/>
 		<div class="stack avatar-stack">
 			<div id="bar"></div>
 			<div v-on:click="change_avatar()" id="avatar">
-				<img :src="me?.avatar" id="img" />
+				<img :src="user_avatar" id="img" />
 			</div>
 		</div>
 		<input id="none" type="file" />
@@ -45,12 +50,14 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, inject, Ref, ref } from 'vue';
+import { onMounted, inject, Ref, ref, provide } from 'vue';
 import { Socket } from "socket.io-client";
 import MultiFactorAuthItem from '../components/MultiFactorAuthItem.vue';
+import SearchProfileItem from '../components/SearchProfileItem.vue';
 import ScoreItem from '../components/ScoreItem.vue';
 import MatchItem from '@/components/MatchItem.vue';
-import BasicProfil from '@/components/BasicProfilItem.vue'
+import BasicProfil from '@/components/BasicProfilItem.vue';
+import OtherPlayerProfile from '../components/OtherPlayerProfile.vue';
 import { ProfileUserDto } from '../dto/ProfileUserDto';
 import API from '../components/axios';
 import { createWebHistory } from 'vue-router';
@@ -63,6 +70,7 @@ let userDone = inject('userDone')!;
 let socket : Socket = inject('socket')!;
 let showBlocks = ref(false);
 
+
 var ProgressBar = require('progressbar.js');
 
 // console.log('me:', me?.value);
@@ -71,6 +79,8 @@ let user_ratio = ref(0.5);
 let user_ratio_rounded = ref(50);
 let user_history = ref([]);
 let user_stats = ref({});
+let search = ref('');
+let user_avatar = ref('');
 
 // let user = {
 // 	name: 'zeus',
@@ -125,6 +135,17 @@ onMounted(async () => {
 		easing: 'easeInOut',
 		duration: 1400,
 	});
+	await API.post('/user/get_user_avatar', {
+		headers: {
+			login: cookies.get('login'),
+			token: cookies.get('session'),
+		},
+		login: me?.value?.login,
+	}).then((res) => {
+		user_avatar.value = res.data;
+	}).catch((err) => {
+		console.log(err);
+	});
 	await API.post('/match/get_user_stats', {
 		headers: {
 			login: cookies.get('login'),
@@ -155,6 +176,13 @@ function change_avatar() {
 </script>
 
 <style scoped>
+#player_search_title {
+	font-size: 1.5em;
+	font-weight: bold;
+	margin: 0;
+	color: #2c3e50;
+}
+
 .avatar-stack {
 	margin-top: 50px;
 	width: 200px;

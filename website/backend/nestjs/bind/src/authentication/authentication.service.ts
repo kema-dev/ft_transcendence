@@ -244,6 +244,7 @@ export class AuthenticationService {
 	public async logOut(login: string) {
 		console.log('logOut: starting for login: ' + login);
 		await this.usersService.update_session(login, '');
+		await this.usersService.set_status(login, 'offline');
 		console.log('logOut: ' + 'session deleted successfully, returning ✔');
 		return true;
 	}
