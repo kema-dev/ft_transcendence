@@ -67,7 +67,7 @@
 				/>
 			</form>
 		</div>
-		<hr class="diviserBar">
+		<hr class="separator">
 		<div class="ElemCont left_center column">
 			<div class="ElemHeadCont left_center raw">
 				<div class="titleImgCont center">
@@ -115,7 +115,7 @@
 				</button>
 			</div>
 		</div>
-		<hr class="diviserBar">
+		<hr class="separator">
 		<div class="ElemCont left_center column">
 			<div class="ElemHeadCont left_center raw">
 				<div class="titleImgCont center">
@@ -136,7 +136,7 @@
 					:isAdmin="isAdmin()"/>
 			</div>
 		</div>
-		<hr class="diviserBar">
+		<hr class="separator">
 		<div class="ElemCont left_center column">
 			<div class="ElemHeadCont left_center raw">
 				<div class="titleImgCont center">
@@ -157,7 +157,7 @@
 					:isAdmin="isAdmin()"/>
 			</div>
 		</div>
-		<hr class="diviserBar">
+		<hr class="separator">
 		<div class="ElemCont left_center column">
 			<div class="ElemHeadCont left_center raw">
 				<div class="titleImgCont center">
@@ -178,7 +178,7 @@
 					:isAdmin="isAdmin()"/>
 			</div>
 		</div>
-		<hr class="diviserBar">
+		<hr class="separator">
 		<div class="ElemCont left_center column">
 			<div class="ElemHeadCont left_center raw">
 				<div class="titleImgCont center">
@@ -425,7 +425,7 @@ function printChan(chan: ChannelDto) {
 	width: 220px;
 	margin: 10px;
 }
-.diviserBar{
+.separator{
 	flex-shrink: 0;
 	width: 200px;
 	height: 1px;

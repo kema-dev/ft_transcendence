@@ -15,8 +15,8 @@
 			<!-- <SearchItem v-model="search"/> -->
 
 			<!-- <input type="text" placeholder="Recherche" id="search" ref="search" /> -->
-			<SearchItem v-model:search="search"/>
-			<div v-if="search.value == ''" class="column center">
+			<SearchItem v-model:search="search" id="searchItem" />
+			<div v-if="search == ''" class="column center">
 				<div v-if="me?.requestFriend.length != 0" class="column center">
 					<h2>Friend request</h2>
 					<div
@@ -119,7 +119,7 @@
 </template>
 
 <script setup lang="ts">
-import { inject, onMounted, onUnmounted, Ref, ref } from 'vue';
+import { inject, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
 import FriendItem from '@/components/FriendItem.vue';
 import SearchItem from '@/components/SearchItem.vue';
 import { Socket } from 'engine.io-client';
@@ -131,6 +131,7 @@ let me = inject('user')!;
 let socket: Socket = inject('socket')!;
 let notifs: Ref<number> = inject('notifs')!;
 let users = ref([]);
+let userDone : Ref<boolean> = inject("userDone")!;
 
 const search = ref('');
 function add_friend(name: string) {
@@ -149,24 +150,29 @@ function myFriend(name: string) {
 	return !me.value.friends.find((friend) => friend.login == name);
 }
 
+watch(search, () => {
+	// if (search.value != '') 
+		socket.emit('getByLoginFiltred', {me: myName, search: search.value});
+})
+
 onMounted(() => {
 	socket.on('getUsersByLoginFiltred', (data: any[]) => {
 		users.value = data;
 		console.log(users);
 	});
-	let input = document.getElementById('search');
+	let input = document.getElementById('searchItem');
 	if (input == null) console.log('error');
-	input?.addEventListener('input', (str) => {
-		if (input.value == null) {
-			search.value = '';
-			return;
-		}
-		search.value = input.value;
-		if (search.value != '') {
-			// users.value = post('user/getUsers', search.value);
-			socket.emit('getByLoginFiltred', {me: myName, search: search.value});
-		}
-	});
+	// input?.addEventListener('input', (str) => {
+	// 	if (input.value == null) {
+	// 		search.value = '';
+	// 		return;
+	// 	}
+	// 	search.value = input.value;
+	// 	if (search.value != '') {
+	// 		// users.value = post('user/getUsers', search.value);
+	// 		socket.emit('getByLoginFiltred', {me: myName, search: search.value});
+	// 	}
+	// });
 	// notifs.value = 0;
 });
 onUnmounted(() => {
@@ -182,8 +188,7 @@ onUnmounted(() => {
 	margin-top: 5px;
 	width: 90%;
 }
-#search {
-	/* position: absolute; */
+/* #search {
 	top: 0px;
 	width: 80%;
 	height: 40px;
@@ -196,7 +201,7 @@ onUnmounted(() => {
 	font-size: 1.2rem;
 	outline: none;
 	box-shadow: 0px 0px 4px #aaa;
-}
+} */
 .request-button {
 	margin: 0 10px;
 }
