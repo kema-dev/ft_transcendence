@@ -2,7 +2,8 @@
 
 ## ongoing
 
-* v-for matches invitation in private chat
+* make invitations work even when not on chat tab
+* add notification when someone invites you to a game
 
 ## optional
 
