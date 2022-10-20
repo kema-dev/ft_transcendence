@@ -2,6 +2,8 @@
 
 ## ongoing
 
+* append current time to jwt secret
+
 ## optional
 
 * change readme's images using a gif of a live game and some screenshots of the website
