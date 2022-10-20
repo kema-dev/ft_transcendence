@@ -142,39 +142,55 @@ let invitations_to_game: Ref<Array<{ login: string; lobby: string }>> = inject(
 
 let user_invitations: Ref<
 	Array<{
+		name: string;
 		player_count: number;
 		ball_count: number;
 		players: string[];
 	}>
-> = ref([]);
+> = inject('user_invitations')!;
 
 watch(invitations_to_game.value, (val) => {
-	let match;
 	mySocket.off('get_match_infos');
 	mySocket.on(
 		'get_match_infos',
 		(match: {
-			nbrPlayer: number,
-			nbrBall: number,
-			lobby_name: string,
-			players: string[],
-			owner: string,
+			nbrPlayer: number;
+			nbrBall: number;
+			lobby_name: string;
+			players: string[];
+			owner: string;
 		}) => {
-			console.log('match: ', match);
-			user_invitations.value.push({
-				player_count: match.nbrBall,
-				ball_count: match.nbrPlayer,
-				players: match.players
-			});
-			console.log('invits:', user_invitations.value);
+			// check if the match is already in the list
+			let matchAlreadyInList = false;
+			for (let i = 0; i < user_invitations.value.length; i++) {
+				if (user_invitations.value[i].name === match.lobby_name) {
+					matchAlreadyInList = true;
+					break;
+				}
+			}
+			if (!matchAlreadyInList) {
+				user_invitations.value.push({
+					name: match.lobby_name,
+					player_count: match.nbrPlayer,
+					ball_count: match.nbrBall,
+					players: match.players,
+				});
+			}
 		},
 	);
 	for (let i = 0; i < invitations_to_game.value.length; i++) {
-		match = mySocket.emit(
-			'get_match_infos',
-			invitations_to_game.value[i].lobby,
-		);
+		mySocket.emit('get_match_infos', invitations_to_game.value[i].lobby);
 	}
+});
+
+mySocket.off('remove_invit');
+mySocket.on('remove_invit', (lobby_name: string) => {
+	user_invitations.value = user_invitations.value.filter((invit) => {
+		return invit.name !== lobby_name;
+	});
+	invitations_to_game.value = invitations_to_game.value.filter((invit) => {
+		return invit.lobby !== lobby_name;
+	});
 });
 
 // INIT
@@ -305,11 +321,6 @@ onUpdated(() => {
 onMounted(() => {
 	const box = document.getElementById('privateTabText');
 	if (box != null) box.classList.add('chatTabActive');
-	mySocket.off('get_invitations');
-	mySocket.on('get_invitations', (data: any) => {
-		user_invitations.value = data;
-	});
-	mySocket.emit('get_invitations');
 });
 
 onBeforeUnmount(() => {

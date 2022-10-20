@@ -12,10 +12,10 @@
 						<img class="icon" src="@/assets/svg/tennis.svg" />
 						<h1 class="number">{{ props.match.ball_count }}</h1>
 					</div>
-					<div class="row center" @click="accept_invit">
+					<div class="row center front" @click="accept_invit">
 						<img class="icon" src="@/assets/play_button.png" />
 					</div>
-					<div class="row center" @click="deny_invit">
+					<div class="row center front" @click="deny_invit">
 						<img class="icon" src="@/assets/undo_logo.svg" />
 					</div>
 				</div>
@@ -56,6 +56,7 @@ import ProfileUserDto from '../dto/ProfileUserDto';
 import API from './axios';
 import { useCookies } from 'vue3-cookies';
 import { useRouter } from 'vue-router';
+import { Socket } from 'socket.io-client';
 const { cookies } = useCookies();
 
 let define = inject('colors');
@@ -97,6 +98,29 @@ async function get_avatars() {
 	}
 }
 
+let mySocket: Socket = inject('socket')!;
+
+function deny_invit() {
+	mySocket.emit('deny_invit', {
+		game: props.match.name,
+	});
+}
+
+let isCreate: Ref<boolean> = inject('isCreate')!;
+let isJoin: Ref<boolean> = inject('isJoin')!;
+
+function accept_invit() {
+	mySocket.emit('join_lobby', {
+		login: me?.value?.login,
+		lobby: props.match.name,
+	});
+	isCreate.value = true;
+	isJoin.value = false;
+	mySocket.emit('deny_invit', {
+		game: props.match.name,
+	});
+}
+
 function get_player_name(player: string) {
 	// send max 5 char
 	if (player.length > 6) {
@@ -106,12 +130,15 @@ function get_player_name(player: string) {
 }
 
 onMounted(async () => {
-	console.log('match', props.match);
 	await get_avatars();
 });
 </script>
 
 <style scoped>
+.front {
+	z-index: 100;
+}
+
 .groupe {
 	margin: 10px 0;
 	width: clamp(18rem, 80%, 550px);

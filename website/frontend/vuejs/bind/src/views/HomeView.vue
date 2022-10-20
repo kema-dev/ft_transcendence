@@ -414,8 +414,7 @@ let invitations_to_game = ref([]);
 
 function get_invitations() {
 	socket.off('get_invited');
-	console.log('get_invitations');
-	socket.on('get_invited', ( data: { login: string, lobby: string } ) => {
+	socket.on('get_invited', (data: { login: string; lobby: string }) => {
 		invitations_to_game.value.push(data);
 	});
 }
@@ -423,6 +422,23 @@ function get_invitations() {
 get_invitations();
 
 provide('invitations_to_game', invitations_to_game);
+
+let user_invitations: Ref<
+	Array<{
+		name: string;
+		player_count: number;
+		ball_count: number;
+		players: string[];
+	}>
+> = ref([]);
+
+provide('user_invitations', user_invitations);
+
+socket.off('get_invitations');
+socket.on('get_invitations', (data: any) => {
+	user_invitations.value = data;
+});
+socket.emit('get_invitations');
 
 </script>
 

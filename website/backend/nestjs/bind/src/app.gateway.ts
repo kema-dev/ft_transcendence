@@ -406,6 +406,7 @@ export class AppGateway
 			client.emit('invite_to_game', { error: 'no online' });
 			return;
 		}
+		console.log('invite_to_game');
 		this.server.to(user.socketId).emit('get_invited', {
 			login: user.login,
 			lobby: game.lobby_name,
@@ -439,5 +440,13 @@ export class AppGateway
 			players: players,
 			owner: game.owner
 		});
+	}
+
+	@SubscribeMessage('deny_invit')
+	async deny_invit(
+		@MessageBody() data: { game: string },
+		@ConnectedSocket() client: Socket,
+	) {
+		client.emit('remove_invit', data.game);
 	}
 }

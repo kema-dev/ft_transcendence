@@ -37,6 +37,7 @@ const props = defineProps(['lobby']);
 let valide = true;
 console.log(props.lobby);
 if (props.lobby?.nbr_players >= 7) valide = false;
+
 function join() {
 	socket.emit('join_lobby', {
 		login: me?.value?.login,
