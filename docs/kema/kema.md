@@ -2,7 +2,7 @@
 
 ## ongoing
 
-* append current time to jwt secret
+* v-for matches invitation in private chat
 
 ## optional
 

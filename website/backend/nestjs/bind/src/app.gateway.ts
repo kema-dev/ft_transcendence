@@ -214,7 +214,7 @@ export class AppGateway
 	}
 	@SubscribeMessage('getUserByLogin')
 	async getUserByLogin(client: Socket, payload: any): Promise<void> {
-		try{
+		try {
 			const user = await this.userService.getByLogin(payload.login);
 			client.emit('getUserByLogin', new ProfileUserDto(user));
 		}
@@ -240,7 +240,7 @@ export class AppGateway
 	}
 	@SubscribeMessage('getByLoginFiltred')
 	async getByLoginFiltred(
-		@MessageBody() data: {me: string, search: string},
+		@MessageBody() data: { me: string, search: string },
 		@ConnectedSocket() client: Socket,
 	) {
 		console.log(`me = ${data.me}, search = ${data.search}`)
@@ -272,7 +272,7 @@ export class AppGateway
 
 	@SubscribeMessage('blockUser')
 	async blockUser(
-		@MessageBody() data: {blocker: string, blocked: string},
+		@MessageBody() data: { blocker: string, blocked: string },
 		@ConnectedSocket() client: Socket,
 	) {
 		let blocked = await this.chatService.blockUser(data);
@@ -281,7 +281,7 @@ export class AppGateway
 
 	@SubscribeMessage('unblockUser')
 	async unblockUser(
-		@MessageBody() data: {blocker: string, blocked: string},
+		@MessageBody() data: { blocker: string, blocked: string },
 		@ConnectedSocket() client: Socket,
 	) {
 		let priv = await this.chatService.unblockUser(data, this.server);
@@ -290,7 +290,7 @@ export class AppGateway
 
 	// ============================ CHAT =====================================
 
-		// ========== PRIVATES
+	// ========== PRIVATES
 
 	@SubscribeMessage('newPrivMsg')
 	async NewPrivMsg(
@@ -358,7 +358,7 @@ export class AppGateway
 
 	@SubscribeMessage('newChannelUser')
 	async newChannelUser(
-		@MessageBody() data: {chan: string, login: string},
+		@MessageBody() data: { chan: string, login: string },
 		@ConnectedSocket() client: Socket,
 	) {
 		this.chatService.newChannelUser(this.server, data);
@@ -366,7 +366,7 @@ export class AppGateway
 
 	@SubscribeMessage('userQuitChan')
 	async userQuitChan(
-		@MessageBody() data: {login: string, chan: string},
+		@MessageBody() data: { login: string; chan: string },
 		@ConnectedSocket() client: Socket,
 	) {
 		this.chatService.userQuitChan(this.server, data);
@@ -380,4 +380,64 @@ export class AppGateway
 		this.chatService.modifChan(this.server, data);
 	}
 
+	@SubscribeMessage('invite_to_game')
+	async invite_to_game(
+		@MessageBody() data: { login: string },
+		@ConnectedSocket() client: Socket,
+	) {
+		let game;
+		for (game of this.games) {
+			if (game.players.some((p) => p.login == data.login)) {
+				break;
+			}
+		}
+		if (!game) {
+			client.emit('invite_to_game', { error: 'no game' });
+			return;
+		}
+		let user;
+		try {
+			user = await this.userService.getByLogin(data.login);
+		} catch (e) {
+			client.emit('invite_to_game', { error: 'no user' });
+			return;
+		}
+		if (user.status != 'online') {
+			client.emit('invite_to_game', { error: 'no online' });
+			return;
+		}
+		this.server.to(user.socketId).emit('get_invited', {
+			login: user.login,
+			lobby: game.lobby_name,
+		});
+	}
+
+	@SubscribeMessage('get_match_infos')
+	async get_match_infos(
+		@MessageBody() data: { lobby: string },
+		@ConnectedSocket() client: Socket,
+	) {
+		let game;
+		for (game of this.games) {
+			if (game.lobby_name == data.lobby) {
+				break;
+			}
+		}
+		if (!game) {
+			// client.emit('get_match_infos', { error: 'no game' });
+			return;
+		}
+		// extract player names
+		const players = [];
+		for (const curr of game.players) {
+			players.push(curr.login);
+		}
+		client.emit('get_match_infos', {
+			nbrPlayer: game.nbrPlayer,
+			nbrBall: game.nbrBall,
+			lobby_name: game.lobby_name,
+			players: players,
+			owner: game.owner
+		});
+	}
 }

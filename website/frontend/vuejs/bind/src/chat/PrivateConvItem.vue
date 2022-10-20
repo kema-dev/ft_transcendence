@@ -8,7 +8,7 @@
 			</div>
 			<button @click="toProfile" class="login">{{ userName }}</button>
 			<div class="option_buttons center raw stack">
-				<button @click="inviteGame" class="button_cont center">
+				<button @click="invite_to_game" class="button_cont center">
 					<span class="infoButtonText">Invite in game</span>
 					<img
 						src="~@/assets/ball_logo.svg"
@@ -104,11 +104,13 @@ import { NewPrivMsgDto } from "@/chat/dto/NewPrivMsgDto";
 import { PrivConvDto } from "@/chat/dto/PrivConvDto";
 import { BasicUserDto } from "./dto/BasicUserDto";
 import router from "@/router";
+import { useToast } from 'vue-toastification';
 
 
 // ===================== INIT =====================
 
 // INIT COMPONENT VARIABLES
+const toast = useToast();
 let colors = inject("colors");
 let mySocket: Socket = inject("socket")!;
 let me: string = inject("me")!;
@@ -139,6 +141,22 @@ watch(privDone, () => {
 		.findIndex((priv) => priv.user.login == userName);
 	if (index.value != -1) nextTick(() => init())
 }, {flush: 'post'})
+
+function invite_to_game() {
+	mySocket.off('invite_to_game');
+	mySocket.on('invite_to_game', (data) => {
+		if (data.error == 'no game') {
+			toast.warning('Please create a game before inviting someone');
+		} else if (data.error == 'no user') {
+			toast.error('This user does not exist');
+		} else if (data.error == 'no online') {
+			toast.warning('This user is not online');
+		} else {
+			console.log(data);
+		}
+	});
+	mySocket.emit("invite_to_game", { login: userName });
+}
 
 function init() {
 	privMsgRead();

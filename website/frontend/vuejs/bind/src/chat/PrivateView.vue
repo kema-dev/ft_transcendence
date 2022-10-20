@@ -21,6 +21,11 @@
 				</button>
 			</div>
 		</div>
+		<PlayInvitationItem
+			v-for="invit in user_invitations"
+			v-bind:match="invit"
+			:key="invit.nbrPlayer"
+		/>
 		<div v-if="!newMsg && userDone" class="myConversations center column">
 			<ConversationTab
 				v-for="(data, i) in privsFiltred"
@@ -34,16 +39,14 @@
 				class="center"
 			/>
 			<!-- <h2 v-else class="comment">No conversations</h2> -->
-			<h2 v-if="!privsRef.length" class="comment">
-				No conversations
-			</h2>
+			<h2 v-if="!privsRef.length" class="comment">No conversations</h2>
 			<h2 v-else-if="!privsFiltred.length && search.length" class="comment">
 				No results
 			</h2>
 		</div>
 		<div v-if="newMsg" class="newMsgResults">
-			<div v-if="userDone
-				&& knownPeople?.length" 
+			<div
+				v-if="userDone && knownPeople?.length"
 				class="knownPeople left column"
 			>
 				<h2 class="typeUsers">Friends/conversations</h2>
@@ -68,13 +71,20 @@
 					<BasicProfil :avatar="data.avatar" :login="data.login" />
 				</router-link>
 			</div>
-			<h2 v-if="!privsFiltred.length && !knownPeople?.length 
-				&& !search.length" class="comment"
+			<h2
+				v-if="!privsFiltred.length && !knownPeople?.length && !search.length"
+				class="comment"
 			>
 				Type in the search bar
 			</h2>
-			<h2 v-if="userServReqDone && search.length 
-				&& !serverUsers?.length && !knownPeople?.length" class="comment"
+			<h2
+				v-if="
+					userServReqDone &&
+					search.length &&
+					!serverUsers?.length &&
+					!knownPeople?.length
+				"
+				class="comment"
 			>
 				No results
 			</h2>
@@ -93,36 +103,79 @@ import {
 	onBeforeUnmount,
 	watch,
 	onUpdated,
-} from "vue";
-import ConversationTab from "@/chat/ConversationTab.vue";
-import BasicProfil from "@/components/BasicProfilItem.vue";
-import SearchItem from "@/components/SearchItem.vue";
-import { BasicUserDto } from "@/chat/dto/BasicUserDto";
-import { Socket } from "socket.io-client";
-import HTTP from "../components/axios";
-import { PrivConvDto } from "@/chat/dto/PrivConvDto";
-import { ProfileUserDto } from "@/dto/ProfileUserDto"
-
+} from 'vue';
+import ConversationTab from '@/chat/ConversationTab.vue';
+import BasicProfil from '@/components/BasicProfilItem.vue';
+import SearchItem from '@/components/SearchItem.vue';
+import { BasicUserDto } from '@/chat/dto/BasicUserDto';
+import { Socket } from 'socket.io-client';
+import HTTP from '../components/axios';
+import { PrivConvDto } from '@/chat/dto/PrivConvDto';
+import { ProfileUserDto } from '@/dto/ProfileUserDto';
+import MatchDto from '../dto/MatchDto';
+import MatchItem from '../components/MatchItem.vue';
+import PlayInvitationItem from '@/components/PlayInvitationItem.vue';
 
 // ================= INIT =================
 
 // INIT COMPONENT VARIABLES
-let colors = inject("colors");
-let me: Ref<ProfileUserDto> = inject("user")!;
-let userDone : Ref<boolean> = inject("userDone")!;
-let mySocket: Socket = inject("socket")!;
-let apiPath: string = inject("apiPath")!;
-const search = ref("");
+let colors = inject('colors');
+let me: Ref<ProfileUserDto> = inject('user')!;
+let userDone: Ref<boolean> = inject('userDone')!;
+let mySocket: Socket = inject('socket')!;
+let apiPath: string = inject('apiPath')!;
+const search = ref('');
 const newMsg = ref(false);
 let userServReqDone = ref(false);
 let knownPeople = ref<BasicUserDto[]>();
 let serverUsers = ref<BasicUserDto[]>();
 
 // GET PRIVS REFS
-let privsRef: Ref<PrivConvDto[]> = inject("privs")!;
-let nbPrivNR: { n: Ref<number[]>; reset: () => void } = inject("nbPrivNR")!;
-let privsFiltred : Ref<PrivConvDto[]> = ref([]);
-const privDone: Ref<boolean> = inject("privDone")!;
+let privsRef: Ref<PrivConvDto[]> = inject('privs')!;
+let nbPrivNR: { n: Ref<number[]>; reset: () => void } = inject('nbPrivNR')!;
+let privsFiltred: Ref<PrivConvDto[]> = ref([]);
+const privDone: Ref<boolean> = inject('privDone')!;
+
+let invitations_to_game: Ref<Array<{ login: string; lobby: string }>> = inject(
+	'invitations_to_game',
+)!;
+
+let user_invitations: Ref<
+	Array<{
+		player_count: number;
+		ball_count: number;
+		players: string[];
+	}>
+> = ref([]);
+
+watch(invitations_to_game.value, (val) => {
+	let match;
+	mySocket.off('get_match_infos');
+	mySocket.on(
+		'get_match_infos',
+		(match: {
+			nbrPlayer: number,
+			nbrBall: number,
+			lobby_name: string,
+			players: string[],
+			owner: string,
+		}) => {
+			console.log('match: ', match);
+			user_invitations.value.push({
+				player_count: match.nbrBall,
+				ball_count: match.nbrPlayer,
+				players: match.players
+			});
+			console.log('invits:', user_invitations.value);
+		},
+	);
+	for (let i = 0; i < invitations_to_game.value.length; i++) {
+		match = mySocket.emit(
+			'get_match_infos',
+			invitations_to_game.value[i].lobby,
+		);
+	}
+});
 
 // INIT
 if (privDone.value && userDone.value) init();
@@ -133,7 +186,7 @@ watch(privDone, () => {
 });
 watch(userDone, () => {
 	if (privDone.value) init();
-})
+});
 
 function init() {
 	nbPrivNR.reset();
@@ -152,15 +205,13 @@ function init() {
 		// 		.toUpperCase()
 		// 		.startsWith(search.value.toUpperCase());
 		// });
-		privsFiltred.value = privsRef.value
-			.filter(priv => {
-				return priv.user.login
-					.toUpperCase()
-					.startsWith(search.value.toUpperCase());
-			});
-	})
+		privsFiltred.value = privsRef.value.filter((priv) => {
+			return priv.user.login
+				.toUpperCase()
+				.startsWith(search.value.toUpperCase());
+		});
+	});
 }
-
 
 // ====================== WATCHERS ======================
 
@@ -171,22 +222,27 @@ watch(search, () => {
 		// 	return !me.value.blockeds.map(b => b.login)
 		// 		.includes(priv.user.login)
 		// })
-		.filter(priv => {
+		.filter((priv) => {
 			return priv.user.login
 				.toUpperCase()
 				.startsWith(search.value.toUpperCase());
 		});
 	if (newMsg.value) {
 		knownPeople.value = setKnownPeople();
-		if (search.value != "") getServerUsers();
+		if (search.value != '') getServerUsers();
 	}
 });
-
 
 // ====================== METHODS ======================
 
 function getServerUsers() {
-	HTTP.get(apiPath + "chat/getServerUsersFiltred/" + me.value.login + "/" + search.value)
+	HTTP.get(
+		apiPath +
+			'chat/getServerUsersFiltred/' +
+			me.value.login +
+			'/' +
+			search.value,
+	)
 		.then((res) => {
 			serverUsers.value = res.data;
 			filterServerUsers();
@@ -210,24 +266,24 @@ function filterServerUsers() {
 
 function setKnownPeople() {
 	// console.log(`setKnowPeople`);
-	let convs : BasicUserDto[] = [];
-	let friends : BasicUserDto[] = [];
-	convs = privsFiltred.value
-		.map(p => new BasicUserDto(p.user.login, p.user.avatar))
+	let convs: BasicUserDto[] = [];
+	let friends: BasicUserDto[] = [];
+	convs = privsFiltred.value.map(
+		(p) => new BasicUserDto(p.user.login, p.user.avatar),
+	);
 	friends = me.value.friends
-		.map(f => new BasicUserDto(f.login, f.avatar))
-		.filter(f => {
-			let notIn = !convs.map(c => c.login).includes(f.login);
-			let notBan = !me.value.blockeds.map(b => b.login).includes(f.login);
+		.map((f) => new BasicUserDto(f.login, f.avatar))
+		.filter((f) => {
+			let notIn = !convs.map((c) => c.login).includes(f.login);
+			let notBan = !me.value.blockeds.map((b) => b.login).includes(f.login);
 			let startWithSearch = f.login.startsWith(search.value);
-			if (notIn && notBan && startWithSearch)
-				return true;
-		})
+			if (notIn && notBan && startWithSearch) return true;
+		});
 	return convs.concat(friends);
 }
 
 function createNewMsg() {
-	search.value = "";
+	search.value = '';
 	newMsg.value = !newMsg.value;
 	knownPeople.value = setKnownPeople();
 	nextTick(() => {
@@ -240,7 +296,6 @@ function createNewMsg() {
 // 		.map(b => b.login).includes(p.user.login));
 // }
 
-
 // ====================== LIFECYCLES HOOKS ======================
 
 onUpdated(() => {
@@ -248,15 +303,19 @@ onUpdated(() => {
 });
 
 onMounted(() => {
-	const box = document.getElementById("privateTabText");
-	if (box != null) box.classList.add("chatTabActive");
+	const box = document.getElementById('privateTabText');
+	if (box != null) box.classList.add('chatTabActive');
+	mySocket.off('get_invitations');
+	mySocket.on('get_invitations', (data: any) => {
+		user_invitations.value = data;
+	});
+	mySocket.emit('get_invitations');
 });
 
 onBeforeUnmount(() => {
-	const box = document.getElementById("privateTabText");
-	if (box != null) box.classList.remove("chatTabActive");
+	const box = document.getElementById('privateTabText');
+	if (box != null) box.classList.remove('chatTabActive');
 });
-
 </script>
 
 <style scoped>
