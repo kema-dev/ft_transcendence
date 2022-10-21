@@ -6,6 +6,10 @@
 * add notification when someone invites you to a game
 * change readme's images using a gif of a live game and some screenshots of the website
 
+* game tab with match history + game invitations
+* chat tab with tab chat
+* users tab friends and user finder (+profile)
+
 ## optional
 
 * add kind of Auth Guards to app.gateway.ts
