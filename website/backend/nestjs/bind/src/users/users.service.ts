@@ -74,19 +74,19 @@ export class UsersService {
 	}
 
 	async getByAny(name: string) {
-		console.log('getByAny: starting for ' + name);
+		// console.log('getByAny: starting for ' + name);
 		let user = await this.usersRepository.findOne({
 			where: { login: name },
 		});
 		if (user) {
-			console.log('getByAny: found ' + name + ' as login, returning ✔');
+			// console.log('getByAny: found ' + name + ' as login, returning ✔');
 			return user;
 		}
 		user = await this.usersRepository.findOne({
 			where: { email: name },
 		});
 		if (user) {
-			console.log('getByAny: found ' + name + ' as email, returning ✔');
+			// console.log('getByAny: found ' + name + ' as email, returning ✔');
 			return user;
 		}
 		console.error('getByAny: ' + name + ' not found, returning ✘');
@@ -315,10 +315,10 @@ export class UsersService {
 	}
 
 	async set_status(login: string, status: string) {
-		console.log('set_status: starting for ' + login);
+		// console.log('set_status: starting for ' + login);
 		const user = await this.getByAny(login);
 		if (user) {
-			console.log('set_status: found ' + login + ', updating ✔');
+			// console.log('set_status: found ' + login + ', updating ✔');
 			user.status = status;
 			await this.usersRepository.save(user);
 		} else {

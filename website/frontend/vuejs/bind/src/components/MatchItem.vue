@@ -26,11 +26,11 @@
 						v-for="i in props.match.players.length"
 						:key="i"
 					>
-						<div class="space-between fit_match">
-							<img :src="avatar[i - 1]" class="avatar" @click="go_to_user_profile(i)" />
+						<div @click="go_to_user_profile(i)" class="space-between fit_match">
+							<img :src="avatar[i - 1]" class="avatar" />
 							<div class="info_details center row space-around">
 								<div class="row center">
-									<h1 class="player_login" @click="go_to_user_profile(i)">
+									<h1 class="player_login">
 										{{ get_player_name(props.match.players[i - 1]) }}
 									</h1>
 								</div>
@@ -59,21 +59,25 @@ import { MatchDto } from '../dto/MatchDto';
 import ProfileUserDto from '../dto/ProfileUserDto';
 import API from './axios';
 import { useCookies } from 'vue3-cookies';
-import { useRouter } from 'vue-router';
-const { cookies } = useCookies();
+import { useRouter, useRoute } from 'vue-router';
 
+const route = useRoute();
+const router = useRouter();
+const { cookies } = useCookies();
 let define = inject('colors');
 let me: Ref<ProfileUserDto> = inject('user')!;
-
+let size = ref(0);
 const props = defineProps(['match']);
 
-let size = ref(0);
-
-const router = useRouter();
-
 function go_to_user_profile(i: number) {
-	router.push('/home/player/' + props.match.players[i - 1]);
-	// router.go(0);
+	let refresh = false;
+	if (route.path != "/home/profile")
+		refresh = true;
+	router.push({name: 'player', params: {name: props.match.players[i - 1]}});
+	if (refresh == true)
+		setTimeout(() => {
+			router.go(0);
+		}, 100);
 }
 
 function open() {
@@ -176,7 +180,7 @@ onMounted(async () => {
 }
 .number_details {
 	font-size: clamp(1px, 120%, 8rem);
-	margin-left: -8px;
+	/* margin-left: -8px; */
 }
 .icon {
 	/* height: clamp(10px, 10%, 40px); */
@@ -208,9 +212,11 @@ onMounted(async () => {
 	height: 50px;
 	width: 50px;
 	border: 4px v-bind('define.color2') solid;
+	object-fit: cover;
 }
 .fit_match {
 	height: 42px;
+	cursor: pointer;
 }
 .player_login {
 	font-size: clamp(1px, 120%, 8rem);
