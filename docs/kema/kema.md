@@ -4,10 +4,10 @@
 
 * make invitations work even when not on chat tab
 * add notification when someone invites you to a game
+* change readme's images using a gif of a live game and some screenshots of the website
 
 ## optional
 
-* change readme's images using a gif of a live game and some screenshots of the website
 * add kind of Auth Guards to app.gateway.ts
 * clean up warnings in containers creations
 * make a refresh token function in backend and frontend (for frontend, ask for a refresh if $date + x > expiration\\_date$)
@@ -17,4 +17,3 @@
 
 * find a way to generate valid https certificates for nestjs and vuejs (maybe using lets encrypt's certbot)
 * http to https redirection (via certificate)
-* update JWT secret (no MD5sum, use env file's provided variable)

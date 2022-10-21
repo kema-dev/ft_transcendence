@@ -146,7 +146,8 @@ function invite_to_game() {
 	mySocket.off('invite_to_game');
 	mySocket.on('invite_to_game', (data) => {
 		if (data.error == 'no game') {
-			toast.warning('Please create a game before inviting someone');
+			toast.success('You were not in a game, created a new one for you !');
+			invite_to_game();
 		} else if (data.error == 'no user') {
 			toast.error('This user does not exist');
 		} else if (data.error == 'no online') {

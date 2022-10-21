@@ -63,6 +63,11 @@ socket.on('lobbys', (data: any) => {
 });
 socket.emit('lobbys');
 
+socket.off('create_from_invitation');
+socket.on('create_from_invitation', (data: any) => {
+	create();
+});
+
 function back() {
 	isCreate.value = false;
 	isJoin.value = false;
