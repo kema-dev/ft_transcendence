@@ -92,6 +92,7 @@ function toProfile(player: string) {
 	height: var(--height);
 	border-radius: 50%;
 	cursor: pointer;
+	object-fit: cover;
 }
 
 .date {

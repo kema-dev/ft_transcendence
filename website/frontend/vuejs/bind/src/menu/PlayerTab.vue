@@ -8,7 +8,10 @@
 			</div>
 		</div>
 		<div class="playerInfoCont center column">
-			<h1 class="login">{{ user_login }}</h1>
+			<div class="loginStatus center raw">
+				<h1 class="login">{{ user_login }}</h1>
+				<div class="status"></div>
+			</div>
 			<hr class="separator">
 			<div class="playerStatCont center raw">
 				<h3 class="statTitle">Rank :</h3>
@@ -35,7 +38,7 @@
 
 <script setup lang="ts">
 import { useRoute } from "vue-router";
-import { onMounted, inject, Ref, ref, watch } from 'vue';
+import { onMounted, inject, Ref, ref, watch, onUnmounted } from 'vue';
 import { Socket } from "socket.io-client";
 import MatchItem from '../components/MatchItem.vue';
 import { ProfileUserDto } from '../dto/ProfileUserDto';
@@ -53,6 +56,7 @@ let ProgressBar = require('progressbar.js');
 let statDone = false;
 let historyDone = false;
 let avatarDone = false;
+let statusDone = false;
 let show = ref(false);
 
 let user_ratio = ref(0.5);
@@ -60,7 +64,7 @@ let user_ratio_rounded = ref(50);
 let user_history = ref([]);
 let user_stats = ref({});
 let other_user_avatar = ref('');
-let user_status = ref('');
+let user_status = ref(false);
 
 watch(show, () => {
 	var bar = new ProgressBar.Circle('#bar', {
@@ -74,7 +78,7 @@ watch(show, () => {
 }, {flush: 'post'})
 
 function isDone() {
-	if (statDone && historyDone && avatarDone)
+	if (statDone && historyDone && avatarDone && statusDone)
 		show.value = true;
 }
 
@@ -125,7 +129,15 @@ onMounted(async () => {
 		console.log(err);
 		show.value = false;
 	});
-	
+
+	socket.on("userStatus", (data: {user: string, status: boolean}) => {
+		if (data.user == user_login) {
+			user_status.value = data.status;
+			statusDone = true;
+			isDone();
+		}
+	});
+	socket.emit("userStatus", user_login);
 	// API.post('/user/get_user_status', {
 	// 	headers: {
 	// 		login: usr_login,
@@ -141,6 +153,10 @@ onMounted(async () => {
 	// });
 })
 
+onUnmounted(() => {
+	socket.off("userStatus");
+})
+
 </script>
 
 <style scoped>
@@ -154,7 +170,6 @@ onMounted(async () => {
 	height: 150px;
 	border-radius: 50%;
 	box-shadow: 0px 2px 5px #333;
-	cursor: pointer;
 	top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
@@ -173,12 +188,20 @@ onMounted(async () => {
   left: 50%;
   transform: translate(-50%, -50%);
 }
-
+.loginStatus {
+	margin-bottom: 10px;
+}
 .login{
 	font-size: 1.5rem;
-	margin-bottom: 10px;
-	width: 100%;
+	/* width: auto; */
+	max-width: 85%;
 	overflow-wrap: break-word;
+}
+.status {
+	width: 25px;
+	height: 25px;
+	border-radius: 50%;
+	background: v-bind((user_status ? "#00CC00" : "#FF3333"));
 }
 .separator {
 	flex-shrink: 0;

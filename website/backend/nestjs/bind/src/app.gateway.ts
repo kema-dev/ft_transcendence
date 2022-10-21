@@ -270,6 +270,27 @@ export class AppGateway
 		this.userService.changeAvatar(payload.login, payload.avatar);
 	}
 
+	@SubscribeMessage('userStatus')
+	async get_user_status(
+		@MessageBody() data: string,
+		@ConnectedSocket() client: Socket,
+	) {
+		let statusString = await this.userService.get_user_status(data);
+		let status: boolean;
+		statusString == "online" ? status = true : status = false;
+		client.emit("userStatus", {user: data, status: status});
+	}
+
+	@SubscribeMessage('userLogout')
+	async userLogout( @MessageBody() data: string) {
+		this.server.emit("userStatus", {user: data, status: false})
+	}
+
+	@SubscribeMessage('userLogin')
+	async userLogin( @MessageBody() data: string) {
+		this.server.emit("userStatus", {user: data, status: true})
+	}
+
 	@SubscribeMessage('blockUser')
 	async blockUser(
 		@MessageBody() data: {blocker: string, blocked: string},
