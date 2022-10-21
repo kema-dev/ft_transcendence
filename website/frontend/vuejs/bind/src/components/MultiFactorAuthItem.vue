@@ -126,13 +126,13 @@ onMounted(() => {
 
 <style scoped>
 .security-view {
-	margin: 30px;
+	margin: 10px;
 	height: fit-content;
 	display: flex;
 	justify-content: top;
 	align-items: center;
 	flex-direction: column;
-	margin-bottom: 30px;
+	/* margin-bottom: 30px; */
 }
 
 .hint {
