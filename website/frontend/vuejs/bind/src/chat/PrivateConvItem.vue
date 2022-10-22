@@ -1,7 +1,7 @@
 <template>
 	<div v-if="userExistDone && userExist && privDone" id="conversation_view" class="stack">
 		<div class="userTopBar center raw space-between">
-			<div class="avatar_cont center">
+			<div @click="toProfile" class="avatar_cont center">
 				<img :src="userExist.avatar"
 					class="avatar" alt="avatar"
 				/>
@@ -223,6 +223,10 @@ function blockUser() {
 	router.push({name: 'private'});
 }
 
+function inviteGame() {
+	
+}
+
 function scrollAndFocus() {
 	let msgCont = document.getElementById("msgsCont");
 	if (msgCont)
@@ -332,6 +336,7 @@ function printPrivs(privs: PrivConvDto[] | undefined) {
 	box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.1), 0px -4px 4px rgba(0, 0, 0, 0.1);
 }
 .avatar_cont {
+	cursor: pointer;
 	width: var(--height);
 	height: var(--height);
 }
