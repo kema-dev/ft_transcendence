@@ -13,7 +13,7 @@
 			</router-link>
 			<h1 class="pipe">|</h1>
 			<router-link to="/home/users" class="nav_menu_link stack">
-				<h2 class="nav_menu_text">USERS</h2>
+				<h2 class="nav_menu_text" id="usersTabText">USERS</h2>
 				<div v-if="notifs" class="notifMsgCont center">
 					<div class="notifMsgNumber">{{ notifs }}</div>
 				</div>
@@ -74,6 +74,7 @@ let nbChanNR: { n: Ref<string[]>; reset: () => void } = inject('nbChanNR')!;
 	font-size: 1.1rem;
 	font-weight: 100;
 }
+.active,
 .router-link-active > .nav_menu_text {
 	font-weight: 900;
 }

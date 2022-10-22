@@ -51,7 +51,6 @@
 			</div>
 		</div>
 		<hr class="separator2">
-		<!-- <h2 class="match_history_title">Match history</h2> -->
 		<div class="titleCont center">
 			<img src="@/assets/history.svg" class="logo">
 			<h2 class="title">Match history</h2>

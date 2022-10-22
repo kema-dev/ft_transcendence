@@ -24,7 +24,7 @@
 						class="button_img"
 					/>
 				</button>
-				<button onclick="history.back();" class="button_cont center">
+				<button onclick="history.back()" class="button_cont center">
 					<span class="infoButtonText">Close</span>
 					<img
 						src="~@/assets/close_logo.svg"

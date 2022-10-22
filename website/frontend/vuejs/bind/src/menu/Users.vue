@@ -178,9 +178,6 @@ onMounted(() => {
 onUnmounted(() => {
 	socket.off('getUsersByLoginFiltred');
 });
-// function search_user(str: string) {
-// 	users.forEach((u) => u.name == str);
-// }
 </script>
 
 <style scoped>
@@ -188,20 +185,6 @@ onUnmounted(() => {
 	margin-top: 5px;
 	width: 90%;
 }
-/* #search {
-	top: 0px;
-	width: 80%;
-	height: 40px;
-	background: #fff;
-	border: solid 1px #ccc;
-	border-radius: 12px;
-	padding-left: 10px;
-	margin: 15px 0;
-	margin-right: 2%;
-	font-size: 1.2rem;
-	outline: none;
-	box-shadow: 0px 0px 4px #aaa;
-} */
 .request-button {
 	margin: 0 10px;
 }

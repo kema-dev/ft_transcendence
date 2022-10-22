@@ -6,6 +6,7 @@
 			<div id="avatar">
 				<img :src="other_user_avatar" id="img" />
 			</div>
+			<img onclick="history.back()" src="~@/assets/close_logo.svg" id="close">
 		</div>
 		<div class="playerInfoCont center column">
 			<div class="loginStatus center raw">
@@ -26,13 +27,30 @@
 				<h3 class="statValue">{{ user_stats.loses }}</h3>
 			</div>
 		</div>
-
-		<h2 class="match_history_title">Match history</h2>
+		<div class="playerBtnCont center raw">
+			<button @click="inviteGame()" class="playerBtn center raw">
+				<img src="@/assets/ball_logo.svg" class="imgBtn">
+				Play
+			</button>
+			<button @click="toChat()" class="playerBtn center raw">
+				<img src="@/assets/chat.svg" class="imgBtn">
+				Chat
+			</button>
+		</div>
+		<hr class="separator2">
+		<div class="titleCont center">
+			<img src="@/assets/history.svg" class="logo">
+			<h2 class="title">Match history</h2>
+		</div>
 		<MatchItem
 			v-for="match in user_history"
 			v-bind:match="match"
 			:key="match.creation_date"
 		/>
+    <div v-if="!user_history.length">
+      <h3 class="noResults">Still no match, go play! </h3>
+      <img class="img" src="@/assets/svg/ball_fire.svg" />
+    </div>
 	</div>
 </template>
 
@@ -44,6 +62,7 @@ import MatchItem from '../components/MatchItem.vue';
 import { ProfileUserDto } from '../dto/ProfileUserDto';
 import API from '../components/axios';
 import { useCookies } from 'vue3-cookies';
+import router from "@/router";
 
 const route = useRoute();
 const { cookies } = useCookies();
@@ -82,7 +101,17 @@ function isDone() {
 		show.value = true;
 }
 
+function inviteGame() {
+	
+}
+
+function toChat() {
+	router.push({name: 'PrivConv', params: {conv_name: user_login}})
+}
+
 onMounted(async () => {
+	const box = document.getElementById("usersTabText");
+	if (box != null) box.classList.add("active");
 	const usr_login = cookies.get('login');
 	const usr_token = cookies.get('session');
 	API.post('/match/get_user_stats/', {
@@ -141,13 +170,25 @@ onMounted(async () => {
 
 onUnmounted(() => {
 	socket.off("userStatus");
+	const box = document.getElementById("usersTabText");
+	if (box != null) box.classList.remove("active");
 })
 
 </script>
 
 <style scoped>
+#close {
+position: absolute;
+right: 10px;
+top: 10px;
+width: 30px;
+height: 30px;
+filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg)
+	brightness(86%) contrast(83%);
+cursor: pointer;
+}
 .avatar-stack {
-	width: 40%;
+	width: 100%;
 	height: 200px;
 }
 #avatar {
@@ -191,7 +232,7 @@ onUnmounted(() => {
 }
 .separator {
 	flex-shrink: 0;
-	width: 200px;
+	width: 60%;
 	height: 3px;
 	background-color: v-bind("define.color2");
 	margin-bottom: 10px;
@@ -205,9 +246,56 @@ onUnmounted(() => {
 	width: 40%;
 	font-size: 0.9rem;
 }
-.match_history_title {
+.playerBtnCont {
 	margin-top: 20px;
 	margin-bottom: 10px;
-	font-size: 150%;
+	justify-content: space-evenly;
+}
+.playerBtn {
+	height: 2rem;
+	width: auto;
+	border-radius: calc(2rem / 2);
+	font-weight: 600;
+	background-color: v-bind("define.color2");
+	color: white;
+	padding: 0 10px;
+	box-shadow: 0px 0px 4px #aaa;
+}
+.imgBtn {
+	width: 25px;
+  height: 25px;
+  margin-right: 10px;
+	filter: brightness(0) invert(1);
+  /* filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg)
+	brightness(86%) contrast(83%); */
+}
+.separator2 {
+	flex-shrink: 0;
+	width: 90%;
+	height: 1px;
+	background-color: grey;
+	margin-top: 20px;
+}
+.titleCont {
+  margin-top: 20px;
+  margin-bottom: 10px;
+}
+.title {
+	font-size: 1.4rem;
+}
+.noResults {
+  font-size: 0.9rem;
+  margin-top: 20px;
+}
+.img {
+  width: 50px;
+  height: 50px;
+}
+.logo {
+  width: 25px;
+  height: 25px;
+  margin-right: 10px;
+  filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg)
+		brightness(86%) contrast(83%);
 }
 </style>
