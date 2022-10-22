@@ -1,6 +1,6 @@
 <template>
 	<div class="stack center" id="page">
-		<div v-if="isJoin" class="back left" @click="back()">
+		<div v-if="isJoin || isCreate" class="back left" @click="back()">
 			<span class="material-symbols-outlined"> arrow_back_ios </span>
 		</div>
 		<div v-if="!isCreate && !isJoin" class="center column choice">
@@ -64,6 +64,8 @@ socket.on('lobbys', (data: any) => {
 socket.emit('lobbys');
 
 function back() {
+	if (isCreate.value)
+		socket.emit('leftGame', {login: me?.value?.login});
 	isCreate.value = false;
 	isJoin.value = false;
 }

@@ -92,7 +92,7 @@ function look() {
 	margin-right: 5px;
 	/*margin-right: 5px;*/
 	height: 24px;
-	width: 65px;
+	width: 68px;
 	border-radius: 100px;
 	/*background: v-bind('define.color2');*/
 }

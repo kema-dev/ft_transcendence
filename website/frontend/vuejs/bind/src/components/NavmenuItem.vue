@@ -44,7 +44,7 @@ let nbChanNR: { n: Ref<string[]>; reset: () => void } = inject('nbChanNR')!;
 #menu {
 	height: calc(100vh - 60px);
 	/* width: 30vw; */
-	width: 345px;
+	width: 500px;
 	background: v-bind('colors.color3');
 	box-shadow: -4px 0px 4px rgba(0, 0, 0, 0.25);
 	margin-top: 60px;

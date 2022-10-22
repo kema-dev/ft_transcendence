@@ -59,12 +59,20 @@ export class AppGateway
 	async handleDisconnect(client: Socket) {
 		this.logger.log(`Client disconnected: ${client.id}`);
 		// console.log("query = ", client.handshake.query.login);
-		const user = await this.userService.getByLogin(
-			client.handshake.query.login as string,
-		);
+		this.leftGame({login: client.handshake.query.login as string});
+	}
+
+	// ============================ GAME =====================================
+
+
+	@SubscribeMessage('leftGame')
+	async leftGame(@MessageBody() data: { login: string }) {
+		console.log('leftGame <---------------------------', data.login);
+		const user = await this.userService.getByLogin(data.login);
 		if (!user) return;
 		let game = this.games.find((game) => game.lobby_name === user.lobby_name);
 		if (!game) return;
+		console.log('game <---------------------------');
 		game.destructor();
 		if (game.players.length - 1 > 0) {
 			let newGame = new Game(
@@ -75,7 +83,8 @@ export class AppGateway
 				game.lobby_name,
 				game.owner,
 				game.img,
-				this.matchService
+				this.matchService,
+				this
 			);
 			this.games.push(newGame);
 			this.server.to(newGame.sockets).emit('reload_game');
@@ -83,9 +92,6 @@ export class AppGateway
 		console.log('game destroyed');
 		this.games.splice(this.games.indexOf(game), 1);
 	}
-
-	// ============================ GAME =====================================
-
 	// @SubscribeMessage('getBallPos')
 	// getBallsPos(client: Socket, payload: any): any {
 	// 	this.server.emit('getBallPos', this.game[0].balls);
@@ -116,7 +122,8 @@ export class AppGateway
 			user.login + "'s lobby",
 			user.login,
 			user.avatar,
-			this.matchService
+			this.matchService,
+			this
 		);
 		this.games.push(game);
 		user.lobby_name = game.lobby_name;
@@ -164,7 +171,8 @@ export class AppGateway
 			game.lobby_name,
 			game.owner,
 			game.img,
-			this.matchService
+			this.matchService,
+			this
 		);
 		game.destructor();
 		this.games.push(newGame);

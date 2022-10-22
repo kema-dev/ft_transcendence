@@ -34,12 +34,13 @@ export default class Ball {
 	}
 	async start() {
 		this.speed = 0;
+		this.touch = 0;
 		this.x = this.startX;
 		this.y = this.startY;
 		await delay(1000);
 		this.speed = this.initSpeed;
 		let ballX = Math.random() * 5;
-		let ballY = Math.random() * 3;
+		let ballY = 5 - ballX;
 		if (Math.floor(Math.random() * 2) == 1) ballX = -ballX;
 		if (Math.floor(Math.random() * 2) == 1) ballY = -ballY;
 		this.v = new Vector(ballX, ballY);
@@ -60,7 +61,7 @@ export default class Ball {
 			) {
 				const v = object.vector;
 				this.touch++;
-				if (this.touch >= 30) this.start();
+				if (this.touch >= 60) this.start();
 				if (this.speed < this.initSpeed * 3) this.speed += this.initSpeed / 10;
 				this.v = this.v.add(
 					v.multiplication(v.dotPorduct(this.v.reverse()) * 2),
@@ -73,7 +74,7 @@ export default class Ball {
 						object.profile.red = false;
 					});
 					if (object.profile.score <= 0) {
-						return true;
+						return object.profile.login;
 					}
 				}
 			}
