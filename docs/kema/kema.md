@@ -2,6 +2,8 @@
 
 ## ongoing
 
+* fix ongoing game opponent disconnection stopping game
+
 ## optional
 
 * change readme's images using a gif of a live game and some screenshots of the website
