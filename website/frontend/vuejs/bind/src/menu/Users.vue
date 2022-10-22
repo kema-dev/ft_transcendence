@@ -104,7 +104,9 @@
 									<button class="action" @click="add_friend(user.login)">
 										add friend
 									</button>
-									<button class="action">invit</button>
+									<button class="action" @click="inviteGame(user.login)">
+										invit
+									</button>
 								</div>
 							</div>
 						</template>
@@ -124,6 +126,8 @@ import FriendItem from '@/components/FriendItem.vue';
 import SearchItem from '@/components/SearchItem.vue';
 import { Socket } from 'engine.io-client';
 import FriendContentItem from '../components/FriendContentItem.vue';
+import { useToast } from 'vue-toastification';
+const toast = useToast();
 
 let define = inject('colors');
 const myName: string = inject("me")!;
@@ -148,6 +152,23 @@ function declineFriend(name: string) {
 }
 function myFriend(name: string) {
 	return !me.value.friends.find((friend) => friend.login == name);
+}
+
+function inviteGame(name: string) {
+	socket.off('invite_to_game');
+	socket.on('invite_to_game', (data) => {
+		if (data.error == 'no game') {
+			toast.success('You were not in a game, created a new one for you !');
+			inviteGame(name);
+		} else if (data.error == 'no user') {
+			toast.error('This user does not exist');
+		} else if (data.error == 'no online') {
+			toast.warning('This user is not online');
+		} else {
+			console.log(data);
+		}
+	});
+	socket.emit("invite_to_game", { login: name });
 }
 
 watch(search, () => {

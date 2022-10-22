@@ -2,7 +2,6 @@
 
 ## ongoing
 
-* onglet user, sur les profils des users via le bouton (je vais re design les profils friends et pas friends)
 * add notification for game invitations
 
 ## optional
