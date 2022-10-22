@@ -32,12 +32,20 @@
 </template>
 
 <script setup lang="ts">
-import { inject, Ref } from 'vue';
+import { inject, Ref, watch } from 'vue';
 
 let colors = inject('colors');
 let notifs = inject('notifs');
 let nbPrivNR: { n: Ref<number[]>; reset: () => void } = inject('nbPrivNR')!;
 let nbChanNR: { n: Ref<string[]>; reset: () => void } = inject('nbChanNR')!;
+
+let invitations_to_game: Ref<Array<{ login: string; lobby: string }>> = inject(
+	'invitations_to_game',
+)!;
+
+watch(invitations_to_game.value, (val) => {
+	console.log('invitations_to_game', val);
+});
 </script>
 
 <style scoped>
