@@ -32,7 +32,7 @@
 			/>
 		</button>
 		<button v-if="showMore"
-			@click="invitGame()"
+			@click="inviteGame()"
 			class="setUserCont center"
 		>
 			<span class="infoButtonText">
@@ -144,7 +144,8 @@ import { Socket } from "socket.io-client";
 import { ModifChanDto } from "@/chat/dto/ModifChanDto"
 import WarningMsg from "@/components/WarningMsg.vue";
 import router from "@/router";
-
+import { useToast } from 'vue-toastification';
+const toast = useToast();
 
 let colors = inject('colors');
 let showMore = ref(false);
@@ -188,8 +189,21 @@ function sendPrivMsg() {
 	router.push({name: 'PrivConv', params: { conv_name: props.login }});
 }
 
-function invitGame() {
-
+function inviteGame() {
+	mySocket.off('invite_to_game');
+	mySocket.on('invite_to_game', (data) => {
+		if (data.error == 'no game') {
+			toast.success('You were not in a game, created a new one for you !');
+			inviteGame();
+		} else if (data.error == 'no user') {
+			toast.error('This user does not exist');
+		} else if (data.error == 'no online') {
+			toast.warning('This user is not online');
+		} else {
+			console.log(data);
+		}
+	});
+	mySocket.emit("invite_to_game", { login: props.login });
 }
 
 function muteBan(sanction: string) {

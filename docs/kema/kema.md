@@ -2,9 +2,8 @@
 
 ## ongoing
 
-- onglet chat, dans un channel auqnd tu click sur Info->More(sur user)->Invite game
-- onglet user, sur les profils des users via le bouton (je vais re design les profils friends et pas friends)
-- add notification for game invitations
+* onglet user, sur les profils des users via le bouton (je vais re design les profils friends et pas friends)
+* add notification for game invitations
 
 ## optional
 
