@@ -139,6 +139,7 @@ function displayDate(): string {
 	top: 50%;
 	transform: translate(0, -50%);
 	border-radius: 50%;
+	object-fit: cover;
 }
 .info {
 	/* width: 80% ; */

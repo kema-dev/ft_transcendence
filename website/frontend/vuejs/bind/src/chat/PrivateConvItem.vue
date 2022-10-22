@@ -1,7 +1,7 @@
 <template>
 	<div v-if="userExistDone && userExist && privDone" id="conversation_view" class="stack">
 		<div class="userTopBar center raw space-between">
-			<div class="avatar_cont center">
+			<div @click="toProfile" class="avatar_cont center">
 				<img :src="userExist.avatar"
 					class="avatar" alt="avatar"
 				/>
@@ -24,7 +24,7 @@
 						class="button_img"
 					/>
 				</button>
-				<button onclick="history.back();" class="button_cont center">
+				<button onclick="history.back()" class="button_cont center">
 					<span class="infoButtonText">Close</span>
 					<img
 						src="~@/assets/close_logo.svg"
@@ -223,6 +223,10 @@ function blockUser() {
 	router.push({name: 'private'});
 }
 
+function inviteGame() {
+	
+}
+
 function scrollAndFocus() {
 	let msgCont = document.getElementById("msgsCont");
 	if (msgCont)
@@ -332,6 +336,7 @@ function printPrivs(privs: PrivConvDto[] | undefined) {
 	box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.1), 0px -4px 4px rgba(0, 0, 0, 0.1);
 }
 .avatar_cont {
+	cursor: pointer;
 	width: var(--height);
 	height: var(--height);
 }
@@ -339,6 +344,7 @@ function printPrivs(privs: PrivConvDto[] | undefined) {
 	height: calc(var(--height) - 15px);
 	width: calc(var(--height) - 15px);
 	border-radius: 50%;
+	object-fit: cover;
 }
 .login {
 	font-family: "Orbitron", sans-serif;

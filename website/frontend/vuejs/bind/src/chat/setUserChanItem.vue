@@ -32,7 +32,7 @@
 			/>
 		</button>
 		<button v-if="showMore"
-			@click="invitInGame()"
+			@click="invitGame()"
 			class="setUserCont center"
 		>
 			<span class="infoButtonText">
@@ -188,7 +188,7 @@ function sendPrivMsg() {
 	router.push({name: 'PrivConv', params: { conv_name: props.login }});
 }
 
-function invitInGame() {
+function invitGame() {
 
 }
 

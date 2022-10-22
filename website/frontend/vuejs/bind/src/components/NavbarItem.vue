@@ -37,10 +37,13 @@ import router from '@/router';
 import { inject } from 'vue';
 import { VueCookies } from 'vue-cookies';
 import API from '../components/axios';
+import { Socket } from "socket.io-client";
 
 let define = inject('colors');
 let userDone = inject('userDone');
 let me = inject('user');
+let myName : string = inject('me')!;
+let socket : Socket = inject('socket')!;
 
 const $cookies = inject<VueCookies>('$cookies');
 import { useCookies } from 'vue3-cookies';
@@ -64,6 +67,7 @@ function logout() {
 	}).catch((err) => {
 		console.log(err);
 	});
+	socket.emit("userLogout", myName);
 }
 </script>
 
@@ -116,5 +120,6 @@ nav {
 	border-radius: 25px;
 	margin-right: 10px;
 	cursor: pointer;
+	object-fit: cover;
 }
 </style>

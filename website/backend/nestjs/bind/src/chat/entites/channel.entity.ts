@@ -35,7 +35,8 @@ export class ChannelEntity extends TimestampEntites {
 	password: string;
 
 	@ManyToMany( type => UserEntity, (user) => user.chansAdmin, {
-		onDelete: 'CASCADE'
+		onDelete: 'CASCADE',
+		nullable: true, 
 	})
 	@JoinTable()
 	admins: UserEntity[];

@@ -1,30 +1,34 @@
 <template>
-	<div class="column center">
-		<h2 id="player_search_title">Search for another player's profile</h2>
+	<div class="column center" v-if="show">
+		<!-- <h2 id="player_search_title">Search for another player's profile</h2>
 		<SearchProfileItem v-model:search="search"/>
 		<OtherPlayerProfile
 			v-bind:search="search"
-		/>
+		/> -->
 		<div class="stack avatar-stack">
 			<div id="bar"></div>
 			<div v-on:click="change_avatar()" id="avatar">
 				<img :src="user_avatar" id="img" />
 			</div>
+			<input id="none" type="file" />
 		</div>
-		<input id="none" type="file" />
-		<h1 id="name">{{ me?.login }}</h1>
+		<div class="playerInfoCont center column">
+			<h1 class="login">{{ me?.login }}</h1>
+			<hr class="separator">
+			<div class="playerStatCont center raw">
+				<h3 class="statTitle">Rank :</h3>
+				<h3 class="statValue">Top {{ user_ratio_rounded }}%</h3>
+			</div>
+			<div class="playerStatCont center raw">
+				<h3 class="statTitle">Win :</h3>
+				<h3 class="statValue">{{ user_stats.wins }}</h3>
+			</div>
+			<div class="playerStatCont center raw">
+				<h3 class="statTitle">Loose :</h3>
+				<h3 class="statValue">{{ user_stats.loses }}</h3>
+			</div>
+		</div>
 		<MultiFactorAuthItem />
-		<h2 class="avg_rank">Average rank: Top {{ user_ratio_rounded }}%</h2>
-		<h2 class="w_l">
-			Total: {{ user_stats.total }} - Wins: {{ user_stats.wins }} - Loses:
-			{{ user_stats.loses }}
-		</h2>
-		<h2 class="match_history_title">Match history</h2>
-		<MatchItem
-			v-for="match in user_history"
-			v-bind:match="match"
-			:key="match.creation_date"
-		/>
 		<div v-if="userDone">
 			<button @click="showBlocks = !showBlocks" id="showBlocksBtn">
 				{{(showBlocks? 'Hide' : 'Show') + ' blocked users'}}
@@ -46,11 +50,25 @@
 				</div>
 			</div>
 		</div>
+		<hr class="separator2">
+		<div class="titleCont center">
+			<img src="@/assets/history.svg" class="logo">
+			<h2 class="title">Match history</h2>
+		</div>
+		<MatchItem
+			v-for="match in user_history"
+			v-bind:match="match"
+			:key="match.creation_date"
+		/>
+    <div v-if="!user_history.length">
+      <h3 class="noResults">Still no match, go play! </h3>
+      <img class="img" src="@/assets/svg/ball_fire.svg" />
+    </div>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, inject, Ref, ref, provide } from 'vue';
+import { onMounted, inject, Ref, ref, watch } from 'vue';
 import { Socket } from "socket.io-client";
 import MultiFactorAuthItem from '../components/MultiFactorAuthItem.vue';
 import SearchProfileItem from '../components/SearchProfileItem.vue';
@@ -66,53 +84,47 @@ import { useCookies } from 'vue3-cookies';
 const { cookies } = useCookies();
 let define = inject('colors');
 let me: Ref<ProfileUserDto> = inject('user')!;
+let myName: string = inject("me")!;
 let userDone = inject('userDone')!;
 let socket : Socket = inject('socket')!;
 let showBlocks = ref(false);
-
-
 var ProgressBar = require('progressbar.js');
-
-// console.log('me:', me?.value);
+let statDone = false;
+let historyDone = false;
+let avatarDone = false;
+let show = ref(false);
 
 let user_ratio = ref(0.5);
 let user_ratio_rounded = ref(50);
 let user_history = ref([]);
 let user_stats = ref({});
-let search = ref('');
 let user_avatar = ref('');
 
-// let user = {
-// 	name: 'zeus',
-// 	level: '1000',
-// 	avatar: require('@/assets/avatars/(2).jpg'),
-// 	friends: ['Jane', 'John', 'Jacksdfgtertwdsfadfsafdertert'],
-// 	status: 'offline',
-// 	rank: '1st',
-// };
+function isDone() {
+	if (statDone && historyDone && avatarDone)
+		show.value = true;
+}
 
-// let user_history = [
-// 	{
-// 		points1: 10,
-// 		points2: 5,
-// 		date: 1
-// 	},
-// 	{
-// 		points1: 7,
-// 		points2: 5,
-// 		date: 2
-// 	},
-// 	{
-// 		points1: 3,
-// 		points2: 5,
-// 		date: 3
-// 	},
-// ];
+function change_avatar() {
+	let input = document.querySelector('#none')!;
+	input.click();
+}
 
 function unblockUser(blocked: string) {
 	socket.emit("unblockUser", 
 		{blocker: me.value.login, blocked: blocked});
 }
+
+watch(show, () => {
+	var bar = new ProgressBar.Circle('#bar', {
+		color: define.color2,
+		strokeWidth: 8,
+		trailWidth: 0,
+		easing: 'easeInOut',
+		duration: 1400,
+	});
+	bar.animate(1 - user_ratio.value);
+}, {flush: 'post'})
 
 onMounted(async () => {
 	let input = document.querySelector('#none');
@@ -128,51 +140,48 @@ onMounted(async () => {
 		});
 		reader.readAsDataURL(input.files[0]);
 	});
-	var bar = new ProgressBar.Circle('#bar', {
-		color: define.color2,
-		strokeWidth: 4,
-		trailWidth: 0,
-		easing: 'easeInOut',
-		duration: 1400,
-	});
-	await API.post('/user/get_user_avatar', {
+	API.post('/user/get_user_avatar', {
 		headers: {
 			login: cookies.get('login'),
 			token: cookies.get('session'),
 		},
-		login: me?.value?.login,
+		login: myName,
 	}).then((res) => {
 		user_avatar.value = res.data;
+		avatarDone = true;
+		isDone();
 	}).catch((err) => {
 		console.log(err);
 	});
-	await API.post('/match/get_user_stats', {
+	API.post('/match/get_user_stats', {
 		headers: {
 			login: cookies.get('login'),
 			token: cookies.get('session'),
 		},
-		login: me?.value?.login,
+		login: myName,
 	}).then((res) => {
 		user_stats.value = res.data;
 		user_ratio.value = res.data.average_rank;
 		user_ratio_rounded.value = Math.round(res.data.average_rank * 100);
+		statDone = true;
+		isDone();
+	}).catch((err) => {
+		console.log(err);
 	});
-	console.log('user_ratio:', user_ratio.value);
-	bar.animate(1 - user_ratio.value);
-	await API.post('/match/get_user_history', {
+	API.post('/match/get_user_history', {
 		headers: {
 			login: cookies.get('login'),
 			token: cookies.get('session'),
 		},
-		login: me?.value?.login,
+		login: myName,
 	}).then((res) => {
 		user_history.value = res.data;
+		historyDone = true;
+		isDone();
+	}).catch((err) => {
+		console.log(err);
 	});
 });
-function change_avatar() {
-	let input = document.querySelector('#none');
-	input.click();
-}
 </script>
 
 <style scoped>
@@ -182,58 +191,66 @@ function change_avatar() {
 	margin: 0;
 	color: #2c3e50;
 }
-
 .avatar-stack {
-	margin-top: 50px;
-	width: 200px;
-	margin-bottom: 250px;
+	width: 40%;
+	height: 200px;
 }
 #avatar {
 	position: absolute;
-	width: 200px;
-	height: 200px;
+	width: 150px;
+	height: 150px;
 	border-radius: 50%;
 	box-shadow: 0px 2px 5px #333;
 	cursor: pointer;
-	vertical-align: middle;
-	margin: 7.5px;
-	/* background-image: url("@/assets/avatars/(1).jpg"); */
-	/* background-size: 100%; */
-	/* height: 40%; */
-	/* padding-top: 40%; */
+	top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 #img {
 	object-fit: cover;
-	vertical-align: middle;
 	width: 100%;
 	height: 100%;
 	border-radius: 50%;
 }
 #bar {
 	position: absolute;
-	width: 215px;
-	height: 215px;
+	width: 165px;
+	height: 165px;
+	top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+.login{
+	font-size: 1.5rem;
+	margin-bottom: 10px;
+	width: 100%;
+	overflow-wrap: break-word;
+}
+.separator {
+	flex-shrink: 0;
+	width: 60%;
+	height: 3px;
+	background-color: v-bind("define.color2");
+	margin-bottom: 10px;
+}
+.separator2 {
+	flex-shrink: 0;
+	width: 90%;
+	height: 1px;
+	background-color: grey;
+	margin-top: 20px;
+}
+.playerStatCont {
+	margin: 5px 0;
+	width: 60%;
+}
+.statTitle,
+.statValue {
+	width: 40%;
+	font-size: 0.9rem;
 }
 #none {
 	display: none;
-}
-#name {
-	margin-top: -20px;
-	/* margin-bottom: -5px; */
-	font-size: 200%;
-}
-.info {
-	font-size: 100%;
-}
-.avg_rank {
-	margin-top: 10px;
-}
-.w_l {
-	margin-bottom: 10px;
-}
-.match_history_title {
-	margin-bottom: 10px;
-	font-size: 200%;
 }
 #security {
 	margin-top: 15px;
@@ -244,7 +261,6 @@ function change_avatar() {
 	text-decoration: underline;
 }
 #showBlocksBtn {
-	margin-top: 30px;
 	margin-bottom: 10px;
 	height: 1.5rem;
 	width: auto;
@@ -269,6 +285,30 @@ function change_avatar() {
 	height: 26px;
 	width: 26px;
 	filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg)
+		brightness(86%) contrast(83%);
+}
+.titleCont {
+  margin-top: 20px;
+  margin-bottom: 10px;
+	/* margin-right: auto;
+	margin-left: 40px; */
+}
+.title {
+	font-size: 1.4rem;
+}
+.noResults {
+  font-size: 0.9rem;
+  margin-top: 20px;
+}
+.img {
+  width: 50px;
+  height: 50px;
+}
+.logo {
+  width: 25px;
+  height: 25px;
+  margin-right: 10px;
+  filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg)
 		brightness(86%) contrast(83%);
 }
 </style>

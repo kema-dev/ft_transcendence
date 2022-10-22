@@ -41,6 +41,7 @@ const props = defineProps({
 	height: var(--height);
 	width: var(--height);
 	border-radius: 50%;
+	object-fit: cover;
 }
 .login {
 	padding-left: 10px;
