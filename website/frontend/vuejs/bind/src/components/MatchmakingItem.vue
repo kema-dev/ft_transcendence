@@ -31,6 +31,12 @@
 				<button class="start" v-on:click="launch">start</button>
 			</div>
 		</div>
+		<div v-if="win" class="msg">
+			<h1>YOU WIN !</h1>
+		</div>
+		<div v-if="lose" class="msg">
+			<h1>YOU LOSE</h1>
+		</div>
 	</div>
 </template>
 
@@ -57,17 +63,27 @@ let lobbys = ref([]);
 let isCreate: Ref<boolean> = inject('isCreate')!;
 let isJoin: Ref<boolean> = inject('isJoin')!;
 let nbrBall = ref(1);
-
+let win = ref(false);
+let lose = ref(false);
 socket.on('lobbys', (data: any) => {
 	lobbys.value = data;
 });
 socket.emit('lobbys');
-
+socket.on('end', (data: {win: boolean}) => {
+	console.log(data);
+	if (data.win) {
+		win.value = true;
+	} else {
+		lose.value = true;
+	}
+});
 function back() {
 	if (isCreate.value)
 		socket.emit('leftGame', {login: me?.value?.login});
 	isCreate.value = false;
 	isJoin.value = false;
+	win.value = false;
+	lose.value = false;
 }
 function create() {
 	socket.emit('newLobby', { login: me?.value?.login, nbrBall: 1 });
@@ -125,6 +141,7 @@ onMounted(() => {
 onUnmounted(() => {
 	socket.off('reload_game');
 	socket.off('lobbys');
+	socket.off('end');
 });
 </script>
 
@@ -138,8 +155,12 @@ onUnmounted(() => {
 }
 #settings {
 	position: absolute;
-	top: 0;
-	top: 26%;
+	top: calc(50% - 100px);
+	z-index: 10;
+}
+.msg {
+	position: absolute;
+	top: calc(50 - 25px);
 	z-index: 10;
 }
 .choice {

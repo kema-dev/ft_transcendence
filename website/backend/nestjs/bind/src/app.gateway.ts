@@ -58,7 +58,6 @@ export class AppGateway
 	// Disconnection
 	async handleDisconnect(client: Socket) {
 		this.logger.log(`Client disconnected: ${client.id}`);
-		// console.log("query = ", client.handshake.query.login);
 		this.leftGame({login: client.handshake.query.login as string});
 	}
 
@@ -73,6 +72,8 @@ export class AppGateway
 		let game = this.games.find((game) => game.lobby_name === user.lobby_name);
 		if (!game) return;
 		console.log('game <---------------------------');
+		user.lobby_name = "";
+		this.userService.saveUser(user);
 		game.destructor();
 		if (game.players.length - 1 > 0) {
 			let newGame = new Game(
@@ -88,6 +89,7 @@ export class AppGateway
 			);
 			this.games.push(newGame);
 			this.server.to(newGame.sockets).emit('reload_game');
+			newGame.start = game.start;
 		}
 		console.log('game destroyed');
 		this.games.splice(this.games.indexOf(game), 1);
@@ -206,6 +208,7 @@ export class AppGateway
 		const game = this.games.find((game) => game.lobby_name === payload.lobby_name);
 		if (game) {
 			game.updateBalls(payload.nbrBall);
+			this.server.to(game.sockets).emit('reload_game');
 		}
 	}
 
