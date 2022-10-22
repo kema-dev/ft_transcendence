@@ -104,7 +104,6 @@ function isDone() {
 }
 
 function inviteGame() {
-	console.log('pass');
 	socket.off('invite_to_game');
 	socket.on('invite_to_game', (data) => {
 		if (data.error == 'no game') {
