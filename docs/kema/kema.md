@@ -3,6 +3,7 @@
 ## ongoing
 
 * fix ongoing game opponent disconnection stopping game
+* add enter key to send login form
 
 ## optional
 
