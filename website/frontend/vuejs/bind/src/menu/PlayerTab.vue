@@ -63,7 +63,9 @@ import { ProfileUserDto } from '../dto/ProfileUserDto';
 import API from '../components/axios';
 import { useCookies } from 'vue3-cookies';
 import router from "@/router";
+import { useToast } from 'vue-toastification';
 
+const toast = useToast();
 const route = useRoute();
 const { cookies } = useCookies();
 let define = inject('colors')!;
@@ -102,7 +104,21 @@ function isDone() {
 }
 
 function inviteGame() {
-	
+	console.log('pass');
+	socket.off('invite_to_game');
+	socket.on('invite_to_game', (data) => {
+		if (data.error == 'no game') {
+			toast.success('You were not in a game, created a new one for you !');
+			inviteGame();
+		} else if (data.error == 'no user') {
+			toast.error('This user does not exist');
+		} else if (data.error == 'no online') {
+			toast.warning('This user is not online');
+		} else {
+			console.log(data);
+		}
+	});
+	socket.emit("invite_to_game", { login: user_login });
 }
 
 function toChat() {
