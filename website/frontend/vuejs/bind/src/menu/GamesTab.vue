@@ -55,6 +55,7 @@ function isDone() {
 }
 
 onMounted(async () => {
+	update_invitations();
 	API.post('/match/get_user_history', {
 		headers: {
 			login: cookies.get('login'),
@@ -83,7 +84,8 @@ let user_invitations: Ref<
 		players: string[];
 	}>
 > = inject('user_invitations')!;
-watch(invitations_to_game.value, (val) => {
+
+function update_invitations() {
 	socket.off('get_match_infos');
 	socket.on(
 		'get_match_infos',
@@ -115,6 +117,10 @@ watch(invitations_to_game.value, (val) => {
 	for (let i = 0; i < invitations_to_game.value.length; i++) {
 		socket.emit('get_match_infos', invitations_to_game.value[i].lobby);
 	}
+}
+
+watch(invitations_to_game.value, (val) => {
+	update_invitations();
 });
 socket.off('remove_invit');
 socket.on('remove_invit', (lobby_name: string) => {

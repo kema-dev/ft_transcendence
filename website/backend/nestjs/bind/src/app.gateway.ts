@@ -427,7 +427,6 @@ export class AppGateway
 			client.emit('invite_to_game', { error: 'no online' });
 			return;
 		}
-		console.log('invite_to_game');
 		this.server.to(user.socketId).emit('get_invited', {
 			login: user.login,
 			lobby: game.lobby_name,
