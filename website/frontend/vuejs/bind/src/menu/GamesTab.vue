@@ -5,10 +5,11 @@
 			<img src="@/assets/notif.svg" class="logo" />
 			<h2 class="title">Game invitations</h2>
 		</div>
-		<div>
-			<h3 class="noResults">No invitations</h3>
-			<!-- <img class="img" src="@/assets/svg/ball_fire.svg" /> -->
-		</div>
+		<PlayInvitationItem
+			v-for="invit in user_invitations"
+			v-bind:match="invit"
+			:key="invit.nbrPlayer"
+		/>
 		<hr class="separator" />
 		<!-- <h2 class="title">Match history</h2> -->
 		<div class="titleCont left_center">
@@ -37,6 +38,7 @@ import { ProfileUserDto } from '../dto/ProfileUserDto';
 import API from '../components/axios';
 import { createWebHistory } from 'vue-router';
 import { useCookies } from 'vue3-cookies';
+import PlayInvitationItem from '../components/PlayInvitationItem.vue';
 
 const { cookies } = useCookies();
 let colors = inject('colors');
@@ -68,6 +70,60 @@ onMounted(async () => {
 		.catch((err) => {
 			console.log(err);
 		});
+});
+
+let invitations_to_game: Ref<Array<{ login: string; lobby: string }>> = inject(
+	'invitations_to_game',
+)!;
+let user_invitations: Ref<
+	Array<{
+		name: string;
+		player_count: number;
+		ball_count: number;
+		players: string[];
+	}>
+> = inject('user_invitations')!;
+watch(invitations_to_game.value, (val) => {
+	socket.off('get_match_infos');
+	socket.on(
+		'get_match_infos',
+		(match: {
+			nbrPlayer: number;
+			nbrBall: number;
+			lobby_name: string;
+			players: string[];
+			owner: string;
+		}) => {
+			// check if the match is already in the list
+			let matchAlreadyInList = false;
+			for (let i = 0; i < user_invitations.value.length; i++) {
+				if (user_invitations.value[i].name === match.lobby_name) {
+					matchAlreadyInList = true;
+					break;
+				}
+			}
+			if (!matchAlreadyInList) {
+				user_invitations.value.push({
+					name: match.lobby_name,
+					player_count: match.nbrPlayer,
+					ball_count: match.nbrBall,
+					players: match.players,
+				});
+			}
+		},
+	);
+	for (let i = 0; i < invitations_to_game.value.length; i++) {
+		socket.emit('get_match_infos', invitations_to_game.value[i].lobby);
+	}
+});
+socket.off('remove_invit');
+socket.on('remove_invit', (lobby_name: string) => {
+	user_invitations.value = user_invitations.value.filter((invit) => {
+		return invit.name !== lobby_name;
+	});
+	invitations_to_game.value = invitations_to_game.value.filter((invit) => {
+		return invit.lobby !== lobby_name;
+	});
 });
 </script>
 
