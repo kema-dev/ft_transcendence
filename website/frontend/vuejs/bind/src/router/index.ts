@@ -2,7 +2,7 @@ import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
 import Home from '@/views/HomeView.vue';
 import LogpageView from '@/views/LogpageView.vue';
 import BackendDownView from '@/views/BackendDownView.vue';
-import Friends from '@/menu/FriendsTab.vue';
+import Users from '@/menu/Users.vue';
 import Chat from '@/menu/ChatTab.vue';
 import InGame from '@/chat/InGameTab.vue';
 import Private from '@/chat/PrivateView.vue';
@@ -12,6 +12,7 @@ import ChannelConv from '@/chat/ChannelConvItem.vue';
 import Settings from '@/menu/SettingsTab.vue';
 import Profile from '@/menu/ProfileTab.vue';
 import Player from '@/menu/PlayerTab.vue';
+import Games from '@/menu/GamesTab.vue';
 import API from '../components/axios';
 import { useCookies } from 'vue3-cookies';
 import { useToast } from 'vue-toastification';
@@ -38,13 +39,8 @@ const routes: Array<RouteRecordRaw> = [
 		name: 'home',
 		path: '/home',
 		components: { default: Home },
-		redirect: '/home/friends',
+		redirect: '/home/profile',
 		children: [
-			{
-				name: 'friends',
-				path: '/home/friends',
-				components: { menu: Friends },
-			},
 			{
 				name: 'chat',
 				path: '/home/chat',
@@ -74,6 +70,11 @@ const routes: Array<RouteRecordRaw> = [
 				],
 			},
 			{
+				name: 'users',
+				path: '/home/users',
+				components: { menu: Users },
+			},
+			{
 				name: 'profile',
 				path: '/home/profile',
 				components: { menu: Profile },
@@ -82,6 +83,11 @@ const routes: Array<RouteRecordRaw> = [
 				name: 'player',
 				path: '/home/player/:name',
 				components: { menu: Player },
+			},
+			{
+				name: 'games',
+				path: '/home/games',
+				components: { menu: Games },
 			},
 		],
 	},

@@ -12,15 +12,15 @@
 				</div>
 			</router-link>
 			<h1 class="pipe">|</h1>
-			<router-link to="/home/friends" class="nav_menu_link stack">
-				<h2 class="nav_menu_text">FRIENDS</h2>
+			<router-link to="/home/users" class="nav_menu_link stack">
+				<h2 class="nav_menu_text">USERS</h2>
 				<div v-if="notifs" class="notifMsgCont center">
 					<div class="notifMsgNumber">{{ notifs }}</div>
 				</div>
 			</router-link>
 			<h1 class="pipe">|</h1>
-			<router-link to="/home/profile" class="nav_menu_link">
-				<h2 class="nav_menu_text">PROFILE</h2>
+			<router-link to="/home/games" class="nav_menu_link">
+				<h2 class="nav_menu_text">GAMES</h2>
 			</router-link>
 		</div>
 		<!-- <transition name="slide-fade" mode="out-in"> -->

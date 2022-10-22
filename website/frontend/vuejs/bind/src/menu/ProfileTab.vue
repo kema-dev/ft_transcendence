@@ -50,13 +50,21 @@
 				</div>
 			</div>
 		</div>
-		<!-- <hr class="separator"> -->
-		<h2 class="match_history_title">Match history</h2>
+		<hr class="separator2">
+		<!-- <h2 class="match_history_title">Match history</h2> -->
+		<div class="titleCont center">
+			<img src="@/assets/history.svg" class="logo">
+			<h2 class="title">Match history</h2>
+		</div>
 		<MatchItem
 			v-for="match in user_history"
 			v-bind:match="match"
 			:key="match.creation_date"
 		/>
+    <div v-if="!user_history.length">
+      <h3 class="noResults">Still no match, go play! </h3>
+      <img class="img" src="@/assets/svg/ball_fire.svg" />
+    </div>
 	</div>
 </template>
 
@@ -213,7 +221,6 @@ onMounted(async () => {
   left: 50%;
   transform: translate(-50%, -50%);
 }
-
 .login{
 	font-size: 1.5rem;
 	margin-bottom: 10px;
@@ -222,10 +229,17 @@ onMounted(async () => {
 }
 .separator {
 	flex-shrink: 0;
-	width: 200px;
+	width: 60%;
 	height: 3px;
 	background-color: v-bind("define.color2");
 	margin-bottom: 10px;
+}
+.separator2 {
+	flex-shrink: 0;
+	width: 90%;
+	height: 1px;
+	background-color: grey;
+	margin-top: 20px;
 }
 .playerStatCont {
 	margin: 5px 0;
@@ -236,14 +250,8 @@ onMounted(async () => {
 	width: 40%;
 	font-size: 0.9rem;
 }
-
 #none {
 	display: none;
-}
-.match_history_title {
-	margin-top: 20px;
-	margin-bottom: 10px;
-	font-size: 150%;
 }
 #security {
 	margin-top: 15px;
@@ -278,6 +286,30 @@ onMounted(async () => {
 	height: 26px;
 	width: 26px;
 	filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg)
+		brightness(86%) contrast(83%);
+}
+.titleCont {
+  margin-top: 20px;
+  margin-bottom: 10px;
+	/* margin-right: auto;
+	margin-left: 40px; */
+}
+.title {
+	font-size: 1.4rem;
+}
+.noResults {
+  font-size: 0.9rem;
+  margin-top: 20px;
+}
+.img {
+  width: 50px;
+  height: 50px;
+}
+.logo {
+  width: 25px;
+  height: 25px;
+  margin-right: 10px;
+  filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg)
 		brightness(86%) contrast(83%);
 }
 </style>
