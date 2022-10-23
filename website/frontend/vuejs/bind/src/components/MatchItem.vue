@@ -71,13 +71,15 @@ const props = defineProps(['match']);
 
 function go_to_user_profile(i: number) {
 	let refresh = false;
-	if (route.path != "/home/profile")
+	if (route.path.startsWith('/home/player/'))
 		refresh = true;
 	router.push({name: 'player', params: {name: props.match.players[i - 1]}});
-	if (refresh == true)
+	if (refresh == true) {
+		console.log(`refresh`);
 		setTimeout(() => {
 			router.go(0);
 		}, 100);
+	}
 }
 
 function open() {

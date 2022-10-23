@@ -12,7 +12,7 @@
 			<img v-else src="~@/assets/group_logo.svg" class="avatar" alt="avatar" />
 		</div>
 		<div class="info center column">
-			<div class="top-bar row center stack">
+			<div class="top-bar space-between row stack">
 				<div class="login" :class="{ loginNR: displayNotRead() }">
 					{{ nameConv }}
 				</div>
@@ -32,11 +32,8 @@
 <script setup lang="ts">
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { inject, defineProps, ref } from "vue";
-// import Private from '@/chat/objects/PrivConv';
-// import User from "./objects/User";
-// import Message from "./objects/Message";
 
-let define = inject("colors");
+let colors = inject("colors");
 let me: string = inject("me")!;
 const props = defineProps({
 	nameConv: {
@@ -108,13 +105,11 @@ function displayDate(): string {
 }
 </script>
 
-<style lang="scss" scoped>
-@use "@/assets/scss/_shared.scss" as *;
+<style scoped>
 
 * {
-	--height: 70px;
+	--height: 80px;
 }
-// $height: 70px;
 
 .conv_container {
 	background-color: white;
@@ -122,8 +117,7 @@ function displayDate(): string {
 	height: var(--height);
 	margin-top: 5px;
 	margin-bottom: 5px;
-	border: solid 2px $color2;
-	/* border-color: ; */
+	border: solid 2px v-bind("colors.color2");
 	border-radius: calc(var(--height) / 2);
 }
 
@@ -142,10 +136,8 @@ function displayDate(): string {
 	object-fit: cover;
 }
 .info {
-	/* width: 80% ; */
 	width: calc(100% - var(--height));
 	height: 100%;
-	/* padding-left: 1rem; */
 	padding-right: 1.5rem;
 }
 .top-bar {
@@ -153,7 +145,8 @@ function displayDate(): string {
 	height: 1.5rem;
 }
 .login {
-	width: 130%;
+	/* width: auto; */
+	max-width: 90%;
 	text-align: start;
 	font-family: "Orbitron", sans-serif;
 	font-weight: 400;
@@ -162,6 +155,7 @@ function displayDate(): string {
 	text-overflow: ellipsis;
 }
 .date {
+	width: auto;
 	text-align: end;
 	color: grey;
 	/* font-family: "Orbitron", sans-serif;
@@ -180,15 +174,15 @@ function displayDate(): string {
 	text-overflow: ellipsis;
 }
 
-// ======================== NOT READ DIPLAY =========================
+ /* ======================== NOT READ DIPLAY ========================= */
 .conv_containerNR {
-	border: solid 3px $color2;
+	border: solid 3px v-bind("colors.color2");
 }
 .loginNR,
 .messageNR {
 	font-weight: 800;
 }
 .messageNR {
-	color: $color2;
+	color: v-bind("colors.color2");
 }
 </style>

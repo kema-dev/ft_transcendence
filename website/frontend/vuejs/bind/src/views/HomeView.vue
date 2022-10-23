@@ -13,7 +13,6 @@ import { onMounted, Ref, provide, watch, onUpdated, nextTick } from "vue";
 import { inject, ref } from "vue";
 import io from "socket.io-client"
 import { VueCookies } from "vue-cookies";
-import { Socket } from "socket.io-client";
 import { useRoute } from "vue-router";
 import HTTP from "../components/axios";
 import { FQDN } from "../../.env.json";
@@ -24,10 +23,7 @@ import { PrivConvDto } from "@/chat/dto/PrivConvDto"
 import { ChannelDto } from "@/chat/dto/ChannelDto"
 import { MessageDto } from "@/chat/dto/MessageDto";
 import { BasicUserDto } from "@/chat/dto/BasicUserDto";
-import { processExpression } from "@vue/compiler-core";
 import ProfileUserDto from "@/dto/ProfileUserDto";
-import { routeLocationKey } from "vue-router";
-import { NewChanMsgDto } from "@/chat/dto/NewChanMsgDto";
 import { ModifChanDto } from "@/chat/dto/ModifChanDto";
 import ResumUserDto from "@/dto/ResumUserDto";
 
@@ -43,7 +39,7 @@ const route = useRoute()
 
 const me: string = $cookies.get('login');
 provide('me', me);
-console.log(`i am ${me}`)
+// console.log(`i am ${me}`)
 
 //	========== CREATE SOCKET
 
@@ -57,18 +53,28 @@ let userDone = ref(false);
 
 socket.on("userUpdate", (data: any) => {
 	if (data && data.login == me) {
-		console.log(`userUpdate`);
 		userRef.value = data;
 		notifs.value = data.requestFriend.length;
 		userDone.value = true;
 	}
 });
-socket.emit("userUpdate", { login: me });
+getMyProfile();
 provide('notifs', notifs);
 provide("user", userRef);
 provide("userDone", userDone);
 provide('isCreate', ref(false));
 provide('isJoin', ref(false));
+
+function getMyProfile() {
+	HTTP.get(apiPath + "user/getMyProfile/" + me)
+	.then(res => {
+		userRef.value = res.data;
+		notifs.value = res.data.requestFriend.length;
+		userDone.value = true;
+		console.log(`GetMyProfile Done`)
+	})
+	.catch(e => console.log(e));
+}
 
 socket.on("userBlock", (data : ResumUserDto) => {
 	console.log(`User ${data.login} blocked`);

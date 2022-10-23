@@ -96,7 +96,7 @@ onUnmounted(() => {
 
 <style scoped>
 .friend_case {
-	width: 110%;
+	width: 90%;
 	height: 80px;
 	background: #fff;
 	border: solid 1px #ccc;
@@ -119,7 +119,7 @@ onUnmounted(() => {
 .friendInfoCont {
 	max-width: calc(100% - 75px);
 	margin-bottom: auto;
-	margin-top: 3px;
+	margin-top: 5px;
 }
 .name {
 	width: auto;

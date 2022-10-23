@@ -48,10 +48,14 @@
 					<img src="@/assets/add2_logo.svg" class="logo">
 					<h2 class="title">More</h2>
 				</div>
-				<div v-for="user of users" :key="user.login" class="center column">
-					<FriendItem :info="user" :friend="false"/>
+				<div v-if="users.length" class="center column">
+					<FriendItem v-for="user of users" :key="user.login"
+						:info="user" :friend="false"
+					/>
 				</div>
+				<h2 v-else class="noResults">No Results</h2>
 			</div>
+
 		</div>
 	</div>
 </template>
@@ -128,11 +132,10 @@ onUnmounted(() => {
 
 <style scoped>
 .friend-page {
-	width: clamp(18rem, 80%, 550px);
 }
 #searchItem {
 	margin-top: 20px;
-	margin-bottom: -10px;
+	margin-bottom: -15px;
 }
 .name {
 	margin-right: auto;
@@ -142,11 +145,6 @@ onUnmounted(() => {
 	text-align: left;
 }
 .text {
-	/* margin-right: auto;
-
-	overflow: hidden;
-	white-space: nowrap;
-	text-overflow: ellipsis; */
 	text-align: left;
 }
 .score {
@@ -155,7 +153,6 @@ onUnmounted(() => {
 .action {
 	margin: 0 3px;
 	padding: 2px 6px;
-	/* background-color: v-bind("define.color3"); */
 	border-radius: 10px;
 }
 
@@ -169,8 +166,9 @@ onUnmounted(() => {
 .titleCont {
   margin-top: 20px;
   margin-bottom: 15px;
-	margin-right: auto;
-	margin-left: 10px;
+	padding-left: 40px;
+	/* margin-right: auto;
+	margin-left: 10px; */
 }
 .title {
 	font-size: 1.2rem;

@@ -231,6 +231,7 @@ cursor: pointer;
 	width: 25px;
 	height: 25px;
 	border-radius: 50%;
+	margin-left: 10px;
 	background: v-bind((user_status ? "#00CC00" : "#FF3333"));
 }
 .separator {
