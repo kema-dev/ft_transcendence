@@ -102,7 +102,7 @@ function isDone() {
 }
 
 function inviteGame() {
-	
+
 }
 
 function toChat() {
@@ -266,8 +266,6 @@ cursor: pointer;
   height: 25px;
   margin-right: 10px;
 	filter: brightness(0) invert(1);
-  /* filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg)
-	brightness(86%) contrast(83%); */
 }
 .separator2 {
 	flex-shrink: 0;
@@ -281,7 +279,7 @@ cursor: pointer;
   margin-bottom: 10px;
 }
 .title {
-	font-size: 1.4rem;
+	font-size: 1.2rem;
 }
 .noResults {
   font-size: 0.9rem;

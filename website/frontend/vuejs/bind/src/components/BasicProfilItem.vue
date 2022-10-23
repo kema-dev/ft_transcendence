@@ -50,5 +50,9 @@ const props = defineProps({
 	overflow: hidden;
 	white-space: nowrap;
 	text-overflow: ellipsis;
+	/* max-width: 160px; */
+}
+.requestCont > .basicProfil > .login {
+	max-width: 160px !important;
 }
 </style>
