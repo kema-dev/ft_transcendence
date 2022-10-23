@@ -135,6 +135,7 @@ let users = ref([]);
 const search = ref('');
 function add_friend(name: string) {
 	socket.emit('addFriend', { sender: me.value.login, receiver: name });
+	alert('friend request sent');
 }
 function remove_friend(name: string) {
 	socket.emit('removeFriend', { sender: me.value.login, receiver: name });
