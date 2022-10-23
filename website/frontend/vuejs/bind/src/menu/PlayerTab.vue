@@ -19,6 +19,10 @@
 				<h3 class="statValue">Top {{ user_ratio_rounded }}%</h3>
 			</div>
 			<div class="playerStatCont center raw">
+				<h3 class="statTitle">Level :</h3>
+				<h3 class="statValue">{{ user_stats.level }}</h3>
+			</div>
+			<div class="playerStatCont center raw">
 				<h3 class="statTitle">Win :</h3>
 				<h3 class="statValue">{{ user_stats.wins }}</h3>
 			</div>
@@ -48,8 +52,7 @@
 			:key="match.creation_date"
 		/>
     <div v-if="!user_history.length">
-      <h3 class="noResults">Still no match, go play! </h3>
-      <img class="img" src="@/assets/svg/ball_fire.svg" />
+      <h3 class="noResults">No match</h3>
     </div>
 	</div>
 </template>

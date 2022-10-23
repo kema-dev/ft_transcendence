@@ -14,18 +14,11 @@
 		</div>
 		<div class="space-between raw">
 			<h3 class="text">level {{ friend.level }}</h3>
-			<h3
-				class="status"
-				:style="'background-color: ' + statusColor[friend.status] + ';'"
-			>
-				{{ friend.status }}
+			<h3 v-if="statusDone" class="status">
+				{{ status ? "online" : "offline" }}
 			</h3>
 		</div>
 		<div class="space-between row">
-			<!-- <div class="left row"> -->
-			<h2 class="score">{{ friend.rank }}</h2>
-			<!-- <h2 class="score">{{friend.ratiov}} | {{friend.ratiod}}</h2> -->
-			<!-- </div> -->
 			<div class="right row" style="margin-right: 7px">
 				<button v-if="friend.status == 'in game'" class="action">
 					watch
@@ -38,18 +31,22 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, inject } from "vue";
-import { Socket } from "engine.io-client";
+import { defineProps, inject, onMounted, onUnmounted, ref, Ref } from "vue";
+import { Socket } from 'engine.io-client';
 import router from "@/router";
+import FriendItemVue from "./FriendItem.vue";
+
 
 let me = inject("user")!;
-let socket: Socket = inject("socket")!;
+const socket: Socket = inject('socket')!;
 const props = defineProps(["friend"]);
 let statusColor = {
 	online: "green",
 	offline: "red",
 	"in game": "orange",
 };
+let status: Ref<boolean> = ref(false);
+const statusDone : Ref<boolean> = ref(false);
 
 function remove_friend(name: string) {
 	socket.emit("removeFriend", { sender: me.value.login, receiver: name });
@@ -58,6 +55,20 @@ function remove_friend(name: string) {
 function toProfile(login: string) {
 	router.push({name: 'player', params: {name: login}})
 }
+
+onMounted(() => {
+	socket.on("userStatus", (data: {user: string, status: boolean}) => {
+		if (data.user == props.friend.login) {
+			status.value = data.status;
+			statusDone.value = true;
+		}
+	});
+	socket.emit("userStatus", props.friend.login);
+})
+
+onUnmounted(() => {
+	socket.off('userStatus');
+})
 </script>
 
 <style>
@@ -69,6 +80,7 @@ function toProfile(login: string) {
 	color: white;
 	padding: 0 5px;
 	border-radius: 5px;
+	background-color: v-bind((status ? "green" : "red"));
 }
 .action {
 	margin: 0 3px;

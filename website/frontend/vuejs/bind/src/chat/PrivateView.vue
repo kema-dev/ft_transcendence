@@ -138,20 +138,9 @@ watch(userDone, () => {
 function init() {
 	nbPrivNR.reset();
 	privsFiltred.value = privsRef.value;
-	// privsFiltred.value = privsRef.value.filter(priv => {
-	// 	return !me.value.blockeds.map(b => b.login).includes(priv.user.login)
-	// });
 	knownPeople.value = setKnownPeople();
 	watch(me.value.blockeds, () => {
 		console.log(`me.blocked changed`);
-		// privsFiltred.value = privsRef.value.filter(priv => {
-		// 	!me.value.blockeds.map(b => b.login)
-		// 	.includes(priv.user.login)
-		// }).filter(priv => {
-		// 	return priv.user.login
-		// 		.toUpperCase()
-		// 		.startsWith(search.value.toUpperCase());
-		// });
 		privsFiltred.value = privsRef.value
 			.filter(priv => {
 				return priv.user.login
@@ -167,10 +156,6 @@ function init() {
 watch(search, () => {
 	userServReqDone.value = false;
 	privsFiltred.value = privsRef.value
-		// .filter(priv => {
-		// 	return !me.value.blockeds.map(b => b.login)
-		// 		.includes(priv.user.login)
-		// })
 		.filter(priv => {
 			return priv.user.login
 				.toUpperCase()
@@ -209,7 +194,6 @@ function filterServerUsers() {
 }
 
 function setKnownPeople() {
-	// console.log(`setKnowPeople`);
 	let convs : BasicUserDto[] = [];
 	let friends : BasicUserDto[] = [];
 	convs = privsFiltred.value
@@ -234,11 +218,6 @@ function createNewMsg() {
 		document.getElementById('search')?.focus();
 	});
 }
-
-// function onlyContBlocked() {
-// 	return privsRef.value.every(p => me.value.blockeds
-// 		.map(b => b.login).includes(p.user.login));
-// }
 
 
 // ====================== LIFECYCLES HOOKS ======================

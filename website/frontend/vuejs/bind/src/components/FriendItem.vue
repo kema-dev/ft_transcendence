@@ -1,16 +1,12 @@
 <template>
 	<div class="friend_case left_center row">
-		<!-- <div class="center row"> -->
-			<router-link
-				class="center"
-				:to="{ name: 'player', params: { name: friend.login } }"
-			>
-				<img :src="friend.avatar" class="avatar" alt="avatar" />
-			</router-link>
-			<!-- <div class="center column"> -->
-				<slot name="content"></slot>
-			<!-- </div> -->
-		<!-- </div> -->
+		<router-link
+			class="center"
+			:to="{ name: 'player', params: { name: friend.login } }"
+		>
+			<img :src="friend.avatar" class="avatar" alt="avatar" />
+		</router-link>
+		<slot name="content"></slot>
 	</div>
 </template>
 

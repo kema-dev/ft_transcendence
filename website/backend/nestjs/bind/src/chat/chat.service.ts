@@ -290,7 +290,7 @@ export class ChatService {
 	}
 
 	sortChans(chans: ChannelDto[]) {
-		console.log(`Sort Channels`)
+		// console.log(`Sort Channels`)
 		chans.sort(function (x, y) {
 			let date1: number;
 			let date2: number;

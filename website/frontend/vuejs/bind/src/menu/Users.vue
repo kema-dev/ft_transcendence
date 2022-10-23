@@ -25,35 +25,56 @@
 					</div>
 				</div>
 			</div>
-			<div class="titleCont left_center">
-				<img src="@/assets/group2_logo.svg" class="logo">
-				<h2 class="title">Friends</h2>
-			</div>
-			<div v-if="me.friends.length">
-				<div
-					v-for="friend of me.friends"
-					v-bind:key="friend.login"
-					class="row center"
-				>
-					<div class="center column">
-						<FriendItem :friend="friend">
-							<template #content>
-								<FriendContentItem :friend="friend" />
-							</template>
-						</FriendItem>
+			<div v-if="filterFriends().length || !search.length">
+				<div class="titleCont left_center">
+					<img src="@/assets/group2_logo.svg" class="logo">
+					<h2 class="title">Friends</h2>
+				</div>
+				<div v-if="filterFriends().length">
+					<div
+						v-for="friend of filterFriends()"
+						v-bind:key="friend.login"
+						class="row center"
+					>
+						<div class="center column">
+							<FriendItem :friend="friend">
+								<template #content>
+									<FriendContentItem :friend="friend" />
+								</template>
+							</FriendItem>
+						</div>
 					</div>
 				</div>
+				<h2 v-else-if="!search.length" class="noResults">No friends</h2>
 			</div>
-			<h2 v-else class="noResults">No friends</h2>
 			<div v-if="search.length">
 				<div class="titleCont left_center">
 					<img src="@/assets/add2_logo.svg" class="logo">
 					<h2 class="title">More</h2>
 				</div>
-				<div v-for="user of users" :key="user.login" class="row center">
+				<div v-for="user of users" :key="user.login" class="center column">
 					<FriendItem :friend="user">
-						<template v-if="myFriend(user.login)" #content>
-							<div class="space-between left row">
+						<template #content>
+							<div class="center column">
+								<h2 class="name">{{ user.login }}</h2>
+								<div class="space-between raw" :style="'margin-top: 10px;'">
+									<h3 class="text">level {{ user.level }}</h3>
+									<div class="btns center raw">
+										<button @click="add_friend(user.login)" class="btnCont center">
+											<img src="@/assets/add_friend.svg" class="btnImg">
+										</button>
+										<button @click="inviteGame(user.login)" class="btnCont center">
+											<img src="@/assets/ball_logo.svg" class="btnImg">
+										</button>
+										<button @click="toChat(user.login)" class="btnCont center">
+											<img src="@/assets/chat.svg" class="btnImg">
+										</button>
+									</div>
+								</div>
+							</div>
+
+
+							<!-- <div class="space-between left row">
 								<div class="left column">
 									<router-link
 										:to="{
@@ -68,21 +89,18 @@
 								</div>
 							</div>
 							<div class="space-between row">
-								<!-- <div class="left row"> -->
 								<h2 class="score">{{ user.rank }}</h2>
-								<!-- <h2 class="score">{{user.ratiov}} | {{user.ratiod}}</h2> -->
-								<!-- </div> -->
 								<div class="right row" style="margin-right: 15px">
 									<button class="action" @click="add_friend(user.login)">
 										add friend
 									</button>
 									<button class="action">invit</button>
 								</div>
-							</div>
+							</div> -->
 						</template>
-						<template v-else #content>
+						<!-- <template #content>
 							<FriendContentItem :friend="user" />
-						</template>
+						</template> -->
 					</FriendItem>
 				</div>
 			</div>
@@ -92,57 +110,80 @@
 
 <script setup lang="ts">
 import { inject, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
+import { Socket } from 'engine.io-client';
+import router from '@/router';
 import FriendItem from '@/components/FriendItem.vue';
 import SearchItem from '@/components/SearchItem.vue';
-import { Socket } from 'engine.io-client';
 import FriendContentItem from '../components/FriendContentItem.vue';
 import BasicProfil from "@/components/BasicProfilItem.vue";
-import router from '@/router';
+import ProfileUserDto from "@/dto/ProfileUserDto";
+import ResumUserDto from "@/dto/ResumUserDto";
 
 
 // ==================== INIT ====================
 
 // COMPONENTS VARIABLES
-let define = inject('colors');
+const colors = inject('colors');
 const myName: string = inject("me")!;
-let me = inject('user')!;
-let socket: Socket = inject('socket')!;
-let notifs: Ref<number> = inject('notifs')!;
-let users = ref([]);
-let userDone : Ref<boolean> = inject("userDone")!;
+const me : Ref<ProfileUserDto>= inject('user')!;
+const socket: Socket = inject('socket')!;
+const notifs: Ref<number> = inject('notifs')!;
+const userDone : Ref<boolean> = inject("userDone")!;
 const search = ref('');
+const users : Ref<ResumUserDto[]> = ref([]);
 
 // SOCKET LISTENERS
-socket.on('getUsersByLoginFiltred', (data: any[]) => {
-	users.value = data;
-	console.log(users);
+socket.on("getUsersByLoginFiltred", (data: ResumUserDto[]) => {
+	users.value = data.filter(user => {
+		return !me.value.friends.map(f => f.login).includes(user.login);
+	})
 });
 
 // WATCHERS
 watch(search, () => {
-	// if (search.value != '') 
+	if (search.value == '')
+		users.value = [];
+	if (search.value != '') 
 		socket.emit('getByLoginFiltred', {me: myName, search: search.value});
 })
 
+
 // ==================== METHODS ====================
+
+function filterFriends() {
+	return me.value.friends.filter(friend => {
+		return friend.login
+			.toUpperCase()
+			.startsWith(search.value.toUpperCase());
+	});
+}
 
 function add_friend(name: string) {
 	socket.emit('addFriend', { sender: me.value.login, receiver: name });
 }
+
 // function remove_friend(name: string) {
 // 	socket.emit('removeFriend', { sender: me.value.login, receiver: name });
 // }
+
 function acceptFriend(name: string) {
 	socket.emit('acceptFriend', { sender: me.value.login, receiver: name });
 }
+
 function declineFriend(name: string) {
 	socket.emit('declineFriend', { sender: me.value.login, receiver: name });
 }
+
 function myFriend(name: string) {
 	return !me.value.friends.find((friend) => friend.login == name);
 }
+
 function toProfile(login: string) {
 	router.push({name: 'player', params: {name: login}})
+}
+
+function toChat(login: string) {
+	router.push({name: 'PrivConv', params: {conv_name: login}})
 }
 
 
@@ -155,28 +196,30 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+.friend-page {
+	width: clamp(18rem, 80%, 550px);
+}
 #searchItem {
 	margin-top: 20px;
 	margin-bottom: -10px;
 }
-.search_groupe {
-	margin-top: 5px;
-	width: 90%;
+.name {
+	margin-right: auto;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	text-align: left;
 }
-.request-button {
-	margin: 0 10px;
-}
-.group_name {
-	margin-top: 10px;
-}
-.icon_search {
-	font-size: 2rem;
+.text {
+	/* margin-right: auto;
+
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis; */
+	text-align: left;
 }
 .score {
 	font-weight: 500;
-}
-.friend_right {
-	padding: 5px;
 }
 .action {
 	margin: 0 3px;
@@ -184,27 +227,6 @@ onUnmounted(() => {
 	/* background-color: v-bind("define.color3"); */
 	border-radius: 10px;
 }
-.name {
-	overflow: hidden;
-	white-space: nowrap;
-	text-overflow: ellipsis;
-	width: 8.5rem;
-	text-align: left;
-}
-.text {
-	overflow: hidden;
-	white-space: nowrap;
-	text-overflow: ellipsis;
-	width: 7rem;
-	text-align: left;
-}
-.wrap-request {
-	flex-wrap: wrap;
-}
-.friend-page {
-	width: clamp(18rem, 80%, 550px);
-}
-
 
 .separator {
 	flex-shrink: 0;
@@ -246,7 +268,7 @@ onUnmounted(() => {
 	/* margin-left: 15px; */
 	background-color: white;
 	border-radius: calc(2.5rem / 2);
-	border: 2px solid v-bind("define.color2");
+	border: 2px solid v-bind("colors.color2");
 }
 .friendInvBtn {
 	height: 30px;
@@ -275,6 +297,28 @@ onUnmounted(() => {
 }
 .basicProfil {
 	cursor: pointer;
+}
+.btns {
+	width: 70%;
+}
+.btnCont {
+	width: 30px;
+	height: 30px;
+	border-radius: 50%;
+	margin: 0 4%;
+}
+.btnImg {
+	width: 24px;
+	height: 24px;
+	filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg)
+		brightness(86%) contrast(83%);
+}
+.btnCont:hover {
+	background-color: v-bind("colors.color2");
+	box-shadow: 0px 0px 4px #aaa;
+}
+.btnCont:hover > .btnImg {
+	filter: brightness(0) invert(1);
 }
 
 </style>

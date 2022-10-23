@@ -266,7 +266,9 @@ socket.on("newChannel", (data: ChannelDto) => {
 		let newChan = data;
 		newChan.creation = new Date(newChan.creation);
 		newChan.messages.forEach(msg => msg.date = new Date(msg.date));
+		newChan.readed = false;
 		chansRef.value.unshift(newChan);
+		nbChanNR.value.push(chansRef.value[0].name);
 	}
 });
 
