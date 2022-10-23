@@ -13,18 +13,19 @@
 			</button>
 		</div>
 		<div class="space-between raw">
-			<h3 class="text">level {{ friend.level }}</h3>
-			<h3 v-if="statusDone" class="status">
-				{{ status ? "online" : "offline" }}
-			</h3>
-		</div>
-		<div class="space-between row">
-			<div class="right row" style="margin-right: 7px">
-				<button v-if="friend.status == 'in game'" class="action">
-					watch
+			<div class="left column">
+				<h3 class="text">level {{ friend.level }}</h3>
+				<h3 v-if="statusDone" class="status">
+					{{ status ? "online" : "offline" }}
+				</h3>
+			</div>
+			<div class="btns center raw">
+				<button @click="inviteGame(user.login)" class="btnCont center">
+					<img src="@/assets/ball_logo.svg" class="btnImg">
 				</button>
-				<button class="action">play</button>
-				<button class="action">chat</button>
+				<button @click="toChat(user.login)" class="btnCont center">
+					<img src="@/assets/chat.svg" class="btnImg">
+				</button>
 			</div>
 		</div>
 	</div>
@@ -34,9 +35,8 @@
 import { defineProps, inject, onMounted, onUnmounted, ref, Ref } from "vue";
 import { Socket } from 'engine.io-client';
 import router from "@/router";
-import FriendItemVue from "./FriendItem.vue";
 
-
+let colors = inject("colors");
 let me = inject("user")!;
 const socket: Socket = inject('socket')!;
 const props = defineProps(["friend"]);
@@ -76,7 +76,7 @@ onUnmounted(() => {
 	max-width: calc(100% - 75px);
 }
 .status {
-	margin: 0 9px;
+	/* margin: 0 9px; */
 	color: white;
 	padding: 0 5px;
 	border-radius: 5px;
@@ -85,8 +85,12 @@ onUnmounted(() => {
 .action {
 	margin: 0 3px;
 	padding: 2px 6px;
-	/* background-color: v-bind("define.color3"); */
 	border-radius: 10px;
+}
+.action:hover {
+	background-color: v-bind("colors.color2");
+	color: white;
+	box-shadow: 0px 0px 4px #aaa;
 }
 .loginLevelCont {
 	/* max-width: 20%; */

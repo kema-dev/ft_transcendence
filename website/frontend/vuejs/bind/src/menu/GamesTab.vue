@@ -82,8 +82,8 @@ onMounted(async () => {
 .titleCont {
   margin-top: 20px;
   margin-bottom: 10px;
-	margin-right: auto;
-	margin-left: 40px;
+	max-width: 100%;
+	padding-left: 40px;
 }
 .title {
 	font-size: 1.2rem;

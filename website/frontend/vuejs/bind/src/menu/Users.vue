@@ -37,11 +37,7 @@
 						class="row center"
 					>
 						<div class="center column">
-							<FriendItem :friend="friend">
-								<template #content>
-									<FriendContentItem :friend="friend" />
-								</template>
-							</FriendItem>
+							<FriendItem :info="friend" :friend="true"/>
 						</div>
 					</div>
 				</div>
@@ -53,55 +49,7 @@
 					<h2 class="title">More</h2>
 				</div>
 				<div v-for="user of users" :key="user.login" class="center column">
-					<FriendItem :friend="user">
-						<template #content>
-							<div class="center column">
-								<h2 class="name">{{ user.login }}</h2>
-								<div class="space-between raw" :style="'margin-top: 10px;'">
-									<h3 class="text">level {{ user.level }}</h3>
-									<div class="btns center raw">
-										<button @click="add_friend(user.login)" class="btnCont center">
-											<img src="@/assets/add_friend.svg" class="btnImg">
-										</button>
-										<button @click="inviteGame(user.login)" class="btnCont center">
-											<img src="@/assets/ball_logo.svg" class="btnImg">
-										</button>
-										<button @click="toChat(user.login)" class="btnCont center">
-											<img src="@/assets/chat.svg" class="btnImg">
-										</button>
-									</div>
-								</div>
-							</div>
-
-
-							<!-- <div class="space-between left row">
-								<div class="left column">
-									<router-link
-										:to="{
-											name: 'player',
-											params: { name: user.login },
-										}"
-										><h2 class="name">
-											{{ user.login }}
-										</h2></router-link
-									>
-									<h3 class="text">level {{ user.level }}</h3>
-								</div>
-							</div>
-							<div class="space-between row">
-								<h2 class="score">{{ user.rank }}</h2>
-								<div class="right row" style="margin-right: 15px">
-									<button class="action" @click="add_friend(user.login)">
-										add friend
-									</button>
-									<button class="action">invit</button>
-								</div>
-							</div> -->
-						</template>
-						<!-- <template #content>
-							<FriendContentItem :friend="user" />
-						</template> -->
-					</FriendItem>
+					<FriendItem :info="user" :friend="false"/>
 				</div>
 			</div>
 		</div>
@@ -114,7 +62,6 @@ import { Socket } from 'engine.io-client';
 import router from '@/router';
 import FriendItem from '@/components/FriendItem.vue';
 import SearchItem from '@/components/SearchItem.vue';
-import FriendContentItem from '../components/FriendContentItem.vue';
 import BasicProfil from "@/components/BasicProfilItem.vue";
 import ProfileUserDto from "@/dto/ProfileUserDto";
 import ResumUserDto from "@/dto/ResumUserDto";
@@ -158,14 +105,6 @@ function filterFriends() {
 	});
 }
 
-function add_friend(name: string) {
-	socket.emit('addFriend', { sender: me.value.login, receiver: name });
-}
-
-// function remove_friend(name: string) {
-// 	socket.emit('removeFriend', { sender: me.value.login, receiver: name });
-// }
-
 function acceptFriend(name: string) {
 	socket.emit('acceptFriend', { sender: me.value.login, receiver: name });
 }
@@ -174,16 +113,8 @@ function declineFriend(name: string) {
 	socket.emit('declineFriend', { sender: me.value.login, receiver: name });
 }
 
-function myFriend(name: string) {
-	return !me.value.friends.find((friend) => friend.login == name);
-}
-
 function toProfile(login: string) {
 	router.push({name: 'player', params: {name: login}})
-}
-
-function toChat(login: string) {
-	router.push({name: 'PrivConv', params: {conv_name: login}})
 }
 
 
@@ -298,27 +229,4 @@ onUnmounted(() => {
 .basicProfil {
 	cursor: pointer;
 }
-.btns {
-	width: 70%;
-}
-.btnCont {
-	width: 30px;
-	height: 30px;
-	border-radius: 50%;
-	margin: 0 4%;
-}
-.btnImg {
-	width: 24px;
-	height: 24px;
-	filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg)
-		brightness(86%) contrast(83%);
-}
-.btnCont:hover {
-	background-color: v-bind("colors.color2");
-	box-shadow: 0px 0px 4px #aaa;
-}
-.btnCont:hover > .btnImg {
-	filter: brightness(0) invert(1);
-}
-
 </style>

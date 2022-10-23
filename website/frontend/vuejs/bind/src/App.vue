@@ -102,6 +102,11 @@ a {
 	justify-content: space-between !important;
 	align-items: center;
 }
+.space-evenly {
+	display: flex;
+	justify-content: space-evenly !important;
+	align-items: center;
+}
 .space-around {
 	display: flex;
 	justify-content: space-around !important;
