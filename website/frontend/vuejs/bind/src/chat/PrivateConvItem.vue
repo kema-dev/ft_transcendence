@@ -127,6 +127,7 @@ userExistOrBlocked();
 // GET PRIVS REFS
 let privsRef: Ref<PrivConvDto[]> = inject("privs")!;
 const privDone: Ref<boolean> = inject("privDone")!;
+const findPrivIndex: Ref<boolean> = inject("findPrivIndex")!;
 
 // GET PRIV INDEX
 index.value = privsRef.value
@@ -157,22 +158,12 @@ function init() {
 	}, {flush: 'post'})
 }
 
-// ===================== WATCHERS =====================
-
-// watch(blocked, () => {
-// 	if (blocked.value == privsRef.value[index.value].name) {
-// 		router.push({name: 'private'});
-// 	}
-// })
-
-
-// ===================== LISTENERS =====================
-
-mySocket.on("findNewPriv", () => {
-	setTimeout(() => {
+watch(findPrivIndex, () => {
+	if (findPrivIndex.value == true) {
 		index.value = privsRef.value
 			.findIndex((priv) => priv.user.login == userName);
-	}, 100);
+		findPrivIndex.value = false;
+	}
 })
 
 
@@ -294,13 +285,12 @@ onMounted(() => {
 	let msgsCont = document.getElementById("msgsCont");
 	if (msgsCont)
 		msgsCont!.scrollTop = msgsCont!.scrollHeight;
+		const box = document.getElementById("privateTabText");
 	document.getElementById("sendbox")?.focus();
-	const box = document.getElementById("privateTabText");
 	if (box != null) box.classList.add("chatTabActive");
 });
 
 onBeforeUnmount(() => {
-	mySocket.off('findNewPriv');
 	const box = document.getElementById("privateTabText");
 	if (box != null) box.classList.remove("chatTabActive");
 });

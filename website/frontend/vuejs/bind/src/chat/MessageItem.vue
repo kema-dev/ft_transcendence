@@ -64,7 +64,7 @@ function toProfile(player: string) {
 	padding: 8px;
 	border-radius: 10px;
 	margin: 5px 7px 5px 0;
-	text-align: right;
+	text-align: left;
 	background-color: v-bind("colors.color2");
 	white-space: pre-line;
 	overflow-wrap: break-word;

@@ -102,6 +102,7 @@ onMounted(() => {
 let privsRef: Ref<PrivConvDto[]> = ref([]);
 let nbPrivNR: Ref<number[]> = ref([]);
 let privDone = ref(false);
+let findPrivIndex = ref(false);
 function resetNbPrivNR() {
 	nbPrivNR.value = [];
 }
@@ -109,6 +110,8 @@ getPrivsRequest();
 provide('privs', privsRef);
 provide('nbPrivNR', { n: nbPrivNR, reset: resetNbPrivNR });
 provide('privDone', privDone);
+provide('findPrivIndex', findPrivIndex);
+
 
 function getPrivsRequest() {
 	HTTP.get(apiPath + "chat/getPrivs/" + me)
@@ -140,6 +143,7 @@ socket.on('newPrivConv', (data: PrivConvDto) => {
 	let newPriv = data;
 	newPriv.messages.forEach((msg) => (msg.date = new Date(msg.date)));
 	privsRef.value.unshift(newPriv);
+	findPrivIndex.value = true;
 	if (data.messages[0].user != me) nbPrivNR.value.push(data.id);
 });
 
@@ -156,8 +160,10 @@ socket.on('newPrivMsg', (data: { msg: MessageDto; id: number }) => {
 		&& !nbPrivNR.value.includes(privsRef.value[i].id)
 		&& route.path != "/home/chat/private/" + data.msg.user
 		&& !blocked
-		)
-		nbPrivNR.value.push(privsRef.value[i].id);
+		) {
+			nbPrivNR.value.push(privsRef.value[i].id);
+			findPrivIndex.value = true;
+		}
 	if (i != 0) putPrivFirst(i);
 });
 
@@ -168,7 +174,6 @@ function putPrivFirst(index: number) {
 			privsRef.value[1],
 			privsRef.value[0],
 		]);
-	console.log(`index = ${index}`);
 	let privTmp1 = privsRef.value[0];
 	let privTmp2: PrivConvDto;
 	privsRef.value[0] = privsRef.value[index];
@@ -199,7 +204,7 @@ const chansRef : Ref<ChannelDto[]> = ref([]);
 const nbChanNR : Ref<string[]> = ref([]);
 const chanDone = ref(false);
 const chanBan = ref("");
-const newIndex = ref("");
+const findChanIndex = ref(false);
 function resetNbChanNR() {
 	nbChanNR.value = [];
 }
@@ -213,7 +218,7 @@ provide('nbChanNR', {n: nbChanNR, reset: resetNbChanNR});
 provide('chanReaded', chanReaded);
 provide('chanDone', chanDone);
 provide('chanBan', chanBan);
-provide('newIndex', newIndex);
+provide('findChanIndex', findChanIndex);
 
 
 function getChansRequest() {
@@ -256,7 +261,7 @@ socket.on('newChanMsg', (data: { msg: MessageDto; name: string }) => {
 	}
 	if (i != 0) {
 		putChanFirst(i);
-		newIndex.value = data.name;
+		newIndex.value = true;
 	} 
 });
 
