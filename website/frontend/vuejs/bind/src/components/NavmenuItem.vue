@@ -19,8 +19,15 @@
 				</div>
 			</router-link>
 			<h1 class="pipe">|</h1>
-			<router-link to="/home/games" class="nav_menu_link">
+			<router-link to="/home/games" class="nav_menu_link stack">
 				<h2 class="nav_menu_text">GAMES</h2>
+				<div v-if="invitations_to_game.length"
+					class="notifMsgCont center"
+				>
+					<div class="notifMsgNumber">
+						{{ invitations_to_game.length }}
+					</div>
+				</div>
 			</router-link>
 		</div>
 		<!-- <transition name="slide-fade" mode="out-in"> -->
@@ -43,9 +50,6 @@ let invitations_to_game: Ref<Array<{ login: string; lobby: string }>> = inject(
 	'invitations_to_game',
 )!;
 
-watch(invitations_to_game.value, (val) => {
-	console.log('invitations_to_game', val);
-});
 </script>
 
 <style scoped>

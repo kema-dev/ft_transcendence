@@ -414,7 +414,15 @@ let invitations_to_game = ref([]);
 function get_invitations() {
 	socket.off('get_invited');
 	socket.on('get_invited', (data: { login: string; lobby: string }) => {
-		invitations_to_game.value.push(data);
+		// check for duplicates
+		if (
+			invitations_to_game.value.findIndex(
+				(invitation) => invitation.login == data.login,
+			) == -1
+		) {
+			invitations_to_game.value.push(data);
+		}
+		// invitations_to_game.value.push(data);
 	});
 }
 
