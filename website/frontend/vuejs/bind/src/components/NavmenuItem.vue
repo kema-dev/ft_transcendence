@@ -19,8 +19,15 @@
 				</div>
 			</router-link>
 			<h1 class="pipe">|</h1>
-			<router-link to="/home/games" class="nav_menu_link">
+			<router-link to="/home/games" class="nav_menu_link stack">
 				<h2 class="nav_menu_text">GAMES</h2>
+				<div v-if="invitations_to_game.length"
+					class="notifMsgCont center"
+				>
+					<div class="notifMsgNumber">
+						{{ invitations_to_game.length }}
+					</div>
+				</div>
 			</router-link>
 		</div>
 		<!-- <transition name="slide-fade" mode="out-in"> -->
@@ -32,19 +39,24 @@
 </template>
 
 <script setup lang="ts">
-import { inject, Ref } from 'vue';
+import { inject, Ref, watch } from 'vue';
 
 let colors = inject('colors');
 let notifs = inject('notifs');
 let nbPrivNR: { n: Ref<number[]>; reset: () => void } = inject('nbPrivNR')!;
 let nbChanNR: { n: Ref<string[]>; reset: () => void } = inject('nbChanNR')!;
+
+let invitations_to_game: Ref<Array<{ login: string; lobby: string }>> = inject(
+	'invitations_to_game',
+)!;
+
 </script>
 
 <style scoped>
 #menu {
 	height: calc(100vh - 60px);
 	/* width: 30vw; */
-	width: 345px;
+	width: 500px;
 	background: v-bind('colors.color3');
 	box-shadow: -4px 0px 4px rgba(0, 0, 0, 0.25);
 	margin-top: 60px;

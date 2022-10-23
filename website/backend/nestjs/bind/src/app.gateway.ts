@@ -58,13 +58,22 @@ export class AppGateway
 	// Disconnection
 	async handleDisconnect(client: Socket) {
 		this.logger.log(`Client disconnected: ${client.id}`);
-		// console.log("query = ", client.handshake.query.login);
-		const user = await this.userService.getByLogin(
-			client.handshake.query.login as string,
-		);
+		this.leftGame({login: client.handshake.query.login as string});
+	}
+
+	// ============================ GAME =====================================
+
+
+	@SubscribeMessage('leftGame')
+	async leftGame(@MessageBody() data: { login: string }) {
+		console.log('leftGame <---------------------------', data.login);
+		const user = await this.userService.getByLogin(data.login);
 		if (!user) return;
 		let game = this.games.find((game) => game.lobby_name === user.lobby_name);
 		if (!game) return;
+		console.log('game <---------------------------');
+		user.lobby_name = "";
+		this.userService.saveUser(user);
 		game.destructor();
 		if (game.players.length - 1 > 0) {
 			let newGame = new Game(
@@ -75,17 +84,18 @@ export class AppGateway
 				game.lobby_name,
 				game.owner,
 				game.img,
-				this.matchService
+				this.matchService,
+				this
 			);
 			this.games.push(newGame);
 			this.server.to(newGame.sockets).emit('reload_game');
+			if (game.players.length > 2) {
+				newGame.start = game.start;
+			}
 		}
 		console.log('game destroyed');
 		this.games.splice(this.games.indexOf(game), 1);
 	}
-
-	// ============================ GAME =====================================
-
 	// @SubscribeMessage('getBallPos')
 	// getBallsPos(client: Socket, payload: any): any {
 	// 	this.server.emit('getBallPos', this.game[0].balls);
@@ -116,7 +126,8 @@ export class AppGateway
 			user.login + "'s lobby",
 			user.login,
 			user.avatar,
-			this.matchService
+			this.matchService,
+			this
 		);
 		this.games.push(game);
 		user.lobby_name = game.lobby_name;
@@ -164,7 +175,8 @@ export class AppGateway
 			game.lobby_name,
 			game.owner,
 			game.img,
-			this.matchService
+			this.matchService,
+			this
 		);
 		game.destructor();
 		this.games.push(newGame);
@@ -198,6 +210,7 @@ export class AppGateway
 		const game = this.games.find((game) => game.lobby_name === payload.lobby_name);
 		if (game) {
 			game.updateBalls(payload.nbrBall);
+			this.server.to(game.sockets).emit('reload_game');
 		}
 	}
 
@@ -401,4 +414,72 @@ export class AppGateway
 		this.chatService.modifChan(this.server, data);
 	}
 
+	@SubscribeMessage('invite_to_game')
+	async invite_to_game(
+		@MessageBody() data: { login: string },
+		@ConnectedSocket() client: Socket,
+	) {
+		let game;
+		for (game of this.games) {
+			if (game.players.some((p) => p.login == data.login)) {
+				break;
+			}
+		}
+		if (!game) {
+			client.emit('create_from_invitation');
+			client.emit('invite_to_game', { error: 'no game' });
+		}
+		let user;
+		try {
+			user = await this.userService.getByLogin(data.login);
+		} catch (e) {
+			client.emit('invite_to_game', { error: 'no user' });
+			return;
+		}
+		if (user.status != 'online') {
+			client.emit('invite_to_game', { error: 'no online' });
+			return;
+		}
+		this.server.to(user.socketId).emit('get_invited', {
+			login: user.login,
+			lobby: game.lobby_name,
+		});
+	}
+
+	@SubscribeMessage('get_match_infos')
+	async get_match_infos(
+		@MessageBody() data: { lobby: string },
+		@ConnectedSocket() client: Socket,
+	) {
+		let game;
+		for (game of this.games) {
+			if (game.lobby_name == data.lobby) {
+				break;
+			}
+		}
+		if (!game) {
+			// client.emit('get_match_infos', { error: 'no game' });
+			return;
+		}
+		// extract player names
+		const players = [];
+		for (const curr of game.players) {
+			players.push(curr.login);
+		}
+		client.emit('get_match_infos', {
+			nbrPlayer: game.nbrPlayer,
+			nbrBall: game.nbrBall,
+			lobby_name: game.lobby_name,
+			players: players,
+			owner: game.owner
+		});
+	}
+
+	@SubscribeMessage('deny_invit')
+	async deny_invit(
+		@MessageBody() data: { game: string },
+		@ConnectedSocket() client: Socket,
+	) {
+		client.emit('remove_invit', data.game);
+	}
 }

@@ -35,8 +35,12 @@
 import { defineProps, inject, onMounted, onUnmounted, ref, Ref } from "vue";
 import { Socket } from 'engine.io-client';
 import router from "@/router";
+import { useToast } from 'vue-toastification';
+
+
 
 let colors = inject("colors");
+const toast = useToast();
 let me = inject("user")!;
 const socket: Socket = inject('socket')!;
 const props = defineProps(["friend"]);
@@ -69,6 +73,23 @@ onMounted(() => {
 onUnmounted(() => {
 	socket.off('userStatus');
 })
+function inviteGame(name: string) {
+	console.log("inviteGame");
+	socket.off('invite_to_game');
+	socket.on('invite_to_game', (data) => {
+		if (data.error == 'no game') {
+			toast.success('You were not in a game, created a new one for you !');
+			inviteGame();
+		} else if (data.error == 'no user') {
+			toast.error('This user does not exist');
+		} else if (data.error == 'no online') {
+			toast.warning('This user is not online');
+		} else {
+			console.log(data);
+		}
+	});
+	socket.emit("invite_to_game", { login: name });
+}
 </script>
 
 <style>

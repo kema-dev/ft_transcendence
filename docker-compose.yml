@@ -68,17 +68,12 @@ services:
       - POSTGRES_DB=${POSTGRESQL_DATABASE}
       - POSTGRES_HOST=s_postgresql
       - FQDN=${FQDN}
-      # - JWT_SECRET=${JWT_SECRET}
-    command: "sh -c '\
-      echo \"POSTGRES_PORT=${POSTGRESQL_PORT}\\nPOSTGRES_USER=${POSTGRESQL_USERNAME}\\nPOSTGRES_PASSWORD=${POSTGRESQL_PASSWORD}\\nPOSTGRES_DB=${POSTGRESQL_DATABASE}\\nJWT_MAX_AGE=${JWT_MAX_AGE}\\nJWT_SECRET=`date +%s%N | cut -b10-19 | md5sum | head -c 20`\\nAPI_42_UID=${API_42_UID}\\nAPI_42_SECRET=${API_42_SECRET}\\nAPI_42_REDIRECT_URI=${API_42_REDIRECT_URI}\\nFQDN=${FQDN}\" > .env && \
-      mkdir -p /secrets && \
-      openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /secrets/key.pem -out /secrets/cert.pem -subj \"/C=FR/ST=France/L=Paris/O=42/OU=42/CN=ft_transcendence\" && \
-      chmod 777 /secrets/key.pem && \
-      chmod 777 /secrets/cert.pem && \
-      npm config set fund false && \
-      npm install && \
-      npm run ${NEST_PHASE} \
-      '"
+      - NEST_PHASE=${NEST_PHASE}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_MAX_AGE=${JWT_MAX_AGE}
+      - API_42_UID=${API_42_UID}
+      - API_42_SECRET=${API_42_SECRET}
+      - API_42_REDIRECT_URI=${API_42_REDIRECT_URI}
     restart: "no"
     depends_on:
       s_postgresql:
@@ -103,20 +98,12 @@ services:
     volumes:
       - ./website/frontend/vuejs/bind:/app
       - ./website/shared:/shared
-    command: "sh -c '\
-      echo \"{\\\"API_42_UID\\\":\\\"$API_42_UID\\\",\\\"API_42_REDIRECT_URI\\\":\\\"$API_42_REDIRECT_URI\\\",\\\"FQDN\\\":\\\"$FQDN\\\"}\" > .env.json && \
-      mkdir -p /secrets && \
-      openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /secrets/key.pem -out /secrets/cert.pem -subj \"/C=FR/ST=France/L=Paris/O=42/OU=42/CN=ft_transcendence\" && \
-      chown 1000:1000 /secrets/key.pem && \
-      chown 1000:1000 /secrets/cert.pem && \
-      yarn install --ignore-engines && \
-      yarn run ${VUE_PHASE} \
-      '"
     restart: "no"
     environment:
       - API_42_UID=${API_42_UID}
       - API_42_REDIRECT_URI=${API_42_REDIRECT_URI}
       - FQDN=${FQDN}
+      - VUE_PHASE=${VUE_PHASE}
     depends_on:
       s_nestjs:
         condition: service_started

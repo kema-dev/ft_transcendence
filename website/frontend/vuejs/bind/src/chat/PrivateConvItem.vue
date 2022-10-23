@@ -104,11 +104,11 @@ import { NewPrivMsgDto } from "@/chat/dto/NewPrivMsgDto";
 import { PrivConvDto } from "@/chat/dto/PrivConvDto";
 import { BasicUserDto } from "./dto/BasicUserDto";
 import router from "@/router";
-
-
+import { useToast } from 'vue-toastification';
 // ===================== INIT =====================
 
 // INIT COMPONENT VARIABLES
+const toast = useToast();
 let colors = inject("colors");
 let mySocket: Socket = inject("socket")!;
 let me: string = inject("me")!;
@@ -215,7 +215,20 @@ function blockUser() {
 }
 
 function inviteGame() {
-	
+	mySocket.off('invite_to_game');
+	mySocket.on('invite_to_game', (data) => {
+		if (data.error == 'no game') {
+			toast.success('You were not in a game, created a new one for you !');
+			inviteGame();
+		} else if (data.error == 'no user') {
+			toast.error('This user does not exist');
+		} else if (data.error == 'no online') {
+			toast.warning('This user is not online');
+		} else {
+			console.log(data);
+		}
+	});
+	mySocket.emit("invite_to_game", { login: userName });
 }
 
 function scrollAndFocus() {
