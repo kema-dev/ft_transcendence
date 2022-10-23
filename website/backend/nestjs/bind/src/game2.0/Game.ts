@@ -10,6 +10,7 @@ import { RacketDto } from './dto/RacketDto';
 import Profile from './objects/Profile';
 import { UserEntity } from 'src/users/user.entity';
 import { MatchService } from '../match/match.service';
+import { AppGateway } from 'src/app.gateway';
 
 export default class Game {
 	nbrPlayer: number;
@@ -30,6 +31,7 @@ export default class Game {
 	owner: string;
 	img: string;
 	match_service: MatchService;
+	app: AppGateway;
 	fieldpoints: Array<{ x: number, y: number }>;
 	constructor(
 		nbrPlayer: number,
@@ -40,6 +42,7 @@ export default class Game {
 		owner: string,
 		img: string,
 		match_service: MatchService,
+		app: any,
 	) {
 		this.match_service = match_service;
 		this.start = false;
@@ -47,6 +50,7 @@ export default class Game {
 		this.run = true;
 		this.nbrBall = nbrBall;
 		this.nbrPlayer = nbrPlayer;
+		this.app = app;
 		this.balls = [];
 		this.objects = [];
 		this.deltaTime = 1;
@@ -182,9 +186,23 @@ export default class Game {
 		while (this.run) {
 			if (this.start)
 				for (const ball of this.balls) {
-					if (ball.detectCollision(this.objects)) {
+					let login: any;
+					if ((login = ball.detectCollision(this.objects))) {
 						this.run = false;
-						this.match_service.add_match(this);
+						console.log('------------------------>', login);
+						if (this.nbrPlayer == 1) {
+							this.match_service.add_match(this);
+							this.server.to(this.players[0].socketId).emit('end', { win: true });
+						}
+						else if (this.nbrPlayer == 2) {
+							this.match_service.add_match(this);
+							this.server.to(this.players.find((p) => p.login != login)?.socketId).emit('end', { win: true });
+							this.server.to(this.players.find((p) => p.login == login)?.socketId).emit('end', { win: false });
+						}
+						else
+							this.server.to(this.players.find((p) => p.login == login)?.socketId).emit('end', { win: false });
+						this.app.leftGame({ login: login });
+						return;
 					}
 					ball.x = ball.x + ball.v.x * ball.speed * this.deltaTime;
 					ball.y = ball.y + ball.v.y * ball.speed * this.deltaTime;
