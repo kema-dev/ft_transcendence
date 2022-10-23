@@ -5,16 +5,18 @@
 				<img class="tennis_racket_img" src="@/assets/svg/ball_fire.svg" />
 				<div class="info center row space-around">
 					<div class="row center">
-						<img class="podium icon" src="@/assets/svg/leaderboard.svg" />
-						<h1 class="number">{{ get_rank() }}</h1>
-					</div>
-					<div class="row center">
 						<img class="icon" src="@/assets/svg/user.svg" />
 						<h1 class="number">{{ props.match.player_count }}</h1>
 					</div>
 					<div class="row center">
 						<img class="icon" src="@/assets/svg/tennis.svg" />
 						<h1 class="number">{{ props.match.ball_count }}</h1>
+					</div>
+					<div class="row center front" @click="accept_invit">
+						<img class="icon" src="@/assets/play_button.png" />
+					</div>
+					<div class="row center front" @click="deny_invit">
+						<img class="icon" src="@/assets/undo_logo.svg" />
 					</div>
 				</div>
 			</div>
@@ -26,22 +28,16 @@
 						v-for="i in props.match.players.length"
 						:key="i"
 					>
-						<div @click="go_to_user_profile(i)" class="space-between fit_match">
-							<img :src="avatar[i - 1]" class="avatar" />
+						<div class="space-between fit_match">
+							<img
+								:src="avatar[i - 1]"
+								class="avatar"
+								@click="go_to_user_profile(i)"
+							/>
 							<div class="info_details center row space-around">
 								<div class="row center">
-									<h1 class="player_login">
+									<h1 class="player_login" @click="go_to_user_profile(i)">
 										{{ get_player_name(props.match.players[i - 1]) }}
-									</h1>
-								</div>
-								<div class="row center">
-									<img class="podium icon" src="@/assets/svg/leaderboard.svg" />
-									<h1 class="number_details">{{ props.match.ranks[i - 1] }}</h1>
-								</div>
-								<div class="row center">
-									<img class="icon small_icon" src="@/assets/svg/heart.svg" />
-									<h1 class="number_details">
-										{{ props.match.scores[i - 1] }}
 									</h1>
 								</div>
 							</div>
@@ -59,41 +55,27 @@ import { MatchDto } from '../dto/MatchDto';
 import ProfileUserDto from '../dto/ProfileUserDto';
 import API from './axios';
 import { useCookies } from 'vue3-cookies';
-import { useRouter, useRoute } from 'vue-router';
-
-const route = useRoute();
-const router = useRouter();
+import { useRouter } from 'vue-router';
+import { Socket } from 'socket.io-client';
 const { cookies } = useCookies();
+
 let define = inject('colors');
 let me: Ref<ProfileUserDto> = inject('user')!;
-let size = ref(0);
+
 const props = defineProps(['match']);
 
+let size = ref(0);
+
+const router = useRouter();
+
 function go_to_user_profile(i: number) {
-	let refresh = false;
-	if (route.path != "/home/profile")
-		refresh = true;
-	router.push({name: 'player', params: {name: props.match.players[i - 1]}});
-	if (refresh == true)
-		setTimeout(() => {
-			router.go(0);
-		}, 100);
+	router.push('/home/player/' + props.match.players[i - 1]);
+	// router.go(0);
 }
 
 function open() {
 	if (size.value) size.value = 0;
 	else size.value = props.match.player_count + 1;
-}
-
-function get_rank() {
-	let rank = 0;
-	for (let i = 0; i < props.match.players.length; i++) {
-		if (props.match.players[i] == me?.value?.login) {
-			rank = props.match.ranks[i];
-			break;
-		}
-	}
-	return rank;
 }
 
 let avatar = ref([]);
@@ -116,6 +98,29 @@ async function get_avatars() {
 	}
 }
 
+let mySocket: Socket = inject('socket')!;
+
+function deny_invit() {
+	mySocket.emit('deny_invit', {
+		game: props.match.name,
+	});
+}
+
+let isCreate: Ref<boolean> = inject('isCreate')!;
+let isJoin: Ref<boolean> = inject('isJoin')!;
+
+function accept_invit() {
+	mySocket.emit('join_lobby', {
+		login: me?.value?.login,
+		lobby: props.match.name,
+	});
+	isCreate.value = true;
+	isJoin.value = false;
+	mySocket.emit('deny_invit', {
+		game: props.match.name,
+	});
+}
+
 function get_player_name(player: string) {
 	// send max 5 char
 	if (player.length > 6) {
@@ -130,6 +135,10 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+.front {
+	z-index: 100;
+}
+
 .groupe {
 	margin: 10px 0;
 	width: clamp(18rem, 80%, 550px);
@@ -180,7 +189,7 @@ onMounted(async () => {
 }
 .number_details {
 	font-size: clamp(1px, 120%, 8rem);
-	/* margin-left: -8px; */
+	margin-left: -8px;
 }
 .icon {
 	/* height: clamp(10px, 10%, 40px); */
@@ -212,11 +221,9 @@ onMounted(async () => {
 	height: 50px;
 	width: 50px;
 	border: 4px v-bind('define.color2') solid;
-	object-fit: cover;
 }
 .fit_match {
 	height: 42px;
-	cursor: pointer;
 }
 .player_login {
 	font-size: clamp(1px, 120%, 8rem);

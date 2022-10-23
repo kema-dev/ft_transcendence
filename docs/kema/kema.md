@@ -2,6 +2,8 @@
 
 ## ongoing
 
+* add notification for game invitations
+
 ## optional
 
 * change readme's images using a gif of a live game and some screenshots of the website
@@ -14,4 +16,3 @@
 
 * find a way to generate valid https certificates for nestjs and vuejs (maybe using lets encrypt's certbot)
 * http to https redirection (via certificate)
-* update JWT secret (no MD5sum, use env file's provided variable)

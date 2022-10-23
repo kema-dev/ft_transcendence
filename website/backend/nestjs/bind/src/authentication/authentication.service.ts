@@ -225,19 +225,19 @@ export class AuthenticationService {
 	}
 
 	public async validate_token(request: CheckDto) {
-		console.log('validate_token: starting ');
+		// console.log('validate_token: starting ');
 		try {
-			console.log(
-				'validate_token:',
-				'decoded:',
-				await this.jwtService.decode(request.token),
-			);
+			// console.log(
+			// 	'validate_token:',
+			// 	'decoded:',
+			// 	await this.jwtService.decode(request.token),
+			// );
 			await this.jwtService.verify(request.token);
 		} catch (error) {
 			console.error('validate_token: ' + 'session mismatch, returning ✘');
 			throw new HttpException('E_SESSION_MISMATCH', HttpStatus.BAD_REQUEST);
 		}
-		console.log('validate_token: ' + 'session valid, returning ✔');
+		// console.log('validate_token: ' + 'session valid, returning ✔');
 		return true;
 	}
 

@@ -8,8 +8,8 @@
 			<img class="qr_img" id="qr_img" v-bind:src="totp_url" alt="">
 			<p id="qr_text">Code: {{ totp_code }}</p>
 		</div>
-		<div class="mfa_input">
-			<button @click="get_totp_url" v-show="!totp_code">
+		<!-- <div class="mfa_input"> -->
+			<button @click="get_totp_url" v-show="!totp_code" class="mfaBtn">
 				Enable / Change MFA
 			</button>
 			<input
@@ -19,8 +19,12 @@
 				placeholder="TOTP Code"
 				v-show="totp_code"
 			/>
-			<button @click="verify" v-show="totp_code">VERIFY TOTP</button>
-		</div>
+			<button @click="verify" v-show="totp_code" class="mfaBtn">
+				VERIFY TOTP
+			</button>
+			<hr class="separator" v-show="totp_code">
+		<!-- </div> -->
+
 	</div>
 </template>
 
@@ -34,6 +38,7 @@ import { useCookies } from 'vue3-cookies';
 const { cookies } = useCookies();
 const toast = useToast();
 const $cookies = inject<VueCookies>('$cookies');
+const colors = inject('colors');
 
 let totp_url = ref('');
 let totp_code = ref('');
@@ -121,13 +126,13 @@ onMounted(() => {
 
 <style scoped>
 .security-view {
-	margin: 30px;
+	margin: 10px;
 	height: fit-content;
 	display: flex;
 	justify-content: top;
 	align-items: center;
 	flex-direction: column;
-	margin-bottom: 30px;
+	/* margin-bottom: 30px; */
 }
 
 .hint {
@@ -163,6 +168,7 @@ onMounted(() => {
 	font-size: 1.2rem;
 	margin: 10px;
 	padding: 0;
+	outline: none;
 }
 
 .mfa_content {
@@ -175,7 +181,7 @@ onMounted(() => {
 	margin-bottom: 20px;
 }
 
-.mfa_input {
+/* .mfa_input {
 	position: relative;
 	z-index: 1;
 	display: flex;
@@ -186,5 +192,24 @@ onMounted(() => {
 	border-radius: 10px;
 	border: 3px solid #2c3e50;
 	box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+} */
+.mfaBtn {
+	margin-top: 10px;
+	margin-bottom: 10px;
+	height: 1.5rem;
+	width: auto;
+	border-radius: calc(1.5rem / 2);
+	font-weight: 500;
+	background-color: v-bind("colors.color2");
+	color: white;
+	padding: 0 10px;
+	box-shadow: 0px 0px 4px #aaa;
+}
+.separator{
+	margin-top: 15px;
+	flex-shrink: 0;
+	width: 200px;
+	height: 1px;
+	background-color: v-bind("colors.color2");
 }
 </style>

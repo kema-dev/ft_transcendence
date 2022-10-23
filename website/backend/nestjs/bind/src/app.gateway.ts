@@ -89,7 +89,9 @@ export class AppGateway
 			);
 			this.games.push(newGame);
 			this.server.to(newGame.sockets).emit('reload_game');
-			newGame.start = game.start;
+			if (game.players.length > 2) {
+				newGame.start = game.start;
+			}
 		}
 		console.log('game destroyed');
 		this.games.splice(this.games.indexOf(game), 1);
@@ -281,6 +283,27 @@ export class AppGateway
 		this.userService.changeAvatar(payload.login, payload.avatar);
 	}
 
+	@SubscribeMessage('userStatus')
+	async get_user_status(
+		@MessageBody() data: string,
+		@ConnectedSocket() client: Socket,
+	) {
+		let statusString = await this.userService.get_user_status(data);
+		let status: boolean;
+		statusString == "online" ? status = true : status = false;
+		client.emit("userStatus", {user: data, status: status});
+	}
+
+	@SubscribeMessage('userLogout')
+	async userLogout( @MessageBody() data: string) {
+		this.server.emit("userStatus", {user: data, status: false})
+	}
+
+	@SubscribeMessage('userLogin')
+	async userLogin( @MessageBody() data: string) {
+		this.server.emit("userStatus", {user: data, status: true})
+	}
+
 	@SubscribeMessage('blockUser')
 	async blockUser(
 		@MessageBody() data: {blocker: string, blocked: string},
@@ -391,4 +414,72 @@ export class AppGateway
 		this.chatService.modifChan(this.server, data);
 	}
 
+	@SubscribeMessage('invite_to_game')
+	async invite_to_game(
+		@MessageBody() data: { login: string },
+		@ConnectedSocket() client: Socket,
+	) {
+		let game;
+		for (game of this.games) {
+			if (game.players.some((p) => p.login == data.login)) {
+				break;
+			}
+		}
+		if (!game) {
+			client.emit('create_from_invitation');
+			client.emit('invite_to_game', { error: 'no game' });
+		}
+		let user;
+		try {
+			user = await this.userService.getByLogin(data.login);
+		} catch (e) {
+			client.emit('invite_to_game', { error: 'no user' });
+			return;
+		}
+		if (user.status != 'online') {
+			client.emit('invite_to_game', { error: 'no online' });
+			return;
+		}
+		this.server.to(user.socketId).emit('get_invited', {
+			login: user.login,
+			lobby: game.lobby_name,
+		});
+	}
+
+	@SubscribeMessage('get_match_infos')
+	async get_match_infos(
+		@MessageBody() data: { lobby: string },
+		@ConnectedSocket() client: Socket,
+	) {
+		let game;
+		for (game of this.games) {
+			if (game.lobby_name == data.lobby) {
+				break;
+			}
+		}
+		if (!game) {
+			// client.emit('get_match_infos', { error: 'no game' });
+			return;
+		}
+		// extract player names
+		const players = [];
+		for (const curr of game.players) {
+			players.push(curr.login);
+		}
+		client.emit('get_match_infos', {
+			nbrPlayer: game.nbrPlayer,
+			nbrBall: game.nbrBall,
+			lobby_name: game.lobby_name,
+			players: players,
+			owner: game.owner
+		});
+	}
+
+	@SubscribeMessage('deny_invit')
+	async deny_invit(
+		@MessageBody() data: { game: string },
+		@ConnectedSocket() client: Socket,
+	) {
+		client.emit('remove_invit', data.game);
+	}
 }

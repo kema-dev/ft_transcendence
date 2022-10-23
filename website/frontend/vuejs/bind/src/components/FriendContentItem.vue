@@ -37,7 +37,7 @@
 			<button v-if="friend.status == 'in game'" class="action">
 				watch game
 			</button>
-			<button class="action">invit</button>
+			<button class="action" @click="inviteGame(friend.login)">invit</button>
 			<button class="action">chat</button>
 		</div>
 	</div>
@@ -46,7 +46,9 @@
 <script setup lang="ts">
 import { defineProps, inject } from "vue";
 import { Socket } from "engine.io-client";
+import { useToast } from 'vue-toastification';
 
+const toast = useToast();
 let me = inject("user")!;
 let socket: Socket = inject("socket")!;
 const props = defineProps(["friend"]);
@@ -57,6 +59,24 @@ let statusColor = {
 };
 function remove_friend(name: string) {
 	socket.emit("removeFriend", { sender: me.value.login, receiver: name });
+}
+
+function inviteGame(name: string) {
+	console.log("inviteGame");
+	socket.off('invite_to_game');
+	socket.on('invite_to_game', (data) => {
+		if (data.error == 'no game') {
+			toast.success('You were not in a game, created a new one for you !');
+			inviteGame();
+		} else if (data.error == 'no user') {
+			toast.error('This user does not exist');
+		} else if (data.error == 'no online') {
+			toast.warning('This user is not online');
+		} else {
+			console.log(data);
+		}
+	});
+	socket.emit("invite_to_game", { login: name });
 }
 </script>
 

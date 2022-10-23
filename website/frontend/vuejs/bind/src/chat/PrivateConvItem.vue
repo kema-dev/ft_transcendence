@@ -1,7 +1,7 @@
 <template>
 	<div v-if="userExistDone && userExist && privDone" id="conversation_view" class="stack">
 		<div class="userTopBar center raw space-between">
-			<div class="avatar_cont center">
+			<div @click="toProfile" class="avatar_cont center">
 				<img :src="userExist.avatar"
 					class="avatar" alt="avatar"
 				/>
@@ -24,7 +24,7 @@
 						class="button_img"
 					/>
 				</button>
-				<button onclick="history.back();" class="button_cont center">
+				<button onclick="history.back()" class="button_cont center">
 					<span class="infoButtonText">Close</span>
 					<img
 						src="~@/assets/close_logo.svg"
@@ -104,11 +104,11 @@ import { NewPrivMsgDto } from "@/chat/dto/NewPrivMsgDto";
 import { PrivConvDto } from "@/chat/dto/PrivConvDto";
 import { BasicUserDto } from "./dto/BasicUserDto";
 import router from "@/router";
-
-
+import { useToast } from 'vue-toastification';
 // ===================== INIT =====================
 
 // INIT COMPONENT VARIABLES
+const toast = useToast();
 let colors = inject("colors");
 let mySocket: Socket = inject("socket")!;
 let me: string = inject("me")!;
@@ -223,6 +223,23 @@ function blockUser() {
 	router.push({name: 'private'});
 }
 
+function inviteGame() {
+	mySocket.off('invite_to_game');
+	mySocket.on('invite_to_game', (data) => {
+		if (data.error == 'no game') {
+			toast.success('You were not in a game, created a new one for you !');
+			inviteGame();
+		} else if (data.error == 'no user') {
+			toast.error('This user does not exist');
+		} else if (data.error == 'no online') {
+			toast.warning('This user is not online');
+		} else {
+			console.log(data);
+		}
+	});
+	mySocket.emit("invite_to_game", { login: userName });
+}
+
 function scrollAndFocus() {
 	let msgCont = document.getElementById("msgsCont");
 	if (msgCont)
@@ -332,6 +349,7 @@ function printPrivs(privs: PrivConvDto[] | undefined) {
 	box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.1), 0px -4px 4px rgba(0, 0, 0, 0.1);
 }
 .avatar_cont {
+	cursor: pointer;
 	width: var(--height);
 	height: var(--height);
 }
@@ -339,6 +357,7 @@ function printPrivs(privs: PrivConvDto[] | undefined) {
 	height: calc(var(--height) - 15px);
 	width: calc(var(--height) - 15px);
 	border-radius: 50%;
+	object-fit: cover;
 }
 .login {
 	font-family: "Orbitron", sans-serif;

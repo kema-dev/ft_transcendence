@@ -143,6 +143,12 @@ onUnmounted(() => {
 	socket.off('lobbys');
 	socket.off('end');
 });
+
+socket.off('create_from_invitation');
+socket.on('create_from_invitation', (data: any) => {
+	create();
+});
+
 </script>
 
 <style scoped>

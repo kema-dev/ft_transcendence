@@ -15,8 +15,8 @@
 			<!-- <SearchItem v-model="search"/> -->
 
 			<!-- <input type="text" placeholder="Recherche" id="search" ref="search" /> -->
-			<SearchItem v-model:search="search"/>
-			<div v-if="search.value == ''" class="column center">
+			<SearchItem v-model:search="search" id="searchItem" />
+			<div v-if="search == ''" class="column center">
 				<div v-if="me?.requestFriend.length != 0" class="column center">
 					<h2>Friend request</h2>
 					<div
@@ -104,7 +104,9 @@
 									<button class="action" @click="add_friend(user.login)">
 										add friend
 									</button>
-									<button class="action">invit</button>
+									<button class="action" @click="inviteGame(user.login)">
+										invit
+									</button>
 								</div>
 							</div>
 						</template>
@@ -119,11 +121,13 @@
 </template>
 
 <script setup lang="ts">
-import { inject, onMounted, onUnmounted, Ref, ref } from 'vue';
+import { inject, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
 import FriendItem from '@/components/FriendItem.vue';
 import SearchItem from '@/components/SearchItem.vue';
 import { Socket } from 'engine.io-client';
 import FriendContentItem from '../components/FriendContentItem.vue';
+import { useToast } from 'vue-toastification';
+const toast = useToast();
 
 let define = inject('colors');
 const myName: string = inject("me")!;
@@ -131,11 +135,12 @@ let me = inject('user')!;
 let socket: Socket = inject('socket')!;
 let notifs: Ref<number> = inject('notifs')!;
 let users = ref([]);
+let userDone : Ref<boolean> = inject("userDone")!;
 
 const search = ref('');
 function add_friend(name: string) {
 	socket.emit('addFriend', { sender: me.value.login, receiver: name });
-	alert('friend request sent');
+	toast.success('Friend request sent');
 }
 function remove_friend(name: string) {
 	socket.emit('removeFriend', { sender: me.value.login, receiver: name });
@@ -150,53 +155,57 @@ function myFriend(name: string) {
 	return !me.value.friends.find((friend) => friend.login == name);
 }
 
+function inviteGame(name: string) {
+	socket.off('invite_to_game');
+	socket.on('invite_to_game', (data) => {
+		if (data.error == 'no game') {
+			toast.success('You were not in a game, created a new one for you !');
+			inviteGame(name);
+		} else if (data.error == 'no user') {
+			toast.error('This user does not exist');
+		} else if (data.error == 'no online') {
+			toast.warning('This user is not online');
+		} else {
+			console.log(data);
+		}
+	});
+	socket.emit("invite_to_game", { login: name });
+}
+
+watch(search, () => {
+	// if (search.value != '') 
+		socket.emit('getByLoginFiltred', {me: myName, search: search.value});
+})
+
 onMounted(() => {
 	socket.on('getUsersByLoginFiltred', (data: any[]) => {
 		users.value = data;
 		console.log(users);
 	});
-	let input = document.getElementById('search');
+	let input = document.getElementById('searchItem');
 	if (input == null) console.log('error');
-	input?.addEventListener('input', (str) => {
-		if (input.value == null) {
-			search.value = '';
-			return;
-		}
-		search.value = input.value;
-		if (search.value != '') {
-			// users.value = post('user/getUsers', search.value);
-			socket.emit('getByLoginFiltred', {me: myName, search: search.value});
-		}
-	});
+	// input?.addEventListener('input', (str) => {
+	// 	if (input.value == null) {
+	// 		search.value = '';
+	// 		return;
+	// 	}
+	// 	search.value = input.value;
+	// 	if (search.value != '') {
+	// 		// users.value = post('user/getUsers', search.value);
+	// 		socket.emit('getByLoginFiltred', {me: myName, search: search.value});
+	// 	}
+	// });
 	// notifs.value = 0;
 });
 onUnmounted(() => {
 	socket.off('getUsersByLoginFiltred');
 });
-// function search_user(str: string) {
-// 	users.forEach((u) => u.name == str);
-// }
 </script>
 
 <style scoped>
 .search_groupe {
 	margin-top: 5px;
 	width: 90%;
-}
-#search {
-	/* position: absolute; */
-	top: 0px;
-	width: 80%;
-	height: 40px;
-	background: #fff;
-	border: solid 1px #ccc;
-	border-radius: 12px;
-	padding-left: 10px;
-	margin: 15px 0;
-	margin-right: 2%;
-	font-size: 1.2rem;
-	outline: none;
-	box-shadow: 0px 0px 4px #aaa;
 }
 .request-button {
 	margin: 0 10px;

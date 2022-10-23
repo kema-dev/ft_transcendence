@@ -12,15 +12,22 @@
 				</div>
 			</router-link>
 			<h1 class="pipe">|</h1>
-			<router-link to="/home/friends" class="nav_menu_link stack">
-				<h2 class="nav_menu_text">FRIENDS</h2>
+			<router-link to="/home/users" class="nav_menu_link stack">
+				<h2 class="nav_menu_text" id="usersTabText">USERS</h2>
 				<div v-if="notifs" class="notifMsgCont center">
 					<div class="notifMsgNumber">{{ notifs }}</div>
 				</div>
 			</router-link>
 			<h1 class="pipe">|</h1>
-			<router-link to="/home/profile" class="nav_menu_link">
-				<h2 class="nav_menu_text">PROFILE</h2>
+			<router-link to="/home/games" class="nav_menu_link stack">
+				<h2 class="nav_menu_text">GAMES</h2>
+				<div v-if="invitations_to_game.length"
+					class="notifMsgCont center"
+				>
+					<div class="notifMsgNumber">
+						{{ invitations_to_game.length }}
+					</div>
+				</div>
 			</router-link>
 		</div>
 		<!-- <transition name="slide-fade" mode="out-in"> -->
@@ -32,12 +39,17 @@
 </template>
 
 <script setup lang="ts">
-import { inject, Ref } from 'vue';
+import { inject, Ref, watch } from 'vue';
 
 let colors = inject('colors');
 let notifs = inject('notifs');
 let nbPrivNR: { n: Ref<number[]>; reset: () => void } = inject('nbPrivNR')!;
 let nbChanNR: { n: Ref<string[]>; reset: () => void } = inject('nbChanNR')!;
+
+let invitations_to_game: Ref<Array<{ login: string; lobby: string }>> = inject(
+	'invitations_to_game',
+)!;
+
 </script>
 
 <style scoped>
@@ -74,6 +86,7 @@ let nbChanNR: { n: Ref<string[]>; reset: () => void } = inject('nbChanNR')!;
 	font-size: 1.1rem;
 	font-weight: 100;
 }
+.active,
 .router-link-active > .nav_menu_text {
 	font-weight: 900;
 }
