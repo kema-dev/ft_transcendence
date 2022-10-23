@@ -89,7 +89,9 @@ export class AppGateway
 			);
 			this.games.push(newGame);
 			this.server.to(newGame.sockets).emit('reload_game');
-			newGame.start = game.start;
+			if (game.players.length > 2) {
+				newGame.start = game.start;
+			}
 		}
 		console.log('game destroyed');
 		this.games.splice(this.games.indexOf(game), 1);
