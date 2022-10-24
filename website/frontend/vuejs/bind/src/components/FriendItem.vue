@@ -21,10 +21,10 @@
 			</div>
 			<div class="space-between raw">
 				<div @click="toProfile()" class="levelStatus left column">
-					<h3 class="level">level {{ info.level }}</h3>
 					<h3 v-if="statusDone" class="status">
 						{{ status ? "online" : "offline" }}
 					</h3>
+					<h3 class="level">level {{ info.level }}</h3>
 				</div>
 				<div class="btns space-evenly raw stack">
 					<button v-if="!friend" @click="addFriend()" class="btnCont center">
@@ -136,7 +136,7 @@ onUnmounted(() => {
 	width: 70px;
 	height: 70px;
 	border-radius: 50%;
-	margin-right: 5px;
+	margin-right: 6px;
 	object-fit: cover;
 }
 .friendInfoCont {
@@ -152,24 +152,24 @@ onUnmounted(() => {
 	text-overflow: ellipsis;
 	text-align: left;
 	cursor: pointer;
-	margin-bottom: 7px;
+	margin-bottom: 5px;
 }
 .levelStatus {
 	width: min-content;
+}
+.status {
+	color: white;
+	padding: 0 5px;
+	border-radius: 5px;
+	margin-bottom: 5px;
+	background-color: v-bind((status ? "green" : "red"));
 }
 .level {
 	overflow: hidden;
 	white-space: nowrap;
 	text-overflow: ellipsis;
 	text-align: left;
-	margin-bottom: 5px;
-}
-.status {
-	/* margin: 0 9px; */
-	color: white;
-	padding: 0 5px;
-	border-radius: 5px;
-	background-color: v-bind((status ? "green" : "red"));
+	font-weight: 500;
 }
 .btns {
 	width: calc(100% - 60px);

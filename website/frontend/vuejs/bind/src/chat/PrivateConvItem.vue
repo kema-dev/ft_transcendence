@@ -6,7 +6,10 @@
 					class="avatar" alt="avatar"
 				/>
 			</div>
-			<button @click="toProfile" class="login">{{ userName }}</button>
+			<div class="center row">
+				<button @click="toProfile" class="login">{{ userName }}</button>
+				<div class="status"></div>
+			</div>
 			<div class="option_buttons center raw stack">
 				<button @click="inviteGame" class="button_cont center">
 					<span class="infoButtonText">Invite in game</span>
@@ -115,6 +118,8 @@ let me: string = inject("me")!;
 let apiPath: string = inject("apiPath")!;
 const userName = useRoute().params.conv_name as string;
 let myMsg = ref("");
+let user_status = ref(false);
+let statusDone = ref(false);
 let blockWarn = ref(false);
 let userBlocked = ref(false);
 let userExistDone = ref(false);
@@ -301,9 +306,17 @@ onMounted(() => {
 		const box = document.getElementById("privateTabText");
 	document.getElementById("sendbox")?.focus();
 	if (box != null) box.classList.add("chatTabActive");
+	mySocket.on("userStatus", (data: {user: string, status: boolean}) => {
+		if (data.user == userName) {
+			user_status.value = data.status;
+			statusDone.value = true;
+		}
+	});
+	mySocket.emit("userStatus", userName);
 });
 
 onBeforeUnmount(() => {
+	mySocket.off("userStatus");
 	const box = document.getElementById("privateTabText");
 	if (box != null) box.classList.remove("chatTabActive");
 });
@@ -352,13 +365,20 @@ function printPrivs(privs: PrivConvDto[] | undefined) {
 	object-fit: cover;
 }
 .login {
-	max-width: 50%;
+	max-width: 80%;
 	font-family: "Orbitron", sans-serif;
 	font-size: 1.2rem;
 	font-weight: bold;
 	overflow: hidden;
 	white-space: nowrap;
 	text-overflow: ellipsis;
+}
+.status {
+	width: 20px;
+	height: 20px;
+	border-radius: 50%;
+	margin-left: 10px;
+	background: v-bind((user_status ? "#00CC00" : "#FF3333"));
 }
 .login:hover {
 	color: v-bind("colors.color2");

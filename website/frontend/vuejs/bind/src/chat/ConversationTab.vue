@@ -19,8 +19,16 @@
 				<div v-if="message" class="date">{{ displayDate() }}</div>
 			</div>
 			<div class="message_cont center" :class="{ messageNR: displayNotRead() }">
-				<div v-if="message" class="message">{{ displayMsg() }}</div>
-				<div v-else class="message">
+				<div v-if="message " class="column left_center">
+					<h3 v-if="!chan && statusDone" class="status">
+						{{ status ? "online" : "offline" }}
+					</h3>
+					<div :class="{'messageChan': chan, 'messagePriv': !chan }">
+						{{ displayMsg() }}
+					</div>
+				</div>
+				<!-- <div v-if="message" class="message">{{ displayMsg() }}</div> -->
+				<div v-else class="messageChan">
 					Created the {{ date?.toLocaleDateString("fr") }},
 					{{ date?.toLocaleTimeString("fr") }}
 				</div>
@@ -31,10 +39,13 @@
 
 <script setup lang="ts">
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { inject, defineProps, ref } from "vue";
+import { inject, defineProps, ref, Ref, onMounted, onUnmounted } from "vue";
 
 let colors = inject("colors");
 let me: string = inject("me")!;
+let socket: Socket = inject("socket")!;
+let status: Ref<boolean> = ref(false);
+const statusDone : Ref<boolean> = ref(false);
 const props = defineProps({
 	nameConv: {
 		type: String,
@@ -103,6 +114,21 @@ function displayDate(): string {
 		return Math.floor(mins) + "min";
 	}
 }
+
+
+onMounted(() => {
+	socket.on("userStatus", (data: {user: string, status: boolean}) => {
+		if (data.user == props.nameConv) {
+			status.value = data.status;
+			statusDone.value = true;
+		}
+	});
+	socket.emit("userStatus", props.nameConv);
+})
+
+onUnmounted(() => {
+	socket.off('userStatus');
+})
 </script>
 
 <style scoped>
@@ -137,19 +163,22 @@ function displayDate(): string {
 }
 .info {
 	width: calc(100% - var(--height));
-	height: 100%;
+	/* height: 100%; */
 	padding-right: 1.5rem;
+	margin-top: 5px;
 }
 .top-bar {
-	padding-top: 5px;
-	height: 1.5rem;
+	/* padding-top: 5px; */
+	/* height: 1.5rem; */
+	margin-bottom: 5px;
 }
 .login {
 	/* width: auto; */
 	max-width: 90%;
+	/* margin-bottom: 5px; */
 	text-align: start;
 	font-family: "Orbitron", sans-serif;
-	font-weight: 400;
+	font-weight: 500;
 	overflow: hidden;
 	white-space: nowrap;
 	text-overflow: ellipsis;
@@ -161,14 +190,28 @@ function displayDate(): string {
 	/* font-family: "Orbitron", sans-serif;
 	font-size: 0.8rem; */
 }
+.status {
+	color: white;
+	padding: 0 5px;
+	border-radius: 5px;
+	margin-right: auto;
+	margin-bottom: 6px;
+	background-color: v-bind((status ? "green" : "red"));
+}
 .message_cont {
-	height: 100%;
+	/* height: 100%; */
 	text-align: start;
 	color: grey;
 	/* position: absolute; */
 	/* top: 50%; */
 }
-.message {
+.messagePriv {
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+.messageChan {
+	margin-top: 10px;
 	overflow: hidden;
 	white-space: nowrap;
 	text-overflow: ellipsis;
