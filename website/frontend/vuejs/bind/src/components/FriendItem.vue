@@ -99,7 +99,7 @@ function inviteGame() {
 			console.log(data);
 		}
 	});
-	socket.emit("invite_to_game", { login: name });
+	socket.emit("invite_to_game", { login: props.info.login });
 }
 
 onMounted(() => {
