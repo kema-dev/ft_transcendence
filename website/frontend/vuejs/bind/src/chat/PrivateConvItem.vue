@@ -331,9 +331,11 @@ function printPrivs(privs: PrivConvDto[] | undefined) {
 }
 #conversation_view {
 	height: calc(100vh - 180px);
+	/* width: 100%; */
 }
 .userTopBar {
 	width: 100%;
+	/* max-width: min-content; */
 	height: var(--height);
 	background-color: white;
 	box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.1), 0px -4px 4px rgba(0, 0, 0, 0.1);
@@ -350,9 +352,9 @@ function printPrivs(privs: PrivConvDto[] | undefined) {
 	object-fit: cover;
 }
 .login {
+	max-width: 50%;
 	font-family: "Orbitron", sans-serif;
 	font-size: 1.2rem;
-	max-width: 55%;
 	font-weight: bold;
 	overflow: hidden;
 	white-space: nowrap;

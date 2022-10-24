@@ -470,7 +470,7 @@ socket.emit('get_invitations');
 }
 #game {
 	width: 70vw;
-	width: calc(100vw - 345px);
+	width: calc(100vw - 500px);
 	/* height: 100%; */
 	padding-top: 60px;
 }
