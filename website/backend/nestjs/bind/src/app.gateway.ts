@@ -428,6 +428,7 @@ export class AppGateway
 		if (!game) {
 			client.emit('create_from_invitation');
 			client.emit('invite_to_game', { error: 'no game' });
+			return;
 		}
 		let user;
 		try {
