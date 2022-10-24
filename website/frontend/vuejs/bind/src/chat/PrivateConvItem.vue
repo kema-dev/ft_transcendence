@@ -352,6 +352,7 @@ function printPrivs(privs: PrivConvDto[] | undefined) {
 .login {
 	font-family: "Orbitron", sans-serif;
 	font-size: 1.2rem;
+	max-width: 55%;
 	font-weight: bold;
 	overflow: hidden;
 	white-space: nowrap;

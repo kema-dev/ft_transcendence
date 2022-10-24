@@ -8,7 +8,7 @@
 		</router-link>
 		<div class="friendInfoCont center column">
 			<div class="space-between raw">
-				<h2 @click="toProfile(info.login)" class="name">
+				<h2 @click="toProfile()" class="name">
 					{{ info.login }}
 				</h2>
 				<!-- <button v-if="friend == true"
@@ -20,26 +20,26 @@
 				</button> -->
 			</div>
 			<div class="space-between raw">
-				<div class="levelStatus left column">
+				<div @click="toProfile()" class="levelStatus left column">
 					<h3 class="level">level {{ info.level }}</h3>
 					<h3 v-if="statusDone" class="status">
 						{{ status ? "online" : "offline" }}
 					</h3>
 				</div>
 				<div class="btns space-evenly raw stack">
-					<button v-if="!friend" @click="addFriend(user.login)" class="btnCont center">
+					<button v-if="!friend" @click="addFriend()" class="btnCont center">
 						<span class="infoButtonText">Friend request</span>
 						<img src="@/assets/add_friend.svg" class="btnImg">
 					</button>
-					<button @click="inviteGame(user.login)" class="btnCont center">
+					<button @click="inviteGame()" class="btnCont center">
 						<span class="infoButtonText">Invit in game</span>
 						<img src="@/assets/ball_logo.svg" class="btnImg">
 					</button>
-					<button @click="toChat(user.login)" class="btnCont center">
+					<button @click="toChat()" class="btnCont center">
 						<span class="infoButtonText">Chat</span>
 						<img src="@/assets/chat.svg" class="btnImg">
 					</button>
-					<button v-if="friend" @click="removeFriend(user.login)" class="btnCont center">
+					<button v-if="friend" @click="removeFriend()" class="btnCont center">
 						<span class="infoButtonText">Delete friend</span>
 						<img src="@/assets/delete_logo.svg" class="btnImg">
 					</button>
@@ -54,10 +54,11 @@ import { defineProps, inject, onMounted, onUnmounted, ref, Ref } from "vue";
 import { Socket } from 'engine.io-client';
 import router from "@/router";
 import { useToast } from 'vue-toastification';
+import ProfileUserDto from "@/dto/ProfileUserDto";
 
 const toast = useToast();
 let socket: Socket = inject("socket")!;
-let me = inject("user")!;
+let me : Ref<ProfileUserDto> = inject("user")!;
 let colors = inject("colors");
 const props = defineProps(["info", "friend"]);
 let statusColor = {
@@ -68,20 +69,28 @@ let statusColor = {
 let status: Ref<boolean> = ref(false);
 const statusDone : Ref<boolean> = ref(false);
 
-function addFriend(name: string) {
-	socket.emit('addFriend', { sender: me.value.login, receiver: name });
+function addFriend() {
+	socket.emit('addFriend', { sender: me.value.login, receiver: props.info.login });
 }
 
-function removeFriend(name: string) {
-	socket.emit("removeFriend", { sender: me.value.login, receiver: name });
+function removeFriend() {
+	socket.emit("removeFriend", { sender: me.value.login, receiver: props.info.login });
 }
 
-function inviteGame(name: string) {
+function toProfile() {
+	router.push({name: 'player', params: {name: props.info.login}});
+}
+
+function toChat() {
+	router.push({name: 'PrivConv', params: {conv_name: props.info.login}})
+}
+
+function inviteGame() {
 	socket.off('invite_to_game');
 	socket.on('invite_to_game', (data) => {
 		if (data.error == 'no game') {
 			toast.success('You were not in a game, created a new one for you !');
-			inviteGame(name);
+			inviteGame();
 		} else if (data.error == 'no user') {
 			toast.error('This user does not exist');
 		} else if (data.error == 'no online') {
@@ -91,10 +100,6 @@ function inviteGame(name: string) {
 		}
 	});
 	socket.emit("invite_to_game", { login: name });
-}
-
-function toProfile(login: string) {
-	router.push({name: 'player', params: {name: login}})
 }
 
 onMounted(() => {

@@ -167,8 +167,6 @@ onUnmounted(() => {
   margin-top: 20px;
   margin-bottom: 15px;
 	padding-left: 40px;
-	/* margin-right: auto;
-	margin-left: 10px; */
 }
 .title {
 	font-size: 1.2rem;
@@ -191,6 +189,7 @@ onUnmounted(() => {
 
 .requestCont {
 	margin: 5px 0;
+	margin-left: 40px;
 	height: 2.5rem;
 	width: auto;
 	padding: 0 4px;
@@ -221,9 +220,9 @@ onUnmounted(() => {
 	filter: invert(40%) sepia(25%) saturate(6663%) hue-rotate(339deg)
 		brightness(98%) contrast(106%);
 }
-.requestCont > .basicProfil > .login {
-	max-width: 150px !important;
-}
+/* .requestCont > .basicProfil > .login {
+	max-width: 170px !important;
+} */
 .basicProfil {
 	cursor: pointer;
 }
