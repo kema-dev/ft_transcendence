@@ -128,7 +128,9 @@
 					No admins
 				</span>
 			</div>
-			<div v-for="(data, i) in chansRef[props.i].admins" :key="i" class="left_center">
+			<div v-for="(data, i) in chansRef[props.i].admins" :key="i" 
+				class="basicUserCont left_center"
+			>
 				<BasicProfil :avatar="data.avatar" @click="toProfile(data.login)" 
 					:login="data.login" class="basicUser"/>
 				<setUserChan v-if="data.login != myName" 
@@ -149,7 +151,9 @@
 					No users
 				</span>
 			</div>
-			<div v-for="(data, i) in chansRef[props.i].users" :key="i" class="left_center">
+			<div v-for="(data, i) in chansRef[props.i].users" :key="i" 
+				class="basicUserCont left_center"
+			>
 				<BasicProfil @click="toProfile(data.login)" 
 					:avatar="data.avatar" :login="data.login" class="basicUser"/>
 				<setUserChan v-if="data.login != myName" 
@@ -170,7 +174,9 @@
 					No mutes
 				</span>
 			</div>
-			<div v-for="(data, i) in chansRef[props.i].mutes" :key="i" class="left_center">
+			<div v-for="(data, i) in chansRef[props.i].mutes" :key="i" 
+				class="basicUserCont left_center"
+			>
 				<BasicProfil @click="toProfile(data.login)" 
 					:avatar="data.avatar" :login="data.login" class="basicUser"/>
 				<setUserChan v-if="data.login != myName" 
@@ -191,7 +197,9 @@
 					No bans
 				</span>
 			</div>
-			<div v-for="(data, i) in chansRef[props.i].bans" :key="i" class="left_center">
+			<div v-for="(data, i) in chansRef[props.i].bans" :key="i" 
+				class="basicUserCont left_center"
+			>
 				<BasicProfil @click="toProfile(data.login)" 
 					:avatar="data.avatar" :login="data.login" class="basicUser"/>
 				<setUserChan v-if="data.login != myName" 
@@ -422,21 +430,22 @@ function printChan(chan: ChannelDto) {
 }
 
 .ElemCont {
-	width: 220px;
+	width: 80%;
 	margin: 10px;
 }
 .separator{
 	flex-shrink: 0;
-	width: 200px;
+	width: 70%;
 	height: 1px;
 	background-color: v-bind("colors.color2");
+	margin: 10px 0;
 }
 .titleText {
 	font-family: 'Orbitron', sans-serif;
 	width: auto;
 	white-space: nowrap;
 	font-weight: 500;
-	margin-left: 5px;
+	margin-left: 10px;
 }
 .titleValueText {
 	font-family: 'Orbitron', sans-serif;
@@ -450,7 +459,7 @@ function printChan(chan: ChannelDto) {
 	border-radius: 13px;
 }
 .settingsBtnCont {
-	margin-left: auto;
+	margin-left: 20px
 }
 .setUserCont:hover,
 .settingsBtnCont:hover {
@@ -500,6 +509,9 @@ function printChan(chan: ChannelDto) {
 	border-radius: calc(1.4rem / 2);
 	outline: none;
 	padding: 0 8px;
+}
+.basicUserCont{
+	width: 95%;
 }
 .basicUser {
 	margin: 5px 10px;

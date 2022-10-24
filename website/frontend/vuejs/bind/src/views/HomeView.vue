@@ -1,5 +1,5 @@
 <template>
-	<div id="home" class="wrap" :key="reload">
+	<div id="home" class="wrap">
 		<NavbarItem />
 		<div id="game" class="center">
 			<MatchmakingItem />
@@ -91,14 +91,6 @@ socket.on('userUnblock', (data: PrivConvDto) => {
 	privsRef.value.unshift(priv);
 });
 
-//	========== RESIZE WINDOW
-
-let reload = ref(0);
-onMounted(() => {
-	window.addEventListener('resize', () => {
-		reload.value++;
-	});
-});
 
 //	===================== CHAT =====================
 

@@ -126,7 +126,6 @@
 					value="0" min="0" max="99">
 				<input type="number" name="secondsBan" id="secondsBan" class="timeInput"
 					value="0" min="0" max="99">
-				<!-- <input @keypress.enter="muteBan(sanction)" type="time" name="timeInput" id="timeInput" step="1" required/> -->
 			</div>
 		</template>
 		<template #buttons>

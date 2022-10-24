@@ -104,12 +104,12 @@ function inviteGame() {
 
 onMounted(() => {
 	socket.on("userStatus", (data: {user: string, status: boolean}) => {
-		if (data.user == props.friend.login) {
+		if (data.user == props.info.login) {
 			status.value = data.status;
 			statusDone.value = true;
 		}
 	});
-	socket.emit("userStatus", props.friend.login);
+	socket.emit("userStatus", props.info.login);
 })
 
 onUnmounted(() => {
