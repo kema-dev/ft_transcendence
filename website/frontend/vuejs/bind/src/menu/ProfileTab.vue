@@ -20,6 +20,10 @@
 				<h3 class="statValue">Top {{ user_ratio_rounded }}%</h3>
 			</div>
 			<div class="playerStatCont center raw">
+				<h3 class="statTitle">Level :</h3>
+				<h3 class="statValue">{{ user_stats.level }}</h3>
+			</div>
+			<div class="playerStatCont center raw">
 				<h3 class="statTitle">Win :</h3>
 				<h3 class="statValue">{{ user_stats.wins }}</h3>
 			</div>
@@ -294,7 +298,7 @@ onMounted(async () => {
 	margin-left: 40px; */
 }
 .title {
-	font-size: 1.4rem;
+	font-size: 1.2rem;
 }
 .noResults {
   font-size: 0.9rem;

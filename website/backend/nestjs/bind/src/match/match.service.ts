@@ -89,6 +89,7 @@ export class MatchService {
 
 	async get_user_stats(login: string) {
 		console.log('get_user_stats: Starting');
+		const level = await this.usersService.get_user_level(login);
 		const matches = await this.get_user_matches(login);
 		if (!matches) {
 			return {
@@ -96,6 +97,7 @@ export class MatchService {
 				wins: 0,
 				loses: 0,
 				average_rank: 0.5,
+				level: level,
 			};
 		}
 		// console.log('     get_user_stats: matches: ');
@@ -104,6 +106,7 @@ export class MatchService {
 			wins: 0,
 			loses: 0,
 			average_rank: 0,
+			level: level,
 		};
 		for (const match of matches) {
 			let winner_score = 0;

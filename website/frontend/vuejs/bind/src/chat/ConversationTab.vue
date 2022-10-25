@@ -12,15 +12,23 @@
 			<img v-else src="~@/assets/group_logo.svg" class="avatar" alt="avatar" />
 		</div>
 		<div class="info center column">
-			<div class="top-bar row center stack">
+			<div class="top-bar space-between row stack">
 				<div class="login" :class="{ loginNR: displayNotRead() }">
 					{{ nameConv }}
 				</div>
 				<div v-if="message" class="date">{{ displayDate() }}</div>
 			</div>
 			<div class="message_cont center" :class="{ messageNR: displayNotRead() }">
-				<div v-if="message" class="message">{{ displayMsg() }}</div>
-				<div v-else class="message">
+				<div v-if="message " class="column left_center">
+					<h3 v-if="!chan && statusDone" class="status">
+						{{ status ? "online" : "offline" }}
+					</h3>
+					<div :class="{'messageChan': chan, 'messagePriv': !chan }">
+						{{ displayMsg() }}
+					</div>
+				</div>
+				<!-- <div v-if="message" class="message">{{ displayMsg() }}</div> -->
+				<div v-else class="messageChan">
 					Created the {{ date?.toLocaleDateString("fr") }},
 					{{ date?.toLocaleTimeString("fr") }}
 				</div>
@@ -31,13 +39,13 @@
 
 <script setup lang="ts">
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { inject, defineProps, ref } from "vue";
-// import Private from '@/chat/objects/PrivConv';
-// import User from "./objects/User";
-// import Message from "./objects/Message";
+import { inject, defineProps, ref, Ref, onMounted, onUnmounted } from "vue";
 
-let define = inject("colors");
+let colors = inject("colors");
 let me: string = inject("me")!;
+let socket: Socket = inject("socket")!;
+let status: Ref<boolean> = ref(false);
+const statusDone : Ref<boolean> = ref(false);
 const props = defineProps({
 	nameConv: {
 		type: String,
@@ -106,15 +114,31 @@ function displayDate(): string {
 		return Math.floor(mins) + "min";
 	}
 }
+
+
+onMounted(() => {
+	if (!props.chan) {
+		socket.on("userStatus", (data: {user: string, status: boolean}) => {
+			if (data.user == props.nameConv) {
+				status.value = data.status;
+				statusDone.value = true;
+			}
+		});
+		socket.emit("userStatus", props.nameConv);
+	}
+})
+
+onUnmounted(() => {
+	if (!props.chan)
+		socket.off('userStatus');
+})
 </script>
 
-<style lang="scss" scoped>
-@use "@/assets/scss/_shared.scss" as *;
+<style scoped>
 
 * {
-	--height: 70px;
+	--height: 80px;
 }
-// $height: 70px;
 
 .conv_container {
 	background-color: white;
@@ -122,8 +146,7 @@ function displayDate(): string {
 	height: var(--height);
 	margin-top: 5px;
 	margin-bottom: 5px;
-	border: solid 2px $color2;
-	/* border-color: ; */
+	border: solid 2px v-bind("colors.color2");
 	border-radius: calc(var(--height) / 2);
 }
 
@@ -142,53 +165,70 @@ function displayDate(): string {
 	object-fit: cover;
 }
 .info {
-	/* width: 80% ; */
 	width: calc(100% - var(--height));
-	height: 100%;
-	/* padding-left: 1rem; */
+	/* height: 100%; */
 	padding-right: 1.5rem;
+	margin-top: 5px;
 }
 .top-bar {
-	padding-top: 5px;
-	height: 1.5rem;
+	/* padding-top: 5px; */
+	/* height: 1.5rem; */
+	margin-bottom: 5px;
 }
 .login {
-	width: 130%;
+	/* width: auto; */
+	max-width: 90%;
+	/* margin-bottom: 5px; */
 	text-align: start;
 	font-family: "Orbitron", sans-serif;
-	font-weight: 400;
+	font-weight: 500;
 	overflow: hidden;
 	white-space: nowrap;
 	text-overflow: ellipsis;
 }
 .date {
+	width: auto;
 	text-align: end;
 	color: grey;
 	/* font-family: "Orbitron", sans-serif;
 	font-size: 0.8rem; */
 }
+.status {
+	color: white;
+	padding: 0 5px;
+	border-radius: 5px;
+	margin-right: auto;
+	margin-bottom: 6px;
+	background-color: v-bind((status ? "green" : "red"));
+}
 .message_cont {
-	height: 100%;
+	/* height: 100%; */
 	text-align: start;
 	color: grey;
 	/* position: absolute; */
 	/* top: 50%; */
 }
-.message {
+.messagePriv {
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+.messageChan {
+	margin-top: 10px;
 	overflow: hidden;
 	white-space: nowrap;
 	text-overflow: ellipsis;
 }
 
-// ======================== NOT READ DIPLAY =========================
+ /* ======================== NOT READ DIPLAY ========================= */
 .conv_containerNR {
-	border: solid 3px $color2;
+	border: solid 3px v-bind("colors.color2");
 }
 .loginNR,
 .messageNR {
 	font-weight: 800;
 }
 .messageNR {
-	color: $color2;
+	color: v-bind("colors.color2");
 }
 </style>

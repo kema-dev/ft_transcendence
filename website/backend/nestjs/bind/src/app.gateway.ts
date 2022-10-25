@@ -50,8 +50,8 @@ export class AppGateway
 
 	// Connection
 	async handleConnection(@ConnectedSocket() client: Socket) {
-		console.log(`Client connected : ${client.handshake.query.login}`);
-		let login = client.handshake.query.login as string;
+		let login = client.handshake.query.login as string; 
+		this.logger.log(`Client connected : ${login}`);
 		await this.userService.saveSocket(login, client.id);
 		this.userService.set_status(login, 'online');
 	}
@@ -231,7 +231,7 @@ export class AppGateway
 			const user = await this.userService.getByLogin(payload.login);
 			client.emit('getUserByLogin', new ProfileUserDto(user));
 		}
-		catch {
+		catch (e) {
 			client.emit('getUserByLogin', null);
 		}
 	}
@@ -411,7 +411,12 @@ export class AppGateway
 		@MessageBody() data: ModifChanDto,
 		@ConnectedSocket() client: Socket,
 	) {
-		this.chatService.modifChan(this.server, data);
+		try {
+			this.chatService.modifChan(this.server, data);
+		}
+		catch (e) {
+			console.log(e);
+		}
 	}
 
 	@SubscribeMessage('invite_to_game')

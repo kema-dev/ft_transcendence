@@ -95,7 +95,7 @@ let mySocket: Socket = inject("socket")!;
 let myName: string = inject("me")!;
 let me: Ref<ProfileUserDto> = inject("user")!;
 let userDone: Ref<boolean> = inject("userDone")!;
-const newIndex : Ref<string> = inject("newIndex")!;
+const findChanIndex : Ref<boolean> = inject("findChanIndex")!;
 let myMsg = ref("");
 let info = ref(false);
 let chanExist = ref(false);
@@ -147,11 +147,11 @@ watch(chanBan, () => {
 	}
 })
 
-watch(newIndex, () => {
-	if (newIndex.value != '') {
+watch(findChanIndex, () => {
+	if (findChanIndex.value == true) {
 		index.value = chansRef.value.findIndex((chan) => chan.name == chanName);
 		chanRead(index.value, true);
-		newIndex.value == '';
+		findChanIndex.value = false;
 	}
 }, {flush: 'post'})
 
