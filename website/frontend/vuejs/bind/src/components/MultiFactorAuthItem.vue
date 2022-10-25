@@ -10,7 +10,7 @@
 		</div>
 		<!-- <div class="mfa_input"> -->
 			<button @click="get_totp_url" v-show="!totp_code" class="mfaBtn">
-				Enable / Change MFA
+				Change MFA settings
 			</button>
 			<input
 				class="totp_text_verif"
@@ -21,6 +21,9 @@
 			/>
 			<button @click="verify" v-show="totp_code" class="mfaBtn">
 				VERIFY TOTP
+			</button>
+			<button @click="disable" v-show="totp_code" class="mfaBtn">
+				DISABLE TOTP
 			</button>
 			<hr class="separator" v-show="totp_code">
 		<!-- </div> -->
@@ -98,6 +101,60 @@ function verify() {
 		.catch((error) => {
 			console.error(error);
 			toast.error('TOTP Verification failed. Please try again');
+		});
+}
+
+async function disable() {
+	await API.post('auth/check_totp_status', {
+		headers: {
+			login: cookies.get('login'),
+			token: cookies.get('session'),
+		},
+		name: email.value,
+	})
+		.then((response) => {
+			console.log(response.data);
+			if (response.data == false) {
+				toast.success('You already have TOTP disabled');
+				return;
+			} else {
+				API.post('auth/verify_totp', {
+				headers: {
+					login: cookies.get('login'),
+					token: cookies.get('session'),
+				},
+				name: email.value,
+				code: code.value,
+			})
+				.then((response) => {
+					disable_totp_api();	
+				})
+				.catch((error) => {
+					console.error(error.response.data);
+					toast.error('TOTP Verification failed. Please enter your actual TOTP code');
+				});
+			}
+		})
+		.catch((error) => {
+			console.error(error.response);
+		});
+}
+
+function disable_totp_api() {
+	API.post('auth/disable_totp', {
+		headers: {
+			login: cookies.get('login'),
+			token: cookies.get('session'),
+		},
+		name: email.value,
+	})
+		.then((response) => {
+			toast.success('TOTP removal successful');
+			// console.log(response);
+		})
+		.catch((error) => {
+			console.error(error);
+			toast.error('TOTP removal failed. Please try again');
 		});
 }
 

@@ -31,6 +31,16 @@ export class AuthenticationController {
 		console.log('Debug headers: ' + JSON.stringify(headers));
 	}
 
+	@Post('disable_totp')
+	async disable_totp(@Body() data: any) {
+		this.authenticationService.disable_totp(data.name);
+	}
+
+	@Post('check_totp_status')
+	async check_totp_status(@Body() data: any) {
+		return this.authenticationService.check_totp_status(data.name);
+	}
+
 	@Post('register')
 	async register(@Body() registrationData: RegisterDto) {
 		let usr;

@@ -567,4 +567,26 @@ export class AuthenticationService {
 		await this.usersService.validate_totp(usr.login);
 		console.log('validate_totp: ' + 'totp validated, returning ✔');
 	}
+
+	public async disable_totp(name: string) {
+		console.log('disable_totp: starting');
+		const usr = await this.usersService.getByAny(name);
+		await this.usersService.change_totp_code(usr, '');
+		await this.usersService.change_tmp_totp_code(usr, '');
+		console.log('disable_totp: ' + 'totp disabled, returning ✔');
+	}
+
+	public async check_totp_status(name: string) {
+		console.log('check_totp_status: starting');
+		const usr = await this.usersService.getByAny(name);
+		let ret;
+		console.log('status:', usr.totp_code);
+		if (usr.totp_code != '') {
+			ret = true;
+		} else {
+			ret = false;
+		}
+		console.log('check_totp_status: ' + 'totp status computed, returning ✔');
+		return ret;
+	}
 }
