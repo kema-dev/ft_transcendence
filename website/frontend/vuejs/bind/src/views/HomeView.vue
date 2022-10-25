@@ -287,15 +287,15 @@ socket.on('newChannelUser', (data: { name: string; user: BasicUserDto }) => {
 socket.on('userQuitChan', (data: { login: string; chan: string }) => {
 	console.log(`User '${data.login}' left the channel '${data.chan}'`);
 	let i = chansRef.value.findIndex((chan) => chan.name == data.chan);
-	chansRef.value[i].admins = chansRef.value[i].admins.filter(
-		(adm) => adm.login != data.login,
-	);
-	chansRef.value[i].users = chansRef.value[i].users.filter(
-		(user) => user.login != data.login,
-	);
-	chansRef.value[i].mutes = chansRef.value[i].mutes.filter(
-		(mute) => mute.login != data.login,
-	);
+	let y;
+		if (chansRef.value[i].owner && data.login == chansRef.value[i].owner.login)
+			chansRef.value[i].owner = null;
+		else if ((y = chansRef.value[i].admins.findIndex(u => u.login == data.login)) != -1)
+			chansRef.value[i].admins.splice(i, 1);
+		else if ((y = chansRef.value[i].users.findIndex(u => u.login == data.login)) != -1)
+			chansRef.value[i].users.splice(i, 1);
+		else if ((y = chansRef.value[i].mutes.findIndex(u => u.login == data.login)) != -1)
+			chansRef.value[i].mutes.splice(i, 1);
 });
 
 socket.on('modifChan', (data: ModifChanDto) => {

@@ -233,10 +233,20 @@ export class ChatService {
 	// ========================= CHANNELS =========================
 
 	async getUserChans(login: string) {
+		const ownChans = await this.userRepository.findOne({
+			relations: {
+				chansOwner : {owner: true, admins: true, users: true, 
+					mutes: true, bans: true, messages: {user: true}},
+			},
+			where: {login: login},
+			order: {
+				chansOwner: { messages: { createdAt: 'ASC'} },
+			}
+		});
 		const admChans = await this.userRepository.findOne({
 			relations: {
-				chansAdmin : {admins: true, users: true, mutes: true,
-					 bans: true, messages: {user: true}},
+				chansAdmin : {owner: true, admins: true, users: true, 
+					mutes: true, bans: true, messages: {user: true}},
 			},
 			where: {login: login},
 			order: {
@@ -245,8 +255,8 @@ export class ChatService {
 		});
 		const userChans = await this.userRepository.findOne({
 			relations: {
-				chansUser : {admins: true, users: true, mutes: true,
-					 bans: true, messages: {user: true}},
+				chansUser : {owner: true, admins: true, users: true, 
+					mutes: true, bans: true, messages: {user: true}},
 			},
 			where: {login: login},
 			order: {
@@ -255,15 +265,16 @@ export class ChatService {
 		});
 		const muteChans = await this.userRepository.findOne({
 			relations: {
-				chansMute : {admins: true, users: true, mutes: true,
-					 bans: true, messages: {user: true}},
+				chansMute : {owner: true, admins: true, users: true, 
+					mutes: true, bans: true, messages: {user: true}},
 			},
 			where: {login: login},
 			order: {
 				chansMute: { messages: { createdAt: 'ASC'} },
 			}
 		});
-		return admChans.chansAdmin
+		return ownChans.chansOwner
+			.concat(admChans.chansAdmin)
 			.concat(userChans.chansUser)
 			.concat(muteChans.chansMute);
 	}
@@ -272,6 +283,7 @@ export class ChatService {
 		const chan = await this.channelRepository.findOne({
 			where: {name : chanName},
 			relations: {
+				owner: true,
 				admins:true,
 				users: true,
 				bans: true,
@@ -290,7 +302,6 @@ export class ChatService {
 	}
 
 	sortChans(chans: ChannelDto[]) {
-		// console.log(`Sort Channels`)
 		chans.sort(function (x, y) {
 			let date1: number;
 			let date2: number;
@@ -310,35 +321,36 @@ export class ChatService {
 		});
 	}
 
-
-
 	createChanDto(chan: ChannelEntity) {
 		let name = chan.name;
 		let psw = chan.password;
 		let creation = chan.createdAt;
+		let owner;
+		chan.owner ? owner = new BasicUserDto(chan.owner.login, chan.owner.avatar)
+			: owner = null;
 		let priv = chan.private;
 		let read = true;
 		let avatar = chan.avatar;
 		let admins : BasicUserDto[] = [];
-		chan.admins.forEach(admin => admins
+		chan.admins?.forEach(admin => admins
 			.push(new BasicUserDto(admin.login, admin.avatar)));
 		let users : BasicUserDto[] = [];
-		chan.users.forEach(user => users
+		chan.users?.forEach(user => users
 			.push(new BasicUserDto(user.login, user.avatar)));
 		let bans : BasicUserDto[] = [];
-		chan.bans.forEach(ban => bans
+		chan.bans?.forEach(ban => bans
 			.push(new BasicUserDto(ban.login, ban.avatar)));
 		let mutes : BasicUserDto[] = [];
-		chan.mutes.forEach(mute => mutes
+		chan.mutes?.forEach(mute => mutes
 			.push(new BasicUserDto(mute.login, mute.avatar)));
 		let msgs : MessageDto[] = [];
-		chan.messages.forEach((msg) => msgs
+		chan.messages?.forEach((msg) => msgs
 			.push(new MessageDto(msg.user.login, msg.message, msg.createdAt)))
 		// let ret =  new ChannelDto(name, avatar, creation, admins, psw, users, msgs, bans, mutes, read);
 		// this.printChanDto(ret);
 		// return ret;
-		return new ChannelDto(name, avatar, creation, admins, 
-			priv, psw, users, msgs, bans, mutes, read);
+		return new ChannelDto(name, avatar, creation, owner, 
+			priv, psw, admins, users, msgs, bans, mutes, read);
 	}
 
 	createChansDto(requestor: string, chans: ChannelEntity[]) {
@@ -352,17 +364,17 @@ export class ChatService {
 	async createNewChan(data: NewChanDto) {
 		let chanAlreadyExist = await this.channelRepository
 			.findOne({where: {name : data.chanName}});
-		console.log(chanAlreadyExist);
 		if (chanAlreadyExist)
 			throw new HttpException('CHAN_ALREADY_EXIST', HttpStatus.CONFLICT);
-		let admin = await this.userService.getByLogin(data.admin);
+		let owner = await this.userService.getByLogin(data.admin);
 		let newChan = this.channelRepository
 			.create({name: data.chanName, private: data.priv,
-			admins: [admin], password: data.psw});
+			owner: owner, password: data.psw}); 
 		await this.channelRepository.save(newChan)
-			.catch((e) => console.log('Save channel error'));;
-		return new ChannelDto(newChan.name, "test", newChan.createdAt, 
-			[new BasicUserDto(admin.login, admin.avatar)], newChan.private , data.psw);
+			.catch((e) => console.log('Save channel error'));
+		return this.createChanDto(newChan);
+		// return new ChannelDto(newChan.name, "test", newChan.createdAt, 
+		// 	new BasicUserDto(owner.login, owner.avatar), newChan.private , data.psw);
 	}
 
 	async addChanMsg(data: NewChanMsgDto) {
@@ -391,6 +403,7 @@ export class ChatService {
 		let maxUsers = 20;
 		const chans = await this.channelRepository.find({
 			relations: {
+				owner: true,
 				admins: true,
 				users: true,
 				mutes: true,
@@ -405,7 +418,8 @@ export class ChatService {
 				&& !chan.mutes.map(m => m.login).includes(login))
 				channelTabs.push(new ChannelTabDto(
 					chan.name,
-					chan.admins.length + chan.users.length,
+					chan.admins.length + chan.users.length
+						+ (chan.owner? 1 : 0),
 					chan.password ? true : false,
 				))
 		}
@@ -420,6 +434,7 @@ export class ChatService {
 		let chan = await this.channelRepository.findOne({
 			where: {name: data.chanName},
 			relations: {
+				owner: true,
 				admins: true, 
 				users: true, 
 				mutes:true,  
@@ -440,6 +455,7 @@ export class ChatService {
 			chan.users.push(user);
 			await this.channelRepository.save(chan)
 				.catch((e) => console.log('Save chan error'));
+			console.log(`chan.owner = ${chan.owner.login}`);
 			return this.createChanDto(chan);
 		}
 	}
@@ -481,16 +497,17 @@ export class ChatService {
 		let chan = await this.channelRepository.findOne({
 			where: {name: chanName},
 			relations: {
+				owner: true,
 				admins: true, 
 				users: true, 
 				mutes: true,
 				bans:true,
 			}
 		});
-		let isUser = chan.admins
-			.concat(chan.users)
-			.concat(chan.mutes)
-			.find(user => user.login == login)
+		let allUsers = chan.admins.concat(chan.users).concat(chan.mutes);
+		if (chan.owner)
+			allUsers.push(chan.owner);
+		let isUser = allUsers.find(user => user.login == login)
 		if (isUser)
 			throw new HttpException('ALREADY_USER', HttpStatus.CONFLICT);
 		let banned = chan.bans.find(user => user.login == login)
@@ -508,6 +525,7 @@ export class ChatService {
 		let chan = await this.channelRepository.findOne({
 			where: {name: data.chan},
 			relations: {
+				owner: true,
 				admins: true, 
 				users: true, 
 				mutes: true,
@@ -520,7 +538,10 @@ export class ChatService {
 				.catch((e) => console.log('Save chan error'));
 		}
 		server.to(newUser.socketId).emit("newChannel", this.createChanDto(chan));
-		for (let user of chan.admins.concat(chan.users).concat(chan.mutes)) {
+		let allUsers = chan.admins.concat(chan.users).concat(chan.mutes);
+		if (chan.owner)
+			allUsers.push(chan.owner)
+		for (let user of allUsers) {
 			if (user.login != newUser.login)
 				server.to(user.socketId).emit("newChannelUser", {
 					name: chan.name,
@@ -536,18 +557,33 @@ export class ChatService {
 		console.log(`User '${data.login}' left the channel '${data.chan}'`);
 		let chan = await this.channelRepository.findOne({
 			where: {name: data.chan},
-			relations: {admins: true, users: true, mutes: true},
+			relations: {
+				owner: true, 
+				admins: true, 
+				users: true, 
+				mutes: true
+			},
 		});
-		chan.admins = chan.admins.filter(adm => adm.login != data.login);
-		chan.users = chan.users.filter(user => user.login != data.login);
-		chan.mutes = chan.mutes.filter(mute => mute.login != data.login);
-		if (chan.admins.length + chan.users.length + chan.mutes.length == 0)
+		let i;
+		if (chan.owner && data.login == chan.owner.login)
+			chan.owner = null;
+		else if ((i = chan.admins.findIndex(u => u.login == data.login)) != -1)
+			chan.admins.splice(i, 1);
+		else if ((i = chan.users.findIndex(u => u.login == data.login)) != -1)
+			chan.users.splice(i, 1);
+		else if ((i = chan.mutes.findIndex(u => u.login == data.login)) != -1)
+			chan.mutes.splice(i, 1);
+		if ((chan.owner ? 1 : 0) +
+			chan.admins.length + chan.users.length + chan.mutes.length == 0)
 			this.channelRepository.remove(chan)
 			.catch((e) => console.log('Remove chan error'));
 		else
 			this.channelRepository.save(chan)
 			.catch((e) => console.log('Save chan error'));
-		for (let user of chan.admins.concat(chan.users).concat(chan.mutes)) {			
+		let allUsers = chan.admins.concat(chan.users).concat(chan.mutes);
+		if (chan.owner)
+			allUsers.push(chan.owner);
+		for (let user of allUsers) {			
 			if (user.login != data.login)
 				server.to(user.socketId).emit("userQuitChan", {
 					login: data.login,
@@ -557,18 +593,31 @@ export class ChatService {
 	}
 
 
-	
+	isOwner(user: UserEntity, chan: ChannelEntity) {
+		if (chan.owner.login == user.login)
+			return true;
+		return false;
+	}
+
+	isAdm(user: UserEntity, chan: ChannelEntity) {
+		return chan.admins.map(a => a.login).includes(user.login);
+	}
 
 	async modifChan(server: Server, modif: ModifChanDto) {
+		let requestor = await this.userService.getByLogin(modif.requestor);
 		let chan = await this.channelRepository.findOne({
 			where: {name: modif.chan},
-			relations: {admins: true, users: true, mutes: true, bans: true, messages: true}
+			relations: {owner: true, admins: true, users: true, 
+				mutes: true, bans: true, messages: true},
 		});
+		if (!this.isOwner(requestor, chan) && !this.isAdm(requestor, chan))
+			throw new HttpException('NOT_OWNER_OR_ADMIN', HttpStatus.BAD_REQUEST);
 		await this.updateChanSetting(chan, modif, server);
-		for (let user of chan.admins
-			.concat(chan.users)
-			.concat(chan.mutes)
-			.concat(chan.bans))
+		let allUsers = chan.admins.concat(chan.users)
+			.concat(chan.mutes).concat(chan.bans);
+		if (chan.owner)
+			allUsers.push(chan.owner);
+		for (let user of allUsers)
 			server.to(user.socketId).emit("modifChan", modif);
 	}
 
@@ -578,13 +627,6 @@ export class ChatService {
 			modif.psw == "" ?
 				chan.password = null : chan.password = modif.psw; 
 		}
-		// else if (modif.invitUser) {
-		// 	console.log(`Modif chan '${modif.chan}' : user '${modif.invitUser}' is invited`)
-		// 	let user = await this.userRepository.findOne({
-		// 		where: {login : modif.invitUser}
-		// 	});
-		// 	chan.users.push(user);
-		// }
 		else if (modif.priv != undefined) {
 			console.log(`Modif chan '${modif.chan}' : private = ${modif.priv}`)
 			chan.private = modif.priv;
@@ -668,7 +710,10 @@ export class ChatService {
 				this.channelRepository.save(chan)
 					.catch((e) => console.log('Save Channel error'));
 				console.log(`User '${login}' from channel '${chan.name}' is restored`);
-				for (let user of chan.admins.concat(chan.users).concat(chan.mutes)) {
+				let allUsers = chan.admins.concat(chan.users).concat(chan.mutes);
+				if (chan.owner)
+					allUsers.push(chan.owner);
+				for (let user of allUsers) {	
 					server.to(user.socketId).emit("modifChan", modif);
 				}
 			}

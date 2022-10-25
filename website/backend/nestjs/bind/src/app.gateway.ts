@@ -231,7 +231,7 @@ export class AppGateway
 			const user = await this.userService.getByLogin(payload.login);
 			client.emit('getUserByLogin', new ProfileUserDto(user));
 		}
-		catch {
+		catch (e) {
 			client.emit('getUserByLogin', null);
 		}
 	}
@@ -411,7 +411,12 @@ export class AppGateway
 		@MessageBody() data: ModifChanDto,
 		@ConnectedSocket() client: Socket,
 	) {
-		this.chatService.modifChan(this.server, data);
+		try {
+			this.chatService.modifChan(this.server, data);
+		}
+		catch (e) {
+			console.log(e);
+		}
 	}
 
 	@SubscribeMessage('invite_to_game')

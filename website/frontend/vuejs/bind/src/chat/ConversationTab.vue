@@ -117,17 +117,20 @@ function displayDate(): string {
 
 
 onMounted(() => {
-	socket.on("userStatus", (data: {user: string, status: boolean}) => {
-		if (data.user == props.nameConv) {
-			status.value = data.status;
-			statusDone.value = true;
-		}
-	});
-	socket.emit("userStatus", props.nameConv);
+	if (!props.chan) {
+		socket.on("userStatus", (data: {user: string, status: boolean}) => {
+			if (data.user == props.nameConv) {
+				status.value = data.status;
+				statusDone.value = true;
+			}
+		});
+		socket.emit("userStatus", props.nameConv);
+	}
 })
 
 onUnmounted(() => {
-	socket.off('userStatus');
+	if (!props.chan)
+		socket.off('userStatus');
 })
 </script>
 

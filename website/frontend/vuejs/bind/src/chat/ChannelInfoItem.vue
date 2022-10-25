@@ -122,6 +122,28 @@
 					<img src="~@/assets/crown.svg" alt="Password" class="infoImg" />
 				</div>
 				<span class="titleText">
+					Owner :
+				</span>
+				<span v-if="!chansRef[i].owner" class="titleValueText">
+					No owner
+				</span>
+			</div>
+			<div v-if="chansRef[i].owner" class="basicUserCont left_center">
+				<BasicProfil :avatar="chansRef[i].owner.avatar" 
+					@click="toProfile(chansRef[i].owner.login)" 
+					:login="chansRef[i].owner.login" class="basicUser"/>
+				<setUserChan v-if="chansRef[i].owner.login != myName" 
+					:login="chansRef[i].owner.login" :chan="chanName" group="admins" 
+					:isAdmin="false"/>
+			</div>
+		</div>
+		<hr class="separator">
+		<div class="ElemCont left_center column">
+			<div class="ElemHeadCont left_center raw">
+				<div class="titleImgCont center">
+					<img src="~@/assets/star2.svg" alt="Password" class="infoImg" />
+				</div>
+				<span class="titleText">
 					Admins :
 				</span>
 				<span v-if="!chansRef[i].admins.length" class="titleValueText">
@@ -281,9 +303,11 @@ watch(chansRef.value[props.i].admins, () => {
 // ================= GENERAL =================
 
 function isAdmin() {
-	return chansRef.value[props.i].admins
-		.map(adm => adm.login)
-		.includes(myName);
+	let admins =  chansRef.value[props.i].admins
+		.map(adm => adm.login);
+	if (chansRef.value[props.i].owner)
+		admins.push(chansRef.value[props.i].owner.login);
+	return admins.includes(myName);
 }
 
 function quitChannel() {
