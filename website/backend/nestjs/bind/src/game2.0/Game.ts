@@ -189,7 +189,6 @@ export default class Game {
 					let login: any;
 					if ((login = ball.detectCollision(this.objects))) {
 						this.run = false;
-						console.log('------------------------>', login);
 						if (this.nbrPlayer == 1) {
 							this.match_service.add_match(this);
 							this.server.to(this.players[0].socketId).emit('end', { win: true });

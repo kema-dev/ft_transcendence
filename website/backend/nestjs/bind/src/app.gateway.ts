@@ -44,7 +44,7 @@ export class AppGateway
 		private readonly chatService: ChatService,
 		private readonly userService: UsersService,
 		private readonly matchService: MatchService,
-	) {}
+	) { }
 
 	// =========================== GENERAL ==================================
 
@@ -58,7 +58,7 @@ export class AppGateway
 	// Disconnection
 	async handleDisconnect(client: Socket) {
 		this.logger.log(`Client disconnected: ${client.id}`);
-		this.leftGame({login: client.handshake.query.login as string});
+		this.leftGame({ login: client.handshake.query.login as string });
 	}
 
 	// ============================ GAME =====================================
@@ -70,12 +70,18 @@ export class AppGateway
 		const user = await this.userService.getByLogin(data.login);
 		if (!user) return;
 		let game = this.games.find((game) => game.lobby_name === user.lobby_name);
-		if (!game) return;
+		if (!game) {
+			user.lobby_name = "";
+			this.userService.saveUser(user);
+			return;
+		}
+		console.log('lobby <---------------------------', user.lobby_name);
 		console.log('game <---------------------------');
 		user.lobby_name = "";
 		this.userService.saveUser(user);
 		game.destructor();
 		if (game.players.length - 1 > 0) {
+			console.log('game.players.length - 1 > 0');
 			let newGame = new Game(
 				game.nbrPlayer - 1,
 				game.nbrBall,
@@ -88,13 +94,16 @@ export class AppGateway
 				this
 			);
 			this.games.push(newGame);
-			this.server.to(newGame.sockets).emit('reload_game');
-			if (game.players.length > 2) {
-				newGame.start = game.start;
+			this.server.to(newGame.sockets).emit('reload_game', { left: user.login });
+			newGame.start = game.start;
+			if (game.players.length - 1 == 1 && game.start) {
+				this.server.to(game.players.find((player) => player.login !== user.login).socketId).emit('end', { win: true });
+				newGame.start = false;
 			}
 		}
-		console.log('game destroyed');
 		this.games.splice(this.games.indexOf(game), 1);
+		this.server.emit('lobbys', this.sendLobbys(this.games));
+		console.log('game destroyed', this.games.length);
 	}
 	// @SubscribeMessage('getBallPos')
 	// getBallsPos(client: Socket, payload: any): any {
@@ -129,6 +138,7 @@ export class AppGateway
 			this.matchService,
 			this
 		);
+		console.log('newLobby', game.lobby_name);
 		this.games.push(game);
 		user.lobby_name = game.lobby_name;
 		this.userService.saveUser(user);
@@ -167,6 +177,7 @@ export class AppGateway
 		if (!user) return;
 		if (game.players.length >= 7) return;
 		if (game.start) return;
+		if (game.players.find((player) => player.login === user.login)) return;
 		let newGame = new Game(
 			game.nbrPlayer + 1,
 			game.nbrBall,
@@ -227,7 +238,7 @@ export class AppGateway
 	}
 	@SubscribeMessage('getUserByLogin')
 	async getUserByLogin(client: Socket, payload: any): Promise<void> {
-		try{
+		try {
 			const user = await this.userService.getByLogin(payload.login);
 			client.emit('getUserByLogin', new ProfileUserDto(user));
 		}
@@ -253,7 +264,7 @@ export class AppGateway
 	}
 	@SubscribeMessage('getByLoginFiltred')
 	async getByLoginFiltred(
-		@MessageBody() data: {me: string, search: string},
+		@MessageBody() data: { me: string, search: string },
 		@ConnectedSocket() client: Socket,
 	) {
 		console.log(`me = ${data.me}, search = ${data.search}`)
@@ -291,22 +302,22 @@ export class AppGateway
 		let statusString = await this.userService.get_user_status(data);
 		let status: boolean;
 		statusString == "online" ? status = true : status = false;
-		client.emit("userStatus", {user: data, status: status});
+		client.emit("userStatus", { user: data, status: status });
 	}
 
 	@SubscribeMessage('userLogout')
-	async userLogout( @MessageBody() data: string) {
-		this.server.emit("userStatus", {user: data, status: false})
+	async userLogout(@MessageBody() data: string) {
+		this.server.emit("userStatus", { user: data, status: false })
 	}
 
 	@SubscribeMessage('userLogin')
-	async userLogin( @MessageBody() data: string) {
-		this.server.emit("userStatus", {user: data, status: true})
+	async userLogin(@MessageBody() data: string) {
+		this.server.emit("userStatus", { user: data, status: true })
 	}
 
 	@SubscribeMessage('blockUser')
 	async blockUser(
-		@MessageBody() data: {blocker: string, blocked: string},
+		@MessageBody() data: { blocker: string, blocked: string },
 		@ConnectedSocket() client: Socket,
 	) {
 		let blocked = await this.chatService.blockUser(data);
@@ -315,7 +326,7 @@ export class AppGateway
 
 	@SubscribeMessage('unblockUser')
 	async unblockUser(
-		@MessageBody() data: {blocker: string, blocked: string},
+		@MessageBody() data: { blocker: string, blocked: string },
 		@ConnectedSocket() client: Socket,
 	) {
 		let priv = await this.chatService.unblockUser(data, this.server);
@@ -324,7 +335,7 @@ export class AppGateway
 
 	// ============================ CHAT =====================================
 
-		// ========== PRIVATES
+	// ========== PRIVATES
 
 	@SubscribeMessage('newPrivMsg')
 	async NewPrivMsg(
@@ -392,7 +403,7 @@ export class AppGateway
 
 	@SubscribeMessage('newChannelUser')
 	async newChannelUser(
-		@MessageBody() data: {chan: string, login: string},
+		@MessageBody() data: { chan: string, login: string },
 		@ConnectedSocket() client: Socket,
 	) {
 		this.chatService.newChannelUser(this.server, data);
@@ -400,7 +411,7 @@ export class AppGateway
 
 	@SubscribeMessage('userQuitChan')
 	async userQuitChan(
-		@MessageBody() data: {login: string, chan: string},
+		@MessageBody() data: { login: string, chan: string },
 		@ConnectedSocket() client: Socket,
 	) {
 		this.chatService.userQuitChan(this.server, data);
