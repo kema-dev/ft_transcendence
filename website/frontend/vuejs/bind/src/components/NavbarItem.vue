@@ -14,10 +14,8 @@
 					hover
 					class="icon"
 				/> -->
-				<lottie-player
-					:src="require('@/assets/json/logout.json')"
-					speed="2"
-					hover
+				<img
+					src="@/assets/logout.png"
 					class="icon"
 					@click="logout"
 				/>
