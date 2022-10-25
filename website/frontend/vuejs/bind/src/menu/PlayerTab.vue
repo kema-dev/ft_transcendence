@@ -31,7 +31,7 @@
 				<h3 class="statValue">{{ user_stats.loses }}</h3>
 			</div>
 		</div>
-		<div class="playerBtnCont center raw">
+		<div v-if="userDone" class="playerBtnCont center raw">
 			<button @click="inviteGame()" class="playerBtn center raw">
 				<img src="@/assets/ball_logo.svg" class="imgBtn">
 				Play
@@ -39,6 +39,22 @@
 			<button @click="toChat()" class="playerBtn center raw">
 				<img src="@/assets/chat.svg" class="imgBtn">
 				Chat
+			</button>
+			<button v-if="!isFriend()" @click="addFriend()" class="playerBtn center raw">
+				<img src="@/assets/add_friend.svg" class="imgBtn">
+				Add
+			</button>
+			<button v-else @click="removeFriend()" class="playerBtn center raw">
+				<img src="@/assets/remove_friend.svg" class="imgBtn">
+				Remove
+			</button>
+			<button v-if="!isBlocked()" @click="blockUser()" class="playerBtn center raw">
+				<img src="@/assets/block_logo.svg" class="imgBtn">
+				Block
+			</button>
+			<button v-else @click="unblockUser()" class="playerBtn center raw">
+				<img src="@/assets/restore.svg" class="imgBtn">
+				Unblock
 			</button>
 		</div>
 		<hr class="separator2">
@@ -72,7 +88,9 @@ const toast = useToast();
 const route = useRoute();
 const { cookies } = useCookies();
 let define = inject('colors')!;
-let user_login = route.params.name;
+let user_login = route.params.name as string;
+let me: Ref<ProfileUserDto> = inject('user')!;
+let myName: string = inject('me')!;
 let userDone = inject('userDone')!;
 let socket : Socket = inject('socket')!;
 let showBlocks = ref(false);
@@ -125,6 +143,32 @@ function inviteGame() {
 
 function toChat() {
 	router.push({name: 'PrivConv', params: {conv_name: user_login}})
+}
+
+function isFriend() {
+	return me.value.friends.map(f => f.login)
+		.includes(user_login);
+}
+
+function addFriend() {
+	socket.emit('addFriend', { sender: myName, receiver: user_login });
+}
+
+function removeFriend() {
+	socket.emit("removeFriend", { sender: myName, receiver: user_login });
+}
+
+function isBlocked() {
+	return me.value.blockeds.map(f => f.login)
+		.includes(user_login);
+}
+
+function blockUser() {
+	socket.emit("blockUser", {blocker: myName, blocked: user_login});
+}
+
+function unblockUser() {
+	socket.emit("unblockUser", {blocker: myName, blocked: user_login});
 }
 
 onMounted(async () => {
