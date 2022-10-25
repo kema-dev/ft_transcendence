@@ -210,8 +210,8 @@ export class AppGateway
 				this.userService.set_status(player.login, 'ingame');
 			});
 			game.start = true;
+			this.server.emit('lobbys', this.sendLobbys(this.games));
 		}
-		// this.matchService.simulate_5_matches();
 	}
 	afterInit(server: Server) {
 		this.logger.log('Init');

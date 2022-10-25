@@ -17,7 +17,7 @@
 					</div>
 				</div>
 				<div class="row left">
-					<button class="button" @click="join()">join</button>
+					<button v-if="lobby.start == false" class="button" @click="join()">join</button>
 					<button class="button" @click="look()">look</button>
 				</div>
 			</div>
