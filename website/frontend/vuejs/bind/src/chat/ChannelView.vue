@@ -54,16 +54,6 @@
 			<div v-for="(data, i) in chansFiltred" :key="i" 
 				:set="ind = findIndexMsg(data.messages)" class="center"
 			>
-				<!-- <ConversationTab
-					v-if="data.messages.length > 0"
-					:name-conv="data.name"
-					:message="data.messages.at(-1)!.msg"
-					:date="data.messages.at(-1)!.date"
-					:last-msg-user="data.messages.at(-1)!.user"
-					:read="data.readed"
-					:chan="true"
-					class="center"
-				/> -->
 				<ConversationTab
 					v-if="data.messages.length > 0 && ind >= 0"
 					:name-conv="data.name"
@@ -274,8 +264,8 @@ function submitChannel() {
 		.then(res => {
 			let newChan = res.data as ChannelDto;
 			newChan.creation = new Date(newChan.creation);
-			chansRef.value.unshift(newChan);
 			newChannel.value = false;
+			chansRef.value.unshift(newChan);
 		})
 		.catch(e => {
 			if (e.response.data.message === 'CHAN_ALREADY_EXIST') {

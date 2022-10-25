@@ -22,18 +22,17 @@ export class UsersController {
 	private logger: Logger = new Logger('UsersController');
 	constructor(private readonly usersService: UsersService) {}
 
-	// @UseGuards(AuthGuard)
-	// @Get('getMyProfile/:login')
-	// async getMyProfile(@Param() params: { login: string }) {
-	// 	console.log(`Get profile for user '${params.login}'`)
-	// 	const user = await this.usersService.getByLogin(params.login, {
-	// 		friends: true,
-	// 		requestFriend: true,
-	// 		blockeds: true
-	// 	});
-	// 	console.log()
-	// 	return new ProfileUserDto(user);
-	// }
+	@UseGuards(AuthGuard)
+	@Get('getMyProfile/:login')
+	async getMyProfile(@Param() params: { login: string }) {
+		console.log(`Get profile for user '${params.login}'`)
+		const user = await this.usersService.getByLogin(params.login, {
+			friends: true,
+			requestFriend: true,
+			blockeds: true
+		});
+		return new ProfileUserDto(user);
+	}
 
 	@UseGuards(AuthGuard)
 	@Get('getBasicUser/:login')

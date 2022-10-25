@@ -2,7 +2,7 @@ import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
 import Home from '@/views/HomeView.vue';
 import LogpageView from '@/views/LogpageView.vue';
 import BackendDownView from '@/views/BackendDownView.vue';
-import Users from '@/menu/Users.vue';
+import Users from '@/menu/UsersTab.vue';
 import Chat from '@/menu/ChatTab.vue';
 import InGame from '@/chat/InGameTab.vue';
 import Private from '@/chat/PrivateView.vue';

@@ -4,6 +4,7 @@ import {
 	Entity,
 	PrimaryGeneratedColumn,
 	OneToMany,
+	ManyToOne,
 	ManyToMany,
 	JoinTable,
 	JoinColumn,
@@ -33,6 +34,13 @@ export class ChannelEntity extends TimestampEntites {
 
 	@Column({ nullable: true })
 	password: string;
+
+	@ManyToOne((type) => UserEntity, (user) => user.chansOwner, {
+		onDelete: 'CASCADE',
+		nullable: true,
+	})
+	@JoinColumn()
+	owner: UserEntity;
 
 	@ManyToMany( type => UserEntity, (user) => user.chansAdmin, {
 		onDelete: 'CASCADE',

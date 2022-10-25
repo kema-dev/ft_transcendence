@@ -5,11 +5,16 @@
 			<img src="@/assets/notif.svg" class="logo" />
 			<h2 class="title">Game invitations</h2>
 		</div>
-		<PlayInvitationItem
+		<div v-if="user_invitations.length">
+			<PlayInvitationItem
 			v-for="invit in user_invitations"
 			v-bind:match="invit"
 			:key="invit.nbrPlayer"
-		/>
+			/>
+		</div>
+		<div v-else>
+      <h3 class="noResults">No invitations</h3>
+    </div>
 		<hr class="separator" />
 		<!-- <h2 class="title">Match history</h2> -->
 		<div class="titleCont left_center">
@@ -142,27 +147,28 @@ socket.on('remove_invit', (lobby_name: string) => {
 	margin-top: 30px;
 }
 .titleCont {
-	margin-top: 20px;
-	margin-bottom: 10px;
-	margin-right: auto;
-	margin-left: 40px;
+  margin-top: 20px;
+  margin-bottom: 10px;
+	max-width: 100%;
+	padding-left: 40px;
 }
 .title {
-	font-size: 1.4rem;
+	font-size: 1.2rem;
 }
 .noResults {
-	font-size: 0.9rem;
-	margin-top: 20px;
+  font-size: 0.9rem;
+  margin-top: 20px;
 }
 .img {
-	width: 50px;
-	height: 50px;
+  width: 50px;
+  height: 50px;
 }
 .logo {
-	width: 25px;
-	height: 25px;
-	margin-right: 10px;
-	filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg)
+  width: 25px;
+  height: 25px;
+  margin-right: 10px;
+  filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg)
 		brightness(86%) contrast(83%);
 }
+
 </style>

@@ -122,13 +122,37 @@
 					<img src="~@/assets/crown.svg" alt="Password" class="infoImg" />
 				</div>
 				<span class="titleText">
+					Owner :
+				</span>
+				<span v-if="!chansRef[i].owner" class="titleValueText">
+					No owner
+				</span>
+			</div>
+			<div v-if="chansRef[i].owner" class="basicUserCont left_center">
+				<BasicProfil :avatar="chansRef[i].owner.avatar" 
+					@click="toProfile(chansRef[i].owner.login)" 
+					:login="chansRef[i].owner.login" class="basicUser"/>
+				<setUserChan v-if="chansRef[i].owner.login != myName" 
+					:login="chansRef[i].owner.login" :chan="chanName" group="admins" 
+					:isAdmin="false"/>
+			</div>
+		</div>
+		<hr class="separator">
+		<div class="ElemCont left_center column">
+			<div class="ElemHeadCont left_center raw">
+				<div class="titleImgCont center">
+					<img src="~@/assets/star2.svg" alt="Password" class="infoImg" />
+				</div>
+				<span class="titleText">
 					Admins :
 				</span>
 				<span v-if="!chansRef[i].admins.length" class="titleValueText">
 					No admins
 				</span>
 			</div>
-			<div v-for="(data, i) in chansRef[props.i].admins" :key="i" class="left_center">
+			<div v-for="(data, i) in chansRef[props.i].admins" :key="i" 
+				class="basicUserCont left_center"
+			>
 				<BasicProfil :avatar="data.avatar" @click="toProfile(data.login)" 
 					:login="data.login" class="basicUser"/>
 				<setUserChan v-if="data.login != myName" 
@@ -149,7 +173,9 @@
 					No users
 				</span>
 			</div>
-			<div v-for="(data, i) in chansRef[props.i].users" :key="i" class="left_center">
+			<div v-for="(data, i) in chansRef[props.i].users" :key="i" 
+				class="basicUserCont left_center"
+			>
 				<BasicProfil @click="toProfile(data.login)" 
 					:avatar="data.avatar" :login="data.login" class="basicUser"/>
 				<setUserChan v-if="data.login != myName" 
@@ -170,7 +196,9 @@
 					No mutes
 				</span>
 			</div>
-			<div v-for="(data, i) in chansRef[props.i].mutes" :key="i" class="left_center">
+			<div v-for="(data, i) in chansRef[props.i].mutes" :key="i" 
+				class="basicUserCont left_center"
+			>
 				<BasicProfil @click="toProfile(data.login)" 
 					:avatar="data.avatar" :login="data.login" class="basicUser"/>
 				<setUserChan v-if="data.login != myName" 
@@ -191,7 +219,9 @@
 					No bans
 				</span>
 			</div>
-			<div v-for="(data, i) in chansRef[props.i].bans" :key="i" class="left_center">
+			<div v-for="(data, i) in chansRef[props.i].bans" :key="i" 
+				class="basicUserCont left_center"
+			>
 				<BasicProfil @click="toProfile(data.login)" 
 					:avatar="data.avatar" :login="data.login" class="basicUser"/>
 				<setUserChan v-if="data.login != myName" 
@@ -273,9 +303,11 @@ watch(chansRef.value[props.i].admins, () => {
 // ================= GENERAL =================
 
 function isAdmin() {
-	return chansRef.value[props.i].admins
-		.map(adm => adm.login)
-		.includes(myName);
+	let admins =  chansRef.value[props.i].admins
+		.map(adm => adm.login);
+	if (chansRef.value[props.i].owner)
+		admins.push(chansRef.value[props.i].owner.login);
+	return admins.includes(myName);
 }
 
 function quitChannel() {
@@ -422,21 +454,22 @@ function printChan(chan: ChannelDto) {
 }
 
 .ElemCont {
-	width: 220px;
+	width: 80%;
 	margin: 10px;
 }
 .separator{
 	flex-shrink: 0;
-	width: 200px;
+	width: 70%;
 	height: 1px;
 	background-color: v-bind("colors.color2");
+	margin: 10px 0;
 }
 .titleText {
 	font-family: 'Orbitron', sans-serif;
 	width: auto;
 	white-space: nowrap;
 	font-weight: 500;
-	margin-left: 5px;
+	margin-left: 10px;
 }
 .titleValueText {
 	font-family: 'Orbitron', sans-serif;
@@ -450,7 +483,7 @@ function printChan(chan: ChannelDto) {
 	border-radius: 13px;
 }
 .settingsBtnCont {
-	margin-left: auto;
+	margin-left: 20px
 }
 .setUserCont:hover,
 .settingsBtnCont:hover {
@@ -500,6 +533,9 @@ function printChan(chan: ChannelDto) {
 	border-radius: calc(1.4rem / 2);
 	outline: none;
 	padding: 0 8px;
+}
+.basicUserCont{
+	width: 95%;
 }
 .basicUser {
 	margin: 5px 10px;

@@ -1,18 +1,9 @@
 <template>
-	<div class="space-between left row">
-		<div class="left column">
-			<router-link
-				:to="{
-					name: 'player',
-					params: { name: friend.login },
-				}"
-				><h2 class="name">
-					{{ friend.login }}
-				</h2></router-link
-			>
-			<h3 class="text">level {{ friend.level }}</h3>
-		</div>
-		<div class="right column">
+	<div class="friendInfoCont center column">
+		<div class="space-between raw">
+			<h2 @click="toProfile(friend.login)" class="name">
+				{{ friend.login }}
+			</h2>
 			<button
 				class="action"
 				style="margin-right: 10px"
@@ -20,47 +11,68 @@
 			>
 				X
 			</button>
-			<h3
-				class="status"
-				:style="'background-color: ' + statusColor[friend.status] + ';'"
-			>
-				{{ friend.status }}
-			</h3>
 		</div>
-	</div>
-	<div class="space-between row">
-		<!-- <div class="left row"> -->
-		<h2 class="score">{{ friend.rank }}</h2>
-		<!-- <h2 class="score">{{friend.ratiov}} | {{friend.ratiod}}</h2> -->
-		<!-- </div> -->
-		<div class="right row" style="margin-right: 7px">
-			<button v-if="friend.status == 'in game'" class="action">
-				watch game
-			</button>
-			<button class="action" @click="inviteGame(friend.login)">invit</button>
-			<button class="action">chat</button>
+		<div class="space-between raw">
+			<div class="left column">
+				<h3 class="text">level {{ friend.level }}</h3>
+				<h3 v-if="statusDone" class="status">
+					{{ status ? "online" : "offline" }}
+				</h3>
+			</div>
+			<div class="btns center raw">
+				<button @click="inviteGame(user.login)" class="btnCont center">
+					<img src="@/assets/ball_logo.svg" class="btnImg">
+				</button>
+				<button @click="toChat(user.login)" class="btnCont center">
+					<img src="@/assets/chat.svg" class="btnImg">
+				</button>
+			</div>
 		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { defineProps, inject } from "vue";
-import { Socket } from "engine.io-client";
+import { defineProps, inject, onMounted, onUnmounted, ref, Ref } from "vue";
+import { Socket } from 'engine.io-client';
+import router from "@/router";
 import { useToast } from 'vue-toastification';
 
+
+
+let colors = inject("colors");
 const toast = useToast();
 let me = inject("user")!;
-let socket: Socket = inject("socket")!;
+const socket: Socket = inject('socket')!;
 const props = defineProps(["friend"]);
 let statusColor = {
 	online: "green",
 	offline: "red",
 	"in game": "orange",
 };
+let status: Ref<boolean> = ref(false);
+const statusDone : Ref<boolean> = ref(false);
+
 function remove_friend(name: string) {
 	socket.emit("removeFriend", { sender: me.value.login, receiver: name });
 }
 
+function toProfile(login: string) {
+	router.push({name: 'player', params: {name: login}})
+}
+
+onMounted(() => {
+	socket.on("userStatus", (data: {user: string, status: boolean}) => {
+		if (data.user == props.friend.login) {
+			status.value = data.status;
+			statusDone.value = true;
+		}
+	});
+	socket.emit("userStatus", props.friend.login);
+})
+
+onUnmounted(() => {
+	socket.off('userStatus');
+})
 function inviteGame(name: string) {
 	console.log("inviteGame");
 	socket.off('invite_to_game');
@@ -81,30 +93,45 @@ function inviteGame(name: string) {
 </script>
 
 <style>
+.friendInfoCont {
+	max-width: calc(100% - 75px);
+}
 .status {
-	margin: 0 9px;
+	/* margin: 0 9px; */
 	color: white;
 	padding: 0 5px;
 	border-radius: 5px;
+	background-color: v-bind((status ? "green" : "red"));
 }
 .action {
 	margin: 0 3px;
 	padding: 2px 6px;
-	/* background-color: v-bind("define.color3"); */
 	border-radius: 10px;
 }
+.action:hover {
+	background-color: v-bind("colors.color2");
+	color: white;
+	box-shadow: 0px 0px 4px #aaa;
+}
+.loginLevelCont {
+	/* max-width: 20%; */
+	/* max-width: 100px; */
+	width: fit-content;
+}
 .name {
+	width: auto;
+	max-width: 80%;
 	overflow: hidden;
 	white-space: nowrap;
 	text-overflow: ellipsis;
-	width: 8.5rem;
 	text-align: left;
+	cursor: pointer;
 }
 .text {
 	overflow: hidden;
 	white-space: nowrap;
 	text-overflow: ellipsis;
-	width: 7rem;
 	text-align: left;
+	/* width: 7rem; */
 }
 </style>
