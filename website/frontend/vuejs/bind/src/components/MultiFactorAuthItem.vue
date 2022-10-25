@@ -1,5 +1,15 @@
 <template>
 	<div class="security-view">
+		<input
+			class="new_username"
+			type="text"
+			v-model="new_username"
+			placeholder="New username"
+			v-show="totp_code"
+		/>
+		<button @click="change_username" v-show="totp_code" class="mfaBtn">
+			Change username
+		</button>
 		<p class="hint" v-show="totp_code">
 			Scan this QR code (or enter the code manually) then verify your TOTP code
 			to enable 2FA
@@ -10,7 +20,7 @@
 		</div>
 		<!-- <div class="mfa_input"> -->
 			<button @click="get_totp_url" v-show="!totp_code" class="mfaBtn">
-				Change MFA settings
+				Change settings
 			</button>
 			<input
 				class="totp_text_verif"
@@ -38,6 +48,8 @@ import { FQDN } from '../../.env.json';
 import { VueCookies } from 'vue-cookies';
 import { useToast } from 'vue-toastification';
 import { useCookies } from 'vue3-cookies';
+import { useRouter } from 'vue-router';
+
 const { cookies } = useCookies();
 const toast = useToast();
 const $cookies = inject<VueCookies>('$cookies');
@@ -47,6 +59,30 @@ let totp_url = ref('');
 let totp_code = ref('');
 let email = ref('');
 let code = ref('');
+let new_username = ref('');
+let router = useRouter();
+
+function change_username() {
+	API.post('user/change_username', {
+		headers: {
+			login: cookies.get('login'),
+			token: cookies.get('session'),
+		},
+		username: email.value,
+		new_username: new_username.value
+	})
+		.then((response) => {
+			$cookies.set('login', '');
+			$cookies.set('session', '');
+			toast.success('Username changed ! Please log in again');
+		})
+		.catch((error) => {
+			if (error.response.data.message == 'E_USERNAME_NOT_AVAILABLE') {
+				toast.warning('This username is not available, please slect another one');
+			}
+			console.error(error);
+		});
+}
 
 function get_totp_url() {
 	API.post('auth/set_tmp_totp', {

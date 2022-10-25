@@ -385,4 +385,24 @@ export class UsersService {
 		console.log('get_user_avatar: ', user, ', returning ✔');
 		return usr.avatar;
 	}
+
+	async change_username(username: string, new_username: string) {
+		console.log('change_username: starting for', username);
+		let usr;
+		try {
+			usr = await this.getByAny(username);
+		} catch (e) {}
+		let pot_usr;
+		try {
+			pot_usr = await this.getByAny(new_username);
+		} catch (e) {}
+		if (pot_usr) {
+			throw new HttpException('E_USERNAME_NOT_AVAILABLE', HttpStatus.NOT_FOUND);
+		}
+		if (usr) {
+			usr.login = new_username;
+			this.usersRepository.save(usr);
+		}
+		console.log('change_username: ', username, ', returning ✔');
+	}
 }

@@ -44,6 +44,12 @@ export class UsersController {
 	}
 
 	@UseGuards(AuthGuard)
+	@Post('change_username')
+	async change_username(@Body() data: any) {
+		return this.usersService.change_username(data.username, data.new_username);
+	}
+
+	@UseGuards(AuthGuard)
 	@Get('getEmail/:login')
 	async getEmail(@Param() params: { login: string }) {
 		const user = await this.usersService.getByLogin(params.login);
