@@ -193,10 +193,13 @@ function scrollAndFocus() {
 }
 
 function findAvatar(login: string) {
-	let isInChan = chansRef.value[index.value].admins
+	let allUsers = chansRef.value[index.value].admins
 		.concat(chansRef.value[index.value].users)
 		.concat(chansRef.value[index.value].mutes)
-		.concat(chansRef.value[index.value].bans)
+		.concat(chansRef.value[index.value].bans);
+	if (chansRef.value[index.value].owner)
+		allUsers.push(chansRef.value[index.value].owner);
+	let isInChan = allUsers
 		.find(user => user.login == login);
 	if (isInChan)
 		return isInChan.avatar;

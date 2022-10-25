@@ -594,7 +594,7 @@ export class ChatService {
 
 
 	isOwner(user: UserEntity, chan: ChannelEntity) {
-		if (chan.owner.login == user.login)
+		if (chan.owner && chan.owner.login == user.login)
 			return true;
 		return false;
 	}

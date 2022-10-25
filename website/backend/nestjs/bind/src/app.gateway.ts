@@ -383,7 +383,10 @@ export class AppGateway
 			data.message,
 			new Date(data.date),
 		);
-		for (let user of chan.admins.concat(chan.users).concat(chan.mutes)) {
+		let allUsers = chan.admins.concat(chan.users).concat(chan.mutes);
+		if (chan.owner)
+			allUsers.push(chan.owner);
+		for (let user of allUsers) {
 			this.server
 				.to(user.socketId)
 				.emit('newChanMsg', { msg: msg, name: chan.name });
