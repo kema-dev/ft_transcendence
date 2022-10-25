@@ -98,6 +98,19 @@
 			/>
 		</button>
 		<button v-if="props.isAdmin && showMore"
+			@click="kickUser()"
+			class="setUserCont center"
+		>
+			<span class="infoButtonText">
+				Kick
+			</span>
+			<img
+				src='~@/assets/kick.svg'
+				alt="User setting"
+				class="infoImg"
+			/>
+		</button>
+		<button v-if="props.isAdmin && showMore"
 			@click="updateSanction('ban')"
 			class="setUserCont center"
 		>
@@ -183,6 +196,11 @@ function promote() {
 function demote() {
 	mySocket.emit("modifChan", 
 		new ModifChanDto(myName, props.chan, "demotUser", props.login));
+}
+
+function kickUser() {
+	mySocket.emit("modifChan", 
+		new ModifChanDto(myName, props.chan, "kick", props.login, props.group));
 }
 
 function sendPrivMsg() {
