@@ -14,10 +14,6 @@
 					speed="2"
 					hover
 					class="icon"
-				/> -->
-				<img
-					src="@/assets/logout.png"
-					class="icon"
 					@click="logout"
 				/> -->
 			</div>
