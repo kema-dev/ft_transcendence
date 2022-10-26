@@ -400,6 +400,18 @@ export class UsersService {
 			throw new HttpException('E_USERNAME_NOT_AVAILABLE', HttpStatus.NOT_FOUND);
 		}
 		if (usr) {
+			if (
+				new_username.length > 25 ||
+				!new_username.match(/^[a-zA-Z0-9-_ ]{1,25}$/)
+			) {
+				console.error(
+					'register: ' + 'login does not meet requirements, returning ✘',
+				);
+				throw new HttpException(
+					'E_LOGIN_NOT_MEET_REQUIREMENTS',
+					HttpStatus.BAD_REQUEST,
+				);
+			}
 			usr.login = new_username;
 			this.usersRepository.save(usr);
 		}

@@ -15,29 +15,28 @@
 			to enable 2FA
 		</p>
 		<div class="mfa_content" v-show="totp_code">
-			<img class="qr_img" id="qr_img" v-bind:src="totp_url" alt="">
+			<img class="qr_img" id="qr_img" v-bind:src="totp_url" alt="" />
 			<p id="qr_text">Code: {{ totp_code }}</p>
 		</div>
 		<!-- <div class="mfa_input"> -->
-			<button @click="get_totp_url" v-show="!totp_code" class="mfaBtn">
-				Change settings
-			</button>
-			<input
-				class="totp_text_verif"
-				type="text"
-				v-model="code"
-				placeholder="TOTP Code"
-				v-show="totp_code"
-			/>
-			<button @click="verify" v-show="totp_code" class="mfaBtn">
-				VERIFY TOTP
-			</button>
-			<button @click="disable" v-show="totp_code" class="mfaBtn">
-				DISABLE TOTP
-			</button>
-			<hr class="separator" v-show="totp_code">
+		<button @click="get_totp_url" v-show="!totp_code" class="mfaBtn">
+			Change settings
+		</button>
+		<input
+			class="totp_text_verif"
+			type="text"
+			v-model="code"
+			placeholder="TOTP Code"
+			v-show="totp_code"
+		/>
+		<button @click="verify" v-show="totp_code" class="mfaBtn">
+			VERIFY TOTP
+		</button>
+		<button @click="disable" v-show="totp_code" class="mfaBtn">
+			DISABLE TOTP
+		</button>
+		<hr class="separator" v-show="totp_code" />
 		<!-- </div> -->
-
 	</div>
 </template>
 
@@ -69,7 +68,7 @@ function change_username() {
 			token: cookies.get('session'),
 		},
 		username: email.value,
-		new_username: new_username.value
+		new_username: new_username.value,
 	})
 		.then((response) => {
 			$cookies.set('login', '');
@@ -77,10 +76,16 @@ function change_username() {
 			toast.success('Username changed ! Please log in again');
 		})
 		.catch((error) => {
+			// console.log(error);
 			if (error.response.data.message == 'E_USERNAME_NOT_AVAILABLE') {
-				toast.warning('This username is not available, please slect another one');
+				toast.warning(
+					'This username is not available, please slect another one',
+				);
+			} else if (error.response.data.message == 'E_LOGIN_NOT_MEET_REQUIREMENTS') {
+				toast.warning('This username does not meet the requirements, please slect another one');
+			} else {
+				toast.error('An error occured');
 			}
-			console.error(error);
 		});
 }
 
@@ -155,20 +160,22 @@ async function disable() {
 				return;
 			} else {
 				API.post('auth/verify_totp', {
-				headers: {
-					login: cookies.get('login'),
-					token: cookies.get('session'),
-				},
-				name: email.value,
-				code: code.value,
-			})
-				.then((response) => {
-					disable_totp_api();	
+					headers: {
+						login: cookies.get('login'),
+						token: cookies.get('session'),
+					},
+					name: email.value,
+					code: code.value,
 				})
-				.catch((error) => {
-					console.error(error.response.data);
-					toast.error('TOTP Verification failed. Please enter your actual TOTP code');
-				});
+					.then((response) => {
+						disable_totp_api();
+					})
+					.catch((error) => {
+						console.error(error.response.data);
+						toast.error(
+							'TOTP Verification failed. Please enter your actual TOTP code',
+						);
+					});
 			}
 		})
 		.catch((error) => {
@@ -293,16 +300,16 @@ onMounted(() => {
 	width: auto;
 	border-radius: calc(1.5rem / 2);
 	font-weight: 500;
-	background-color: v-bind("colors.color2");
+	background-color: v-bind('colors.color2');
 	color: white;
 	padding: 0 10px;
 	box-shadow: 0px 0px 4px #aaa;
 }
-.separator{
+.separator {
 	margin-top: 15px;
 	flex-shrink: 0;
 	width: 200px;
 	height: 1px;
-	background-color: v-bind("colors.color2");
+	background-color: v-bind('colors.color2');
 }
 </style>
