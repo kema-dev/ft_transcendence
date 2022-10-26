@@ -146,6 +146,11 @@ export class AppGateway
 		});
 		return lobbys;
 	}
+	@SubscribeMessage('look_lobby2')
+	async lookLobby2(@ConnectedSocket() client: Socket, @MessageBody() data: { spec: string, player: string },) {
+		let lobbyName = (await this.userService.getByLogin(data.player)).lobby_name;
+		this.lookLobby(client, {login: data.spec, lobby_name: lobbyName})
+	}
 	@SubscribeMessage('look_lobby')
 	async lookLobby(@ConnectedSocket() client: Socket, @MessageBody() data: { login: string, lobby_name: string },) {
 		const game = this.games.find((game) => game.lobby_name === data.lobby_name);
@@ -296,16 +301,6 @@ export class AppGateway
 		let status = await this.userService.get_user_status(data);
 		client.emit("userStatus", {user: data, status: status});
 	}
-
-	// @SubscribeMessage('userLogout')
-	// async userLogout( @MessageBody() data: string) {
-	// 	this.server.emit("userStatus", {user: data, status: false})
-	// }
-
-	// @SubscribeMessage('userLogin')
-	// async userLogin( @MessageBody() data: string) {
-	// 	this.server.emit("userStatus", {user: data, status: true})
-	// }
 
 	@SubscribeMessage('blockUser')
 	async blockUser(

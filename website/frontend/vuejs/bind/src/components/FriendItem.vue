@@ -57,12 +57,15 @@ import ProfileUserDto from "@/dto/ProfileUserDto";
 
 const toast = useToast();
 let socket: Socket = inject("socket")!;
+let myName : string = inject("me")!;
 let me : Ref<ProfileUserDto> = inject("user")!;
 let colors = inject("colors");
 const props = defineProps(["info", "friend"]);
 let statusColor: Ref<string> = ref('');
 let userStatus: Ref<string> = ref('');
 const statusDone : Ref<boolean> = ref(false);
+let isCreate : Ref<boolean> = inject('isCreate')!;
+let isJoin : Ref<boolean> = inject('isJoin')!;
 
 function addFriend() {
 	socket.emit('addFriend', { sender: me.value.login, receiver: props.info.login });
@@ -81,7 +84,12 @@ function toChat() {
 }
 
 function specGame() {
-
+	socket.emit('look_lobby2', {
+		spec: myName,
+		player: props.info.login,
+	});
+	isCreate.value = true;
+	isJoin.value = false;
 }
 
 function inviteGame() {

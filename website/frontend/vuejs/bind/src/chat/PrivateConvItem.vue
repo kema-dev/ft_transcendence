@@ -125,6 +125,8 @@ let mySocket: Socket = inject("socket")!;
 let me: string = inject("me")!;
 let apiPath: string = inject("apiPath")!;
 const userName = useRoute().params.conv_name as string;
+let isCreate : Ref<boolean> = inject('isCreate')!;
+let isJoin : Ref<boolean> = inject('isJoin')!;
 let myMsg = ref("");
 let userStatus = ref('');
 let statusColor = ref('');
@@ -224,7 +226,12 @@ function privMsgRead() {
 }
 
 function specGame() {
-
+	mySocket.emit('look_lobby2', {
+		spec: me,
+		player: userName,
+	});
+	isCreate.value = true;
+	isJoin.value = false;
 }
 
 function blockUser() {

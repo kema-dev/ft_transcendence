@@ -97,6 +97,8 @@ let user_login = route.params.name as string;
 let me: Ref<ProfileUserDto> = inject('user')!;
 let myName: string = inject('me')!;
 let userDone = inject('userDone')!;
+let isCreate : Ref<boolean> = inject('isCreate')!;
+let isJoin : Ref<boolean> = inject('isJoin')!;
 let socket : Socket = inject('socket')!;
 let ProgressBar = require('progressbar.js');
 let statDone = false;
@@ -178,7 +180,12 @@ function unblockUser() {
 }
 
 function specGame() {
-	
+	socket.emit('look_lobby2', {
+		spec: myName,
+		player: user_login,
+	});
+	isCreate.value = true;
+	isJoin.value = false;
 }
 
 onMounted(async () => {

@@ -177,10 +177,9 @@ let colors = inject('colors');
 let showMore = ref(false);
 let mySocket: Socket = inject("socket")!;
 const myName: string = inject("me")!;
+let isCreate : Ref<boolean> = inject('isCreate')!;
+let isJoin : Ref<boolean> = inject('isJoin')!;
 let sanction = ref("");
-let seconds = ref(0);
-let minutes = ref(0);
-let hours = ref(0);
 let userStatus = ref('');
 let statusColor = ref('');
 let statusDone = ref(false);
@@ -222,6 +221,15 @@ function kickUser() {
 
 function sendPrivMsg() {
 	router.push({name: 'PrivConv', params: { conv_name: props.login }});
+}
+
+function specGame() {
+	mySocket.emit('look_lobby2', {
+		spec: myName,
+		player: props.login,
+	});
+	isCreate.value = true;
+	isJoin.value = false;
 }
 
 function inviteGame() {
