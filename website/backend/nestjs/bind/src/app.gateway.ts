@@ -320,8 +320,7 @@ export class AppGateway
 		@MessageBody() data: {blocker: string, blocked: string},
 		@ConnectedSocket() client: Socket,
 	) {
-		let priv = await this.chatService.unblockUser(data, this.server);
-		client.emit('userUnblock', priv);
+		this.chatService.unblockUser(data, this.server);
 	}
 
 	// ============================ CHAT =====================================

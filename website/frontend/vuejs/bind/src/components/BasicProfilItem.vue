@@ -56,6 +56,6 @@ const props = defineProps({
 	max-width: 230px !important;
 }
 .basicUserCont > .basicProfil > .login {
-	max-width: 200px !important;
+	max-width: 175px !important;
 }
 </style>
