@@ -202,6 +202,12 @@ export class AppGateway
 			console.log('join_lobby: User is already in the game, Returning');
 			return;
 		}
+		// check if user is already in a game
+		if (this.games.find((game) => game.players.find((player) => player.login === user.login))) {
+			console.log('join_lobby: User is already in a game, Returning');
+			this.server.to(user.socketId).emit('request_game_leave');
+			return;
+		}
 		let newGame = new Game(
 			game.nbrPlayer + 1,
 			game.nbrBall,
@@ -223,6 +229,7 @@ export class AppGateway
 		user.lobby_name = newGame.lobby_name;
 		this.userService.saveUser(user);
 		this.server.to(user.socketId).emit('userUpdate', new ProfileUserDto(user));
+		this.server.to(user.socketId).emit('accept_success');
 		console.log('join_lobby: Success, returning');
 	}
 	@SubscribeMessage('start')

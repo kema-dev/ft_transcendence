@@ -58,6 +58,8 @@ import { useCookies } from 'vue3-cookies';
 import { useRouter } from 'vue-router';
 import { Socket } from 'socket.io-client';
 const { cookies } = useCookies();
+import { useToast } from 'vue-toastification';
+const toast = useToast();
 
 let define = inject('colors');
 let me: Ref<ProfileUserDto> = inject('user')!;
@@ -110,14 +112,22 @@ let isCreate: Ref<boolean> = inject('isCreate')!;
 let isJoin: Ref<boolean> = inject('isJoin')!;
 
 function accept_invit() {
+	mySocket.off('accept_success');
+	mySocket.on('accept_success', (data) => {
+		isCreate.value = true;
+		isJoin.value = false;
+		deny_invit();
+	});
 	mySocket.emit('join_lobby', {
 		login: me?.value?.login,
 		lobby: props.match.name,
 	});
-	isCreate.value = true;
-	isJoin.value = false;
-	deny_invit();
 }
+
+mySocket.off('request_game_leave');
+mySocket.on('request_game_leave', (data) => {
+	toast.warning('Please leave your current game before joining another one');
+});
 
 function get_player_name(player: string) {
 	// send max 5 char
