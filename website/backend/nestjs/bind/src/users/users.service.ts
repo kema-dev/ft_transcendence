@@ -327,11 +327,23 @@ export class UsersService {
 		}
 	}
 
-	async get_user_status(login: string) {
-		console.log('get_status: starting for ' + login);
+	async get_user_level(login: string) {
+		// console.log('get_status: starting for ' + login);
 		const user = await this.getByAny(login);
 		if (user) {
-			console.log('get_status: found ' + login + ', updating ✔');
+			// console.log('get_status: found ' + login + ', updating ✔');
+			return user.level;
+		} else {
+			console.error('get_level: ' + login + ' not found, updating aborted ✘');
+			throw new HttpException('E_USER_NOT_FOUND', HttpStatus.NOT_FOUND);
+		}
+	}
+
+	async get_user_status(login: string) {
+		// console.log('get_status: starting for ' + login);
+		const user = await this.getByAny(login);
+		if (user) {
+			// console.log('get_status: found ' + login + ', updating ✔');
 			return user.status;
 		} else {
 			console.error('get_status: ' + login + ' not found, updating aborted ✘');
@@ -376,13 +388,13 @@ export class UsersService {
 	}
 
 	async get_user_avatar(user: string) {
-		console.log('get_user_avatar: starting for', user);
+		// console.log('get_user_avatar: starting for', user);
 		// if (user == 'search') {
 		// 	console.log('get_user_avatar: search, returning ✔');
 		// 	return avatars[5];
 		// }
 		const usr = await this.getByAny(user);
-		console.log('get_user_avatar: ', user, ', returning ✔');
+		// console.log('get_user_avatar: ', user, ', returning ✔');
 		return usr.avatar;
 	}
 

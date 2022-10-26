@@ -6,7 +6,10 @@
 					class="avatar" alt="avatar"
 				/>
 			</div>
-			<button @click="toProfile" class="login">{{ userName }}</button>
+			<div class="center row">
+				<button @click="toProfile" class="login">{{ userName }}</button>
+				<div class="status"></div>
+			</div>
 			<div class="option_buttons center raw stack">
 				<button @click="inviteGame" class="button_cont center">
 					<span class="infoButtonText">Invite in game</span>
@@ -115,6 +118,8 @@ let me: string = inject("me")!;
 let apiPath: string = inject("apiPath")!;
 const userName = useRoute().params.conv_name as string;
 let myMsg = ref("");
+let user_status = ref(false);
+let statusDone = ref(false);
 let blockWarn = ref(false);
 let userBlocked = ref(false);
 let userExistDone = ref(false);
@@ -127,6 +132,7 @@ userExistOrBlocked();
 // GET PRIVS REFS
 let privsRef: Ref<PrivConvDto[]> = inject("privs")!;
 const privDone: Ref<boolean> = inject("privDone")!;
+const findPrivIndex: Ref<boolean> = inject("findPrivIndex")!;
 
 // GET PRIV INDEX
 index.value = privsRef.value
@@ -157,22 +163,12 @@ function init() {
 	}, {flush: 'post'})
 }
 
-// ===================== WATCHERS =====================
-
-// watch(blocked, () => {
-// 	if (blocked.value == privsRef.value[index.value].name) {
-// 		router.push({name: 'private'});
-// 	}
-// })
-
-
-// ===================== LISTENERS =====================
-
-mySocket.on("findNewPriv", () => {
-	setTimeout(() => {
+watch(findPrivIndex, () => {
+	if (findPrivIndex.value == true) {
 		index.value = privsRef.value
 			.findIndex((priv) => priv.user.login == userName);
-	}, 100);
+		findPrivIndex.value = false;
+	}
 })
 
 
@@ -307,13 +303,20 @@ onMounted(() => {
 	let msgsCont = document.getElementById("msgsCont");
 	if (msgsCont)
 		msgsCont!.scrollTop = msgsCont!.scrollHeight;
+		const box = document.getElementById("privateTabText");
 	document.getElementById("sendbox")?.focus();
-	const box = document.getElementById("privateTabText");
 	if (box != null) box.classList.add("chatTabActive");
+	mySocket.on("userStatus", (data: {user: string, status: boolean}) => {
+		if (data.user == userName) {
+			user_status.value = data.status;
+			statusDone.value = true;
+		}
+	});
+	mySocket.emit("userStatus", userName);
 });
 
 onBeforeUnmount(() => {
-	mySocket.off('findNewPriv');
+	mySocket.off("userStatus");
 	const box = document.getElementById("privateTabText");
 	if (box != null) box.classList.remove("chatTabActive");
 });
@@ -341,9 +344,11 @@ function printPrivs(privs: PrivConvDto[] | undefined) {
 }
 #conversation_view {
 	height: calc(100vh - 180px);
+	/* width: 100%; */
 }
 .userTopBar {
 	width: 100%;
+	/* max-width: min-content; */
 	height: var(--height);
 	background-color: white;
 	box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.1), 0px -4px 4px rgba(0, 0, 0, 0.1);
@@ -360,12 +365,20 @@ function printPrivs(privs: PrivConvDto[] | undefined) {
 	object-fit: cover;
 }
 .login {
+	max-width: 80%;
 	font-family: "Orbitron", sans-serif;
 	font-size: 1.2rem;
 	font-weight: bold;
 	overflow: hidden;
 	white-space: nowrap;
 	text-overflow: ellipsis;
+}
+.status {
+	width: 20px;
+	height: 20px;
+	border-radius: 50%;
+	margin-left: 10px;
+	background: v-bind((user_status ? "#00CC00" : "#FF3333"));
 }
 .login:hover {
 	color: v-bind("colors.color2");

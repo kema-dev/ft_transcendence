@@ -119,6 +119,13 @@ export class UserEntity extends TimestampEntites {
 	@JoinTable()
 	privates: PrivateEntity[];
 
+	@OneToMany((type) => ChannelEntity, (chan) => chan.owner, {
+		cascade: true,
+		nullable: true,
+		onDelete: 'SET NULL',
+	})
+	chansOwner: ChannelEntity[];
+
 	@ManyToMany((type) => ChannelEntity, (chan) => chan.admins, {
 		cascade: true,
 		nullable: true,

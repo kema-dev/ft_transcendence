@@ -126,7 +126,6 @@
 					value="0" min="0" max="99">
 				<input type="number" name="secondsBan" id="secondsBan" class="timeInput"
 					value="0" min="0" max="99">
-				<!-- <input @keypress.enter="muteBan(sanction)" type="time" name="timeInput" id="timeInput" step="1" required/> -->
 			</div>
 		</template>
 		<template #buttons>
@@ -150,6 +149,7 @@ const toast = useToast();
 let colors = inject('colors');
 let showMore = ref(false);
 let mySocket: Socket = inject("socket")!;
+const myName: string = inject("me")!;
 let sanction = ref("");
 let seconds = ref(0);
 let minutes = ref(0);
@@ -177,12 +177,12 @@ const props = defineProps({
 
 function promote() {
 	mySocket.emit("modifChan", 
-		new ModifChanDto(props.chan, "promotAdm", props.login));
+		new ModifChanDto(myName, props.chan, "promotAdm", props.login));
 }
 
 function demote() {
 	mySocket.emit("modifChan", 
-		new ModifChanDto(props.chan, "demotUser", props.login));
+		new ModifChanDto(myName, props.chan, "demotUser", props.login));
 }
 
 function sendPrivMsg() {
@@ -207,22 +207,6 @@ function inviteGame() {
 }
 
 function muteBan(sanction: string) {
-	// let input = document.getElementById("timeInput")!;
-	// input.classList.remove("invalidInput");
-	// let form = document.getElementById('timeForm') as HTMLFormElement;
-	// const data = new FormData(form);
-	// let timeData  = data.get("timeInput") as string;
-	// if (!timeData || timeData.split(':').length < 3)
-	// 	return setTimeout(() => {
-	// 		input!.classList.add("invalidInput");
-	// 	}, 50);
-	// let timeArray = timeData.split(':');
-	// let hours = Number(timeArray[0]);
-	// let minutes = Number(timeArray[1]);
-	// let seconds = Number(timeArray[2]);
-
-	// let timeInput = document.getElementById("timeCont")!;
-	// timeInput.classList.remove("invalidInput");
 	let hoursInput  = document.getElementById("hoursBan")!;
 	let minutesInput  = document.getElementById("minutesBan")!;
 	let secondsInput  = document.getElementById("secondsBan")!;
@@ -237,13 +221,12 @@ function muteBan(sanction: string) {
 		minutes = ${minutes}, seconds = ${seconds}`)
 	if (time < 1 || hours < 0 || minutes < 0 || seconds < 0)
 		return setTimeout(() => {
-			// timeInput!.classList.add("invalidInput");
 			hoursInput.classList.add("invalidInput");
 			minutesInput.classList.add("invalidInput");
 			secondsInput.classList.add("invalidInput");
 		}, 50);
 	mySocket.emit("modifChan", 
-		new ModifChanDto(props.chan, sanction, props.login, props.group, time));
+		new ModifChanDto(myName, props.chan, sanction, props.login, props.group, time));
 	resetSanction();
 }
 
@@ -264,7 +247,7 @@ function restoreUser() {
 	props.group == "mutes" ? 
 		restore = "restoreMute" : restore = "restoreBan";
 	mySocket.emit("modifChan", 
-		new ModifChanDto(props.chan, restore, props.login));
+		new ModifChanDto(myName, props.chan, restore, props.login));
 }
 
 </script>

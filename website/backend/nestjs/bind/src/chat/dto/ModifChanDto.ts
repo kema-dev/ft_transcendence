@@ -1,4 +1,5 @@
 export class ModifChanDto {
+	requestor: string;
 	chan: string;
 	psw?: string;
 	priv?: boolean;
@@ -14,8 +15,9 @@ export class ModifChanDto {
 	kick?: string;
 	avatar?: any;
 	constructor(
-		chan: string, key: string, value: any, group?: string, time?: number
+		requestor: string, chan: string, key: string, value: any, group?: string, time?: number
 	) {
+		this.requestor = requestor;
 		this.chan = chan;
 		for (const classKey in this)
 			if (classKey == key)

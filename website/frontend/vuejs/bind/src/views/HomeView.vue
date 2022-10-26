@@ -1,5 +1,5 @@
 <template>
-	<div id="home" class="wrap" :key="reload">
+	<div id="home" class="wrap">
 		<NavbarItem />
 		<div id="game" class="center">
 			<MatchmakingItem />
@@ -13,7 +13,6 @@ import { onMounted, Ref, provide, watch, onUpdated, nextTick } from 'vue';
 import { inject, ref } from 'vue';
 import io from 'socket.io-client';
 import { VueCookies } from 'vue-cookies';
-import { Socket } from 'socket.io-client';
 import { useRoute } from 'vue-router';
 import HTTP from '../components/axios';
 import { FQDN } from '../../.env.json';
@@ -24,10 +23,7 @@ import { PrivConvDto } from '@/chat/dto/PrivConvDto';
 import { ChannelDto } from '@/chat/dto/ChannelDto';
 import { MessageDto } from '@/chat/dto/MessageDto';
 import { BasicUserDto } from '@/chat/dto/BasicUserDto';
-import { processExpression } from '@vue/compiler-core';
 import ProfileUserDto from '@/dto/ProfileUserDto';
-import { routeLocationKey } from 'vue-router';
-import { NewChanMsgDto } from '@/chat/dto/NewChanMsgDto';
 import { ModifChanDto } from '@/chat/dto/ModifChanDto';
 import ResumUserDto from '@/dto/ResumUserDto';
 
@@ -42,12 +38,12 @@ const route = useRoute();
 
 const me: string = $cookies.get('login');
 provide('me', me);
-console.log(`i am ${me}`);
+// console.log(`i am ${me}`)
 
 //	========== CREATE SOCKET
 
 let socket = io(FQDN + ':3000', { query: { login: me } });
-socket.emit('userLogin', me);
+socket.emit("userLogin", me);
 provide('socket', socket);
 
 let userRef: Ref<ProfileUserDto> = ref();
@@ -56,20 +52,30 @@ let userDone = ref(false);
 
 socket.on('userUpdate', (data: any) => {
 	if (data && data.login == me) {
-		console.log(`userUpdate`);
 		userRef.value = data;
 		notifs.value = data.requestFriend.length;
 		userDone.value = true;
 	}
 });
-socket.emit('userUpdate', { login: me });
+getMyProfile();
 provide('notifs', notifs);
 provide('user', userRef);
 provide('userDone', userDone);
 provide('isCreate', ref(false));
 provide('isJoin', ref(false));
 
-socket.on('userBlock', (data: ResumUserDto) => {
+function getMyProfile() {
+	HTTP.get(apiPath + "user/getMyProfile/" + me)
+	.then(res => {
+		userRef.value = res.data;
+		notifs.value = res.data.requestFriend.length;
+		userDone.value = true;
+		console.log(`GetMyProfile Done`)
+	})
+	.catch(e => console.log(e));
+}
+
+socket.on("userBlock", (data : ResumUserDto) => {
 	console.log(`User ${data.login} blocked`);
 	let i = privsRef.value.findIndex((p) => p.user.login == data.login);
 	privsRef.value.splice(i, 1);
@@ -85,14 +91,6 @@ socket.on('userUnblock', (data: PrivConvDto) => {
 	privsRef.value.unshift(priv);
 });
 
-//	========== RESIZE WINDOW
-
-let reload = ref(0);
-onMounted(() => {
-	window.addEventListener('resize', () => {
-		reload.value++;
-	});
-});
 
 //	===================== CHAT =====================
 
@@ -100,6 +98,7 @@ onMounted(() => {
 let privsRef: Ref<PrivConvDto[]> = ref([]);
 let nbPrivNR: Ref<number[]> = ref([]);
 let privDone = ref(false);
+let findPrivIndex = ref(false);
 function resetNbPrivNR() {
 	nbPrivNR.value = [];
 }
@@ -107,6 +106,8 @@ getPrivsRequest();
 provide('privs', privsRef);
 provide('nbPrivNR', { n: nbPrivNR, reset: resetNbPrivNR });
 provide('privDone', privDone);
+provide('findPrivIndex', findPrivIndex);
+
 
 function getPrivsRequest() {
 	HTTP.get(apiPath + 'chat/getPrivs/' + me)
@@ -138,6 +139,7 @@ socket.on('newPrivConv', (data: PrivConvDto) => {
 	let newPriv = data;
 	newPriv.messages.forEach((msg) => (msg.date = new Date(msg.date)));
 	privsRef.value.unshift(newPriv);
+	findPrivIndex.value = true;
 	if (data.messages[0].user != me) nbPrivNR.value.push(data.id);
 });
 
@@ -157,9 +159,11 @@ socket.on('newPrivMsg', (data: { msg: MessageDto; id: number }) => {
 		data.msg.user != me &&
 		!nbPrivNR.value.includes(privsRef.value[i].id) &&
 		route.path != '/home/chat/private/' + data.msg.user &&
-		!blocked
-	)
+		!blocked 
+	) {
 		nbPrivNR.value.push(privsRef.value[i].id);
+		findPrivIndex.value = true;
+	}
 	if (i != 0) putPrivFirst(i);
 });
 
@@ -169,7 +173,6 @@ function putPrivFirst(index: number) {
 			privsRef.value[1],
 			privsRef.value[0],
 		]);
-	console.log(`index = ${index}`);
 	let privTmp1 = privsRef.value[0];
 	let privTmp2: PrivConvDto;
 	privsRef.value[0] = privsRef.value[index];
@@ -198,7 +201,7 @@ const chansRef: Ref<ChannelDto[]> = ref([]);
 const nbChanNR: Ref<string[]> = ref([]);
 const chanDone = ref(false);
 const chanBan = ref('');
-const newIndex = ref('');
+const findChanIndex = ref(false);
 function resetNbChanNR() {
 	nbChanNR.value = [];
 }
@@ -212,7 +215,7 @@ provide('nbChanNR', { n: nbChanNR, reset: resetNbChanNR });
 provide('chanReaded', chanReaded);
 provide('chanDone', chanDone);
 provide('chanBan', chanBan);
-provide('newIndex', newIndex);
+provide('findChanIndex', findChanIndex);
 
 function getChansRequest() {
 	HTTP.get(apiPath + 'chat/getChans/' + me)
@@ -254,8 +257,8 @@ socket.on('newChanMsg', (data: { msg: MessageDto; name: string }) => {
 	}
 	if (i != 0) {
 		putChanFirst(i);
-		newIndex.value = data.name;
-	}
+		findChanIndex.value = true;
+	} 
 });
 
 socket.on('newChannel', (data: ChannelDto) => {
@@ -264,7 +267,10 @@ socket.on('newChannel', (data: ChannelDto) => {
 		let newChan = data;
 		newChan.creation = new Date(newChan.creation);
 		newChan.messages.forEach((msg) => (msg.date = new Date(msg.date)));
+		newChan.readed = false;
 		chansRef.value.unshift(newChan);
+		findChanIndex.value = true;
+		nbChanNR.value.push(chansRef.value[0].name);
 	}
 });
 
@@ -281,15 +287,15 @@ socket.on('newChannelUser', (data: { name: string; user: BasicUserDto }) => {
 socket.on('userQuitChan', (data: { login: string; chan: string }) => {
 	console.log(`User '${data.login}' left the channel '${data.chan}'`);
 	let i = chansRef.value.findIndex((chan) => chan.name == data.chan);
-	chansRef.value[i].admins = chansRef.value[i].admins.filter(
-		(adm) => adm.login != data.login,
-	);
-	chansRef.value[i].users = chansRef.value[i].users.filter(
-		(user) => user.login != data.login,
-	);
-	chansRef.value[i].mutes = chansRef.value[i].mutes.filter(
-		(mute) => mute.login != data.login,
-	);
+	let y;
+		if (chansRef.value[i].owner && data.login == chansRef.value[i].owner.login)
+			chansRef.value[i].owner = null;
+		else if ((y = chansRef.value[i].admins.findIndex(u => u.login == data.login)) != -1)
+			chansRef.value[i].admins.splice(i, 1);
+		else if ((y = chansRef.value[i].users.findIndex(u => u.login == data.login)) != -1)
+			chansRef.value[i].users.splice(i, 1);
+		else if ((y = chansRef.value[i].mutes.findIndex(u => u.login == data.login)) != -1)
+			chansRef.value[i].mutes.splice(i, 1);
 });
 
 socket.on('modifChan', (data: ModifChanDto) => {
@@ -456,7 +462,7 @@ socket.emit('get_invitations');
 }
 #game {
 	width: 70vw;
-	width: calc(100vw - 345px);
+	width: calc(100vw - 500px);
 	/* height: 100%; */
 	padding-top: 60px;
 }
