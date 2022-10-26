@@ -116,9 +116,7 @@ function accept_invit() {
 	});
 	isCreate.value = true;
 	isJoin.value = false;
-	mySocket.emit('deny_invit', {
-		game: props.match.name,
-	});
+	deny_invit();
 }
 
 function get_player_name(player: string) {

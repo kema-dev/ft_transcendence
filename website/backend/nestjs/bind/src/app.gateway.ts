@@ -168,16 +168,40 @@ export class AppGateway
 		@MessageBody() data: { login: string; lobby: string },
 		@ConnectedSocket() client: Socket,
 	) {
+		console.log(
+			'join_lobby: Starting for',
+			'login:',
+			data.login,
+			'lobby:',
+			data.lobby,
+		);
 		const game = this.games.find((game) => game.lobby_name == data.lobby);
-		if (!game) return;
+		if (!game) {
+			console.log('join_lobby: Game not found, Returning');
+			return;
+		}
+		console.log('join_lobby: game found');
 		let user = await this.userService.getByLogin(data.login, {
 			requestFriend: true,
 			friends: true,
 		});
-		if (!user) return;
-		if (game.players.length >= 7) return;
-		if (game.start) return;
-		if (game.players.find((player) => player.login === user.login)) return;
+		if (!user) {
+			console.log('join_lobby: User not found, Returning');
+			return;
+		}
+		console.log('join_lobby: user found');
+		if (game.players.length >= 7) {
+			console.log('join_lobby: Game is full, Returning');
+			return;
+		}
+		if (game.start) {
+			console.log('join_lobby: Game is already started, Returning');
+			return;
+		}
+		if (game.players.find((player) => player.login === user.login)) {
+			console.log('join_lobby: User is already in the game, Returning');
+			return;
+		}
 		let newGame = new Game(
 			game.nbrPlayer + 1,
 			game.nbrBall,
@@ -189,6 +213,7 @@ export class AppGateway
 			this.matchService,
 			this
 		);
+		console.log('join_lobby: newGame created');
 		game.destructor();
 		this.games.push(newGame);
 		this.server.to(newGame.sockets).emit('reload_game');
@@ -198,6 +223,7 @@ export class AppGateway
 		user.lobby_name = newGame.lobby_name;
 		this.userService.saveUser(user);
 		this.server.to(user.socketId).emit('userUpdate', new ProfileUserDto(user));
+		console.log('join_lobby: Success, returning');
 	}
 	@SubscribeMessage('start')
 	start(client: Socket, payload: any): void {
