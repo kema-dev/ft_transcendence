@@ -10,9 +10,13 @@
 					:src="me.avatar" alt="My avatar" class="avatar">
 				<img src="@/assets/svg/logout.svg" alt="logout" class="icon" @click="logout" />
 				<!-- <lottie-player
-					:src="require('@/assets/json/logout.json')"
+					:src="require('@/assets/json/settings.json')"
 					speed="2"
 					hover
+					class="icon"
+				/> -->
+				<img
+					src="@/assets/logout.png"
 					class="icon"
 					@click="logout"
 				/> -->

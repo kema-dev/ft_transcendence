@@ -14,10 +14,14 @@ import TotpDto from './dto/totp.dto';
 import LogInDto from './dto/logIn.dto';
 import CheckDto from './dto/check.dto';
 import { AuthGuard } from './auth.guard';
+import { UsersService } from '../users/users.service';
 
 @Controller('auth')
 export class AuthenticationController {
-	constructor(private readonly authenticationService: AuthenticationService) {}
+	constructor(
+		private readonly authenticationService: AuthenticationService,
+		private readonly usersService: UsersService,
+	) {}
 
 	@UseGuards(AuthGuard)
 	@Get('debug')
@@ -29,6 +33,16 @@ export class AuthenticationController {
 	@Post('debug')
 	async debug_post(@Headers() headers: any) {
 		console.log('Debug headers: ' + JSON.stringify(headers));
+	}
+
+	@Post('disable_totp')
+	async disable_totp(@Body() data: any) {
+		this.authenticationService.disable_totp(data.name);
+	}
+
+	@Post('check_totp_status')
+	async check_totp_status(@Body() data: any) {
+		return this.authenticationService.check_totp_status(data.name);
 	}
 
 	@Post('register')
@@ -136,15 +150,16 @@ export class AuthenticationController {
 		} catch (error) {
 			throw error;
 		}
+		const full_usr = await this.usersService.getByAny(usr.login);
 		let cookie;
 		try {
-			cookie = await this.authenticationService.createCookie(usr.login);
+			cookie = await this.authenticationService.createCookie(full_usr.login);
 		} catch (error) {
 			throw error;
 		}
-		console.log('Login: ' + usr.login + ' Success: ' + usr.success);
+		console.log('Login: ' + full_usr.login + ' Success: ' + usr.success);
 		return {
-			login: usr.login,
+			login: full_usr.login,
 			success: usr.success,
 			key: cookie.key,
 			value: cookie.value,
