@@ -77,7 +77,7 @@ export class AuthenticationService {
 			console.error('register: ' + 'bcrypt error, returning ✘');
 			throw new HttpException(
 				'E_UNEXPECTED_ERROR',
-				HttpStatus.INTERNAL_SERVER_ERROR,
+				HttpStatus.CONFLICT,
 			);
 		}
 		try {
@@ -108,7 +108,7 @@ export class AuthenticationService {
 			console.error('register: unknown error: ' + error + ' returning ✘');
 			throw new HttpException(
 				'E_UNEXPECTED_ERROR',
-				HttpStatus.INTERNAL_SERVER_ERROR,
+				HttpStatus.CONFLICT,
 			);
 		}
 	}
@@ -173,21 +173,21 @@ export class AuthenticationService {
 			} else if (error.message == 'E_TOTP_FAIL') {
 				throw new HttpException('E_TOTP_FAIL', HttpStatus.BAD_REQUEST);
 			} else if (error.message == 'E_NO_NAME') {
-				throw new HttpException('E_NO_NAME', HttpStatus.INTERNAL_SERVER_ERROR);
+				throw new HttpException('E_NO_NAME', HttpStatus.CONFLICT);
 			} else if (error.message == 'E_NO_TOTP_PROVIDED') {
 				throw new HttpException(
 					'E_UNEXPECTED_ERROR',
-					HttpStatus.INTERNAL_SERVER_ERROR,
+					HttpStatus.CONFLICT,
 				);
 			} else if (error.message == 'E_GOOGLE_API') {
 				throw new HttpException(
 					'E_UNEXPECTED_ERROR',
-					HttpStatus.INTERNAL_SERVER_ERROR,
+					HttpStatus.CONFLICT,
 				);
 			} else {
 				throw new HttpException(
 					'E_UNEXPECTED_ERROR',
-					HttpStatus.INTERNAL_SERVER_ERROR,
+					HttpStatus.CONFLICT,
 				);
 			}
 		}
@@ -329,7 +329,7 @@ export class AuthenticationService {
 				console.error('auth42: unexpected error: ' + error + ' returning ✘');
 				throw new HttpException(
 					'E_UNEXPECTED_ERROR',
-					HttpStatus.INTERNAL_SERVER_ERROR,
+					HttpStatus.CONFLICT,
 				);
 			}
 		} catch (error) {
@@ -337,7 +337,7 @@ export class AuthenticationService {
 		}
 		throw new HttpException(
 			'E_UNEXPECTED_ERROR',
-			HttpStatus.INTERNAL_SERVER_ERROR,
+			HttpStatus.CONFLICT,
 		);
 	}
 
@@ -373,7 +373,7 @@ export class AuthenticationService {
 				);
 				throw new HttpException(
 					'E_GOOGLE_API',
-					HttpStatus.INTERNAL_SERVER_ERROR,
+					HttpStatus.CONFLICT,
 				);
 			});
 		console.log('set_totp: ' + 'code computed, returning ✔');
@@ -417,7 +417,7 @@ export class AuthenticationService {
 				);
 				throw new HttpException(
 					'E_GOOGLE_API',
-					HttpStatus.INTERNAL_SERVER_ERROR,
+					HttpStatus.CONFLICT,
 				);
 			});
 		console.log('set_tmp_totp: ' + 'code computed, returning ✔');
@@ -448,14 +448,14 @@ export class AuthenticationService {
 				);
 				throw new HttpException(
 					'E_GOOGLE_API',
-					HttpStatus.INTERNAL_SERVER_ERROR,
+					HttpStatus.CONFLICT,
 				);
 			}
 		}
 		console.error('verify_totp: ' + 'code mismatch, returning ✘');
 		throw new HttpException(
 			'E_TOTP_MISMATCH',
-			HttpStatus.INTERNAL_SERVER_ERROR,
+			HttpStatus.CONFLICT,
 		);
 	}
 
@@ -485,14 +485,14 @@ export class AuthenticationService {
 				);
 				throw new HttpException(
 					'E_GOOGLE_API',
-					HttpStatus.INTERNAL_SERVER_ERROR,
+					HttpStatus.CONFLICT,
 				);
 			}
 		}
 		console.error('verify_tmp_totp: ' + 'code mismatch, returning ✘');
 		throw new HttpException(
 			'E_TOTP_MISMATCH',
-			HttpStatus.INTERNAL_SERVER_ERROR,
+			HttpStatus.CONFLICT,
 		);
 	}
 
@@ -515,7 +515,7 @@ export class AuthenticationService {
 				);
 				throw new HttpException(
 					'E_GOOGLE_API',
-					HttpStatus.INTERNAL_SERVER_ERROR,
+					HttpStatus.CONFLICT,
 				);
 			});
 		if (truth === true) {
@@ -548,7 +548,7 @@ export class AuthenticationService {
 				);
 				throw new HttpException(
 					'E_GOOGLE_API',
-					HttpStatus.INTERNAL_SERVER_ERROR,
+					HttpStatus.CONFLICT,
 				);
 			});
 		if (truth === true) {
