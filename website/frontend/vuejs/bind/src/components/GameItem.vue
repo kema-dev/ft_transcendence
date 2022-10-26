@@ -1,5 +1,5 @@
 <template>
-	<div id="stage-parent" class="stack" :key="nbrPlayer">
+	<div id="stage-parent" class="stack">
 		<div id="container" v-on:click="focus()"></div>
 	</div>
 </template>

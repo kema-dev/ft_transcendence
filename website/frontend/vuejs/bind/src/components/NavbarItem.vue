@@ -6,7 +6,7 @@
 				<h1 class="text_logo">PONG.IO</h1>
 			</div>
 			<div style="height: 100%" class="center row right">
-				<img v-if="userDone" @click="toProfile" 
+				<img v-if="userDone" @click="toProfile"
 					:src="me.avatar" alt="My avatar" class="avatar">
 				<!-- <lottie-player
 					:src="require('@/assets/json/settings.json')"
