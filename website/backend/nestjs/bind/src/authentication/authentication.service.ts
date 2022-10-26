@@ -308,7 +308,7 @@ export class AuthenticationService {
 					new Date(),
 				);
 				console.log('auth42: ' + logobj.data.login + ' updated, returning ✔');
-				return { login: logobj.data.login, success: true };
+				return { login: logobj.data.email, success: true };
 			}
 			try {
 				const createdUser = await this.usersService.ft_create(
