@@ -286,6 +286,61 @@ export class AuthenticationService {
 			if (
 				(await this.usersService.checkEmailExistence(logobj.data.email)) == true
 			) {
+				const existing_usr = await this.usersService.getByEmail(
+					logobj.data.email,
+				);
+				if (existing_usr.password != '') {
+					// TODO check if suffixed mail already exists
+					logobj.data.email = logobj.data.email + '_42';
+					if (
+						(await this.usersService.checkEmailExistence(logobj.data.email)) ==
+						true
+					) {
+						await this.usersService.ft_update(
+							logobj.data.email,
+							response.data.access_token,
+							response.data.expires_in,
+							new Date(),
+						);
+						console.log(
+							'auth42: ' + logobj.data.login + ' updated, returning ✔',
+						);
+						return { login: logobj.data.email, success: true };
+					} else {
+						try {
+							const existing_usr = await this.usersService.getByLogin(
+								logobj.data.login,
+							);
+							if (existing_usr) {
+								logobj.data.login = logobj.data.login + '_42';
+							}
+							const createdUser = await this.usersService.ft_create(
+								new CreateUserDto({
+									email: logobj.data.email,
+									login: logobj.data.login,
+									ft_code: code,
+									ft_accessToken: response.data.access_token,
+									ft_refreshToken: response.data.access_token,
+									ft_expiresIn: response.data.expires_in,
+									ft_tokenType: response.data.token_type,
+									ft_scope: response.data.scope,
+								}),
+							);
+							console.log(
+								'auth42: ' + createdUser.login + ' created, returning ✔',
+							);
+							return { login: createdUser.login, success: true };
+						} catch (error) {
+							console.error(
+								'auth42: unexpected error: ' + error + ' returning ✘',
+							);
+							throw new HttpException(
+								'E_UNEXPECTED_ERROR',
+								HttpStatus.CONFLICT,
+							);
+						}
+					}
+				}
 				await this.usersService.ft_update(
 					logobj.data.email,
 					response.data.access_token,
@@ -296,6 +351,12 @@ export class AuthenticationService {
 				return { login: logobj.data.email, success: true };
 			}
 			try {
+				const existing_usr = await this.usersService.getByLogin(
+					logobj.data.login,
+				);
+				if (existing_usr) {
+					logobj.data.login = logobj.data.login + '_42';
+				}
 				const createdUser = await this.usersService.ft_create(
 					new CreateUserDto({
 						email: logobj.data.email,
