@@ -75,10 +75,7 @@ export class AuthenticationService {
 			hashedPassword = await bcrypt.hash(registrationData.password, 10);
 		} catch (error) {
 			console.error('register: ' + 'bcrypt error, returning ✘');
-			throw new HttpException(
-				'E_UNEXPECTED_ERROR',
-				HttpStatus.CONFLICT,
-			);
+			throw new HttpException('E_UNEXPECTED_ERROR', HttpStatus.CONFLICT);
 		}
 		try {
 			const createdUser = await this.usersService.create(
@@ -95,10 +92,10 @@ export class AuthenticationService {
 			if (error?.code === PostgresErrorCode.UniqueViolation) {
 				console.error(
 					'register: email: ' +
-					registrationData.email +
-					' and/or login: ' +
-					registrationData.login +
-					' already exists, returning ✘',
+						registrationData.email +
+						' and/or login: ' +
+						registrationData.login +
+						' already exists, returning ✘',
 				);
 				throw new HttpException(
 					'E_EMAIL_OR_LOGIN_ALREADY_EXISTS',
@@ -106,10 +103,7 @@ export class AuthenticationService {
 				);
 			}
 			console.error('register: unknown error: ' + error + ' returning ✘');
-			throw new HttpException(
-				'E_UNEXPECTED_ERROR',
-				HttpStatus.CONFLICT,
-			);
+			throw new HttpException('E_UNEXPECTED_ERROR', HttpStatus.CONFLICT);
 		}
 	}
 
@@ -143,8 +137,8 @@ export class AuthenticationService {
 				if (mfa_check == false) {
 					console.error(
 						'getAuthenticatedUser: ' +
-						name +
-						' totp code check failed, returning ✘',
+							name +
+							' totp code check failed, returning ✘',
 					);
 					throw new HttpException('E_TOTP_FAIL', HttpStatus.BAD_REQUEST);
 				}
@@ -156,8 +150,8 @@ export class AuthenticationService {
 			await this.verifyPassword(password, user.password);
 			console.log(
 				'getAuthenticatedUser: ' +
-				user.login +
-				' authenticated successfully, returning ✔',
+					user.login +
+					' authenticated successfully, returning ✔',
 			);
 			return { login: user.login, success: true };
 		} catch (error) {
@@ -175,20 +169,11 @@ export class AuthenticationService {
 			} else if (error.message == 'E_NO_NAME') {
 				throw new HttpException('E_NO_NAME', HttpStatus.CONFLICT);
 			} else if (error.message == 'E_NO_TOTP_PROVIDED') {
-				throw new HttpException(
-					'E_UNEXPECTED_ERROR',
-					HttpStatus.CONFLICT,
-				);
+				throw new HttpException('E_UNEXPECTED_ERROR', HttpStatus.CONFLICT);
 			} else if (error.message == 'E_GOOGLE_API') {
-				throw new HttpException(
-					'E_UNEXPECTED_ERROR',
-					HttpStatus.CONFLICT,
-				);
+				throw new HttpException('E_UNEXPECTED_ERROR', HttpStatus.CONFLICT);
 			} else {
-				throw new HttpException(
-					'E_UNEXPECTED_ERROR',
-					HttpStatus.CONFLICT,
-				);
+				throw new HttpException('E_UNEXPECTED_ERROR', HttpStatus.CONFLICT);
 			}
 		}
 	}
@@ -327,18 +312,12 @@ export class AuthenticationService {
 				return { login: createdUser.login, success: true };
 			} catch (error) {
 				console.error('auth42: unexpected error: ' + error + ' returning ✘');
-				throw new HttpException(
-					'E_UNEXPECTED_ERROR',
-					HttpStatus.CONFLICT,
-				);
+				throw new HttpException('E_UNEXPECTED_ERROR', HttpStatus.CONFLICT);
 			}
 		} catch (error) {
 			console.error('auth42: unexpected error' + error);
 		}
-		throw new HttpException(
-			'E_UNEXPECTED_ERROR',
-			HttpStatus.CONFLICT,
-		);
+		throw new HttpException('E_UNEXPECTED_ERROR', HttpStatus.CONFLICT);
 	}
 
 	public async set_totp(name: string) {
@@ -371,10 +350,7 @@ export class AuthenticationService {
 				console.error(
 					'set_totp: ' + "error with Google's TOTP API, returning ✘",
 				);
-				throw new HttpException(
-					'E_GOOGLE_API',
-					HttpStatus.CONFLICT,
-				);
+				throw new HttpException('E_GOOGLE_API', HttpStatus.CONFLICT);
 			});
 		console.log('set_totp: ' + 'code computed, returning ✔');
 		return {
@@ -415,10 +391,7 @@ export class AuthenticationService {
 				console.error(
 					'set_tmp_totp: ' + "error with Google's TOTP API, returning ✘",
 				);
-				throw new HttpException(
-					'E_GOOGLE_API',
-					HttpStatus.CONFLICT,
-				);
+				throw new HttpException('E_GOOGLE_API', HttpStatus.CONFLICT);
 			});
 		console.log('set_tmp_totp: ' + 'code computed, returning ✔');
 		return {
@@ -446,17 +419,11 @@ export class AuthenticationService {
 				console.error(
 					'verify_totp: ' + "error with Google's TOTP API, returning ✘",
 				);
-				throw new HttpException(
-					'E_GOOGLE_API',
-					HttpStatus.CONFLICT,
-				);
+				throw new HttpException('E_GOOGLE_API', HttpStatus.CONFLICT);
 			}
 		}
 		console.error('verify_totp: ' + 'code mismatch, returning ✘');
-		throw new HttpException(
-			'E_TOTP_MISMATCH',
-			HttpStatus.CONFLICT,
-		);
+		throw new HttpException('E_TOTP_MISMATCH', HttpStatus.CONFLICT);
 	}
 
 	public async verify_tmp_totp(request: TotpDto) {
@@ -483,17 +450,11 @@ export class AuthenticationService {
 				console.error(
 					'verify_tmp_totp: ' + "error with Google's TOTP API, returning ✘",
 				);
-				throw new HttpException(
-					'E_GOOGLE_API',
-					HttpStatus.CONFLICT,
-				);
+				throw new HttpException('E_GOOGLE_API', HttpStatus.CONFLICT);
 			}
 		}
 		console.error('verify_tmp_totp: ' + 'code mismatch, returning ✘');
-		throw new HttpException(
-			'E_TOTP_MISMATCH',
-			HttpStatus.CONFLICT,
-		);
+		throw new HttpException('E_TOTP_MISMATCH', HttpStatus.CONFLICT);
 	}
 
 	private async check_totp_code(name: string, code: string) {
@@ -513,10 +474,7 @@ export class AuthenticationService {
 				console.error(
 					'check_totp_code: ' + 'unexpected error : ' + error + ', returning ✘',
 				);
-				throw new HttpException(
-					'E_GOOGLE_API',
-					HttpStatus.CONFLICT,
-				);
+				throw new HttpException('E_GOOGLE_API', HttpStatus.CONFLICT);
 			});
 		if (truth === true) {
 			console.log('check_totp_code: ' + 'code match, returning ✔');
@@ -542,14 +500,11 @@ export class AuthenticationService {
 			.catch((error) => {
 				console.error(
 					'check_tmp_totp_code: ' +
-					'unexpected error : ' +
-					error +
-					', returning ✘',
+						'unexpected error : ' +
+						error +
+						', returning ✘',
 				);
-				throw new HttpException(
-					'E_GOOGLE_API',
-					HttpStatus.CONFLICT,
-				);
+				throw new HttpException('E_GOOGLE_API', HttpStatus.CONFLICT);
 			});
 		if (truth === true) {
 			console.log('check_tmp_totp_code: ' + 'code match, returning ✔');
