@@ -30,7 +30,7 @@
 						<span class="infoButtonText">Invit in game</span>
 						<img src="@/assets/ball_logo.svg" class="btnImg">
 					</button>
-					<button v-else @click="specGame()" class="btnCont center">
+					<button v-else-if="statusDone" @click="specGame()" class="btnCont center">
 						<span class="infoButtonText">Watch game</span>
 						<img src="@/assets/eye.svg" class="btnImg">
 					</button>
@@ -91,6 +91,7 @@ function inviteGame() {
 onMounted(() => {
 	console.log('friendItem mounted')
 	socket.on("userStatus", (data: {user: string, status: string}) => {
+		console.log(`userStatus FriendItem`)
 		if (data.user == props.info.login) {
 			userStatus.value = data.status;
 			if (data.status == 'online')
@@ -104,6 +105,7 @@ onMounted(() => {
 			statusDone.value = true;
 		}
 	})
+	socket.emit("userStatus", props.info.login);
 	socket.on('invite_to_game', (data) => {
 		if (data.error == 'no game') {
 			toast.success('You were not in a game, created a new one for you !');
@@ -115,8 +117,7 @@ onMounted(() => {
 		} else {
 			console.log(data);
 		}
-	});
-	socket.emit("userStatus", props.info.login);
+	})
 })
 
 onUnmounted(() => {

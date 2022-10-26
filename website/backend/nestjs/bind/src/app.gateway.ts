@@ -292,6 +292,7 @@ export class AppGateway
 		@MessageBody() data: string,
 		@ConnectedSocket() client: Socket,
 	) {
+		console.log(`get userStatus`);
 		let status = await this.userService.get_user_status(data);
 		client.emit("userStatus", {user: data, status: status});
 	}
