@@ -85,23 +85,11 @@ function specGame() {
 }
 
 function inviteGame() {
-	socket.off('invite_to_game');
-	socket.on('invite_to_game', (data) => {
-		if (data.error == 'no game') {
-			toast.success('You were not in a game, created a new one for you !');
-			inviteGame();
-		} else if (data.error == 'no user') {
-			toast.error('This user does not exist');
-		} else if (data.error == 'no online') {
-			toast.warning('This user is not online');
-		} else {
-			console.log(data);
-		}
-	});
 	socket.emit("invite_to_game", { login: props.info.login });
 }
 
 onMounted(() => {
+	console.log('friendItem mounted')
 	socket.on("userStatus", (data: {user: string, status: string}) => {
 		if (data.user == props.info.login) {
 			userStatus.value = data.status;
@@ -116,11 +104,25 @@ onMounted(() => {
 			statusDone.value = true;
 		}
 	})
+	socket.on('invite_to_game', (data) => {
+		if (data.error == 'no game') {
+			toast.success('You were not in a game, created a new one for you !');
+			inviteGame();
+		} else if (data.error == 'no user') {
+			toast.error('This user does not exist');
+		} else if (data.error == 'no online') {
+			toast.warning('This user is not online');
+		} else {
+			console.log(data);
+		}
+	});
 	socket.emit("userStatus", props.info.login);
 })
 
 onUnmounted(() => {
+	console.log('friendItem dead')
 	socket.off('userStatus');
+	socket.off('invite_to_game');
 })
 </script>
 
