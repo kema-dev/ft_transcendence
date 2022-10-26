@@ -63,6 +63,7 @@ async function update() {
 	container.focus();
 	function fitStageIntoParentContainer() {
 		var container = document.getElementById('stage-parent');
+		if (!container) return;
 		// now we need to fit stage into parent container
 		var containerWidth = container!.offsetWidth;
 		// but we also make the full scene visible
