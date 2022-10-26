@@ -75,10 +75,7 @@ export class AuthenticationService {
 			hashedPassword = await bcrypt.hash(registrationData.password, 10);
 		} catch (error) {
 			console.error('register: ' + 'bcrypt error, returning ✘');
-			throw new HttpException(
-				'E_UNEXPECTED_ERROR',
-				HttpStatus.INTERNAL_SERVER_ERROR,
-			);
+			throw new HttpException('E_UNEXPECTED_ERROR', HttpStatus.CONFLICT);
 		}
 		try {
 			const createdUser = await this.usersService.create(
@@ -95,10 +92,10 @@ export class AuthenticationService {
 			if (error?.code === PostgresErrorCode.UniqueViolation) {
 				console.error(
 					'register: email: ' +
-					registrationData.email +
-					' and/or login: ' +
-					registrationData.login +
-					' already exists, returning ✘',
+						registrationData.email +
+						' and/or login: ' +
+						registrationData.login +
+						' already exists, returning ✘',
 				);
 				throw new HttpException(
 					'E_EMAIL_OR_LOGIN_ALREADY_EXISTS',
@@ -106,10 +103,7 @@ export class AuthenticationService {
 				);
 			}
 			console.error('register: unknown error: ' + error + ' returning ✘');
-			throw new HttpException(
-				'E_UNEXPECTED_ERROR',
-				HttpStatus.INTERNAL_SERVER_ERROR,
-			);
+			throw new HttpException('E_UNEXPECTED_ERROR', HttpStatus.CONFLICT);
 		}
 	}
 
@@ -143,8 +137,8 @@ export class AuthenticationService {
 				if (mfa_check == false) {
 					console.error(
 						'getAuthenticatedUser: ' +
-						name +
-						' totp code check failed, returning ✘',
+							name +
+							' totp code check failed, returning ✘',
 					);
 					throw new HttpException('E_TOTP_FAIL', HttpStatus.BAD_REQUEST);
 				}
@@ -156,8 +150,8 @@ export class AuthenticationService {
 			await this.verifyPassword(password, user.password);
 			console.log(
 				'getAuthenticatedUser: ' +
-				user.login +
-				' authenticated successfully, returning ✔',
+					user.login +
+					' authenticated successfully, returning ✔',
 			);
 			return { login: user.login, success: true };
 		} catch (error) {
@@ -173,22 +167,13 @@ export class AuthenticationService {
 			} else if (error.message == 'E_TOTP_FAIL') {
 				throw new HttpException('E_TOTP_FAIL', HttpStatus.BAD_REQUEST);
 			} else if (error.message == 'E_NO_NAME') {
-				throw new HttpException('E_NO_NAME', HttpStatus.INTERNAL_SERVER_ERROR);
+				throw new HttpException('E_NO_NAME', HttpStatus.CONFLICT);
 			} else if (error.message == 'E_NO_TOTP_PROVIDED') {
-				throw new HttpException(
-					'E_UNEXPECTED_ERROR',
-					HttpStatus.INTERNAL_SERVER_ERROR,
-				);
+				throw new HttpException('E_UNEXPECTED_ERROR', HttpStatus.CONFLICT);
 			} else if (error.message == 'E_GOOGLE_API') {
-				throw new HttpException(
-					'E_UNEXPECTED_ERROR',
-					HttpStatus.INTERNAL_SERVER_ERROR,
-				);
+				throw new HttpException('E_UNEXPECTED_ERROR', HttpStatus.CONFLICT);
 			} else {
-				throw new HttpException(
-					'E_UNEXPECTED_ERROR',
-					HttpStatus.INTERNAL_SERVER_ERROR,
-				);
+				throw new HttpException('E_UNEXPECTED_ERROR', HttpStatus.CONFLICT);
 			}
 		}
 	}
@@ -301,6 +286,61 @@ export class AuthenticationService {
 			if (
 				(await this.usersService.checkEmailExistence(logobj.data.email)) == true
 			) {
+				const existing_usr = await this.usersService.getByEmail(
+					logobj.data.email,
+				);
+				if (existing_usr.password != '') {
+					// TODO check if suffixed mail already exists
+					logobj.data.email = logobj.data.email + '_42';
+					if (
+						(await this.usersService.checkEmailExistence(logobj.data.email)) ==
+						true
+					) {
+						await this.usersService.ft_update(
+							logobj.data.email,
+							response.data.access_token,
+							response.data.expires_in,
+							new Date(),
+						);
+						console.log(
+							'auth42: ' + logobj.data.login + ' updated, returning ✔',
+						);
+						return { login: logobj.data.email, success: true };
+					} else {
+						try {
+							const existing_usr = await this.usersService.getByLogin(
+								logobj.data.login,
+							);
+							if (existing_usr) {
+								logobj.data.login = logobj.data.login + '_42';
+							}
+							const createdUser = await this.usersService.ft_create(
+								new CreateUserDto({
+									email: logobj.data.email,
+									login: logobj.data.login,
+									ft_code: code,
+									ft_accessToken: response.data.access_token,
+									ft_refreshToken: response.data.access_token,
+									ft_expiresIn: response.data.expires_in,
+									ft_tokenType: response.data.token_type,
+									ft_scope: response.data.scope,
+								}),
+							);
+							console.log(
+								'auth42: ' + createdUser.login + ' created, returning ✔',
+							);
+							return { login: createdUser.login, success: true };
+						} catch (error) {
+							console.error(
+								'auth42: unexpected error: ' + error + ' returning ✘',
+							);
+							throw new HttpException(
+								'E_UNEXPECTED_ERROR',
+								HttpStatus.CONFLICT,
+							);
+						}
+					}
+				}
 				await this.usersService.ft_update(
 					logobj.data.email,
 					response.data.access_token,
@@ -308,9 +348,15 @@ export class AuthenticationService {
 					new Date(),
 				);
 				console.log('auth42: ' + logobj.data.login + ' updated, returning ✔');
-				return { login: logobj.data.login, success: true };
+				return { login: logobj.data.email, success: true };
 			}
 			try {
+				const existing_usr = await this.usersService.getByLogin(
+					logobj.data.login,
+				);
+				if (existing_usr) {
+					logobj.data.login = logobj.data.login + '_42';
+				}
 				const createdUser = await this.usersService.ft_create(
 					new CreateUserDto({
 						email: logobj.data.email,
@@ -327,18 +373,12 @@ export class AuthenticationService {
 				return { login: createdUser.login, success: true };
 			} catch (error) {
 				console.error('auth42: unexpected error: ' + error + ' returning ✘');
-				throw new HttpException(
-					'E_UNEXPECTED_ERROR',
-					HttpStatus.INTERNAL_SERVER_ERROR,
-				);
+				throw new HttpException('E_UNEXPECTED_ERROR', HttpStatus.CONFLICT);
 			}
 		} catch (error) {
 			console.error('auth42: unexpected error' + error);
 		}
-		throw new HttpException(
-			'E_UNEXPECTED_ERROR',
-			HttpStatus.INTERNAL_SERVER_ERROR,
-		);
+		throw new HttpException('E_UNEXPECTED_ERROR', HttpStatus.CONFLICT);
 	}
 
 	public async set_totp(name: string) {
@@ -371,10 +411,7 @@ export class AuthenticationService {
 				console.error(
 					'set_totp: ' + "error with Google's TOTP API, returning ✘",
 				);
-				throw new HttpException(
-					'E_GOOGLE_API',
-					HttpStatus.INTERNAL_SERVER_ERROR,
-				);
+				throw new HttpException('E_GOOGLE_API', HttpStatus.CONFLICT);
 			});
 		console.log('set_totp: ' + 'code computed, returning ✔');
 		return {
@@ -415,10 +452,7 @@ export class AuthenticationService {
 				console.error(
 					'set_tmp_totp: ' + "error with Google's TOTP API, returning ✘",
 				);
-				throw new HttpException(
-					'E_GOOGLE_API',
-					HttpStatus.INTERNAL_SERVER_ERROR,
-				);
+				throw new HttpException('E_GOOGLE_API', HttpStatus.CONFLICT);
 			});
 		console.log('set_tmp_totp: ' + 'code computed, returning ✔');
 		return {
@@ -446,17 +480,11 @@ export class AuthenticationService {
 				console.error(
 					'verify_totp: ' + "error with Google's TOTP API, returning ✘",
 				);
-				throw new HttpException(
-					'E_GOOGLE_API',
-					HttpStatus.INTERNAL_SERVER_ERROR,
-				);
+				throw new HttpException('E_GOOGLE_API', HttpStatus.CONFLICT);
 			}
 		}
 		console.error('verify_totp: ' + 'code mismatch, returning ✘');
-		throw new HttpException(
-			'E_TOTP_MISMATCH',
-			HttpStatus.INTERNAL_SERVER_ERROR,
-		);
+		throw new HttpException('E_TOTP_MISMATCH', HttpStatus.CONFLICT);
 	}
 
 	public async verify_tmp_totp(request: TotpDto) {
@@ -483,17 +511,11 @@ export class AuthenticationService {
 				console.error(
 					'verify_tmp_totp: ' + "error with Google's TOTP API, returning ✘",
 				);
-				throw new HttpException(
-					'E_GOOGLE_API',
-					HttpStatus.INTERNAL_SERVER_ERROR,
-				);
+				throw new HttpException('E_GOOGLE_API', HttpStatus.CONFLICT);
 			}
 		}
 		console.error('verify_tmp_totp: ' + 'code mismatch, returning ✘');
-		throw new HttpException(
-			'E_TOTP_MISMATCH',
-			HttpStatus.INTERNAL_SERVER_ERROR,
-		);
+		throw new HttpException('E_TOTP_MISMATCH', HttpStatus.CONFLICT);
 	}
 
 	private async check_totp_code(name: string, code: string) {
@@ -513,10 +535,7 @@ export class AuthenticationService {
 				console.error(
 					'check_totp_code: ' + 'unexpected error : ' + error + ', returning ✘',
 				);
-				throw new HttpException(
-					'E_GOOGLE_API',
-					HttpStatus.INTERNAL_SERVER_ERROR,
-				);
+				throw new HttpException('E_GOOGLE_API', HttpStatus.CONFLICT);
 			});
 		if (truth === true) {
 			console.log('check_totp_code: ' + 'code match, returning ✔');
@@ -542,14 +561,11 @@ export class AuthenticationService {
 			.catch((error) => {
 				console.error(
 					'check_tmp_totp_code: ' +
-					'unexpected error : ' +
-					error +
-					', returning ✘',
+						'unexpected error : ' +
+						error +
+						', returning ✘',
 				);
-				throw new HttpException(
-					'E_GOOGLE_API',
-					HttpStatus.INTERNAL_SERVER_ERROR,
-				);
+				throw new HttpException('E_GOOGLE_API', HttpStatus.CONFLICT);
 			});
 		if (truth === true) {
 			console.log('check_tmp_totp_code: ' + 'code match, returning ✔');
@@ -566,5 +582,27 @@ export class AuthenticationService {
 		usr.tmp_totp_code = null;
 		await this.usersService.validate_totp(usr.login);
 		console.log('validate_totp: ' + 'totp validated, returning ✔');
+	}
+
+	public async disable_totp(name: string) {
+		console.log('disable_totp: starting');
+		const usr = await this.usersService.getByAny(name);
+		await this.usersService.change_totp_code(usr, '');
+		await this.usersService.change_tmp_totp_code(usr, '');
+		console.log('disable_totp: ' + 'totp disabled, returning ✔');
+	}
+
+	public async check_totp_status(name: string) {
+		console.log('check_totp_status: starting');
+		const usr = await this.usersService.getByAny(name);
+		let ret;
+		console.log('status:', usr.totp_code);
+		if (usr.totp_code != '') {
+			ret = true;
+		} else {
+			ret = false;
+		}
+		console.log('check_totp_status: ' + 'totp status computed, returning ✔');
+		return ret;
 	}
 }

@@ -2,10 +2,9 @@
 
 ## ongoing
 
-* add notification for game invitations
-
 ## optional
 
+* use multi stage builds
 * change readme's images using a gif of a live game and some screenshots of the website
 * add kind of Auth Guards to app.gateway.ts
 * clean up warnings in containers creations
