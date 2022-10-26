@@ -26,6 +26,7 @@ import { ModifChanDto } from './chat/dto/ModifChanDto';
 import { UserEntity } from 'src/users/user.entity';
 import { MatchDto } from 'src/match/match.dto';
 import { MatchService } from './match/match.service';
+import { delay } from 'rxjs';
 
 @WebSocketGateway({
 	cors: {
@@ -480,6 +481,26 @@ export class AppGateway
 			client.handshake.query.login,
 		);
 		let game;
+		let inviter_in_spec = false;
+		for (game of this.games) {
+			// check if client.handshake.query.login is in game
+			for (const sock of game.sockets) {
+				if (sock == client.id) {
+					inviter_in_spec = true;
+					break;
+				}
+			}
+			if (inviter_in_spec == true) {
+				break;
+			}
+		}
+		if (inviter_in_spec) {
+			console.log('invite_to_game: Inviter is in spec, re running function');
+			game.sockets.splice(game.sockets.indexOf(client.id), 1);
+			this.server.to(client.id).emit('reload_game');
+			this.invite_to_game(data, client);
+			return;
+		}
 		let inviter_in_game = false;
 		for (game of this.games) {
 			// check if client.handshake.query.login is in game
@@ -496,6 +517,10 @@ export class AppGateway
 		if (!inviter_in_game) {
 			console.log('invite_to_game: No game found, returning');
 			client.emit('create_from_invitation');
+			// wait 1 sec for client to create game
+			const delay = (time: number) =>
+				new Promise((resolve) => setTimeout(resolve, time));
+			await delay(100);
 			client.emit('invite_to_game', { error: 'no game' });
 			return;
 		}
