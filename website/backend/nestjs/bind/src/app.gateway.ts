@@ -487,6 +487,7 @@ export class AppGateway
 			login: user.login,
 			lobby: game.lobby_name,
 		});
+		this.server.to(user.socketId).emit('update_invitations', {});
 	}
 
 	@SubscribeMessage('get_match_infos')
