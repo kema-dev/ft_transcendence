@@ -65,7 +65,7 @@ export class AppGateway
 
 
 	@SubscribeMessage('leftGame')
-	async leftGame(@MessageBody() data: { login: string }) {
+	async leftGame(@MessageBody() data: any) {
 		console.log('leftGame <---------------------------', data.login);
 		const user = await this.userService.getByLogin(data.login);
 		if (!user) return;
@@ -80,7 +80,7 @@ export class AppGateway
 		user.lobby_name = "";
 		this.userService.saveUser(user);
 		game.destructor();
-		if (game.players.length - 1 > 0) {
+		if (game.players.length - 1 > 1) {
 			console.log('game.players.length - 1 > 0');
 			let newGame = new Game(
 				game.nbrPlayer - 1,
@@ -94,12 +94,16 @@ export class AppGateway
 				this
 			);
 			this.games.push(newGame);
-			this.server.to(newGame.sockets).emit('reload_game', { left: user.login });
+			if (data.lose)
+				this.server.to(newGame.sockets).emit('reload_game');
+			else
+				this.server.to(newGame.sockets).emit('reload_game', { left: user.login });
 			newGame.start = game.start;
-			if (game.players.length - 1 == 1 && game.start) {
-				this.server.to(game.players.find((player) => player.login !== user.login).socketId).emit('end', { win: true });
-				newGame.start = false;
-			}
+		}
+		else if (game.players.length - 1 == 1) {
+			this.server.to(game.players.find((player) => player.login !== user.login).socketId).emit('end', { win: true });
+			if (!data.lose)
+				this.server.to(game.players.find((player) => player.login !== user.login).socketId).emit('reload_game', { left: user.login });
 		}
 		this.games.splice(this.games.indexOf(game), 1);
 		this.server.emit('lobbys', this.sendLobbys(this.games));

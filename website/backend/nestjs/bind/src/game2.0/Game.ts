@@ -200,7 +200,7 @@ export default class Game {
 						}
 						else
 							this.server.to(this.players.find((p) => p.login == login)?.socketId).emit('end', { win: false });
-						this.app.leftGame({ login: login });
+						this.app.leftGame({ login: login, lose: true });
 						return;
 					}
 					ball.x = ball.x + ball.v.x * ball.speed * this.deltaTime;
