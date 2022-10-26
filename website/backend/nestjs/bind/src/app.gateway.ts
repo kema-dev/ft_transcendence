@@ -481,25 +481,40 @@ export class AppGateway
 			client.handshake.query.login,
 		);
 		let game;
-		let inviter_in_spec = false;
+		let inviter_in_sock = false;
 		for (game of this.games) {
 			// check if client.handshake.query.login is in game
 			for (const sock of game.sockets) {
 				if (sock == client.id) {
-					inviter_in_spec = true;
+					inviter_in_sock = true;
 					break;
 				}
 			}
-			if (inviter_in_spec == true) {
+			if (inviter_in_sock == true) {
 				break;
 			}
 		}
-		if (inviter_in_spec) {
-			console.log('invite_to_game: Inviter is in spec, re running function');
-			game.sockets.splice(game.sockets.indexOf(client.id), 1);
-			this.server.to(client.id).emit('reload_game');
-			this.invite_to_game(data, client);
-			return;
+		if (inviter_in_sock) {
+			let inviter_in_game = false;
+			for (game of this.games) {
+				// check if client.handshake.query.login is in game
+				for (const player of game.players) {
+					if (player.login == client.handshake.query.login) {
+						inviter_in_game = true;
+						break;
+					}
+				}
+				if (inviter_in_game == true) {
+					break;
+				}
+			}
+			if (!inviter_in_game) {
+				console.log('invite_to_game: Inviter is in spec, re running function');
+				game.sockets.splice(game.sockets.indexOf(client.id), 1);
+				this.server.to(client.id).emit('reload_game');
+				this.invite_to_game(data, client);
+				return;
+			}
 		}
 		let inviter_in_game = false;
 		for (game of this.games) {
