@@ -35,7 +35,7 @@ export class UserEntity extends TimestampEntites {
 	@Column()
 	public password: string;
 
-	@Column()
+	@Column("integer", { default: 0 })
 	public level: number;
 
 	@Column({ nullable: true })

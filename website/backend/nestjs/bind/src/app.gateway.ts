@@ -67,10 +67,11 @@ export class AppGateway
 	@SubscribeMessage('leftGame')
 	async leftGame(@MessageBody() data: any) {
 		console.log('leftGame <---------------------------', data.login);
-		const user = await this.userService.getByLogin(data.login);
+		const user: UserEntity = await this.userService.getByLogin(data.login);
 		if (!user) return;
 		let game = this.games.find((game) => game.lobby_name === user.lobby_name);
 		user.lobby_name = "";
+		user.level = user.level + 1;
 		this.userService.saveUser(user);
 		if (!game) return;
 		console.log('lobby <---------------------------', user.lobby_name);
@@ -98,15 +99,10 @@ export class AppGateway
 		}
 		else if (game.players.length - 1 == 1) {
 			this.server.to(game.players.find((player) => player.login !== user.login).socketId).emit('end', { win: true });
-			// user.level = user.level + 1 / user.level;
 			if (!data.lose)
 				this.server.to(game.players.find((player) => player.login !== user.login).socketId).emit('reload_game', { left: user.login });
 		}
-		if (data.lose) {
-			// user.level = user.level + 1 / user.level;
-		}
-		// user.level == 0 ? user.level = 1 : user.level; // bug
-		// this.userService.saveUser(user);
+		this.userService.saveUser(user);
 		this.games.splice(this.games.indexOf(game), 1);
 		this.server.emit('lobbys', this.sendLobbys(this.games));
 		console.log('game destroyed', this.games.length);
