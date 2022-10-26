@@ -21,7 +21,7 @@
 			<div class="message_cont center" :class="{ messageNR: displayNotRead() }">
 				<div v-if="message " class="column left_center">
 					<h3 v-if="!chan && statusDone" class="status">
-						{{ status ? "online" : "offline" }}
+						{{userStatus}}
 					</h3>
 					<div :class="{'messageChan': chan, 'messagePriv': !chan }">
 						{{ displayMsg() }}
@@ -40,11 +40,13 @@
 <script setup lang="ts">
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { inject, defineProps, ref, Ref, onMounted, onUnmounted } from "vue";
+import { Socket } from "socket.io-client";
 
 let colors = inject("colors");
 let me: string = inject("me")!;
 let socket: Socket = inject("socket")!;
-let status: Ref<boolean> = ref(false);
+let statusColor: Ref<string> = ref('');
+let userStatus: Ref<string> = ref('');
 const statusDone : Ref<boolean> = ref(false);
 const props = defineProps({
 	nameConv: {
@@ -118,12 +120,20 @@ function displayDate(): string {
 
 onMounted(() => {
 	if (!props.chan) {
-		socket.on("userStatus", (data: {user: string, status: boolean}) => {
+		socket.on("userStatus", (data: {user: string, status: string}) => {
 			if (data.user == props.nameConv) {
-				status.value = data.status;
-				statusDone.value = true;
+			userStatus.value = data.status;
+			if (data.status == 'online')
+				statusColor.value = 'green';
+			else if (data.status == 'offline')
+				statusColor.value = '#FF3333';
+			else {
+				statusColor.value = 'orange';
+				userStatus.value = 'in game'
 			}
-		});
+			statusDone.value = true;
+		}
+	});
 		socket.emit("userStatus", props.nameConv);
 	}
 })
@@ -195,11 +205,11 @@ onUnmounted(() => {
 }
 .status {
 	color: white;
-	padding: 0 5px;
+	padding: 1px 5px;
 	border-radius: 5px;
 	margin-right: auto;
 	margin-bottom: 6px;
-	background-color: v-bind((status ? "green" : "red"));
+	background: v-bind(statusColor);
 }
 .message_cont {
 	/* height: 100%; */

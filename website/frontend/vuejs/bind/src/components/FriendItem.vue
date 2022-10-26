@@ -11,18 +11,11 @@
 				<h2 @click="toProfile()" class="name">
 					{{ info.login }}
 				</h2>
-				<!-- <button v-if="friend == true"
-					class="action"
-					style="margin-right: 10px"
-					@click="remove_friend(info.login)"
-				>
-					X
-				</button> -->
 			</div>
 			<div class="space-between raw">
 				<div @click="toProfile()" class="levelStatus left column">
 					<h3 v-if="statusDone" class="status">
-						{{ status ? "online" : "offline" }}
+						{{ userStatus}}
 					</h3>
 					<h3 class="level">level {{ info.level }}</h3>
 				</div>
@@ -31,9 +24,15 @@
 						<span class="infoButtonText">Friend request</span>
 						<img src="@/assets/add_friend.svg" class="btnImg">
 					</button>
-					<button @click="inviteGame()" class="btnCont center">
+					<button v-if="statusDone && userStatus != 'in game'" 
+						@click="inviteGame()" class="btnCont center"
+					>
 						<span class="infoButtonText">Invit in game</span>
 						<img src="@/assets/ball_logo.svg" class="btnImg">
+					</button>
+					<button v-else @click="specGame()" class="btnCont center">
+						<span class="infoButtonText">Watch game</span>
+						<img src="@/assets/eye.svg" class="btnImg">
 					</button>
 					<button @click="toChat()" class="btnCont center">
 						<span class="infoButtonText">Chat</span>
@@ -61,12 +60,8 @@ let socket: Socket = inject("socket")!;
 let me : Ref<ProfileUserDto> = inject("user")!;
 let colors = inject("colors");
 const props = defineProps(["info", "friend"]);
-let statusColor = {
-	online: "green",
-	offline: "red",
-	"in game": "orange",
-};
-let status: Ref<boolean> = ref(false);
+let statusColor: Ref<string> = ref('');
+let userStatus: Ref<string> = ref('');
 const statusDone : Ref<boolean> = ref(false);
 
 function addFriend() {
@@ -83,6 +78,10 @@ function toProfile() {
 
 function toChat() {
 	router.push({name: 'PrivConv', params: {conv_name: props.info.login}})
+}
+
+function specGame() {
+
 }
 
 function inviteGame() {
@@ -103,12 +102,20 @@ function inviteGame() {
 }
 
 onMounted(() => {
-	socket.on("userStatus", (data: {user: string, status: boolean}) => {
+	socket.on("userStatus", (data: {user: string, status: string}) => {
 		if (data.user == props.info.login) {
-			status.value = data.status;
+			userStatus.value = data.status;
+			if (data.status == 'online')
+				statusColor.value = 'green';
+			else if (data.status == 'offline')
+				statusColor.value = '#FF3333';
+			else {
+				statusColor.value = 'orange';
+				userStatus.value = 'in game'
+			}
 			statusDone.value = true;
 		}
-	});
+	})
 	socket.emit("userStatus", props.info.login);
 })
 
@@ -155,16 +162,17 @@ onUnmounted(() => {
 	margin-bottom: 5px;
 }
 .levelStatus {
-	width: min-content;
+	width: auto;
 }
 .status {
 	color: white;
-	padding: 0 5px;
+	padding: 1px 5px;
 	border-radius: 5px;
 	margin-bottom: 5px;
-	background-color: v-bind((status ? "green" : "red"));
+	background: v-bind(statusColor);
 }
 .level {
+	width: 65px;
 	overflow: hidden;
 	white-space: nowrap;
 	text-overflow: ellipsis;

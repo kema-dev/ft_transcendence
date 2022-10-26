@@ -211,8 +211,6 @@ function checkDate(i: number) {
 	if (i == 0) return false;
 	else if (
 		Math.ceil(
-			// (chansRef.value[index.value].messages[i].date.getTime() -
-			// 	chansRef.value[index.value].messages[i - 1].date.getTime()) /
 			(filtredMsgs[i].date.getTime() -
 				filtredMsgs[i - 1].date.getTime()) /
 				(1000 * 60)
@@ -224,14 +222,11 @@ function checkDate(i: number) {
 }
 
 function checkUserName(i: number) {
-	// if (myName == chansRef.value[index.value].messages[i].user)
 	if (myName == filtredMsgs[i].user)
 		return false;
 	if (i == 0) 
 		return true;
 	if (
-		// chansRef.value[index.value].messages[i].user 
-		// == chansRef.value[index.value].messages[i - 1].user
 		filtredMsgs[i].user 
 		== filtredMsgs[i - 1].user
 		&& !checkDate(i)
@@ -242,15 +237,11 @@ function checkUserName(i: number) {
 }
 
 function checkAvatar(i: number) {
-	// if (myName == chansRef.value[index.value].messages[i].user)
 	if (myName == filtredMsgs[i].user)
 		return false;
-	// if (i == 0 || i == chansRef.value[index.value].messages.length - 1) 
 	if (i == 0 || i == filtredMsgs.length - 1) 
 		return true;
 	if (
-		// chansRef.value[index.value].messages[i].user
-		// == chansRef.value[index.value].messages[i + 1].user
 		filtredMsgs[i].user
 		== filtredMsgs[i + 1].user
 		&& !checkDate(i + 1)

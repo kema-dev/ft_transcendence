@@ -67,7 +67,7 @@ function logout() {
 	}).catch((err) => {
 		console.log(err);
 	});
-	socket.emit("userLogout", myName);
+	// socket.emit("userLogout", myName);
 }
 </script>
 

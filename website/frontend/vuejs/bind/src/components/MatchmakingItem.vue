@@ -7,8 +7,8 @@
 			<h1>Create or join</h1>
 			<h2>Create or join a game</h2>
 			<div class="center row">
-				<button class="start" v-on:click="create()">create</button>
-				<button class="start" v-on:click="join()">join</button>
+				<button class="start" @click="create()">create</button>
+				<button class="start" @click="join()">join</button>
 			</div>
 		</div>
 		<div v-else-if="isJoin">
@@ -25,10 +25,10 @@
 				<h1>{{ nbrBall }}</h1>
 				<h2 class="title">Balls</h2>
 				<div class="center row">
-					<button class="button" v-on:click="decrBall">LESS</button>
-					<button class="button" v-on:click="incrBall">MORE</button>
+					<button class="button" @click="decrBall">LESS</button>
+					<button class="button" @click="incrBall">MORE</button>
 				</div>
-				<button class="start" v-on:click="launch">start</button>
+				<button class="start" @click="launch">start</button>
 			</div>
 		</div>
 		<div v-if="win" class="msg">

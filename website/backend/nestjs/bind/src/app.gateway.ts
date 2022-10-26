@@ -50,15 +50,18 @@ export class AppGateway
 
 	// Connection
 	async handleConnection(@ConnectedSocket() client: Socket) {
-		let login = client.handshake.query.login as string; 
-		this.logger.log(`Client connected : ${login}`);
-		await this.userService.saveSocket(login, client.id);
-		this.userService.set_status(login, 'online');
+		let user = client.handshake.query.login as string; 
+		this.logger.log(`Client connected : ${user}`);
+		await this.userService.saveSocket(user, client.id);
+		this.userService.set_status(user, 'online');
+		this.server.emit('userStatus', {user: user, status: 'online'});
 	}
 	// Disconnection
 	async handleDisconnect(client: Socket) {
 		this.logger.log(`Client disconnected: ${client.id}`);
-		this.leftGame({login: client.handshake.query.login as string});
+		let user = client.handshake.query.login as string;
+		this.leftGame({login: user});
+		this.server.emit('userStatus', {user: user, status: 'offline'});
 	}
 
 	// ============================ GAME =====================================
@@ -197,6 +200,7 @@ export class AppGateway
 		if (game) {
 			game.players.forEach((player) => {
 				this.userService.set_status(player.login, 'ingame');
+				this.server.emit('userStatus', {user: player.login, status: 'ingame'});
 			});
 			game.start = true;
 		}
@@ -288,21 +292,19 @@ export class AppGateway
 		@MessageBody() data: string,
 		@ConnectedSocket() client: Socket,
 	) {
-		let statusString = await this.userService.get_user_status(data);
-		let status: boolean;
-		statusString == "online" ? status = true : status = false;
+		let status = await this.userService.get_user_status(data);
 		client.emit("userStatus", {user: data, status: status});
 	}
 
-	@SubscribeMessage('userLogout')
-	async userLogout( @MessageBody() data: string) {
-		this.server.emit("userStatus", {user: data, status: false})
-	}
+	// @SubscribeMessage('userLogout')
+	// async userLogout( @MessageBody() data: string) {
+	// 	this.server.emit("userStatus", {user: data, status: false})
+	// }
 
-	@SubscribeMessage('userLogin')
-	async userLogin( @MessageBody() data: string) {
-		this.server.emit("userStatus", {user: data, status: true})
-	}
+	// @SubscribeMessage('userLogin')
+	// async userLogin( @MessageBody() data: string) {
+	// 	this.server.emit("userStatus", {user: data, status: true})
+	// }
 
 	@SubscribeMessage('blockUser')
 	async blockUser(

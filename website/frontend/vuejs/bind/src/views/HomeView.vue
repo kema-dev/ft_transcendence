@@ -43,7 +43,6 @@ provide('me', me);
 //	========== CREATE SOCKET
 
 let socket = io(FQDN + ':3000', { query: { login: me } });
-socket.emit("userLogin", me);
 provide('socket', socket);
 
 let userRef: Ref<ProfileUserDto> = ref();
