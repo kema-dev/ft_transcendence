@@ -127,6 +127,11 @@ export class AppGateway
 			friends: true,
 		});
 		if (!user) return;
+		const lobby_name = user.login + "'s lobby";
+		this.games.find((game) => game.lobby_name === lobby_name);
+		if (this.games.find((game) => game.lobby_name === lobby_name)) {
+			return;
+		}
 		let game = new Game(
 			1,
 			data.nbrBall,
