@@ -50,7 +50,7 @@ export class AppGateway
 
 	// Connection
 	async handleConnection(@ConnectedSocket() client: Socket) {
-		let login = client.handshake.query.login as string; 
+		let login = client.handshake.query.login as string;
 		this.logger.log(`Client connected : ${login}`);
 		await this.userService.saveSocket(login, client.id);
 		this.userService.set_status(login, 'online');
@@ -279,10 +279,8 @@ export class AppGateway
 	}
 	@SubscribeMessage('changeAvatar')
 	changeAvatar(client: Socket, payload: any): void {
-		this.logger.log('change avatar');
 		this.userService.changeAvatar(payload.login, payload.avatar);
 	}
-
 	@SubscribeMessage('userStatus')
 	async get_user_status(
 		@MessageBody() data: string,
