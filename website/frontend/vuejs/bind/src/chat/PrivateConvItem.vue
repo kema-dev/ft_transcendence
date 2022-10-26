@@ -220,8 +220,10 @@ function blockUser() {
 }
 
 function inviteGame() {
+	console.log('inviteGame: Starting')
 	mySocket.off('invite_to_game');
 	mySocket.on('invite_to_game', (data) => {
+		console.log('inviteGame: received data')
 		if (data.error == 'no game') {
 			toast.success('You were not in a game, created a new one for you !');
 			inviteGame();

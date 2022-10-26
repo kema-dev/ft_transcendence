@@ -461,33 +461,54 @@ export class AppGateway
 		@MessageBody() data: { login: string },
 		@ConnectedSocket() client: Socket,
 	) {
+		console.log(
+			'invite_to_game: Start for,',
+			data.login,
+			'from',
+			client.handshake.query.login,
+		);
 		let game;
+		let inviter_in_game = false;
 		for (game of this.games) {
-			if (game.players.some((p) => p.login == data.login)) {
+			// check if client.handshake.query.login is in game
+			for (const player of game.players) {
+				if (player.login == client.handshake.query.login) {
+					inviter_in_game = true;
+					break;
+				}
+			}
+			if (inviter_in_game == true) {
 				break;
 			}
 		}
-		if (!game) {
+		if (!inviter_in_game) {
+			console.log('invite_to_game: No game found, returning');
 			client.emit('create_from_invitation');
 			client.emit('invite_to_game', { error: 'no game' });
 			return;
 		}
+		console.log('invite_to_game: Game found');
 		let user;
 		try {
 			user = await this.userService.getByLogin(data.login);
 		} catch (e) {
 			client.emit('invite_to_game', { error: 'no user' });
+			console.log('invite_to_game: No user found, returning');
 			return;
 		}
+		console.log('invite_to_game: User found');
 		if (user.status != 'online') {
 			client.emit('invite_to_game', { error: 'no online' });
+			console.log('invite_to_game: User not online, returning');
 			return;
 		}
+		console.log('invite_to_game: User online');
 		this.server.to(user.socketId).emit('get_invited', {
 			login: user.login,
 			lobby: game.lobby_name,
 		});
 		this.server.to(user.socketId).emit('update_invitations', {});
+		console.log('invite_to_game: Success, returning');
 	}
 
 	@SubscribeMessage('get_match_infos')
