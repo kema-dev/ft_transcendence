@@ -70,15 +70,11 @@ export class AppGateway
 		const user = await this.userService.getByLogin(data.login);
 		if (!user) return;
 		let game = this.games.find((game) => game.lobby_name === user.lobby_name);
-		if (!game) {
-			user.lobby_name = "";
-			this.userService.saveUser(user);
-			return;
-		}
-		console.log('lobby <---------------------------', user.lobby_name);
-		console.log('game <---------------------------');
 		user.lobby_name = "";
 		this.userService.saveUser(user);
+		if (!game) return;
+		console.log('lobby <---------------------------', user.lobby_name);
+		console.log('game <---------------------------');
 		game.destructor();
 		if (game.players.length - 1 > 1) {
 			console.log('game.players.length - 1 > 0');
@@ -102,9 +98,15 @@ export class AppGateway
 		}
 		else if (game.players.length - 1 == 1) {
 			this.server.to(game.players.find((player) => player.login !== user.login).socketId).emit('end', { win: true });
+			// user.level = user.level + 1 / user.level;
 			if (!data.lose)
 				this.server.to(game.players.find((player) => player.login !== user.login).socketId).emit('reload_game', { left: user.login });
 		}
+		if (data.lose) {
+			// user.level = user.level + 1 / user.level;
+		}
+		// user.level == 0 ? user.level = 1 : user.level; // bug
+		// this.userService.saveUser(user);
 		this.games.splice(this.games.indexOf(game), 1);
 		this.server.emit('lobbys', this.sendLobbys(this.games));
 		console.log('game destroyed', this.games.length);

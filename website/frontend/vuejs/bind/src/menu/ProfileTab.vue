@@ -1,4 +1,5 @@
 <template>
+	<input id="none" type="file" />
 	<div class="column center" v-if="show">
 		<!-- <h2 id="player_search_title">Search for another player's profile</h2>
 		<SearchProfileItem v-model:search="search"/>

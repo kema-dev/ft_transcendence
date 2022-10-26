@@ -17,7 +17,7 @@ import { avatars } from 'src/users/avatars';
 export class UserEntity extends TimestampEntites {
 	constructor() {
 		super();
-		this.level = 0;
+		this.level = 1;
 		this.nbrGame = 0;
 		this.ratio = "0.5";
 		this.status = "offline";
@@ -132,7 +132,7 @@ export class UserEntity extends TimestampEntites {
 		onDelete: 'SET NULL',
 	})
 	chansAdmin: ChannelEntity[];
-	
+
 	@ManyToMany(type => ChannelEntity, (chan) => chan.users ,{
 		cascade: true,
 		nullable: true,
