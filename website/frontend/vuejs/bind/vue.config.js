@@ -46,5 +46,14 @@ module.exports = defineConfig({
 	//       }
 	//     })
 	//   ],
-	transpileDependencies: true
+	transpileDependencies: true,
+	// configureWebpack: {
+	// 	stats: 'none',
+	// },
+	// chainWebpack: config => {
+	// 	config.plugins.delete('friendly-errors')
+	// },
+	// configureWebpack: {
+	// 	stats: { warnings: false }
+	// }
 })
