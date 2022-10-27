@@ -85,7 +85,7 @@ function detectCollisionRC(rect: Wall | Racket, circle: Ball) {
 	let cx, cy;
 	const angleOfRad = degToRad(-rect.angle);
 	if (typeof rect === typeof Wall) {
-		rect.height += 200;
+		rect.height += 400;
 	}
 	const rectCenterX = rect.x;
 	const rectCenterY = rect.y;

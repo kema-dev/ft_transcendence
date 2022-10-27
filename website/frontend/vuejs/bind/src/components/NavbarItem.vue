@@ -8,22 +8,13 @@
 			<div style="height: 100%" class="center row right">
 				<img v-if="userDone" @click="toProfile"
 					:src="me.avatar" alt="My avatar" class="avatar">
+				<img src="@/assets/svg/logout.svg" alt="logout" class="icon" @click="logout" />
 				<!-- <lottie-player
 					:src="require('@/assets/json/settings.json')"
 					speed="2"
 					hover
 					class="icon"
-				/> -->
-				<img
-					src="@/assets/logout.png"
-					class="icon"
 					@click="logout"
-				/>
-				<!-- <lottie-player
-					:src="require('@/assets/json/home.json')"
-					speed="2"
-					hover
-					class="icon"
 				/> -->
 			</div>
 		</div>
@@ -111,6 +102,7 @@ nav {
 	height: 100%;
 	width: 50px;
 	cursor: pointer;
+	filter: invert(100%) sepia(100%) saturate(0%) hue-rotate(193deg) brightness(107%) contrast(100%);
 }
 .avatar {
 	width: 50px;

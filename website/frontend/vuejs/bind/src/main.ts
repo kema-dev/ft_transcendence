@@ -19,7 +19,7 @@ const toast_options: PluginOptions = {
 	rtl: false,
 };
 
-createApp(App)
+ createApp(App)
 	.use(router)
 	.use(Toast, toast_options)
 	.use(VueCookies, {
