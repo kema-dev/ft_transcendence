@@ -129,6 +129,11 @@ mySocket.on('request_game_leave', (data) => {
 	toast.warning('Please leave your current game before joining another one');
 });
 
+mySocket.off('request_spectate_leave');
+mySocket.on('request_spectate_leave', (data) => {
+	toast.warning('Please leave the game you are spectating by refreshing the page before joining another game');
+});
+
 function get_player_name(player: string) {
 	// send max 5 char
 	if (player.length > 6) {

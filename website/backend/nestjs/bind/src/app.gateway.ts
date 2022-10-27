@@ -216,6 +216,13 @@ export class AppGateway
 			this.server.to(user.socketId).emit('request_game_leave');
 			return;
 		}
+		// check if client.id is already in a game.sockets
+		if (this.games.find((game) => game.sockets.find((socket) => socket === client.id))) {
+			console.log('join_lobby: Client is already a viewer of ', game.lobby_name, ', returning');
+			this.server.to(user.socketId).emit('request_spectate_leave');
+			game.sockets.splice(game.sockets.indexOf(client.id), 1);
+			return;
+		}
 		let newGame = new Game(
 			game.nbrPlayer + 1,
 			game.nbrBall,
