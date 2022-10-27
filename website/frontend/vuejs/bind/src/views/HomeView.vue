@@ -159,7 +159,7 @@ socket.on('newPrivMsg', (data: { msg: MessageDto; id: number }) => {
 		data.msg.user != me &&
 		!nbPrivNR.value.includes(privsRef.value[i].id) &&
 		route.path != '/home/chat/private/' + data.msg.user &&
-		!blocked 
+		!blocked
 	) {
 		nbPrivNR.value.push(privsRef.value[i].id);
 		findPrivIndex.value = true;
@@ -237,7 +237,7 @@ function getChansRequest() {
 //	========== CREATE SOCKET LISTENERS
 
 socket.on('newChanMsg', (data: { msg: MessageDto; name: string }) => {
-	console.log(`New Channel message received : 
+	console.log(`New Channel message received :
 		channel = ${data.name}, msg = ${data.msg.msg}`);
 	let i = chansRef.value.findIndex((chan) => chan.name == data.name);
 	chansRef.value[i].messages.push(
@@ -258,7 +258,7 @@ socket.on('newChanMsg', (data: { msg: MessageDto; name: string }) => {
 	if (i != 0) {
 		putChanFirst(i);
 		findChanIndex.value = true;
-	} 
+	}
 });
 
 socket.on('newChannel', (data: ChannelDto) => {
@@ -343,9 +343,7 @@ socket.on('modifChan', (data: ModifChanDto) => {
 		console.log(
 			`User '${data.restoreMute}' from chan '${data.chan}' is unmuted`,
 		);
-		let j = chansRef.value[i].mutes.findIndex(
-			(user) => user.login == data.restoreMute,
-		);
+		let j = chansRef.value[i].mutes.findIndex((user) => user.login == data.restoreMute,);
 		chansRef.value[i].users.push(chansRef.value[i].mutes[j]);
 		chansRef.value[i].mutes.splice(i, 1);
 	} else if (data.ban) {
