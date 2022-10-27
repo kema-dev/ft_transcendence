@@ -156,10 +156,16 @@ onMounted(() => {
 	let game = document.getElementById('container');
 	let settings = document.getElementById('settings');
 	if (game && settings) settings.style.height = game.offsetHeight + 'px';
-	socket.on('reload_game', (data: {left: string}) => {
-		if (data)
+	socket.on('reload_game', (data: {left: string, start: boolean}) => {
+		if (data.left != "")
 			toast.warning(data.left + ' left the game');
 		remount.value = !remount.value;
+		win.value = false;
+		lose.value = false;
+		start.value = data.start;
+		console.log("is owner: ", me?.value?.lobby_name == me?.value?.login + "'s lobby")
+		if (me?.value?.lobby_name == me?.value?.login + "'s lobby")
+			isOwner.value = true;
 	});
 	// window.addEventListener("resize", () => {
 	// 	reload++;
