@@ -1,6 +1,6 @@
 <template>
 	<div class="stack center" id="page">
-		<div v-if="isAutoQueue">
+		<div v-if="isAutoQueue" class="autoQueue">
 			<h1>Waiting for a room...</h1>
 			<div class="load"></div>
 		</div>
@@ -91,6 +91,7 @@ function back() {
 	win.value = false;
 	lose.value = false;
 	isOwner.value = false;
+	isAutoQueue.value = false;
 }
 function create() {
 	socket.emit('newLobby', { login: me?.value?.login, nbrBall: 1 });
@@ -102,6 +103,7 @@ function join() {
 	socket.emit('userUpdate', { login: me?.value?.login });
 }
 function autoQueue() {
+	isCreate.value = true;
 	isAutoQueue.value = true;
 	socket.emit('autoQueue', { login: me?.value?.login });
 }
@@ -145,6 +147,7 @@ onMounted(() => {
 	socket.on('reload_game', (data: {left: string}) => {
 		if (data)
 			toast.warning(data.left + ' left the game');
+		isAutoQueue.value = false;
 		remount.value = !remount.value;
 	});
 	// window.addEventListener("resize", () => {
@@ -198,6 +201,9 @@ socket.on('create_from_invitation', (data: any) => {
 	margin-bottom: -18px;
 	font-size: 1.25rem;
 }
+.autoQueue {
+	position: absolute;
+}
 .start {
 	/* margin-top: 10px; */
 	/* margin-bottom: 95px; */
@@ -222,7 +228,7 @@ socket.on('create_from_invitation', (data: any) => {
     from {
         transform: rotate(0deg);
     }
-    to { 
+    to {
         transform: rotate(360deg);
     }
 }
@@ -230,7 +236,7 @@ socket.on('create_from_invitation', (data: any) => {
     from {
         -webkit-transform: rotate(0deg);
     }
-    to { 
+    to {
         -webkit-transform: rotate(360deg);
     }
 }
@@ -243,15 +249,15 @@ socket.on('create_from_invitation', (data: any) => {
 	border-right-color: transparent;
 	border-bottom-color: transparent;
 	 -webkit-transition: all 0.5s ease-in;
-    -webkit-animation-name:             rotate; 
-    -webkit-animation-duration:         1.0s; 
+    -webkit-animation-name:             rotate;
+    -webkit-animation-duration:         1.0s;
     -webkit-animation-iteration-count:  infinite;
     -webkit-animation-timing-function: linear;
-    	
+
     	 transition: all 0.5s ease-in;
-    animation-name:             rotate; 
-    animation-duration:         1.0s; 
+    animation-name:             rotate;
+    animation-duration:         1.0s;
     animation-iteration-count:  infinite;
-    animation-timing-function: linear; 
+    animation-timing-function: linear;
 }
 </style>

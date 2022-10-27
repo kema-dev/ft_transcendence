@@ -53,7 +53,7 @@ export class AppGateway
 
 	// Connection
 	async handleConnection(@ConnectedSocket() client: Socket) {
-		let user = client.handshake.query.login as string; 
+		let user = client.handshake.query.login as string;
 		this.logger.log(`Client connected : ${user}`);
 		await this.userService.saveSocket(user, client.id);
 		this.userService.set_status(user, 'online');
@@ -296,8 +296,10 @@ export class AppGateway
 		let user = await this.userService.getByLogin(data.login);
 		if (!this.userWaiting)
 			return this.userWaiting = user;
-		
+		console.log('create');
 		this.idAutoQueue++;
+		user.lobby_name = `Automatic 1V1 n°${this.idAutoQueue}`;
+		this.userWaiting.lobby_name = `Automatic 1V1 n°${this.idAutoQueue}`;
 		let newGame = new Game(
 			2, // nb players
 			1, // nb balls
@@ -305,12 +307,18 @@ export class AppGateway
 			[this.userWaiting, user],
 			`Automatic 1V1 n°${this.idAutoQueue}` ,
 			this.userWaiting.login,
-			'', // img 
+			'', // img
 			this.matchService,
 			this
 		);
+		this.userService.saveUser(user);
+		this.userService.saveUser(this.userWaiting);
+		this.server.to(user.socketId).emit('userUpdate', new ProfileUserDto(user));
+		this.server.to(this.userWaiting.socketId).emit('userUpdate', new ProfileUserDto(this.userWaiting));
 		this.games.push(newGame);
-		newGame.start;
+		this.server.to(newGame.sockets).emit('reload_game');
+		newGame.start = true;
+		this.userWaiting = null;
 	}
 
 	// ============================ USER =====================================
