@@ -594,7 +594,7 @@ export class ChatService {
 
 
 	isOwner(user: UserEntity, chan: ChannelEntity) {
-		if (chan.owner.login == user.login)
+		if (chan.owner && chan.owner.login == user.login)
 			return true;
 		return false;
 	}
@@ -607,7 +607,7 @@ export class ChatService {
 		let requestor = await this.userService.getByLogin(modif.requestor);
 		let chan = await this.channelRepository.findOne({
 			where: {name: modif.chan},
-			relations: {owner: true, admins: true, users: true, 
+			relations: {owner: true, admins: true, users: true,
 				mutes: true, bans: true, messages: true},
 		});
 		if (!this.isOwner(requestor, chan) && !this.isAdm(requestor, chan))
@@ -657,6 +657,14 @@ export class ChatService {
 			chan.users.push(chan.mutes[i]);
 			chan.mutes.splice(i, 1);
 		}
+		else if (modif.kick) {
+			console.log(`User '${modif.kick}' from group '${modif.group}' of chan '${modif.chan}' is kicked`);
+			let kicked = await this.userService.getByLogin(modif.kick);
+			let i = (chan[modif.group as keyof ChannelEntity] as UserEntity[])
+				.findIndex(user => user.login == modif.ban);
+			(chan[modif.group as keyof ChannelEntity] as UserEntity[]).splice(i, 1);
+			server.to(kicked.socketId).emit("modifChan", modif);
+		}
 		else if (modif.ban) {
 			console.log(`User '${modif.ban}' from group '${modif.group}' of chan '${modif.chan}' is baned`);
 			let i = (chan[modif.group as keyof ChannelEntity] as UserEntity[])
@@ -669,8 +677,6 @@ export class ChatService {
 			let i = chan.mutes.findIndex(mute => mute.login == modif.restoreBan);
 			chan.bans.splice(i, 1);
 		}
-		// else if (modif.kick)
-		// 	return modifChanKick(server, modif.chan, modif.kick);
 		// else if (modif.avatar)
 		// 	return modifChanAvatar(server, modif.chan, modif.avatar);
 		this.channelRepository.save(chan)

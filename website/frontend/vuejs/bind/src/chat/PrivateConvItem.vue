@@ -8,14 +8,22 @@
 			</div>
 			<div class="center row">
 				<button @click="toProfile" class="login">{{ userName }}</button>
-				<div class="status"></div>
+				<div v-if="statusDone" class="status"></div>
 			</div>
 			<div class="option_buttons center raw stack">
-				<button @click="inviteGame" class="button_cont center">
+				<button v-if="userStatus != 'ingame'" @click="inviteGame" class="button_cont center">
 					<span class="infoButtonText">Invite in game</span>
 					<img
 						src="~@/assets/ball_logo.svg"
 						alt="Invite game button"
+						class="button_img"
+					/>
+				</button>
+				<button v-else @click="specGame()" class="button_cont center">
+					<span class="infoButtonText">Watch game</span>
+					<img
+						src="~@/assets/eye.svg"
+						alt="Watch game button"
 						class="button_img"
 					/>
 				</button>
@@ -117,8 +125,11 @@ let mySocket: Socket = inject("socket")!;
 let me: string = inject("me")!;
 let apiPath: string = inject("apiPath")!;
 const userName = useRoute().params.conv_name as string;
+let isCreate : Ref<boolean> = inject('isCreate')!;
+let isJoin : Ref<boolean> = inject('isJoin')!;
 let myMsg = ref("");
-let user_status = ref(false);
+let userStatus = ref('');
+let statusColor = ref('');
 let statusDone = ref(false);
 let blockWarn = ref(false);
 let userBlocked = ref(false);
@@ -212,6 +223,15 @@ function privMsgRead() {
 		privsRef.value[index.value].readed = true;
 		mySocket.emit('privReaded', {sender: userName, receiver: me});
 	}
+}
+
+function specGame() {
+	mySocket.emit('look_lobby2', {
+		spec: me,
+		player: userName,
+	});
+	isCreate.value = true;
+	isJoin.value = false;
 }
 
 function blockUser() {
@@ -308,9 +328,15 @@ onMounted(() => {
 		const box = document.getElementById("privateTabText");
 	document.getElementById("sendbox")?.focus();
 	if (box != null) box.classList.add("chatTabActive");
-	mySocket.on("userStatus", (data: {user: string, status: boolean}) => {
+	mySocket.on("userStatus", (data: {user: string, status: string}) => {
 		if (data.user == userName) {
-			user_status.value = data.status;
+			if (data.status == 'online')
+				statusColor.value = '#00CC00';
+			else if (data.status == 'offline')
+				statusColor.value = '#FF3333';
+			else
+				statusColor.value = 'orange';
+			userStatus.value = data.status;
 			statusDone.value = true;
 		}
 	});
@@ -359,6 +385,7 @@ function printPrivs(privs: PrivConvDto[] | undefined) {
 	cursor: pointer;
 	width: var(--height);
 	height: var(--height);
+	margin-left: 5px;
 }
 .avatar {
 	height: calc(var(--height) - 15px);
@@ -380,7 +407,7 @@ function printPrivs(privs: PrivConvDto[] | undefined) {
 	height: 20px;
 	border-radius: 50%;
 	margin-left: 10px;
-	background: v-bind((user_status ? "#00CC00" : "#FF3333"));
+	background: v-bind(statusColor);
 }
 .login:hover {
 	color: v-bind("colors.color2");

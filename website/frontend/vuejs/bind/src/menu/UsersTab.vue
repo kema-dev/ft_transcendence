@@ -61,7 +61,7 @@
 </template>
 
 <script setup lang="ts">
-import { inject, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
+import { inject, onBeforeUpdate, onMounted, onUnmounted, onUpdated, Ref, ref, watch } from 'vue';
 import { Socket } from 'engine.io-client';
 import router from '@/router';
 import FriendItem from '@/components/FriendItem.vue';
@@ -78,18 +78,9 @@ const colors = inject('colors');
 const myName: string = inject("me")!;
 const me : Ref<ProfileUserDto>= inject('user')!;
 const socket: Socket = inject('socket')!;
-const notifs: Ref<number> = inject('notifs')!;
 const userDone : Ref<boolean> = inject("userDone")!;
 const search = ref('');
 const users : Ref<ResumUserDto[]> = ref([]);
-
-// SOCKET LISTENERS
-socket.on("getUsersByLoginFiltred", (data: ResumUserDto[]) => {
-	users.value = data.filter(user => {
-		return !me.value.friends.map(f => f.login).includes(user.login);
-	})
-});
-
 // WATCHERS
 watch(search, () => {
 	if (search.value == '')
@@ -123,6 +114,14 @@ function toProfile(login: string) {
 
 
 // ==================== LIFECYCLE HOOKS ====================
+
+onMounted(() => {
+	socket.on("getUsersByLoginFiltred", (data: ResumUserDto[]) => {
+		users.value = data.filter(user => {
+			return !me.value.friends.map(f => f.login).includes(user.login);
+		})
+	});
+})
 
 onUnmounted(() => {
 	socket.off('getUsersByLoginFiltred');

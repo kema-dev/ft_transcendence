@@ -105,6 +105,7 @@ export class UsersService {
 		if (userReceiver.login == userSender.login) return;
 		if (!userReceiver.requestFriend) userReceiver.requestFriend = [];
 		if (userReceiver.requestFriend.find((user) => user.login == sender)) return;
+		if (userReceiver.friends.find((user) => user.login == sender)) return;
 		userReceiver.requestFriend.push(userSender);
 		// this.usersRepository.createQueryBuilder().relation(UserEntity, "requestFriend").of(userReceiver).add(userSender);
 		this.usersRepository
@@ -153,7 +154,7 @@ export class UsersService {
 			(user) => user.login != sender,
 		);
 		// userSender.requestFriend.filter(user => user.login != receiver);
-		this.usersRepository.save([userReceiver, userSender]);
+		await this.usersRepository.save([userReceiver, userSender]);
 		server
 			.to(userSender.socketId)
 			.emit('userUpdate', new ProfileUserDto(userSender));
@@ -181,7 +182,7 @@ export class UsersService {
 		userReceiver.friends = userReceiver.friends.filter(
 			(user) => user.login != sender,
 		);
-		this.usersRepository.save([userReceiver, userSender]);
+		await this.usersRepository.save([userReceiver, userSender]);
 		server
 			.to(userSender.socketId)
 			.emit('userUpdate', new ProfileUserDto(userSender));

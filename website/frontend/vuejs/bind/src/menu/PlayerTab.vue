@@ -1,6 +1,5 @@
 <template>
 	<div class="column center" v-if="show">
-		<!-- <h1>{{ user_status }}</h1> -->
 		<div class="stack avatar-stack">
 			<div id="bar"></div>
 			<div id="avatar">
@@ -11,7 +10,7 @@
 		<div class="playerInfoCont center column">
 			<div class="loginStatus center raw">
 				<h1 class="login">{{ user_login }}</h1>
-				<div class="status"></div>
+				<div v-if="statusDone" class="status"></div>
 			</div>
 			<hr class="separator">
 			<div class="playerStatCont center raw">
@@ -32,9 +31,15 @@
 			</div>
 		</div>
 		<div v-if="userDone" class="playerBtnCont center raw">
-			<button @click="inviteGame()" class="playerBtn center raw">
+			<button v-if="userStatus != 'ingame'" @click="inviteGame()" 
+				class="playerBtn center raw"
+			>
 				<img src="@/assets/ball_logo.svg" class="imgBtn">
 				Play
+			</button>
+			<button v-else @click="specGame()" class="playerBtn center raw">
+				<img src="@/assets/eye.svg" class="imgBtn">
+				Watch
 			</button>
 			<button @click="toChat()" class="playerBtn center raw">
 				<img src="@/assets/chat.svg" class="imgBtn">
@@ -92,13 +97,16 @@ let user_login = route.params.name as string;
 let me: Ref<ProfileUserDto> = inject('user')!;
 let myName: string = inject('me')!;
 let userDone = inject('userDone')!;
+let isCreate : Ref<boolean> = inject('isCreate')!;
+let isJoin : Ref<boolean> = inject('isJoin')!;
 let socket : Socket = inject('socket')!;
-let showBlocks = ref(false);
 let ProgressBar = require('progressbar.js');
 let statDone = false;
 let historyDone = false;
 let avatarDone = false;
-let statusDone = false;
+let userStatus = ref('');
+let statusColor = ref('');
+let statusDone = ref(false);
 let show = ref(false);
 
 let user_ratio = ref(0.5);
@@ -120,7 +128,7 @@ watch(show, () => {
 }, {flush: 'post'})
 
 function isDone() {
-	if (statDone && historyDone && avatarDone && statusDone)
+	if (statDone && historyDone && avatarDone)
 		show.value = true;
 }
 
@@ -169,6 +177,15 @@ function blockUser() {
 
 function unblockUser() {
 	socket.emit("unblockUser", {blocker: myName, blocked: user_login});
+}
+
+function specGame() {
+	socket.emit('look_lobby2', {
+		spec: myName,
+		player: user_login,
+	});
+	isCreate.value = true;
+	isJoin.value = false;
 }
 
 onMounted(async () => {
@@ -220,11 +237,16 @@ onMounted(async () => {
 		console.log(err);
 		show.value = false;
 	});
-	socket.on("userStatus", (data: {user: string, status: boolean}) => {
+	socket.on("userStatus", (data: {user: string, status: string}) => {
 		if (data.user == user_login) {
-			user_status.value = data.status;
-			statusDone = true;
-			isDone();
+			if (data.status == 'online')
+				statusColor.value = '#00CC00';
+			else if (data.status == 'offline')
+				statusColor.value = '#FF3333';
+			else
+				statusColor.value = 'orange';
+			userStatus.value = data.status;
+			statusDone.value = true;
 		}
 	});
 	socket.emit("userStatus", user_login);
@@ -282,7 +304,6 @@ cursor: pointer;
 }
 .login{
 	font-size: 1.5rem;
-	/* width: auto; */
 	max-width: 85%;
 	overflow-wrap: break-word;
 }
@@ -291,7 +312,7 @@ cursor: pointer;
 	height: 25px;
 	border-radius: 50%;
 	margin-left: 10px;
-	background: v-bind((user_status ? "#00CC00" : "#FF3333"));
+	background: v-bind(statusColor);
 }
 .separator {
 	flex-shrink: 0;

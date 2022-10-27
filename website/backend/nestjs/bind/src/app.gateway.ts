@@ -51,15 +51,18 @@ export class AppGateway
 
 	// Connection
 	async handleConnection(@ConnectedSocket() client: Socket) {
-		let login = client.handshake.query.login as string;
-		this.logger.log(`Client connected : ${login}`);
-		await this.userService.saveSocket(login, client.id);
-		this.userService.set_status(login, 'online');
+		let user = client.handshake.query.login as string; 
+		this.logger.log(`Client connected : ${user}`);
+		await this.userService.saveSocket(user, client.id);
+		this.userService.set_status(user, 'online');
+		this.server.emit('userStatus', {user: user, status: 'online'});
 	}
 	// Disconnection
 	async handleDisconnect(client: Socket) {
 		this.logger.log(`Client disconnected: ${client.id}`);
-		this.leftGame({ login: client.handshake.query.login as string });
+		let user = client.handshake.query.login as string;
+		this.leftGame({login: user});
+		this.server.emit('userStatus', {user: user, status: 'offline'});
 	}
 
 	// ============================ GAME =====================================
@@ -71,6 +74,8 @@ export class AppGateway
 		const user: UserEntity = await this.userService.getByLogin(data.login);
 		if (!user) return;
 		let game = this.games.find((game) => game.lobby_name === user.lobby_name);
+		this.userService.set_status(user.login, 'online');
+		this.server.emit("userStatus", {user:user.login, status: 'online'});
 		user.lobby_name = "";
 		user.level = user.level + 1;
 		this.userService.saveUser(user);
@@ -160,6 +165,11 @@ export class AppGateway
 			// console.log(game.img, lobbys[lobbys.length - 1].img);
 		});
 		return lobbys;
+	}
+	@SubscribeMessage('look_lobby2')
+	async lookLobby2(@ConnectedSocket() client: Socket, @MessageBody() data: { spec: string, player: string },) {
+		let lobbyName = (await this.userService.getByLogin(data.player)).lobby_name;
+		this.lookLobby(client, {login: data.spec, lobby_name: lobbyName})
 	}
 	@SubscribeMessage('look_lobby')
 	async lookLobby(@ConnectedSocket() client: Socket, @MessageBody() data: { login: string, lobby_name: string },) {
@@ -256,6 +266,7 @@ export class AppGateway
 		if (game) {
 			game.players.forEach((player) => {
 				this.userService.set_status(player.login, 'ingame');
+				this.server.emit('userStatus', {user: player.login, status: 'ingame'});
 			});
 			game.start = true;
 			this.server.emit('lobbys', this.sendLobbys(this.games));
@@ -345,20 +356,9 @@ export class AppGateway
 		@MessageBody() data: string,
 		@ConnectedSocket() client: Socket,
 	) {
-		let statusString = await this.userService.get_user_status(data);
-		let status: boolean;
-		statusString == "online" ? status = true : status = false;
-		client.emit("userStatus", { user: data, status: status });
-	}
-
-	@SubscribeMessage('userLogout')
-	async userLogout(@MessageBody() data: string) {
-		this.server.emit("userStatus", { user: data, status: false })
-	}
-
-	@SubscribeMessage('userLogin')
-	async userLogin(@MessageBody() data: string) {
-		this.server.emit("userStatus", { user: data, status: true })
+		console.log(`get userStatus`);
+		let status = await this.userService.get_user_status(data);
+		client.emit("userStatus", {user: data, status: status});
 	}
 
 	@SubscribeMessage('blockUser')
@@ -375,8 +375,7 @@ export class AppGateway
 		@MessageBody() data: { blocker: string, blocked: string },
 		@ConnectedSocket() client: Socket,
 	) {
-		let priv = await this.chatService.unblockUser(data, this.server);
-		client.emit('userUnblock', priv);
+		this.chatService.unblockUser(data, this.server);
 	}
 
 	// ============================ CHAT =====================================
@@ -440,7 +439,10 @@ export class AppGateway
 			data.message,
 			new Date(data.date),
 		);
-		for (let user of chan.admins.concat(chan.users).concat(chan.mutes)) {
+		let allUsers = chan.admins.concat(chan.users).concat(chan.mutes);
+		if (chan.owner)
+			allUsers.push(chan.owner);
+		for (let user of allUsers) {
 			this.server
 				.to(user.socketId)
 				.emit('newChanMsg', { msg: msg, name: chan.name });

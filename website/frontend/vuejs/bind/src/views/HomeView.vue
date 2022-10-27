@@ -54,7 +54,6 @@ socket.on('userUpdate', (data: any) => {
 	if (data && data.login == me) {
 		userRef.value = data;
 		notifs.value = data.requestFriend.length;
-		userDone.value = true;
 	}
 });
 getMyProfile();
@@ -159,7 +158,7 @@ socket.on('newPrivMsg', (data: { msg: MessageDto; id: number }) => {
 		data.msg.user != me &&
 		!nbPrivNR.value.includes(privsRef.value[i].id) &&
 		route.path != '/home/chat/private/' + data.msg.user &&
-		!blocked
+		!blocked 
 	) {
 		nbPrivNR.value.push(privsRef.value[i].id);
 		findPrivIndex.value = true;
@@ -346,6 +345,21 @@ socket.on('modifChan', (data: ModifChanDto) => {
 		let j = chansRef.value[i].mutes.findIndex((user) => user.login == data.restoreMute,);
 		chansRef.value[i].users.push(chansRef.value[i].mutes[j]);
 		chansRef.value[i].mutes.splice(i, 1);
+	} else if (data.kick) {
+		console.log(`User '${data.kick}' from chan '${data.chan}' is kicked`);
+		if (data.kick == me) {
+			chanBan.value = data.chan;
+			setTimeout(() => {
+				chansRef.value.splice(i, 1);
+				chanBan.value = '';
+			}, 200);
+		}
+		let j = (
+			chansRef.value[i][data.group as keyof ChannelDto] as BasicUserDto[]
+		).findIndex((user) => user.login == data.ban);
+		(
+			chansRef.value[i][data.group as keyof ChannelDto] as BasicUserDto[]
+		).splice(j, 1);
 	} else if (data.ban) {
 		console.log(`User '${data.ban}' from chan '${data.chan}' is banned`);
 		if (data.ban == me) {

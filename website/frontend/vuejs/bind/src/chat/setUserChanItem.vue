@@ -1,5 +1,6 @@
 <template>
 	<div class="moreButCont center row stack">
+		<div v-if="statusDone" class="status"></div>
 		<button
 			@click="showMore = !showMore"
 			class="setUserCont center"
@@ -31,7 +32,7 @@
 				class="infoImg"
 			/>
 		</button>
-		<button v-if="showMore"
+		<button v-if="showMore && statusDone && userStatus != 'ingame'"
 			@click="inviteGame()"
 			class="setUserCont center"
 		>
@@ -41,6 +42,19 @@
 			<img
 				src='~@/assets/ball_logo.svg'
 				alt="Send private message"
+				class="infoImg"
+			/>
+		</button>
+		<button v-if="showMore && statusDone && userStatus == 'ingame'"
+			@click="specGame()"
+			class="setUserCont center"
+		>
+			<span class="infoButtonText">
+				Watch game
+			</span>
+			<img
+				src='~@/assets/eye.svg'
+				alt="Watch Game"
 				class="infoImg"
 			/>
 		</button>
@@ -98,6 +112,19 @@
 			/>
 		</button>
 		<button v-if="props.isAdmin && showMore"
+			@click="kickUser()"
+			class="setUserCont center"
+		>
+			<span class="infoButtonText">
+				Kick
+			</span>
+			<img
+				src='~@/assets/kick.svg'
+				alt="User setting"
+				class="infoImg"
+			/>
+		</button>
+		<button v-if="props.isAdmin && showMore"
 			@click="updateSanction('ban')"
 			class="setUserCont center"
 		>
@@ -138,7 +165,7 @@
 </template>
 
 <script setup lang="ts">
-import { inject, defineProps, onMounted, ref, nextTick } from "vue";
+import { inject, defineProps, onMounted, onBeforeUnmount, ref, nextTick } from "vue";
 import { Socket } from "socket.io-client";
 import { ModifChanDto } from "@/chat/dto/ModifChanDto"
 import WarningMsg from "@/components/WarningMsg.vue";
@@ -150,10 +177,12 @@ let colors = inject('colors');
 let showMore = ref(false);
 let mySocket: Socket = inject("socket")!;
 const myName: string = inject("me")!;
+let isCreate : Ref<boolean> = inject('isCreate')!;
+let isJoin : Ref<boolean> = inject('isJoin')!;
 let sanction = ref("");
-let seconds = ref(0);
-let minutes = ref(0);
-let hours = ref(0);
+let userStatus = ref('');
+let statusColor = ref('');
+let statusDone = ref(false);
 
 
 const props = defineProps({
@@ -185,8 +214,22 @@ function demote() {
 		new ModifChanDto(myName, props.chan, "demotUser", props.login));
 }
 
+function kickUser() {
+	mySocket.emit("modifChan", 
+		new ModifChanDto(myName, props.chan, "kick", props.login, props.group));
+}
+
 function sendPrivMsg() {
 	router.push({name: 'PrivConv', params: { conv_name: props.login }});
+}
+
+function specGame() {
+	mySocket.emit('look_lobby2', {
+		spec: myName,
+		player: props.login,
+	});
+	isCreate.value = true;
+	isJoin.value = false;
 }
 
 function inviteGame() {
@@ -250,6 +293,26 @@ function restoreUser() {
 		new ModifChanDto(myName, props.chan, restore, props.login));
 }
 
+onMounted(() => {
+	mySocket.on("userStatus", (data: {user: string, status: string}) => {
+		if (data.user == props.login) {
+			if (data.status == 'online')
+				statusColor.value = '#00CC00';
+			else if (data.status == 'offline')
+				statusColor.value = '#FF3333';
+			else
+				statusColor.value = 'orange';
+			userStatus.value = data.status;
+			statusDone.value = true;
+		}
+	});
+	mySocket.emit("userStatus", props.login);
+});
+
+onBeforeUnmount(() => {
+	mySocket.off("userStatus");
+});
+
 </script>
 
 <style scoped>
@@ -259,6 +322,13 @@ function restoreUser() {
 .moreButCont {
 	width: auto;
 	height: 26px;
+}
+.status {
+	width: 15px;
+	height: 15px;
+	border-radius: 50%;
+	margin-right: 5px;
+	background: v-bind(statusColor);
 }
 .setUserCont{
 	height: 26px;
@@ -321,7 +391,6 @@ function restoreUser() {
 	visibility: hidden;
 	font-size: 0.8rem;
 	width: 135px;
-	/* width: auto; */
 	background-color: rgba(0, 0, 0, 0.6);
 	color: #fff;
 	text-align: center;

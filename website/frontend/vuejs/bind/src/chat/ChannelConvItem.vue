@@ -193,10 +193,13 @@ function scrollAndFocus() {
 }
 
 function findAvatar(login: string) {
-	let isInChan = chansRef.value[index.value].admins
+	let allUsers = chansRef.value[index.value].admins
 		.concat(chansRef.value[index.value].users)
 		.concat(chansRef.value[index.value].mutes)
-		.concat(chansRef.value[index.value].bans)
+		.concat(chansRef.value[index.value].bans);
+	if (chansRef.value[index.value].owner)
+		allUsers.push(chansRef.value[index.value].owner);
+	let isInChan = allUsers
 		.find(user => user.login == login);
 	if (isInChan)
 		return isInChan.avatar;
@@ -208,8 +211,6 @@ function checkDate(i: number) {
 	if (i == 0) return false;
 	else if (
 		Math.ceil(
-			// (chansRef.value[index.value].messages[i].date.getTime() -
-			// 	chansRef.value[index.value].messages[i - 1].date.getTime()) /
 			(filtredMsgs[i].date.getTime() -
 				filtredMsgs[i - 1].date.getTime()) /
 				(1000 * 60)
@@ -221,14 +222,11 @@ function checkDate(i: number) {
 }
 
 function checkUserName(i: number) {
-	// if (myName == chansRef.value[index.value].messages[i].user)
 	if (myName == filtredMsgs[i].user)
 		return false;
 	if (i == 0) 
 		return true;
 	if (
-		// chansRef.value[index.value].messages[i].user 
-		// == chansRef.value[index.value].messages[i - 1].user
 		filtredMsgs[i].user 
 		== filtredMsgs[i - 1].user
 		&& !checkDate(i)
@@ -239,15 +237,11 @@ function checkUserName(i: number) {
 }
 
 function checkAvatar(i: number) {
-	// if (myName == chansRef.value[index.value].messages[i].user)
 	if (myName == filtredMsgs[i].user)
 		return false;
-	// if (i == 0 || i == chansRef.value[index.value].messages.length - 1) 
 	if (i == 0 || i == filtredMsgs.length - 1) 
 		return true;
 	if (
-		// chansRef.value[index.value].messages[i].user
-		// == chansRef.value[index.value].messages[i + 1].user
 		filtredMsgs[i].user
 		== filtredMsgs[i + 1].user
 		&& !checkDate(i + 1)
