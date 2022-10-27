@@ -9,6 +9,7 @@
 			<div class="center row">
 				<button class="start" @click="create()">create</button>
 				<button class="start" @click="join()">join</button>
+				<button class="start" @click="autoQueue()">Automatic queue</button>
 			</div>
 		</div>
 		<div v-else-if="isJoin">
@@ -77,6 +78,29 @@ socket.on('end', (data: {win: boolean}) => {
 		lose.value = true;
 	}
 });
+socket.off('accept_success')
+socket.on('accept_success', (data) => {
+	isCreate.value = true;
+	isJoin.value = false;
+});
+let lob_id = 0;
+socket.off('join_failure')
+socket.on('join_failure', (data) => {
+	console.log('join failed for lobby', lob_id);
+	lob_id += 1;
+	autoQueue();
+});
+function autoQueue() {
+	if (lobbys.value.length > lob_id) {
+		socket.emit('join_lobby', {
+			login: me?.value?.login,
+			lobby: lobbys.value[lob_id].lobby_name,
+		});
+	} else {
+		create();
+		lob_id = 0;
+	}
+}
 function back() {
 	if (isCreate.value)
 		socket.emit('leftGame', {login: me?.value?.login});

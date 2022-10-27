@@ -199,6 +199,7 @@ export class AppGateway
 		const game = this.games.find((game) => game.lobby_name == data.lobby);
 		if (!game) {
 			console.log('join_lobby: Game not found, Returning');
+			this.server.to(client.id).emit('join_failure');
 			return;
 		}
 		console.log('join_lobby: game found');
@@ -208,25 +209,30 @@ export class AppGateway
 		});
 		if (!user) {
 			console.log('join_lobby: User not found, Returning');
+			this.server.to(client.id).emit('join_failure');
 			return;
 		}
 		console.log('join_lobby: user found');
 		if (game.players.length >= 7) {
 			console.log('join_lobby: Game is full, Returning');
+			this.server.to(client.id).emit('join_failure');
 			return;
 		}
 		if (game.start) {
 			console.log('join_lobby: Game is already started, Returning');
+			this.server.to(client.id).emit('join_failure');
 			return;
 		}
 		if (game.players.find((player) => player.login === user.login)) {
 			console.log('join_lobby: User is already in the game, Returning');
+			this.server.to(client.id).emit('join_failure');
 			return;
 		}
 		// check if user is already in a game
 		if (this.games.find((game) => game.players.find((player) => player.login === user.login))) {
 			console.log('join_lobby: User is already in a game, Returning');
 			this.server.to(user.socketId).emit('request_game_leave');
+			this.server.to(client.id).emit('join_failure');
 			return;
 		}
 		// check if client.id is already in a game.sockets
@@ -234,6 +240,7 @@ export class AppGateway
 			console.log('join_lobby: Client is already a viewer of ', game.lobby_name, ', returning');
 			this.server.to(user.socketId).emit('request_spectate_leave');
 			game.sockets.splice(game.sockets.indexOf(client.id), 1);
+			this.server.to(client.id).emit('join_failure');
 			return;
 		}
 		let newGame = new Game(
