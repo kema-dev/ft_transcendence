@@ -145,6 +145,7 @@ onMounted(() => {
 	let settings = document.getElementById('settings');
 	if (game && settings) settings.style.height = game.offsetHeight + 'px';
 	socket.on('reload_game', (data: {left: string, start: boolean}) => {
+		
 		if (data.left != "")
 			toast.warning(data.left + ' left the game');
 		isAutoQueue.value = false;

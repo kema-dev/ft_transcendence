@@ -81,8 +81,8 @@ export class AppGateway
 		user.lobby_name = "";
 		user.level = user.level + 1;
 		this.userService.saveUser(user);
-		if (!game) return;
 		console.log('lobby <---------------------------', user.lobby_name);
+		if (!game) return;
 		console.log('game <---------------------------');
 		game.destructor();
 		if ((game.players.length - 1 >= 1 && !game.start) || game.players.length - 1 > 1) {
@@ -307,7 +307,7 @@ export class AppGateway
 			[this.userWaiting, user],
 			`Automatic 1V1 n°${this.idAutoQueue}` ,
 			this.userWaiting.login,
-			'', // img
+			this.userWaiting.avatar, // img
 			this.matchService,
 			this
 		);
@@ -316,7 +316,7 @@ export class AppGateway
 		this.server.to(user.socketId).emit('userUpdate', new ProfileUserDto(user));
 		this.server.to(this.userWaiting.socketId).emit('userUpdate', new ProfileUserDto(this.userWaiting));
 		this.games.push(newGame);
-		this.server.to(newGame.sockets).emit('reload_game');
+		this.server.to(newGame.sockets).emit('reload_game', {left: "", start: true});
 		newGame.start = true;
 		this.userWaiting = null;
 	}
