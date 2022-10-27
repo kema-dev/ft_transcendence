@@ -79,7 +79,16 @@ export class AppGateway
 		user.lobby_name = "";
 		user.level = user.level + 1;
 		this.userService.saveUser(user);
-		if (!game) return;
+		if (!game) {
+			for (let g of this.games)
+				for (let sock of g.socketsViewers)
+					if (sock == user.socketId) {
+						g.socketsViewers.splice(g.socketsViewers.indexOf(sock), 1);
+						g.sockets.splice(g.sockets.indexOf(sock), 1);
+						return;
+					}
+			return;
+		}
 		console.log('lobby <---------------------------', user.lobby_name);
 		console.log('game <---------------------------');
 		game.destructor();
