@@ -140,7 +140,7 @@ export class AppGateway
 		if (this.games.find((game) => game.lobby_name === lobby_name)) {
 			return;
 		}
-		let game = new Game(
+		let newGame = new Game(
 			1,
 			data.nbrBall,
 			this.server,
@@ -151,9 +151,12 @@ export class AppGateway
 			this.matchService,
 			this
 		);
-		console.log('newLobby', game.lobby_name);
-		this.games.push(game);
-		user.lobby_name = game.lobby_name;
+		newGame.socketsViewers = newGame.socketsViewers;
+		for (let sock of newGame.socketsViewers)
+			newGame.sockets.push(sock);
+		console.log('newLobby', newGame.lobby_name);
+		this.games.push(newGame);
+		user.lobby_name = newGame.lobby_name;
 		this.userService.saveUser(user);
 		this.server.to(user.socketId).emit('userUpdate', new ProfileUserDto(user));
 		this.server.emit('lobbys', this.sendLobbys(this.games));
@@ -244,6 +247,9 @@ export class AppGateway
 			this.matchService,
 			this
 		);
+		newGame.socketsViewers = game.socketsViewers;
+		for (let sock of game.socketsViewers)
+			newGame.sockets.push(sock);
 		console.log('join_lobby: newGame created');
 		game.destructor();
 		this.games.push(newGame);

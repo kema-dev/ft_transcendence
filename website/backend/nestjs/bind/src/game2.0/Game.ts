@@ -28,6 +28,7 @@ export default class Game {
 	profiles: Profile[];
 	players: UserEntity[];
 	sockets: string[];
+	socketsViewers: string[];
 	owner: string;
 	img: string;
 	match_service: MatchService;
@@ -53,12 +54,13 @@ export default class Game {
 		this.app = app;
 		this.balls = [];
 		this.objects = [];
-		this.deltaTime = 1;
+		this.deltaTime = 0.3;
 		this.rackets = [];
 		this.profiles = [];
 		this.img = img;
 		this.players = players;
 		this.sockets = [];
+		this.socketsViewers = [];
 		this.owner = owner;
 		this.fieldpoints = [];
 		for (let player of this.players)
@@ -102,7 +104,6 @@ export default class Game {
 				const tmp2 = wall.getRacket();
 				this.objects.push(tmp2);
 				this.rackets.push(tmp2);
-				// console.log('racket');
 				i++;
 			}
 		});
@@ -135,7 +136,6 @@ export default class Game {
 			this.dto.rackets[i].w = this.rackets[i].width;
 		}
 		this.dto.profiles = this.profiles;
-		// this.dto.owner = this.owner;
 	}
 	setMinimumDto() {
 		this.dto.start = this.start;
@@ -151,7 +151,6 @@ export default class Game {
 	}
 	setMov(value: number, login: string) {
 		for (const p of this.profiles) {
-			// this.logger.log(p.login);
 			if (p.login == login) {
 				p.mov = ((value * this.walls[0].height) / 100) * this.rackets[0].speed;
 				return;
@@ -174,6 +173,7 @@ export default class Game {
 	}
 	addViewer(socketId: string) {
 		this.sockets.push(socketId);
+		this.socketsViewers.push(socketId);
 	}
 	isEnd() {
 		return !this.run;
@@ -213,9 +213,7 @@ export default class Game {
 				const x = rack.x + -rack.vector.y * (this.deltaTime * mov);
 				const y = rack.y + rack.vector.x * (this.deltaTime * mov);
 
-				// console.log('field:', this.fieldpoints);
 				const rack_number = parseInt(i);
-				// console.log('rack_number:', rack_number);
 				const left_point = this.fieldpoints[rack_number * 2];
 				let right_point;
 				if (rack_number - 1 < 0) {
@@ -224,11 +222,6 @@ export default class Game {
 					right_point = this.fieldpoints[rack_number * 2 - 1];
 				}
 
-				// const future_pos = {
-				// 	x: x,
-				// 	y: y,
-				// };
-				// console.log('future_pos:', future_pos);
 				const rack_offset = {
 					x: rack.startX - left_point.x,
 					y: rack.startY - left_point.y,
@@ -237,39 +230,22 @@ export default class Game {
 					x: left_point.x + rack_offset.x,
 					y: left_point.y + rack_offset.y,
 				};
-				// console.log('left_with_offset:', left_with_offset);
 				const right_with_offset = {
 					x: right_point.x + rack_offset.x,
 					y: right_point.y + rack_offset.y,
 				};
-				// console.log('right_with_offset:', right_with_offset);
-				// const min_point = {
-				// 	x: Math.min(left_with_offset.x, right_with_offset.x),
-				// 	y: Math.min(left_with_offset.y, right_with_offset.y),
-				// };
-				// console.log('min_point:', min_point);
-				// const max_point = {
-				// 	x: Math.max(left_with_offset.x, right_with_offset.x),
-				// 	y: Math.max(left_with_offset.y, right_with_offset.y),
-				// };
-				// console.log('max_point:', max_point);
-				// console.log('rack.angle:', rack.angle);
-				// INFO MATHS: Upside down schema, reverse angle = inverted negative / positive (as needed for racket algebra) and matching provided angle
 				const rack_size = {
 					x: rack.height * Math.sin(((rack.angle * -1) / 360) * 2 * Math.PI),
 					y: rack.height * Math.cos(((rack.angle * -1) / 360) * 2 * Math.PI),
 				};
-				// console.log('rack_size:', rack_size);
 				const rack_start = {
 					x: x,
 					y: y,
 				};
-				// console.log('rack_start:', rack_start);
 				const rack_end = {
 					x: x + rack_size.x,
 					y: y + rack_size.y,
 				};
-				// console.log('rack_end:', rack_end);
 				let move = false;
 				if (
 					this.point_between(rack_start, left_with_offset, right_with_offset) &&
@@ -281,15 +257,12 @@ export default class Game {
 				if (move == true) {
 					rack.x = x;
 					rack.y = y;
-					// console.log('MOVE');
-				} else {
-					// console.log('STAY');
 				}
 			}
-
 			await this.setMinimumDto();
 			this.server.to(this.sockets).emit('update_game', JSON.stringify(this.dto));
-			const end = await performance.now();
+			const hrTime = await process.hrtime();
+			const end = hrTime[0] * 1000 + hrTime[1] / 1000000
 			this.deltaTime = end - start;
 			this.deltaTime /= 1000;
 			this.deltaTime *= 60;
