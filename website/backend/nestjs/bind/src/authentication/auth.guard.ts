@@ -13,12 +13,8 @@ export class AuthGuard implements CanActivate {
 	): boolean | Promise<boolean> | Observable<boolean> {
 		// console.log('AuthGuard: Starting');
 		// console.log('AuthGuard: Headers: ', context.switchToHttp().getRequest().headers);
-		let decoded_obj;
-		console.log(
-			// 'AuthGuard: decoded:',
-			(decoded_obj = this.jwtService.decode(
-				context.switchToHttp().getRequest().headers.session,
-			)),
+		const decoded_obj = this.jwtService.decode(
+			context.switchToHttp().getRequest().headers.session,
 		);
 		let check = this.jwtService.verify(
 			context.switchToHttp().getRequest().headers.session,
