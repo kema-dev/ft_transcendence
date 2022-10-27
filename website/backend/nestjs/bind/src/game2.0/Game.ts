@@ -54,7 +54,7 @@ export default class Game {
 		this.app = app;
 		this.balls = [];
 		this.objects = [];
-		this.deltaTime = 1;
+		this.deltaTime = 0.3;
 		this.rackets = [];
 		this.profiles = [];
 		this.img = img;
@@ -257,13 +257,12 @@ export default class Game {
 				if (move == true) {
 					rack.x = x;
 					rack.y = y;
-				} else {
 				}
 			}
-
 			await this.setMinimumDto();
 			this.server.to(this.sockets).emit('update_game', JSON.stringify(this.dto));
-			const end = await performance.now();
+			const hrTime = await process.hrtime();
+			const end = hrTime[0] * 1000 + hrTime[1] / 1000000
 			this.deltaTime = end - start;
 			this.deltaTime /= 1000;
 			this.deltaTime *= 60;
