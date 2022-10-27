@@ -84,6 +84,7 @@ function back() {
 	isJoin.value = false;
 	win.value = false;
 	lose.value = false;
+	isOwner.value = false;
 }
 function create() {
 	socket.emit('newLobby', { login: me?.value?.login, nbrBall: 1 });
@@ -131,7 +132,9 @@ onMounted(() => {
 	let game = document.getElementById('container');
 	let settings = document.getElementById('settings');
 	if (game && settings) settings.style.height = game.offsetHeight + 'px';
-	socket.on('reload_game', () => {
+	socket.on('reload_game', (data: {left: string}) => {
+		if (data)
+			toast.warning(data.left + ' left the game');
 		remount.value = !remount.value;
 	});
 	// window.addEventListener("resize", () => {

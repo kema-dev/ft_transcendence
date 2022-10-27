@@ -1,4 +1,5 @@
 <template>
+	<input id="none" type="file" />
 	<div class="column center" v-if="show">
 		<!-- <h2 id="player_search_title">Search for another player's profile</h2>
 		<SearchProfileItem v-model:search="search"/>
@@ -10,7 +11,6 @@
 			<div v-on:click="change_avatar()" id="avatar">
 				<img :src="user_avatar" id="img" />
 			</div>
-			<input id="none" type="file" />
 		</div>
 		<div class="playerInfoCont center column">
 			<h1 class="login">{{ me?.login }}</h1>
@@ -41,7 +41,7 @@
 				<div v-for="block in me.blockeds" class="center column">
 					<div class="center raw">
 						<BasicProfil :avatar="block.avatar" :login="block.login"/>
-						<button @click="unblockUser(block.login)" 
+						<button @click="unblockUser(block.login)"
 							class="restoreBtn center"
 						>
 							<img
@@ -115,7 +115,7 @@ function change_avatar() {
 }
 
 function unblockUser(blocked: string) {
-	socket.emit("unblockUser", 
+	socket.emit("unblockUser",
 		{blocker: me.value.login, blocked: blocked});
 }
 
@@ -133,6 +133,7 @@ watch(show, () => {
 onMounted(async () => {
 	let input = document.querySelector('#none');
 	input?.addEventListener('change', () => {
+		console.log('change');
 		const reader = new FileReader();
 		reader.addEventListener('load', () => {
 			let image = reader.result;

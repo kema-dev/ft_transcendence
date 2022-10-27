@@ -43,6 +43,7 @@ provide('me', me);
 //	========== CREATE SOCKET
 
 let socket = io(FQDN + ':3000', { query: { login: me } });
+socket.emit("userLogin", me);
 provide('socket', socket);
 
 let userRef: Ref<ProfileUserDto> = ref();
@@ -239,7 +240,7 @@ function getChansRequest() {
 //	========== CREATE SOCKET LISTENERS
 
 socket.on('newChanMsg', (data: { msg: MessageDto; name: string }) => {
-	console.log(`New Channel message received : 
+	console.log(`New Channel message received :
 		channel = ${data.name}, msg = ${data.msg.msg}`);
 	let i = chansRef.value.findIndex((chan) => chan.name == data.name);
 	chansRef.value[i].messages.push(
@@ -260,7 +261,7 @@ socket.on('newChanMsg', (data: { msg: MessageDto; name: string }) => {
 	if (i != 0) {
 		putChanFirst(i);
 		findChanIndex.value = true;
-	} 
+	}
 });
 
 socket.on('newChannel', (data: ChannelDto) => {
@@ -345,9 +346,7 @@ socket.on('modifChan', (data: ModifChanDto) => {
 		console.log(
 			`User '${data.restoreMute}' from chan '${data.chan}' is unmuted`,
 		);
-		let j = chansRef.value[i].mutes.findIndex(
-			(user) => user.login == data.restoreMute,
-		);
+		let j = chansRef.value[i].mutes.findIndex((user) => user.login == data.restoreMute,);
 		chansRef.value[i].users.push(chansRef.value[i].mutes[j]);
 		chansRef.value[i].mutes.splice(i, 1);
 	} else if (data.kick) {
@@ -444,6 +443,7 @@ function get_invitations() {
 			) == -1
 		) {
 			invitations_to_game.value.push(data);
+			console.log(`get_invited : ${data.login} to ${data.lobby}`);
 		}
 		// invitations_to_game.value.push(data);
 	});
