@@ -28,6 +28,7 @@ export default class Game {
 	profiles: Profile[];
 	players: UserEntity[];
 	sockets: string[];
+	socketsViewers: string[];
 	owner: string;
 	img: string;
 	match_service: MatchService;
@@ -59,6 +60,7 @@ export default class Game {
 		this.img = img;
 		this.players = players;
 		this.sockets = [];
+		this.socketsViewers = [];
 		this.owner = owner;
 		this.fieldpoints = [];
 		for (let player of this.players)
@@ -174,6 +176,7 @@ export default class Game {
 	}
 	addViewer(socketId: string) {
 		this.sockets.push(socketId);
+		this.socketsViewers.push(socketId);
 	}
 	isEnd() {
 		return !this.run;
