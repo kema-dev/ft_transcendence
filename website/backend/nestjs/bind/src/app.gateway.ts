@@ -40,6 +40,8 @@ export class AppGateway
 	@WebSocketServer() server: Server;
 	games: Game[] = [];
 	private logger: Logger = new Logger('AppGateway');
+	private userWaiting: UserEntity | null;
+	private idAutoQueue: number = 0;
 
 	constructor(
 		private readonly chatService: ChatService,
@@ -288,6 +290,27 @@ export class AppGateway
 			game.updateBalls(payload.nbrBall);
 			this.server.to(game.sockets).emit('reload_game');
 		}
+	}
+	@SubscribeMessage('autoQueue')
+	async autoQueue(client: Socket, @MessageBody() data: {login: string}) {
+		let user = await this.userService.getByLogin(data.login);
+		if (!this.userWaiting)
+			return this.userWaiting = user;
+		
+		this.idAutoQueue++;
+		let newGame = new Game(
+			2, // nb players
+			1, // nb balls
+			this.server,
+			[this.userWaiting, user],
+			`Automatic 1V1 n°${this.idAutoQueue}` ,
+			this.userWaiting.login,
+			'', // img 
+			this.matchService,
+			this
+		);
+		this.games.push(newGame);
+		newGame.start;
 	}
 
 	// ============================ USER =====================================

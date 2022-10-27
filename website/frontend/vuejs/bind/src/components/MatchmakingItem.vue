@@ -1,14 +1,19 @@
 <template>
 	<div class="stack center" id="page">
-		<div v-if="isJoin || isCreate" class="back left" @click="back()">
+		<div v-if="isAutoQueue">
+			<h1>Waiting for a room...</h1>
+			<div class="load"></div>
+		</div>
+		<div v-if="isJoin || isCreate || isAutoQueue" class="back left" @click="back()">
 			<span class="material-symbols-outlined"> arrow_back_ios </span>
 		</div>
-		<div v-if="!isCreate && !isJoin" class="center column choice">
+		<div v-if="!isCreate && !isJoin && !isAutoQueue" class="center column choice">
 			<h1>Create or join</h1>
 			<h2>Create or join a game</h2>
 			<div class="center row">
-				<button class="start" @click="create()">create</button>
-				<button class="start" @click="join()">join</button>
+				<button class="start" @click="create()">Create</button>
+				<button class="start" @click="join()">Join</button>
+				<button class="start" @click="autoQueue()">Automatic queue</button>
 			</div>
 		</div>
 		<div v-else-if="isJoin">
@@ -49,7 +54,7 @@ import { useToast } from 'vue-toastification';
 import LobbyItem from './LobbyItem.vue';
 const toast = useToast();
 
-let define = inject('colors');
+let colors = inject('colors');
 let start = ref(false);
 provide('playing', start);
 let socket: Socket = inject('socket')!;
@@ -62,6 +67,7 @@ let lobbys = ref([]);
 
 let isCreate: Ref<boolean> = inject('isCreate')!;
 let isJoin: Ref<boolean> = inject('isJoin')!;
+let isAutoQueue: Ref<boolean> = ref(false);
 let nbrBall = ref(1);
 let win = ref(false);
 let lose = ref(false);
@@ -94,6 +100,10 @@ function create() {
 function join() {
 	isJoin.value = true;
 	socket.emit('userUpdate', { login: me?.value?.login });
+}
+function autoQueue() {
+	isAutoQueue.value = true;
+	socket.emit('autoQueue', { login: me?.value?.login });
 }
 function update_game() {
 	create();
@@ -191,9 +201,9 @@ socket.on('create_from_invitation', (data: any) => {
 .start {
 	/* margin-top: 10px; */
 	/* margin-bottom: 95px; */
-	background-color: v-bind('define.color2');
+	background-color: v-bind('colors.color2');
 	border-radius: 10px;
-	color: v-bind('define.color0');
+	color: v-bind('colors.color0');
 	font-size: 18px;
 	width: 7rem;
 	height: 1.8rem;
@@ -205,5 +215,43 @@ socket.on('create_from_invitation', (data: any) => {
 	brightness(100%) contrast(87%);
 	top: 0;
 	cursor: pointer;
+}
+
+
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to { 
+        transform: rotate(360deg);
+    }
+}
+@-webkit-keyframes rotate {
+    from {
+        -webkit-transform: rotate(0deg);
+    }
+    to { 
+        -webkit-transform: rotate(360deg);
+    }
+}
+.load {
+	width: 100px;
+	height: 100px;
+	margin: 110px auto 0;
+	border:solid 10px v-bind("colors.color2");
+	border-radius: 50%;
+	border-right-color: transparent;
+	border-bottom-color: transparent;
+	 -webkit-transition: all 0.5s ease-in;
+    -webkit-animation-name:             rotate; 
+    -webkit-animation-duration:         1.0s; 
+    -webkit-animation-iteration-count:  infinite;
+    -webkit-animation-timing-function: linear;
+    	
+    	 transition: all 0.5s ease-in;
+    animation-name:             rotate; 
+    animation-duration:         1.0s; 
+    animation-iteration-count:  infinite;
+    animation-timing-function: linear; 
 }
 </style>
