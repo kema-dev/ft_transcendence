@@ -49,21 +49,17 @@ provide('socket', socket);
 let userRef: Ref<ProfileUserDto> = ref();
 let notifs = ref(0);
 let userDone = ref(false);
-let userUpdate = ref(false);
 
 socket.on('userUpdate', (data: any) => {
 	if (data && data.login == me) {
-		console.log(`userUpdate Homeview`)
 		userRef.value = data;
 		notifs.value = data.requestFriend.length;
-		userUpdate.value = true;
 	}
 });
 getMyProfile();
 provide('notifs', notifs);
 provide('user', userRef);
 provide('userDone', userDone);
-provide('userUpdate', userUpdate);
 provide('isCreate', ref(false));
 provide('isJoin', ref(false));
 

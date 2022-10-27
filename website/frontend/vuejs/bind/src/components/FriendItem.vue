@@ -97,9 +97,7 @@ function inviteGame() {
 }
 
 onMounted(() => {
-	console.log('friendItem mounted')
 	socket.on("userStatus", (data: {user: string, status: string}) => {
-		console.log(`userStatus FriendItem`)
 		if (data.user == props.info.login) {
 			userStatus.value = data.status;
 			if (data.status == 'online')
@@ -129,7 +127,6 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-	console.log('friendItem dead')
 	socket.off('userStatus');
 	socket.off('invite_to_game');
 })

@@ -74,6 +74,8 @@ export class AppGateway
 		const user: UserEntity = await this.userService.getByLogin(data.login);
 		if (!user) return;
 		let game = this.games.find((game) => game.lobby_name === user.lobby_name);
+		this.userService.set_status(user.login, 'online');
+		this.server.emit("userStatus", {user:user.login, status: 'online'});
 		user.lobby_name = "";
 		user.level = user.level + 1;
 		this.userService.saveUser(user);
