@@ -88,7 +88,6 @@ export default class Game {
 		}
 		let i = 0;
 		this.walls.forEach((wall) => {
-			this.objects.push(wall);
 			if (wall.side) {
 				let tmp;
 				if (this.players[i])
@@ -106,6 +105,7 @@ export default class Game {
 				this.rackets.push(tmp2);
 				i++;
 			}
+			this.objects.push(wall);
 		});
 	}
 	setDto() {
@@ -262,12 +262,12 @@ export default class Game {
 			await this.setMinimumDto();
 			this.server.to(this.sockets).emit('update_game', JSON.stringify(this.dto));
 			const hrTime = await process.hrtime();
-			const end = hrTime[0] * 1000 + hrTime[1] / 1000000
+			const end = hrTime[0] * 1000 + hrTime[1] / 1000000;
 			this.deltaTime = end - start;
 			this.deltaTime /= 1000;
 			this.deltaTime *= 60;
 			start = end;
-			await delay(1);
+			await delay(25);
 		}
 	}
 	point_between(point: any, left: any, right: any) {

@@ -24,7 +24,7 @@ export default class Ball {
 		this.y = y;
 		this.startX = x;
 		this.startY = y;
-		this.r = 10;
+		this.r = 25;
 		this.v = new Vector(0, 0);
 		this.logger = new Logger();
 		this.touch = 0;
