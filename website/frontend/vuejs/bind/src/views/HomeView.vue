@@ -425,6 +425,7 @@ function get_invitations() {
 			) == -1
 		) {
 			invitations_to_game.value.push(data);
+			console.log(`get_invited : ${data.login} to ${data.lobby}`);
 		}
 		// invitations_to_game.value.push(data);
 	});

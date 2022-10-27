@@ -26,6 +26,7 @@ import { ModifChanDto } from './chat/dto/ModifChanDto';
 import { UserEntity } from 'src/users/user.entity';
 import { MatchDto } from 'src/match/match.dto';
 import { MatchService } from './match/match.service';
+import { delay } from 'rxjs';
 
 @WebSocketGateway({
 	cors: {
@@ -129,6 +130,11 @@ export class AppGateway
 			friends: true,
 		});
 		if (!user) return;
+		const lobby_name = user.login + "'s lobby";
+		this.games.find((game) => game.lobby_name === lobby_name);
+		if (this.games.find((game) => game.lobby_name === lobby_name)) {
+			return;
+		}
 		let game = new Game(
 			1,
 			data.nbrBall,
@@ -170,16 +176,53 @@ export class AppGateway
 		@MessageBody() data: { login: string; lobby: string },
 		@ConnectedSocket() client: Socket,
 	) {
+		console.log(
+			'join_lobby: Starting for',
+			'login:',
+			data.login,
+			'lobby:',
+			data.lobby,
+		);
 		const game = this.games.find((game) => game.lobby_name == data.lobby);
-		if (!game) return;
+		if (!game) {
+			console.log('join_lobby: Game not found, Returning');
+			return;
+		}
+		console.log('join_lobby: game found');
 		let user = await this.userService.getByLogin(data.login, {
 			requestFriend: true,
 			friends: true,
 		});
-		if (!user) return;
-		if (game.players.length >= 7) return;
-		if (game.start) return;
-		if (game.players.find((player) => player.login === user.login)) return;
+		if (!user) {
+			console.log('join_lobby: User not found, Returning');
+			return;
+		}
+		console.log('join_lobby: user found');
+		if (game.players.length >= 7) {
+			console.log('join_lobby: Game is full, Returning');
+			return;
+		}
+		if (game.start) {
+			console.log('join_lobby: Game is already started, Returning');
+			return;
+		}
+		if (game.players.find((player) => player.login === user.login)) {
+			console.log('join_lobby: User is already in the game, Returning');
+			return;
+		}
+		// check if user is already in a game
+		if (this.games.find((game) => game.players.find((player) => player.login === user.login))) {
+			console.log('join_lobby: User is already in a game, Returning');
+			this.server.to(user.socketId).emit('request_game_leave');
+			return;
+		}
+		// check if client.id is already in a game.sockets
+		if (this.games.find((game) => game.sockets.find((socket) => socket === client.id))) {
+			console.log('join_lobby: Client is already a viewer of ', game.lobby_name, ', returning');
+			this.server.to(user.socketId).emit('request_spectate_leave');
+			game.sockets.splice(game.sockets.indexOf(client.id), 1);
+			return;
+		}
 		let newGame = new Game(
 			game.nbrPlayer + 1,
 			game.nbrBall,
@@ -191,6 +234,7 @@ export class AppGateway
 			this.matchService,
 			this
 		);
+		console.log('join_lobby: newGame created');
 		game.destructor();
 		this.games.push(newGame);
 		this.server.to(newGame.sockets).emit('reload_game');
@@ -200,6 +244,8 @@ export class AppGateway
 		user.lobby_name = newGame.lobby_name;
 		this.userService.saveUser(user);
 		this.server.to(user.socketId).emit('userUpdate', new ProfileUserDto(user));
+		this.server.to(user.socketId).emit('accept_success');
+		console.log('join_lobby: Success, returning');
 	}
 	@SubscribeMessage('start')
 	start(client: Socket, payload: any): void {
@@ -435,32 +481,93 @@ export class AppGateway
 		@MessageBody() data: { login: string },
 		@ConnectedSocket() client: Socket,
 	) {
+		console.log(
+			'invite_to_game: Start for,',
+			data.login,
+			'from',
+			client.handshake.query.login,
+		);
 		let game;
+		let inviter_in_sock = false;
 		for (game of this.games) {
-			if (game.players.some((p) => p.login == data.login)) {
+			// check if client.handshake.query.login is in game
+			for (const sock of game.sockets) {
+				if (sock == client.id) {
+					inviter_in_sock = true;
+					break;
+				}
+			}
+			if (inviter_in_sock == true) {
 				break;
 			}
 		}
-		if (!game) {
+		if (inviter_in_sock) {
+			let inviter_in_game = false;
+			for (game of this.games) {
+				// check if client.handshake.query.login is in game
+				for (const player of game.players) {
+					if (player.login == client.handshake.query.login) {
+						inviter_in_game = true;
+						break;
+					}
+				}
+				if (inviter_in_game == true) {
+					break;
+				}
+			}
+			if (!inviter_in_game) {
+				console.log('invite_to_game: Inviter is in spec, re running function');
+				game.sockets.splice(game.sockets.indexOf(client.id), 1);
+				this.server.to(client.id).emit('reload_game');
+				this.invite_to_game(data, client);
+				return;
+			}
+		}
+		let inviter_in_game = false;
+		for (game of this.games) {
+			// check if client.handshake.query.login is in game
+			for (const player of game.players) {
+				if (player.login == client.handshake.query.login) {
+					inviter_in_game = true;
+					break;
+				}
+			}
+			if (inviter_in_game == true) {
+				break;
+			}
+		}
+		if (!inviter_in_game) {
+			console.log('invite_to_game: No game found, returning');
 			client.emit('create_from_invitation');
+			// wait 0.1 sec for client to create game
+			const delay = (time: number) =>
+				new Promise((resolve) => setTimeout(resolve, time));
+			await delay(100);
 			client.emit('invite_to_game', { error: 'no game' });
 			return;
 		}
+		console.log('invite_to_game: Game found');
 		let user;
 		try {
 			user = await this.userService.getByLogin(data.login);
 		} catch (e) {
 			client.emit('invite_to_game', { error: 'no user' });
+			console.log('invite_to_game: No user found, returning');
 			return;
 		}
+		console.log('invite_to_game: User found');
 		if (user.status != 'online') {
 			client.emit('invite_to_game', { error: 'no online' });
+			console.log('invite_to_game: User not online, returning');
 			return;
 		}
+		console.log('invite_to_game: User online');
 		this.server.to(user.socketId).emit('get_invited', {
 			login: user.login,
 			lobby: game.lobby_name,
 		});
+		this.server.to(user.socketId).emit('update_invitations', {});
+		console.log('invite_to_game: Success, returning');
 	}
 
 	@SubscribeMessage('get_match_infos')

@@ -91,6 +91,7 @@ let user_invitations: Ref<
 > = inject('user_invitations')!;
 
 function update_invitations() {
+	console.log('update_invitations');
 	socket.off('get_match_infos');
 	socket.on(
 		'get_match_infos',
@@ -124,9 +125,11 @@ function update_invitations() {
 	}
 }
 
-watch(invitations_to_game.value, (val) => {
+socket.off('update_invitations');
+socket.on('update_invitations', () => {
 	update_invitations();
 });
+
 socket.off('remove_invit');
 socket.on('remove_invit', (lobby_name: string) => {
 	user_invitations.value = user_invitations.value.filter((invit) => {
