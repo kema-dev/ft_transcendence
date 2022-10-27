@@ -532,7 +532,7 @@ export class AppGateway
 		if (!inviter_in_game) {
 			console.log('invite_to_game: No game found, returning');
 			client.emit('create_from_invitation');
-			// wait 1 sec for client to create game
+			// wait 0.1 sec for client to create game
 			const delay = (time: number) =>
 				new Promise((resolve) => setTimeout(resolve, time));
 			await delay(100);
