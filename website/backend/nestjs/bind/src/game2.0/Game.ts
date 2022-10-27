@@ -54,7 +54,7 @@ export default class Game {
 		this.app = app;
 		this.balls = [];
 		this.objects = [];
-		this.deltaTime = 0.3;
+		this.deltaTime = 0.175;
 		this.rackets = [];
 		this.profiles = [];
 		this.img = img;

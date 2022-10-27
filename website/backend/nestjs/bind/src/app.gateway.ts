@@ -85,7 +85,7 @@ export class AppGateway
 		console.log('lobby <---------------------------', user.lobby_name);
 		console.log('game <---------------------------');
 		game.destructor();
-		if (game.players.length - 1 > 1) {
+		if ((game.players.length - 1 >= 1 && !game.start) || game.players.length - 1 > 1) {
 			console.log('game.players.length - 1 > 0');
 			let newGame = new Game(
 				game.nbrPlayer - 1,
@@ -100,15 +100,15 @@ export class AppGateway
 			);
 			this.games.push(newGame);
 			if (data.lose)
-				this.server.to(newGame.sockets).emit('reload_game');
+				this.server.to(newGame.sockets).emit('reload_game', { left: "", start: newGame.start });
 			else
-				this.server.to(newGame.sockets).emit('reload_game', { left: user.login });
+				this.server.to(newGame.sockets).emit('reload_game', { left: user.login, start: newGame.start });
 			newGame.start = game.start;
 		}
 		else if (game.players.length - 1 == 1) {
 			this.server.to(game.players.find((player) => player.login !== user.login).socketId).emit('end', { win: true });
 			if (!data.lose)
-				this.server.to(game.players.find((player) => player.login !== user.login).socketId).emit('reload_game', { left: user.login });
+				this.server.to(game.players.find((player) => player.login !== user.login).socketId).emit('reload_game', { left: user.login, start: game.start });
 		}
 		this.userService.saveUser(user);
 		this.games.splice(this.games.indexOf(game), 1);
@@ -255,7 +255,7 @@ export class AppGateway
 		console.log('join_lobby: newGame created');
 		game.destructor();
 		this.games.push(newGame);
-		this.server.to(newGame.sockets).emit('reload_game');
+		this.server.to(newGame.sockets).emit('reload_game', { left: "", start: newGame.start });
 		this.games.splice(this.games.indexOf(game), 1);
 		this.server.emit('lobbys', this.sendLobbys(this.games));
 		console.log(newGame.lobby_name);
@@ -288,7 +288,7 @@ export class AppGateway
 		const game = this.games.find((game) => game.lobby_name === payload.lobby_name);
 		if (game) {
 			game.updateBalls(payload.nbrBall);
-			this.server.to(game.sockets).emit('reload_game');
+			this.server.to(game.sockets).emit('reload_game', { left: "", start: game.start });
 		}
 	}
 	@SubscribeMessage('autoQueue')
@@ -557,7 +557,7 @@ export class AppGateway
 			if (!inviter_in_game) {
 				console.log('invite_to_game: Inviter is in spec, re running function');
 				game.sockets.splice(game.sockets.indexOf(client.id), 1);
-				this.server.to(client.id).emit('reload_game');
+				this.server.to(client.id).emit('reload_game', { left: "", start: game.start });
 				this.invite_to_game(data, client);
 				return;
 			}
