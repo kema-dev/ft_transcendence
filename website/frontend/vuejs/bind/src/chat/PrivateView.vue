@@ -140,7 +140,6 @@ function init() {
 	privsFiltred.value = privsRef.value;
 	knownPeople.value = setKnownPeople();
 	watch(me.value.blockeds, () => {
-		console.log(`me.blocked changed`);
 		privsFiltred.value = privsRef.value
 			.filter(priv => {
 				return priv.user.login

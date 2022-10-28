@@ -1,8 +1,12 @@
 <template>
+
 	<div class="stack center" id="page">
-		<div v-if="isJoin || isCreate" class="back left" @click="back()">
+		<button v-if="isJoin || isCreate" @click="back()" class="backBtn center">
+			<img src="@/assets/undo_logo.svg" alt="" class="imgLogo">
+		</button>
+		<!-- <div v-if="isJoin || isCreate" class="back left" @click="back()">
 			<span class="material-symbols-outlined"> arrow_back_ios </span>
-		</div>
+		</div> -->
 		<div v-if="!isCreate && !isJoin" class="center column choice">
 			<h1>Create or join</h1>
 			<h2>Create or join a game</h2>
@@ -50,7 +54,7 @@ import { useToast } from 'vue-toastification';
 import LobbyItem from './LobbyItem.vue';
 const toast = useToast();
 
-let define = inject('colors');
+let colors = inject('colors');
 let start = ref(false);
 provide('playing', start);
 let socket: Socket = inject('socket')!;
@@ -221,19 +225,30 @@ socket.on('create_from_invitation', (data: any) => {
 .start {
 	/* margin-top: 10px; */
 	/* margin-bottom: 95px; */
-	background-color: v-bind('define.color2');
+	background-color: v-bind('colors.color2');
 	border-radius: 10px;
-	color: v-bind('define.color0');
+	color: v-bind('colors.color0');
 	font-size: 18px;
 	width: 7rem;
 	height: 1.8rem;
 	margin: 1rem 0.5rem;
 }
-.back {
+.backBtn {
 	position: absolute;
-	filter: invert(25%) sepia(82%) saturate(867%) hue-rotate(168deg)
-	brightness(100%) contrast(87%);
 	top: 0;
-	cursor: pointer;
+	left: 0;
+	width: 30px;
+	height: 30px;
+	margin-top: 10px;
+	/* margin-right: auto; */
+	margin-left: 10px;
+	border-radius: calc(30px / 2);
+	background-color: v-bind("colors.color2");
+	z-index: 2;
+}
+.imgLogo {
+	width: 26px;
+	height: 26px;
+	filter: brightness(0) invert(1);
 }
 </style>

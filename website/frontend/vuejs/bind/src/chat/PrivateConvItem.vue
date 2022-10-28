@@ -47,7 +47,7 @@
 		</div>
 		<div class="conversation_content">
 			<div v-if="index != -1" id="msgsCont" class="messages">
-				<div v-for="(message, i) in privsRef[index].messages" 
+				<div v-for="(message, i) in privsRef[index]?.messages" 
 					:key="i" class="center column"
 				>
 					<div v-if="checkDate(i)" class="date">
@@ -235,8 +235,8 @@ function specGame() {
 }
 
 function blockUser() {
-	mySocket.emit("blockUser", {blocker: me, blocked: userName});
 	router.push({name: 'private'});
+	mySocket.emit("blockUser", {blocker: me, blocked: userName});
 }
 
 function inviteGame() {

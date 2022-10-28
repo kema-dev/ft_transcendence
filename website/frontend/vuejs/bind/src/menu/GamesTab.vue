@@ -91,7 +91,7 @@ let user_invitations: Ref<
 > = inject('user_invitations')!;
 
 function update_invitations() {
-	console.log('update_invitations');
+	// console.log('update_invitations');
 	socket.off('get_match_infos');
 	socket.on(
 		'get_match_infos',

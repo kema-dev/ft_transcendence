@@ -744,13 +744,17 @@ export class ChatService {
 		await this.userRepository.save(blocker)
 			.catch((e) => console.log('Save User error'));
 		let priv = await this.getPriv([data.blocked,data.blocker]);
-		let basicUser = (priv.users[0].login == data.blocker ? 
-			new BasicUserDto(priv.users[1].login, priv.users[1].avatar)
-			: new BasicUserDto(priv.users[0].login, priv.users[0].avatar))
-		let msgs = priv.messages
-			.map(m => new MessageDto(m.user.login, m.message, m.createdAt));
-		let privDto = new PrivConvDto(basicUser, msgs, priv.readed, priv.id);
-		server.to(blocker.socketId).emit('userUnblock', privDto);
+		if (!priv)
+			server.to(blocker.socketId).emit('userUnblockNoPriv', data.blocked);
+		else {
+			let basicUser = (priv.users[0].login == data.blocker ? 
+				new BasicUserDto(priv.users[1].login, priv.users[1].avatar)
+				: new BasicUserDto(priv.users[0].login, priv.users[0].avatar))
+			let msgs = priv.messages
+				.map(m => new MessageDto(m.user.login, m.message, m.createdAt));
+			let privDto = new PrivConvDto(basicUser, msgs, priv.readed, priv.id);
+			server.to(blocker.socketId).emit('userUnblock', privDto);
+		}
 	}
 	
 	printChanDto(chan: ChannelDto) {
