@@ -94,13 +94,27 @@ export class AppGateway
 		game.destructor();
 		if ((game.players.length - 1 >= 1 && !game.start) || game.players.length - 1 > 1) {
 			console.log('game.players.length - 1 > 0');
+			let new_owner: UserEntity;
+			let new_owner_login: UserEntity[];
+			if (game.owner == user.login) {
+				new_owner_login = game.players.filter((player) => player.login !== user.login)
+				for (let remaining_players of new_owner_login) {
+					this.server.to(remaining_players.socketId).emit('owner_change');
+				}
+			}
+			let game_owner: string;
+			if (!new_owner) {
+				game_owner = game.owner;
+			} else {
+				game_owner = new_owner.login;
+			}
 			let newGame = new Game(
 				game.nbrPlayer - 1,
 				game.nbrBall,
 				this.server,
 				game.players.filter((player) => player.login !== user.login),
 				game.lobby_name,
-				game.owner,
+				game_owner,
 				game.img,
 				this.matchService,
 				this
