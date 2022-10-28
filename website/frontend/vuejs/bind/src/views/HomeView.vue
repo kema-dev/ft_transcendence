@@ -1,7 +1,7 @@
 <template>
 	<div id="home" class="wrap">
 		<NavbarItem />
-		<div id="game" class="center">
+		<div id="game" class="center column">
 			<MatchmakingItem />
 		</div>
 		<NavmenuItem />
@@ -69,25 +69,31 @@ function getMyProfile() {
 		userRef.value = res.data;
 		notifs.value = res.data.requestFriend.length;
 		userDone.value = true;
-		console.log(`GetMyProfile Done`)
+		// console.log(`GetMyProfile Done`)
 	})
 	.catch(e => console.log(e));
 }
 
 socket.on("userBlock", (data : ResumUserDto) => {
-	console.log(`User ${data.login} blocked`);
+	// console.log(`User ${data.login} blocked`);
 	let i = privsRef.value.findIndex((p) => p.user.login == data.login);
 	privsRef.value.splice(i, 1);
 	userRef.value.blockeds.push(data);
 });
 
 socket.on('userUnblock', (data: PrivConvDto) => {
-	console.log(`User ${data.user.login} unblocked`);
+	// console.log(`User ${data.user.login} unblocked with priv`);
 	let priv = data;
 	priv.messages.forEach((m) => (m.date = new Date(m.date)));
 	let i = userRef.value.blockeds.findIndex((b) => b.login == priv.user.login);
 	userRef.value.blockeds.splice(i, 1);
 	privsRef.value.unshift(priv);
+});
+
+socket.on('userUnblockNoPriv', (data: string) => {
+	// console.log(`User ${data} unblocked WITHOUT priv`);
+	let i = userRef.value.blockeds.findIndex((b) => b.login == data);
+	userRef.value.blockeds.splice(i, 1);
 });
 
 
@@ -126,7 +132,7 @@ function getPrivsRequest() {
 				privsRef.value = privsTmp;
 			}
 			privDone.value = true;
-			console.log(`getPrivs Done`);
+			// console.log(`getPrivs Done`);
 		})
 		.catch((e) => console.log(e));
 }
@@ -228,7 +234,7 @@ function getChansRequest() {
 				});
 			}
 			chanDone.value = true;
-			console.log(`getChans Done`);
+			// console.log(`getChans Done`);
 		})
 		.catch((e) => console.log(e));
 }
@@ -236,8 +242,8 @@ function getChansRequest() {
 //	========== CREATE SOCKET LISTENERS
 
 socket.on('newChanMsg', (data: { msg: MessageDto; name: string }) => {
-	console.log(`New Channel message received :
-		channel = ${data.name}, msg = ${data.msg.msg}`);
+	// console.log(`New Channel message received :
+		// channel = ${data.name}, msg = ${data.msg.msg}`);
 	let i = chansRef.value.findIndex((chan) => chan.name == data.name);
 	chansRef.value[i].messages.push(
 		new MessageDto(data.msg.user, data.msg.msg, new Date(data.msg.date)),
@@ -262,7 +268,7 @@ socket.on('newChanMsg', (data: { msg: MessageDto; name: string }) => {
 
 socket.on('newChannel', (data: ChannelDto) => {
 	if (!chansRef.value.map((chan) => chan.name).includes(data.name)) {
-		console.log(`invited in channel '${data.name}'`);
+		// console.log(`invited in channel '${data.name}'`);
 		let newChan = data;
 		newChan.creation = new Date(newChan.creation);
 		newChan.messages.forEach((msg) => (msg.date = new Date(msg.date)));
@@ -274,7 +280,7 @@ socket.on('newChannel', (data: ChannelDto) => {
 });
 
 socket.on('newChannelUser', (data: { name: string; user: BasicUserDto }) => {
-	console.log(`New User '${data.user.login}' in channel : ${data.name}`);
+	// console.log(`New User '${data.user.login}' in channel : ${data.name}`);
 	let i = chansRef.value.findIndex((chan) => chan.name == data.name);
 	chansRef.value[i].users.push(data.user);
 	// chansRef.value[i].readed = false;
@@ -284,7 +290,7 @@ socket.on('newChannelUser', (data: { name: string; user: BasicUserDto }) => {
 });
 
 socket.on('userQuitChan', (data: { login: string; chan: string }) => {
-	console.log(`User '${data.login}' left the channel '${data.chan}'`);
+	// console.log(`User '${data.login}' left the channel '${data.chan}'`);
 	let i = chansRef.value.findIndex((chan) => chan.name == data.chan);
 	let y;
 		if (chansRef.value[i].owner && data.login == chansRef.value[i].owner.login)
@@ -474,7 +480,6 @@ socket.emit('get_invitations');
 	align-items: center;
 }
 #game {
-	width: 70vw;
 	width: calc(100vw - 500px);
 	/* height: 100%; */
 	padding-top: 60px;
