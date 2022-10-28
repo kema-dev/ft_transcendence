@@ -125,6 +125,12 @@ function update_invitations() {
 	}
 }
 
+socket.off('flush_invitations');
+socket.on('flush_invitations', (data) => {
+	invitations_to_game.value = [];
+	user_invitations.value = [];
+});
+
 socket.off('update_invitations');
 socket.on('update_invitations', () => {
 	update_invitations();

@@ -172,8 +172,10 @@ export default class Game {
 		return scores;
 	}
 	addViewer(socketId: string) {
-		this.sockets.push(socketId);
-		this.socketsViewers.push(socketId);
+		if  (this.sockets.find((s) => s == socketId) == undefined) {
+			this.sockets.push(socketId);
+			this.socketsViewers.push(socketId);
+		}
 	}
 	isEnd() {
 		return !this.run;

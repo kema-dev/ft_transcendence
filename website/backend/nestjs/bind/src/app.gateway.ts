@@ -55,14 +55,14 @@ export class AppGateway
 		this.logger.log(`Client connected : ${user}`);
 		await this.userService.saveSocket(user, client.id);
 		this.userService.set_status(user, 'online');
-		this.server.emit('userStatus', {user: user, status: 'online'});
+		this.server.emit('userStatus', { user: user, status: 'online' });
 	}
 	// Disconnection
 	async handleDisconnect(client: Socket) {
 		this.logger.log(`Client disconnected: ${client.id}`);
 		let user = client.handshake.query.login as string;
-		this.leftGame({login: user});
-		this.server.emit('userStatus', {user: user, status: 'offline'});
+		this.leftGame({ login: user });
+		this.server.emit('userStatus', { user: user, status: 'offline' });
 	}
 
 	// ============================ GAME =====================================
@@ -75,7 +75,7 @@ export class AppGateway
 		if (!user) return;
 		let game = this.games.find((game) => game.lobby_name === user.lobby_name);
 		this.userService.set_status(user.login, 'online');
-		this.server.emit("userStatus", {user:user.login, status: 'online'});
+		this.server.emit("userStatus", { user: user.login, status: 'online' });
 		user.lobby_name = "";
 		user.level = user.level + 1;
 		this.userService.saveUser(user);
@@ -94,13 +94,27 @@ export class AppGateway
 		game.destructor();
 		if ((game.players.length - 1 >= 1 && !game.start) || game.players.length - 1 > 1) {
 			console.log('game.players.length - 1 > 0');
+			let new_owner: UserEntity;
+			let new_owner_login: UserEntity[];
+			if (game.owner == user.login) {
+				new_owner_login = game.players.filter((player) => player.login !== user.login)
+				for (let remaining_players of new_owner_login) {
+					this.server.to(remaining_players.socketId).emit('owner_change');
+				}
+			}
+			let game_owner: string;
+			if (!new_owner) {
+				game_owner = game.owner;
+			} else {
+				game_owner = new_owner.login;
+			}
 			let newGame = new Game(
 				game.nbrPlayer - 1,
 				game.nbrBall,
 				this.server,
 				game.players.filter((player) => player.login !== user.login),
 				game.lobby_name,
-				game.owner,
+				game_owner,
 				game.img,
 				this.matchService,
 				this
@@ -166,6 +180,7 @@ export class AppGateway
 		console.log('newLobby', newGame.lobby_name);
 		this.games.push(newGame);
 		user.lobby_name = newGame.lobby_name;
+		user.status = 'ingame';
 		this.userService.saveUser(user);
 		this.server.to(user.socketId).emit('userUpdate', new ProfileUserDto(user));
 		this.server.emit('lobbys', this.sendLobbys(this.games));
@@ -180,11 +195,18 @@ export class AppGateway
 	}
 	@SubscribeMessage('look_lobby2')
 	async lookLobby2(@ConnectedSocket() client: Socket, @MessageBody() data: { spec: string, player: string },) {
+		let user = await this.userService.getByLogin(data.spec);
+		if (!user) return;
+		if (user.status != 'online') return;
+		console.log('look_lobby2', data.spec);
 		let lobbyName = (await this.userService.getByLogin(data.player)).lobby_name;
-		this.lookLobby(client, {login: data.spec, lobby_name: lobbyName})
+		this.lookLobby(client, { login: data.spec, lobby_name: lobbyName })
 	}
 	@SubscribeMessage('look_lobby')
 	async lookLobby(@ConnectedSocket() client: Socket, @MessageBody() data: { login: string, lobby_name: string },) {
+		let user = await this.userService.getByLogin(data.login);
+		if (!user) return;
+		if (user.status != 'online') return;
 		const game = this.games.find((game) => game.lobby_name === data.lobby_name);
 		if (!game) return;
 		game.addViewer(client.id);
@@ -274,8 +296,10 @@ export class AppGateway
 		this.server.emit('lobbys', this.sendLobbys(this.games));
 		console.log(newGame.lobby_name);
 		user.lobby_name = newGame.lobby_name;
+		user.status = 'ingame';
 		this.userService.saveUser(user);
 		this.server.to(user.socketId).emit('userUpdate', new ProfileUserDto(user));
+		this.server.to(user.socketId).emit('flush_invitations');
 		this.server.to(user.socketId).emit('accept_success');
 		console.log('join_lobby: Success, returning');
 	}
@@ -288,7 +312,7 @@ export class AppGateway
 		if (game) {
 			game.players.forEach((player) => {
 				this.userService.set_status(player.login, 'ingame');
-				this.server.emit('userStatus', {user: player.login, status: 'ingame'});
+				this.server.emit('userStatus', { user: player.login, status: 'ingame' });
 			});
 			game.start = true;
 			this.server.emit('lobbys', this.sendLobbys(this.games));
@@ -380,7 +404,7 @@ export class AppGateway
 	) {
 		console.log(`get userStatus`);
 		let status = await this.userService.get_user_status(data);
-		client.emit("userStatus", {user: data, status: status});
+		client.emit("userStatus", { user: data, status: status });
 	}
 
 	@SubscribeMessage('blockUser')

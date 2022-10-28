@@ -78,6 +78,10 @@ socket.on('end', (data: {win: boolean}) => {
 		lose.value = true;
 	}
 });
+socket.off('owner_change')
+socket.on('owner_change', (data) => {
+	back();
+});
 socket.off('accept_success')
 socket.on('accept_success', (data) => {
 	isCreate.value = true;
@@ -109,8 +113,11 @@ function back() {
 	win.value = false;
 	lose.value = false;
 	isOwner.value = false;
+	start.value = false;
+	lob_id = 0;
 }
 function create() {
+	console.log('create');
 	socket.emit('newLobby', { login: me?.value?.login, nbrBall: 1 });
 	isCreate.value = true;
 	isOwner.value = true;
