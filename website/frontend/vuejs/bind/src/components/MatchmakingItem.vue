@@ -115,6 +115,7 @@ function back() {
 	isOwner.value = false;
 	start.value = false;
 	lob_id = 0;
+	nbrBall.value = 1;
 }
 function create() {
 	console.log('create');
