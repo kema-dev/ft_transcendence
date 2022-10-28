@@ -113,6 +113,7 @@ function back() {
 	win.value = false;
 	lose.value = false;
 	isOwner.value = false;
+	start.value = false;
 	lob_id = 0;
 }
 function create() {

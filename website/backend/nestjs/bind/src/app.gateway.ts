@@ -288,8 +288,10 @@ export class AppGateway
 		this.server.emit('lobbys', this.sendLobbys(this.games));
 		console.log(newGame.lobby_name);
 		user.lobby_name = newGame.lobby_name;
+		user.status = 'ingame';
 		this.userService.saveUser(user);
 		this.server.to(user.socketId).emit('userUpdate', new ProfileUserDto(user));
+		this.server.to(user.socketId).emit('flush_invitations');
 		this.server.to(user.socketId).emit('accept_success');
 		console.log('join_lobby: Success, returning');
 	}

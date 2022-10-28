@@ -116,7 +116,7 @@ function accept_invit() {
 	mySocket.on('accept_success', (data) => {
 		isCreate.value = true;
 		isJoin.value = false;
-		deny_invit();
+		// deny_invit();
 	});
 	mySocket.emit('join_lobby', {
 		login: me?.value?.login,
