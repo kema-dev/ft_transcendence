@@ -212,7 +212,7 @@ async function loop() {
 		// 		walls.get(0)!.y + (walls.get(0)!.width / 4) * 3
 		// )
 		// 	rack.y(rack.y() + mov * deltaTime);
-		await delay(1); // TODO delta
+		await delay(1);
 	}
 }
 onUnmounted(() => {

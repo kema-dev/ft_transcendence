@@ -16,7 +16,7 @@ import { VueCookies } from 'vue-cookies';
 import { useRoute } from 'vue-router';
 import HTTP from '../components/axios';
 import { FQDN } from '../../.env.json';
-import MatchmakingItem from '@/components/MatchmakingItem.vue';
+import MatchmakingItem from '@/matchmaking/MainView.vue';
 import NavbarItem from '@/components/NavbarItem.vue';
 import NavmenuItem from '@/components/NavmenuItem.vue';
 import { PrivConvDto } from '@/chat/dto/PrivConvDto';
@@ -164,7 +164,7 @@ socket.on('newPrivMsg', (data: { msg: MessageDto; id: number }) => {
 		data.msg.user != me &&
 		!nbPrivNR.value.includes(privsRef.value[i].id) &&
 		route.path != '/home/chat/private/' + data.msg.user &&
-		!blocked 
+		!blocked
 	) {
 		nbPrivNR.value.push(privsRef.value[i].id);
 		findPrivIndex.value = true;

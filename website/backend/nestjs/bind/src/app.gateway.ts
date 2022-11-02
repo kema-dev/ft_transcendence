@@ -27,6 +27,7 @@ import { UserEntity } from 'src/users/user.entity';
 import { MatchDto } from 'src/match/match.dto';
 import { MatchService } from './match/match.service';
 import { delay } from 'rxjs';
+import { InfoDto } from 'src/game2.0/dto/InfoDto';
 
 @WebSocketGateway({
 	cors: {
@@ -61,7 +62,7 @@ export class AppGateway
 	async handleDisconnect(client: Socket) {
 		this.logger.log(`Client disconnected: ${client.id}`);
 		let user = client.handshake.query.login as string;
-		this.leftGame({ login: user });
+		this.leftGame(client, {});
 		this.server.emit('userStatus', { user: user, status: 'offline' });
 	}
 
@@ -69,9 +70,12 @@ export class AppGateway
 
 
 	@SubscribeMessage('leftGame')
-	async leftGame(@MessageBody() data: any) {
-		console.log('leftGame <---------------------------', data.login);
-		const user: UserEntity = await this.userService.getByLogin(data.login);
+	async leftGame(@ConnectedSocket() client: Socket, @MessageBody() data: any) {
+		this.quitGame(client.handshake.query.login as string, data)
+	}
+	async quitGame(login: string, data: any) {
+		console.log('leftGame <---------------------------', login);
+		const user: UserEntity = await this.userService.getByLogin(login);
 		if (!user) return;
 		let game = this.games.find((game) => game.lobby_name === user.lobby_name);
 		this.userService.set_status(user.login, 'online');
@@ -121,15 +125,15 @@ export class AppGateway
 			);
 			this.games.push(newGame);
 			if (data.lose)
-				this.server.to(newGame.sockets).emit('reload_game', { left: "", start: newGame.start });
+				this.server.to(newGame.sockets).emit('info_game', new InfoDto(newGame, user.login, true));
 			else
-				this.server.to(newGame.sockets).emit('reload_game', { left: user.login, start: newGame.start });
+				this.server.to(newGame.sockets).emit('info_game', new InfoDto(newGame, user.login, true, null, user.login));
 			newGame.start = game.start;
 		}
 		else if (game.players.length - 1 == 1) {
-			this.server.to(game.players.find((player) => player.login !== user.login).socketId).emit('end', { win: true });
+			this.server.to(game.players.find((player) => player.login !== user.login).socketId).emit('info_game', new InfoDto(game, user.login, false, true));
 			if (!data.lose)
-				this.server.to(game.players.find((player) => player.login !== user.login).socketId).emit('reload_game', { left: user.login, start: game.start });
+				this.server.to(game.players.find((player) => player.login !== user.login).socketId).emit('info_game', new InfoDto(game, user.login, true, null, user.login));
 		}
 		this.userService.saveUser(user);
 		this.games.splice(this.games.indexOf(game), 1);
@@ -291,7 +295,7 @@ export class AppGateway
 		console.log('join_lobby: newGame created');
 		game.destructor();
 		this.games.push(newGame);
-		this.server.to(newGame.sockets).emit('reload_game', { left: "", start: newGame.start });
+		this.server.to(newGame.sockets).emit('info_game', new InfoDto(game, client.handshake.query.login as string, false));
 		this.games.splice(this.games.indexOf(game), 1);
 		this.server.emit('lobbys', this.sendLobbys(this.games));
 		console.log(newGame.lobby_name);
@@ -323,10 +327,12 @@ export class AppGateway
 	}
 	@SubscribeMessage('updateLobby')
 	updateLobby(client: Socket, payload: any): void {
+		if (payload.nbrBall < 1 || payload.nbrBall > 3)
+			return;
 		const game = this.games.find((game) => game.lobby_name === payload.lobby_name);
 		if (game) {
 			game.updateBalls(payload.nbrBall);
-			this.server.to(game.sockets).emit('reload_game', { left: "", start: game.start });
+			this.server.to(game.sockets).emit('info_game', new InfoDto(game, client.handshake.query.login as string, true));
 		}
 	}
 
@@ -566,7 +572,7 @@ export class AppGateway
 			if (!inviter_in_game) {
 				console.log('invite_to_game: Inviter is in spec, re running function');
 				game.sockets.splice(game.sockets.indexOf(client.id), 1);
-				this.server.to(client.id).emit('reload_game', { left: "", start: game.start });
+				this.server.to(client.id).emit('info_game', new InfoDto(game, client.handshake.query.login as string, true));
 				this.invite_to_game(data, client);
 				return;
 			}

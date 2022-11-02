@@ -11,6 +11,7 @@ import Profile from './objects/Profile';
 import { UserEntity } from 'src/users/user.entity';
 import { MatchService } from '../match/match.service';
 import { AppGateway } from 'src/app.gateway';
+import { SmallGameDto } from 'src/game2.0/dto/SmallGameDto';
 
 export default class Game {
 	nbrPlayer: number;
@@ -24,6 +25,7 @@ export default class Game {
 	deltaTime: number;
 	logger: Logger;
 	dto: GameDto;
+	smallDto: SmallGameDto;
 	rackets: Racket[];
 	profiles: Profile[];
 	players: UserEntity[];
@@ -66,7 +68,6 @@ export default class Game {
 		for (let player of this.players)
 			this.sockets.push(player.socketId);
 		this.logger = new Logger();
-		this.dto = new GameDto(nbrPlayer, nbrBall);
 		this.init();
 		this.setDto();
 		this.loop();
@@ -109,45 +110,10 @@ export default class Game {
 		});
 	}
 	setDto() {
-		let i = 0;
-		this.dto.start = this.start;
-		this.dto.nbrBall = this.balls.length;
-		for (i = 0; i < this.balls.length; ++i) {
-			if (!this.dto.balls[i]) this.dto.balls[i] = new BallDto();
-			this.dto.balls[i].x = this.balls[i].x;
-			this.dto.balls[i].y = this.balls[i].y;
-		}
-		i = 0;
-		this.walls.forEach((wall) => {
-			if (!this.dto.walls[i]) this.dto.walls[i] = new WallDto();
-			this.dto.walls[i].x = wall.x;
-			this.dto.walls[i].y = wall.y;
-			this.dto.walls[i].w = wall.width;
-			this.dto.walls[i].h = wall.height;
-			this.dto.walls[i].rotation = wall.angle;
-			++i;
-		});
-		for (const i in this.rackets) {
-			if (!this.dto.rackets[i]) this.dto.rackets[i] = new RacketDto();
-			this.dto.rackets[i].x = this.rackets[i].x;
-			this.dto.rackets[i].y = this.rackets[i].y;
-			this.dto.rackets[i].rotation = this.rackets[i].angle;
-			this.dto.rackets[i].h = this.rackets[i].height;
-			this.dto.rackets[i].w = this.rackets[i].width;
-		}
-		this.dto.profiles = this.profiles;
+		this.dto = new GameDto(this);
 	}
-	setMinimumDto() {
-		this.dto.start = this.start;
-		for (let i = 0; i < this.balls.length; ++i) {
-			this.dto.balls[i].x = this.balls[i].x;
-			this.dto.balls[i].y = this.balls[i].y;
-		}
-		for (const i in this.rackets) {
-			this.dto.rackets[i].x = this.rackets[i].x;
-			this.dto.rackets[i].y = this.rackets[i].y;
-		}
-		this.dto.profiles = this.profiles;
+	setSmallDto() {
+		this.smallDto = new SmallGameDto(this);
 	}
 	setMov(value: number, login: string) {
 		for (const p of this.profiles) {
@@ -184,7 +150,7 @@ export default class Game {
 		this.run = false;
 	}
 	async loop() {
-		let start = await performance.now();
+		let start = performance.now();
 		while (this.run) {
 			if (this.start)
 				for (const ball of this.balls) {
@@ -202,7 +168,7 @@ export default class Game {
 						}
 						else
 							this.server.to(this.players.find((p) => p.login == login)?.socketId).emit('end', { win: false });
-						this.app.leftGame({ login: login, lose: true });
+						this.app.quitGame(login, { lose: true });
 						return;
 					}
 					ball.x = ball.x + ball.v.x * ball.speed * this.deltaTime;
@@ -255,21 +221,21 @@ export default class Game {
 				) {
 					move = true;
 				}
-
 				if (move == true) {
 					rack.x = x;
 					rack.y = y;
 				}
 			}
-			await this.setMinimumDto();
+			this.setSmallDto();
 			this.server.to(this.sockets).emit('update_game', JSON.stringify(this.dto));
-			const hrTime = await process.hrtime();
+			const hrTime = process.hrtime();
 			const end = hrTime[0] * 1000 + hrTime[1] / 1000000;
 			this.deltaTime = end - start;
 			this.deltaTime /= 1000;
 			this.deltaTime *= 60;
+			// console.log(this.deltaTime);
 			start = end;
-			await delay(25);
+			await delay(16 - this.deltaTime);
 		}
 	}
 	point_between(point: any, left: any, right: any) {
