@@ -388,13 +388,13 @@ function modifPswReq() {
 	if (chansRef.value[props.i].psw) {
 		if (!pswCheckBox.value)
 			mySocket.emit("modifChan",
-				new ModifChanDto(chanName, "psw", ""));
+				new ModifChanDto(myName, chanName, "psw", ""));
 		else if (pswValue.value != "")
 			mySocket.emit("modifChan", 
-				new ModifChanDto(chanName, "psw", pswValue.value));
+				new ModifChanDto(myName, chanName, "psw", pswValue.value));
 	} else if (pswCheckBox.value)
 		mySocket.emit("modifChan", 
-			new ModifChanDto(chanName, "psw", pswValue.value));
+			new ModifChanDto(myName, chanName, "psw", pswValue.value));
 	pswShow.value = false;
 }
 
@@ -412,7 +412,7 @@ function modifPrivReq() {
 	if ((chansRef.value[props.i].priv && !privCheck.value)
 		|| (!chansRef.value[props.i].priv && privCheck.value)) 
 		mySocket.emit("modifChan",
-			new ModifChanDto(chanName, "priv", privCheck.value));
+			new ModifChanDto(myName, chanName, "priv", privCheck.value));
 	privShow.value = false;
 }
 
