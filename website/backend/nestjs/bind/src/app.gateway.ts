@@ -485,9 +485,10 @@ export class AppGateway
 			data.message,
 			new Date(data.date),
 		);
-		let allUsers = chan.admins.concat(chan.users).concat(chan.mutes);
-		if (chan.owner)
-			allUsers.push(chan.owner);
+		// let allUsers = chan.admins.concat(chan.users).concat(chan.mutes);
+		// if (chan.owner)
+		// 	allUsers.push(chan.owner);
+		let allUsers = this.chatService.getAllChanUsers(chan);
 		for (let user of allUsers) {
 			this.server
 				.to(user.socketId)
