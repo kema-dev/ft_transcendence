@@ -205,7 +205,7 @@ watch(search, () => {
 // ================= METHODS =================
 
 function getServerChans() {
-	HTTP.get(apiPath + "chat/getServerChansFiltred/" + me + "/" + search.value)
+	HTTP.get(apiPath + "chat/getServerChansFiltred/" + myName + "/" + search.value)
 		.then((res) => {
 			let chansTmp: ChannelTabDto[] = [];
 			res.data.forEach((chan: ChannelTabDto) => {

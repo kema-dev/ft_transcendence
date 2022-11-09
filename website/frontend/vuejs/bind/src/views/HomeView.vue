@@ -384,7 +384,7 @@ socket.on('modifChan', (data: ModifChanDto) => {
 		(
 			chansRef.value[i][data.group as keyof ChannelDto] as BasicUserDto[]
 		).splice(j, 1);
-	} else if (data.restoreBan) {
+	} else if (data.restoreBan && data.restoreBan != me) {
 		console.log(
 			`User '${data.restoreBan}' from chan '${data.chan}' is unbaned`,
 		);
