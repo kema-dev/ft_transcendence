@@ -30,7 +30,7 @@ import ResumUserDto from '@/dto/ResumUserDto';
 //  ========== COOKIES + APIPATCH + ROUTE
 
 const $cookies = inject<VueCookies>('$cookies')!;
-const apiPath = FQDN + ':3000/api/v1/';
+const apiPath = FQDN + '/api/v1/';
 provide('apiPath', apiPath);
 const route = useRoute();
 
@@ -42,7 +42,7 @@ provide('me', me);
 
 //	========== CREATE SOCKET
 
-let socket = io(FQDN + ':3000', { query: { login: me } });
+let socket = io(FQDN, { query: { login: me } });
 socket.emit("userLogin", me);
 provide('socket', socket);
 

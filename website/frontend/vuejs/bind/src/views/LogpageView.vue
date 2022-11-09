@@ -103,7 +103,7 @@ import { FQDN, API_42_UID, API_42_REDIRECT_URI } from '../../.env.json';
 
 const router = useRouter();
 let colors = inject('colors');
-let apiPath = FQDN + ':3000/api/v1/';
+let apiPath = FQDN + '/api/v1/';
 let api42Path =
 	'https://api.intra.42.fr/oauth/authorize?client_id=' +
 	API_42_UID +
