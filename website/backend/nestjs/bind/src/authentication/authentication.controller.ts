@@ -36,6 +36,7 @@ export class AuthenticationController {
 		console.log('Debug headers: ' + JSON.stringify(headers));
 	}
 
+	@UseGuards(AuthGuard)
 	@Post('disable_totp')
 	async disable_totp(@Body() data: any) {
 		this.authenticationService.disable_totp(data.name);
