@@ -257,7 +257,7 @@ export class AuthenticationService {
 	// 	return jwtPayload;
 	// }
 
-	public async auth42(code: string): Promise<AuthResponse> {
+	public async auth42(code: string, mfa: string): Promise<AuthResponse> {
 		console.log('auth42: starting');
 		if (!code) {
 			console.error('auth42: ' + 'no code provided, returning ✘');
@@ -296,6 +296,32 @@ export class AuthenticationService {
 						(await this.usersService.checkEmailExistence(logobj.data.email)) ==
 						true
 					) {
+						if (existing_usr.totp_code !== '' && mfa === '') {
+							console.error(
+								'auth42: ' + existing_usr.login + ' has totp code, returning ✘',
+							);
+							throw new HttpException(
+								'E_USER_HAS_TOTP',
+								HttpStatus.BAD_REQUEST,
+							);
+						} else if (existing_usr.totp_code !== '' && mfa !== '') {
+							const mfa_check = await this.check_totp_code(
+								existing_usr.login,
+								mfa,
+							);
+							if (mfa_check == false) {
+								console.error(
+									'auth42: ' +
+										existing_usr.login +
+										' totp code check failed, returning ✘',
+								);
+								throw new HttpException('E_TOTP_FAIL', HttpStatus.BAD_REQUEST);
+							}
+						} else {
+							console.log(
+								'auth42: ' + existing_usr.login + ' has no totp code, passing',
+							);
+						}
 						await this.usersService.ft_update(
 							logobj.data.email,
 							response.data.access_token,
@@ -376,6 +402,11 @@ export class AuthenticationService {
 				throw new HttpException('E_UNEXPECTED_ERROR', HttpStatus.CONFLICT);
 			}
 		} catch (error) {
+			if (error.message == 'E_USER_HAS_TOTP') {
+				throw new HttpException('E_USER_HAS_TOTP', HttpStatus.BAD_REQUEST);
+			} else if (error.message == 'E_TOTP_FAIL') {
+				throw new HttpException('E_TOTP_FAIL', HttpStatus.BAD_REQUEST);
+			}
 			console.error('auth42: unexpected error' + error);
 		}
 		throw new HttpException('E_UNEXPECTED_ERROR', HttpStatus.CONFLICT);

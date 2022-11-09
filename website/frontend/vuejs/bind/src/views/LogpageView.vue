@@ -279,6 +279,7 @@ onMounted(async () => {
 				token: cookies.get('session'),
 			},
 			code: code,
+			mfa: totp_val.value,
 		})
 			.then((response) => {
 				console.log(response);
@@ -295,7 +296,12 @@ onMounted(async () => {
 				}
 			})
 			.catch((error) => {
-				if (error.response.data.message === 'E_NO_CODE_PROVIDED') {
+				if (error.response.data.message === 'E_USER_HAS_TOTP') {
+					toast.warning(E_USER_HAS_TOTP);
+					totp_enabled.value = true;
+				} else if (error.response.data.message === 'E_TOTP_FAIL') {
+					toast.warning(E_TOTP_FAIL);
+				} else if (error.response.data.message === 'E_NO_CODE_PROVIDED') {
 					toast.warning(E_NO_CODE_PROVIDED);
 				} else if (error.response.data.message === 'E_CODE_IN_USE') {
 					// toast.warning(E_CODE_IN_USE);
