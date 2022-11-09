@@ -19,6 +19,7 @@ import { NewChanDto } from './dto/NewChanDto';
 import { ChannelTabDto } from './dto/ChannelTabDto ';
 import { ModifChanDto } from './dto/ModifChanDto';
 import { SanctionEntity } from './entites/sanction.entity';
+import { type } from 'os';
 
 
 @Injectable()
@@ -242,7 +243,8 @@ export class ChatService {
 			where: {
 				user: {
 					login: login
-				}
+				},
+				type: 'mute',
 			},
 			order: {
 				chan: { messages: { createdAt: 'ASC'} },
@@ -520,7 +522,7 @@ export class ChatService {
 			(i = chan.sanctions.filter(s => s.type == 'mute')
 				.findIndex(s => s.user.login == data.login)) != -1
 		)
-			chan.sanctions.splice(i, 1);
+			this.removeSanction(chan, data.login, 'mute');
 		if (
 			(chan.owner ? 1 : 0) + chan.admins.length + chan.users.length 
 				+ chan.sanctions.filter(s => s.type == 'mute').length == 0
@@ -596,40 +598,40 @@ export class ChatService {
 		else if (modif.restoreMute) {
 			console.log(`User '${modif.restoreMute}' from chan '${modif.chan}' is unmuted`);
 			let user = chan.sanctions.filter(s => s.type == 'mute')
-			.find(s => s.user.login == modif.restoreMute).user;
+				.find(s => s.user.login == modif.restoreMute).user;
 			chan.users.push(user);
-			this.removeSanction(chan, modif.restoreMute, 'mute');
+			return this.removeSanction(chan, modif.restoreMute, 'mute');
 		}
 		else if (modif.kick) {
 			console.log(`User '${modif.kick}' from group '${modif.group}' of chan '${modif.chan}' is kicked`);
 			let kicked = await this.userService.getByLogin(modif.kick);
 			if (modif.group == 'admins')
 				chan.admins.splice(chan.admins.findIndex(u => u.login == modif.kick), 1);
-				else if (modif.group == 'users')
+			else if (modif.group == 'users')
 				chan.users.splice(chan.users.findIndex(u => u.login == modif.kick), 1);
 			else if (modif.group == 'mutes')
-			this.removeSanction(chan, modif.kick, 'mute');
+				this.removeSanction(chan, modif.kick, 'mute');
 			else if (modif.group == 'bans')
 				this.removeSanction(chan, modif.kick, 'ban');
 			if (modif.group != 'bans')
-			server.to(kicked.socketId).emit("modifChan", modif);
+				server.to(kicked.socketId).emit("modifChan", modif);
 		}
 		else if (modif.ban) {
 			console.log(`User '${modif.ban}' from group '${modif.group}' of chan '${modif.chan}' is baned`);
 			if (modif.group == 'admins')
-			chan.admins.splice(chan.admins.findIndex(u => u.login == modif.ban), 1);
+				chan.admins.splice(chan.admins.findIndex(u => u.login == modif.ban), 1);
 			else if (modif.group == 'users')
 				chan.users.splice(chan.users.findIndex(u => u.login == modif.ban), 1);
 			else if (modif.group == 'mutes')
-			this.removeSanction(chan, modif.ban, 'mute');
+				this.removeSanction(chan, modif.ban, 'mute');
 			await this.addSanction(chan, modif.ban, 'ban', modif.time);
 		}
 		else if (modif.restoreBan) {
 			console.log(`User '${modif.restoreBan}' from chan '${modif.chan}' is unbanned`);
-			this.removeSanction(chan, modif.restoreBan, 'ban');
+			return this.removeSanction(chan, modif.restoreBan, 'ban');
 		}
 		this.channelRepository.save(chan)
-			.catch((e) => console.log('Save Channel error'));
+			.catch((e) => console.log('Save Channel modifChannel error'));
 	}
 
 	async addSanction(chan: ChannelEntity, user: string, sanction: string, seconds: number) {
@@ -647,7 +649,7 @@ export class ChatService {
 		.catch((e) => console.log('Remove sanction removeSanction error'));
 		chan.sanctions = chan.sanctions.filter(s => s.user.login != user); 
 		await this.channelRepository.save(chan)
-			.catch((e) => console.log('Save chan error'));
+			.catch((e) => console.log('Save chan removeSanction error'));
 	}
 
 	async checkSanctions(server: Server) {

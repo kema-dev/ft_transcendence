@@ -48,26 +48,6 @@ export class AppGateway
 	) {
 		setInterval(async () => {
 			this.chatService.checkSanctions(this.server);
-			// const deleted = await this.channelService.refreshSanctions();
-			// const channels = [];
-
-			// deleted.forEach((s) => {
-			// 		if (!channels.includes(s.channel.id))
-			// 				channels.push(s.channel.id);
-			// });
-
-			// for (const chanId of channels) {
-			// 		const sanctions = await this.channelService.getChannelSanctionsFormatted(chanId);
-
-			// 		this.server.to(`channel_${chanId}`).emit("channel_sanctions", { channelId: chanId, users: sanctions });
-			// }
-
-			// for (const s of deleted) {
-			// 		this.sendSocketMsgByUserId(
-			// 				s.userId,'warning', 
-			// 				`You are no longer ${s.type}${s.type === 'mute' ? 'd' : 'ned'} ${s.type === 'mute' ? 'in' : 'from'} #${s.channel.name}`
-			// 				);
-			// }
 		}, 1000);
 	}
 
