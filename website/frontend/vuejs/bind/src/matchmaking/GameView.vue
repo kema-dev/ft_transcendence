@@ -91,6 +91,7 @@ function decrBall() {
 			lobby_name: me?.value?.lobby_name,
 			nbrBall: nbrBall.value,
 		});
+		remount.value = !remount.value;
 	} else {
 		toast.warning('1 balls minimum');
 	}
