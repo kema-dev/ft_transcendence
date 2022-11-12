@@ -12,6 +12,7 @@ import {
 import TimestampEntites from '../../utils/timestamp.enties';
 import { MessageEntity } from './message.entity';
 import { UserEntity } from '../../users/user.entity';
+import { SanctionEntity } from './sanction.entity';
 
 @Entity('channel')
 export class ChannelEntity extends TimestampEntites {
@@ -61,18 +62,25 @@ export class ChannelEntity extends TimestampEntites {
 		nullable: true,
 	})
 	messages: MessageEntity[];
+	
+	// @ManyToMany((type) => UserEntity, (user) => user.chansBan, {
+	// 	onDelete: 'CASCADE',
+	// 	nullable: true,
+	// })
+	// @JoinTable()
+	// bans: UserEntity[];
 
-	@ManyToMany((type) => UserEntity, (user) => user.chansBan, {
-		onDelete: 'CASCADE',
+	// @ManyToMany((type) => UserEntity, (user) => user.chansMute, {
+	// 	onDelete: 'CASCADE',
+	// 	nullable: true,
+	// })
+	// @JoinTable()
+	// mutes: UserEntity[];
+	
+	@OneToMany((type) => SanctionEntity, (sanction) => sanction.chan, {
+		cascade: true,
 		nullable: true,
 	})
-	@JoinTable()
-	bans: UserEntity[];
-
-	@ManyToMany((type) => UserEntity, (user) => user.chansMute, {
-		onDelete: 'CASCADE',
-		nullable: true,
-	})
-	@JoinTable()
-	mutes: UserEntity[];
+	sanctions: SanctionEntity[];
+	
 }

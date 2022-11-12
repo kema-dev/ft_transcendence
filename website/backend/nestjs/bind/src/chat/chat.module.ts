@@ -15,6 +15,7 @@ import { UsersModule } from '../users/users.module';
 // import { AuthenticationService } from '../authentication/authentication.service';
 import { ChannelEntity } from './entites/channel.entity';
 import { AppGateway } from '../app.gateway';
+import { SanctionEntity } from './entites/sanction.entity';
 
 @Module({
 	imports: [
@@ -23,6 +24,7 @@ import { AppGateway } from '../app.gateway';
 			PrivateEntity,
 			ChannelEntity,
 			MessageEntity,
+			SanctionEntity,
 		]),
 		HttpModule.register({
 			timeout: 5000,

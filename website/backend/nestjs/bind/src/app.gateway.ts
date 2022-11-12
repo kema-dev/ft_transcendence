@@ -45,7 +45,11 @@ export class AppGateway
 		private readonly chatService: ChatService,
 		private readonly userService: UsersService,
 		private readonly matchService: MatchService,
-	) { }
+	) {
+		setInterval(async () => {
+			this.chatService.checkSanctions(this.server);
+		}, 1000);
+	}
 
 	// =========================== GENERAL ==================================
 
@@ -485,9 +489,10 @@ export class AppGateway
 			data.message,
 			new Date(data.date),
 		);
-		let allUsers = chan.admins.concat(chan.users).concat(chan.mutes);
-		if (chan.owner)
-			allUsers.push(chan.owner);
+		// let allUsers = chan.admins.concat(chan.users).concat(chan.mutes);
+		// if (chan.owner)
+		// 	allUsers.push(chan.owner);
+		let allUsers = this.chatService.getAllChanUsers(chan);
 		for (let user of allUsers) {
 			this.server
 				.to(user.socketId)

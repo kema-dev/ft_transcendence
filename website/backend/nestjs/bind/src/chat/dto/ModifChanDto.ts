@@ -19,9 +19,17 @@ export class ModifChanDto {
 	) {
 		this.requestor = requestor;
 		this.chan = chan;
-		for (const classKey in this)
-			if (classKey == key)
-				this[classKey] = value;
+		// for (const classKey in this) {
+		// 	console.log(`classkey = ${classKey}, value = ${value}, key = ${key}`)
+		// 	if (classKey == key) {
+		// 		// console.log(`classkey = ${classKey}, value = ${value}`)
+		// 		this[classKey] = value;
+		// 	}
+		// }
+		if(key == 'restoreMute')
+			this.restoreMute = value;
+		else if(key == 'restoreBan')
+			this.restoreBan = value;
 		if (time)
 			this.time = time;
 		if (group)
