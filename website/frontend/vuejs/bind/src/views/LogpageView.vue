@@ -50,6 +50,7 @@
 									v-model="password_confirmation"
 									placeholder="password"
 									type="password"
+									@keyup.enter="register()"
 								/>
 								<button class="login-btn" @click="register()">Register</button>
 							</div>
@@ -67,6 +68,7 @@
 									v-model="password_auth"
 									placeholder="password"
 									type="password"
+									@keyup.enter="auth()"
 								/>
 								<input
 									v-if="totp_enabled"
@@ -74,6 +76,7 @@
 									v-model="totp_val"
 									placeholder="mfa code"
 									type="text"
+									@keyup.enter="auth()"
 								/>
 								<button @click="auth()">Login</button>
 								<div class="ft_login">
@@ -100,6 +103,10 @@ import { useRouter } from 'vue-router';
 import { VueCookies } from 'vue-cookies';
 import API from '../components/axios';
 import { FQDN, API_42_UID, API_42_REDIRECT_URI } from '../../.env.json';
+
+function debug() {
+	console.log('debug');
+}
 
 const router = useRouter();
 let colors = inject('colors');
