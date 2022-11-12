@@ -185,11 +185,6 @@ async function register() {
 				'Registration success, welcome ' + response.data.login + ' !',
 			);
 			router.push('/home');
-			try {
-				router.go(0);
-			} catch (error) {
-				console.error('on refresh:', error);
-			}
 		})
 		.catch((error) => {
 			if (error.response.data.message === 'E_EMAIL_OR_LOGIN_ALREADY_EXISTS') {
@@ -235,11 +230,6 @@ async function auth() {
 				'Authentication success, welcome ' + response.data.login + ' !',
 			);
 			router.push('/home');
-			try {
-				router.go(0);
-			} catch (error) {
-				console.error('on refresh:', error);
-			}
 		})
 		.catch((error) => {
 			console.log(error);
@@ -296,11 +286,6 @@ onMounted(async () => {
 					'Authentication success, welcome ' + response.data.login + ' !',
 				);
 				router.push('/home');
-				try {
-					router.go(0);
-				} catch (error) {
-					console.error('on refresh:', error);
-				}
 			})
 			.catch((error) => {
 				if (error.response.data.message === 'E_USER_HAS_TOTP') {
