@@ -84,7 +84,7 @@
 				class="infoImg"
 			/>
 		</button>
-		<button v-if="props.isAdmin && showMore"
+		<button v-if="props.isAdmin && props.group != 'mutes' && props.group != 'bans' && showMore"
 			@click="updateSanction('mute')"
 			class="setUserCont center"
 		>
@@ -124,7 +124,7 @@
 				class="infoImg"
 			/>
 		</button>
-		<button v-if="props.isAdmin && showMore"
+		<button v-if="props.isAdmin && showMore && props.group != 'bans'"
 			@click="updateSanction('ban')"
 			class="setUserCont center"
 		>

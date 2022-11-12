@@ -12,6 +12,7 @@ import { PrivateEntity } from '../chat/entites/private.entity';
 import { ChannelEntity } from '../chat/entites/channel.entity';
 import TimestampEntites from '../utils/timestamp.enties';
 import { avatars } from 'src/users/avatars';
+import { SanctionEntity } from 'src/chat/entites/sanction.entity';
 
 @Entity("user")
 export class UserEntity extends TimestampEntites {
@@ -140,19 +141,26 @@ export class UserEntity extends TimestampEntites {
 	})
 	chansUser: ChannelEntity[];
 
-	@ManyToMany((type) => ChannelEntity, (chan) => chan.bans, {
-		cascade: true,
-		nullable: true,
-		onDelete: 'SET NULL',
-	})
-	chansBan: ChannelEntity[];
+	// @ManyToMany((type) => ChannelEntity, (chan) => chan.bans, {
+	// 	cascade: true,
+	// 	nullable: true,
+	// 	onDelete: 'SET NULL',
+	// })
+	// chansBan: ChannelEntity[];
 
-	@ManyToMany((type) => ChannelEntity, (chan) => chan.mutes, {
+	// @ManyToMany((type) => ChannelEntity, (chan) => chan.mutes, {
+	// 	cascade: true,
+	// 	nullable: true,
+	// 	onDelete: 'SET NULL',
+	// })
+	// chansMute: ChannelEntity[];
+
+	@OneToMany(type => SanctionEntity, (sanction) => sanction.user, {
 		cascade: true,
 		nullable: true,
-		onDelete: 'SET NULL',
+		// onDelete: 'SET NULL',
 	})
-	chansMute: ChannelEntity[];
+	sanctions: SanctionEntity[];
 
 	@Column()
 	public lobby_name: string;

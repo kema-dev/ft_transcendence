@@ -1,12 +1,12 @@
 <template>
-	<form class="search_groupe center row stack">
+	<div class="search_groupe center row stack">
 		<input
 			:value="search"
 			placeholder="Search"
 			id="search"
 			@input="$emit('update:search', $event.target!.value)"
 		/>
-	</form>
+	</div>
 </template>
 
 <script setup lang="ts">
