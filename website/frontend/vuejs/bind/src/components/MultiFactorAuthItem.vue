@@ -1,5 +1,8 @@
 <template>
 	<div class="security-view">
+		<button @click="close" v-show="totp_code" class="mfaBtn">
+			Close settings
+		</button>
 		<input
 			class="new_username"
 			type="text"
@@ -34,9 +37,6 @@
 		</button>
 		<button @click="disable" v-show="totp_code" class="mfaBtn">
 			DISABLE TOTP
-		</button>
-		<button @click="close" v-show="totp_code" class="mfaBtn">
-			CLOSE SETTINGS
 		</button>
 		<!-- </div> -->
 	</div>
