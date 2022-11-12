@@ -32,7 +32,9 @@
 				<h3 class="statValue">{{ user_stats.loses }}</h3>
 			</div>
 		</div>
+		<hr class="separator">
 		<MultiFactorAuthItem />
+		<hr class="separator">
 		<div v-if="userDone">
 			<button @click="showBlocks = !showBlocks" id="showBlocksBtn">
 				{{(showBlocks? 'Hide' : 'Show') + ' blocked users'}}

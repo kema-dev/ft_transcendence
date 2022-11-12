@@ -35,7 +35,9 @@
 		<button @click="disable" v-show="totp_code" class="mfaBtn">
 			DISABLE TOTP
 		</button>
-		<hr class="separator" v-show="totp_code" />
+		<button @click="close" v-show="totp_code" class="mfaBtn">
+			CLOSE SETTINGS
+		</button>
 		<!-- </div> -->
 	</div>
 </template>
@@ -99,12 +101,19 @@ function get_totp_url() {
 	})
 		.then((response) => {
 			totp_url.value = response.data.img_src;
-			console.log(response.data.img_src);
+			// console.log(response.data.img_src);
 			totp_code.value = response.data.url.match(/secret%3D(.*)%26/)[1];
 		})
 		.catch((error) => {
 			console.error(error);
 		});
+}
+
+function close() {
+	totp_url.value = '';
+	totp_code.value = '';
+	new_username.value = '';
+	totp_code.value = '';
 }
 
 function debug() {
@@ -116,7 +125,7 @@ function debug() {
 		email: email.value,
 	})
 		.then((response) => {
-			console.log(response);
+			// console.log(response);
 		})
 		.catch((error) => {
 			console.error(error);
@@ -124,7 +133,7 @@ function debug() {
 }
 
 function verify() {
-	console.log(email.value, code.value);
+	// console.log(email.value, code.value);
 	API.post('auth/verify_tmp_totp', {
 		headers: {
 			login: cookies.get('login'),
@@ -134,7 +143,7 @@ function verify() {
 		code: code.value,
 	})
 		.then((response) => {
-			console.log(response);
+			// console.log(response);
 			toast.success(
 				'TOTP Verified ! You can now login with your email and TOTP code',
 			);
@@ -154,7 +163,7 @@ async function disable() {
 		name: email.value,
 	})
 		.then((response) => {
-			console.log(response.data);
+			// console.log(response.data);
 			if (response.data == false) {
 				toast.success('You already have TOTP disabled');
 				return;
