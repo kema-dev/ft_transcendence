@@ -9,11 +9,16 @@ module.exports = defineConfig({
 		},
 		client: {
 			webSocketURL: {
-				hostname: '192.168.0.146',
+				hostname: data.HOSTNAME,
 			},
 		},
 		proxy: {
 			'/api': {
+				target: 'https://s_nestjs:3000',
+				changeOrigin: true,
+				secure: false,
+			},
+			'/socket.io': {
 				target: 'https://s_nestjs:3000',
 				changeOrigin: true,
 				secure: false,

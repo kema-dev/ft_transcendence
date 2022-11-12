@@ -16,6 +16,7 @@ import { VueCookies } from 'vue-cookies';
 import { useRoute } from 'vue-router';
 import HTTP from '../components/axios';
 import { FQDN } from '../../.env.json';
+import { HOSTNAME } from '../../.env.json';
 import MatchmakingItem from '@/components/MatchmakingItem.vue';
 import NavbarItem from '@/components/NavbarItem.vue';
 import NavmenuItem from '@/components/NavmenuItem.vue';
@@ -42,8 +43,10 @@ provide('me', me);
 
 //	========== CREATE SOCKET
 
-let socket = io(FQDN, { query: { login: me } });
-socket.emit("userLogin", me);
+let socket = io(FQDN, {
+	query: { login: me },
+});
+socket.emit('userLogin', me);
 provide('socket', socket);
 
 let userRef: Ref<ProfileUserDto> = ref();
@@ -64,17 +67,17 @@ provide('isCreate', ref(false));
 provide('isJoin', ref(false));
 
 function getMyProfile() {
-	HTTP.get(apiPath + "user/getMyProfile/" + me)
-	.then(res => {
-		userRef.value = res.data;
-		notifs.value = res.data.requestFriend.length;
-		userDone.value = true;
-		// console.log(`GetMyProfile Done`)
-	})
-	.catch(e => console.log(e));
+	HTTP.get(apiPath + 'user/getMyProfile/' + me)
+		.then((res) => {
+			userRef.value = res.data;
+			notifs.value = res.data.requestFriend.length;
+			userDone.value = true;
+			// console.log(`GetMyProfile Done`)
+		})
+		.catch((e) => console.log(e));
 }
 
-socket.on("userBlock", (data : ResumUserDto) => {
+socket.on('userBlock', (data: ResumUserDto) => {
 	// console.log(`User ${data.login} blocked`);
 	let i = privsRef.value.findIndex((p) => p.user.login == data.login);
 	privsRef.value.splice(i, 1);
@@ -96,7 +99,6 @@ socket.on('userUnblockNoPriv', (data: string) => {
 	userRef.value.blockeds.splice(i, 1);
 });
 
-
 //	===================== CHAT =====================
 
 //	========== GET PRIVS
@@ -112,7 +114,6 @@ provide('privs', privsRef);
 provide('nbPrivNR', { n: nbPrivNR, reset: resetNbPrivNR });
 provide('privDone', privDone);
 provide('findPrivIndex', findPrivIndex);
-
 
 function getPrivsRequest() {
 	HTTP.get(apiPath + 'chat/getPrivs/' + me)
@@ -164,7 +165,7 @@ socket.on('newPrivMsg', (data: { msg: MessageDto; id: number }) => {
 		data.msg.user != me &&
 		!nbPrivNR.value.includes(privsRef.value[i].id) &&
 		route.path != '/home/chat/private/' + data.msg.user &&
-		!blocked 
+		!blocked
 	) {
 		nbPrivNR.value.push(privsRef.value[i].id);
 		findPrivIndex.value = true;
@@ -243,7 +244,7 @@ function getChansRequest() {
 
 socket.on('newChanMsg', (data: { msg: MessageDto; name: string }) => {
 	// console.log(`New Channel message received :
-		// channel = ${data.name}, msg = ${data.msg.msg}`);
+	// channel = ${data.name}, msg = ${data.msg.msg}`);
 	let i = chansRef.value.findIndex((chan) => chan.name == data.name);
 	chansRef.value[i].messages.push(
 		new MessageDto(data.msg.user, data.msg.msg, new Date(data.msg.date)),
@@ -293,14 +294,20 @@ socket.on('userQuitChan', (data: { login: string; chan: string }) => {
 	// console.log(`User '${data.login}' left the channel '${data.chan}'`);
 	let i = chansRef.value.findIndex((chan) => chan.name == data.chan);
 	let y;
-		if (chansRef.value[i].owner && data.login == chansRef.value[i].owner.login)
-			chansRef.value[i].owner = null;
-		else if ((y = chansRef.value[i].admins.findIndex(u => u.login == data.login)) != -1)
-			chansRef.value[i].admins.splice(i, 1);
-		else if ((y = chansRef.value[i].users.findIndex(u => u.login == data.login)) != -1)
-			chansRef.value[i].users.splice(i, 1);
-		else if ((y = chansRef.value[i].mutes.findIndex(u => u.login == data.login)) != -1)
-			chansRef.value[i].mutes.splice(i, 1);
+	if (chansRef.value[i].owner && data.login == chansRef.value[i].owner.login)
+		chansRef.value[i].owner = null;
+	else if (
+		(y = chansRef.value[i].admins.findIndex((u) => u.login == data.login)) != -1
+	)
+		chansRef.value[i].admins.splice(i, 1);
+	else if (
+		(y = chansRef.value[i].users.findIndex((u) => u.login == data.login)) != -1
+	)
+		chansRef.value[i].users.splice(i, 1);
+	else if (
+		(y = chansRef.value[i].mutes.findIndex((u) => u.login == data.login)) != -1
+	)
+		chansRef.value[i].mutes.splice(i, 1);
 });
 
 socket.on('modifChan', (data: ModifChanDto) => {
@@ -348,7 +355,9 @@ socket.on('modifChan', (data: ModifChanDto) => {
 		console.log(
 			`User '${data.restoreMute}' from chan '${data.chan}' is unmuted`,
 		);
-		let j = chansRef.value[i].mutes.findIndex((user) => user.login == data.restoreMute,);
+		let j = chansRef.value[i].mutes.findIndex(
+			(user) => user.login == data.restoreMute,
+		);
 		chansRef.value[i].users.push(chansRef.value[i].mutes[j]);
 		chansRef.value[i].mutes.splice(i, 1);
 	} else if (data.kick) {
@@ -471,7 +480,6 @@ socket.on('get_invitations', (data: any) => {
 	user_invitations.value = data;
 });
 socket.emit('get_invitations');
-
 </script>
 
 <style>
