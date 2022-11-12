@@ -3,12 +3,20 @@ const data = require('./.env.json');
 module.exports = defineConfig({
 	devServer: {
 		port: 443,
+		host: '0.0.0.0',
 		server: {
 			type: 'https',
+		},
+		client: {
+			webSocketURL: {
+				hostname: '192.168.0.146',
+			},
 		},
 		proxy: {
 			'/api': {
 				target: 'https://s_nestjs:3000',
+				changeOrigin: true,
+				secure: false,
 			},
 		},
 	},
