@@ -71,7 +71,7 @@ function getMyProfile() {
 		userDone.value = true;
 		// console.log(`GetMyProfile Done`)
 	})
-	.catch(e => console.log(e));
+	// .catch(e => console.log(e));
 }
 
 socket.on("userBlock", (data : ResumUserDto) => {
@@ -134,7 +134,7 @@ function getPrivsRequest() {
 			privDone.value = true;
 			// console.log(`getPrivs Done`);
 		})
-		.catch((e) => console.log(e));
+		// .catch((e) => console.log(e));
 }
 
 //	========== CREATE SOCKET LISTENERS
@@ -236,14 +236,14 @@ function getChansRequest() {
 			chanDone.value = true;
 			// console.log(`getChans Done`);
 		})
-		.catch((e) => console.log(e));
+		// .catch((e) => console.log(e));
 }
 
 //	========== CREATE SOCKET LISTENERS
 
 socket.on('newChanMsg', (data: { msg: MessageDto; name: string }) => {
-	// console.log(`New Channel message received :
-		// channel = ${data.name}, msg = ${data.msg.msg}`);
+	console.log(`New Channel message received :
+		channel = ${data.name}, msg = ${data.msg.msg}`);
 	let i = chansRef.value.findIndex((chan) => chan.name == data.name);
 	chansRef.value[i].messages.push(
 		new MessageDto(data.msg.user, data.msg.msg, new Date(data.msg.date)),
@@ -268,7 +268,7 @@ socket.on('newChanMsg', (data: { msg: MessageDto; name: string }) => {
 
 socket.on('newChannel', (data: ChannelDto) => {
 	if (!chansRef.value.map((chan) => chan.name).includes(data.name)) {
-		// console.log(`invited in channel '${data.name}'`);
+		console.log(`invited in channel '${data.name}'`);
 		let newChan = data;
 		newChan.creation = new Date(newChan.creation);
 		newChan.messages.forEach((msg) => (msg.date = new Date(msg.date)));
@@ -280,17 +280,13 @@ socket.on('newChannel', (data: ChannelDto) => {
 });
 
 socket.on('newChannelUser', (data: { name: string; user: BasicUserDto }) => {
-	// console.log(`New User '${data.user.login}' in channel : ${data.name}`);
+	console.log(`New User '${data.user.login}' in channel : ${data.name}`);
 	let i = chansRef.value.findIndex((chan) => chan.name == data.name);
 	chansRef.value[i].users.push(data.user);
-	// chansRef.value[i].readed = false;
-	// if (data.msg.user != me && !nbPrivNR.value.includes(chansRef.value[i].id))
-	// 	nbPrivNR.value.push(chansRef.value[i].id);
-	// if (i != 0) putChanFirst(i);
 });
 
 socket.on('userQuitChan', (data: { login: string; chan: string }) => {
-	// console.log(`User '${data.login}' left the channel '${data.chan}'`);
+	console.log(`User '${data.login}' left the channel '${data.chan}'`);
 	let i = chansRef.value.findIndex((chan) => chan.name == data.chan);
 	let y;
 		if (chansRef.value[i].owner && data.login == chansRef.value[i].owner.login)
@@ -384,7 +380,7 @@ socket.on('modifChan', (data: ModifChanDto) => {
 		(
 			chansRef.value[i][data.group as keyof ChannelDto] as BasicUserDto[]
 		).splice(j, 1);
-	} else if (data.restoreBan) {
+	} else if (data.restoreBan && data.restoreBan != me) {
 		console.log(
 			`User '${data.restoreBan}' from chan '${data.chan}' is unbaned`,
 		);

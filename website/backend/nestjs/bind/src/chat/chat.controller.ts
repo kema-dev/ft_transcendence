@@ -28,10 +28,10 @@ export class ChatController {
 	async getChans(@Param() params : {login: string}) {
 		console.log(`getChans for user ${params.login }`);
 		const chans = await this.chatService.getUserChans(params.login);
-		let chansDto = this.chatService.createChansDto(params.login, chans)
+		let chansDto = this.chatService.createChansDto(chans);
 		if (chansDto.length)
 			this.chatService.sortChans(chansDto);
-		return chansDto
+		return chansDto;
 	}
 
 	@UseGuards(AuthGuard)
