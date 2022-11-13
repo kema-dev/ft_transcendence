@@ -71,6 +71,7 @@ function back() {
 function create() {
 	console.log('create');
 	isGame.value = true;
+	socket.emit('newLobby');
 }
 function join() {
 	isJoin.value = true;

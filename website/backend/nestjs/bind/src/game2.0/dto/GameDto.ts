@@ -31,21 +31,21 @@ export class GameDto {
 		i = 0;
 		game.walls.forEach((wall) => {
 			if (!this.walls[i]) this.walls[i] = new WallDto();
-			this.walls[i].x = wall.x;
+			this.walls[i].x = wall.x; 
 			this.walls[i].y = wall.y;
 			this.walls[i].w = wall.width;
 			this.walls[i].h = wall.height;
 			this.walls[i].rotation = wall.angle;
 			++i;
 		});
-		for (const i in this.rackets) {
-			if (!this.rackets[i]) this.rackets[i] = new RacketDto(); 
+		for (const i in game.rackets) {
+			if (!this.rackets[i]) this.rackets[i] = new RacketDto();
 			this.rackets[i].x = game.rackets[i].x;
 			this.rackets[i].y = game.rackets[i].y;
 			this.rackets[i].rotation = game.rackets[i].angle;
 			this.rackets[i].h = game.rackets[i].height;
 			this.rackets[i].w = game.rackets[i].width;
 		}
-		this.profiles = this.profiles;
+		this.profiles = game.profiles;
 	}
 }

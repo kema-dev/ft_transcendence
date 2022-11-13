@@ -138,7 +138,7 @@ export default class Game {
 		return scores;
 	}
 	addViewer(socketId: string) {
-		if  (this.sockets.find((s) => s == socketId) == undefined) {
+		if (this.sockets.find((s) => s == socketId) == undefined) {
 			this.sockets.push(socketId);
 			this.socketsViewers.push(socketId);
 		}
@@ -146,13 +146,17 @@ export default class Game {
 	isEnd() {
 		return !this.run;
 	}
+	update() {
+		this.setDto();
+		this.server.to(this.sockets).emit('init_game', JSON.stringify(this.dto));
+	}
 	destructor() {
 		this.run = false;
 	}
 	async loop() {
 		let start = performance.now();
 		while (this.run) {
-			if (this.start)
+			if (this.start) {
 				for (const ball of this.balls) {
 					let login: any;
 					if ((login = ball.detectCollision(this.objects))) {
@@ -174,6 +178,7 @@ export default class Game {
 					ball.x = ball.x + ball.v.x * ball.speed * this.deltaTime;
 					ball.y = ball.y + ball.v.y * ball.speed * this.deltaTime;
 				}
+			}
 			for (const i in this.profiles) {
 				const mov = this.profiles[i].mov;
 				if (mov == 0) continue;
@@ -227,7 +232,7 @@ export default class Game {
 				}
 			}
 			this.setSmallDto();
-			this.server.to(this.sockets).emit('update_game', JSON.stringify(this.dto));
+			this.server.to(this.sockets).emit('update_game', JSON.stringify(this.smallDto));
 			const hrTime = process.hrtime();
 			const end = hrTime[0] * 1000 + hrTime[1] / 1000000;
 			this.deltaTime = end - start;

@@ -16,7 +16,8 @@
 			<div v-else-if="!start && !isOwner" id="settings">
 				<h1>{{ nbrBall }}</h1>
 				<h2 class="title">Balls</h2>
-				<h1>Waiting for owner to start</h1></div>
+				<h2 style="margin-top: 3%;">Waiting for owner to start</h2>
+			</div>
 		</div>
 		<div v-if="win" class="msg">
 			<h1>YOU WIN !</h1>
@@ -38,17 +39,20 @@ let colors = inject('colors');
 let socket: Socket = inject('socket')!;
 let start = ref(false);
 provide('playing', start);
-let isOwner = ref(true);
-provide('isOwner', isOwner);
-let remount = ref(false);
+let isOwner = ref(false);
 let nbrBall = ref(1);
+socket.on('get_game_info', (data) => {
+	isOwner.value = data.owner;
+	nbrBall.value = data.nbrBall;
+});
+let remount = ref(false);
 let win = ref(false);
 let lose = ref(false);
 const toast = useToast();
 let me: Ref<any> = inject('user')!;
 
 onMounted(() => {
-	socket.emit('newLobby', { login: me?.value?.login, nbrBall: 1 });
+	socket.emit('get_game_info');
 	socket.on('info_game', (data: InfoDto) => {
 		if (data.left != "")
 			toast.warning(data.left + ' left the game');
@@ -56,21 +60,20 @@ onMounted(() => {
 		win.value = data.isWin;
 		lose.value = data.isLose;
 		start.value = data.isStart;
-		isOwner.value = data.isOwner;
 		console.log("is owner: ", me?.value?.lobby_name == me?.value?.login + "'s lobby")
 		if (me?.value?.lobby_name == me?.value?.login + "'s lobby")
 			isOwner.value = true;
 	});
 })
 onUnmounted(() => {
-socket.off('end');
+	socket.off('end');
+	socket.off('info_game');
+	socket.off('get_game_info');
 })
 
 function launch() {
 	start.value = !start.value;
-	socket.emit('start', {
-		lobby_name: me?.value?.lobby_name,
-	});
+	socket.emit('start');
 }
 function incrBall() {
 	if (nbrBall.value + 1 <= 3) {
@@ -80,6 +83,7 @@ function incrBall() {
 			nbrBall: nbrBall.value,
 		});
 		remount.value = !remount.value;
+		socket.emit('send_game_info');
 	} else {
 		toast.warning('3 balls maximum');
 	}
@@ -92,6 +96,7 @@ function decrBall() {
 			nbrBall: nbrBall.value,
 		});
 		remount.value = !remount.value;
+		socket.emit('send_game_info');
 	} else {
 		toast.warning('1 balls minimum');
 	}

@@ -7,9 +7,6 @@ export class SmallGameDto {
 	balls: Array<BallDto>;
 	rackets: RacketDto[];
 	profiles: {
-		x: number,
-		y: number,
-		rotation: number,
 		score: number,
 		red: boolean
 	}[];
@@ -22,17 +19,14 @@ export class SmallGameDto {
 			this.balls[i].y = game.balls[i].y;
 		}
 		this.rackets = [];
-		for (const i in this.rackets) {
+		for (const i in game.rackets) {
 			if (!this.rackets[i]) this.rackets[i] = new RacketDto();
 			this.rackets[i].x = game.rackets[i].x;
 			this.rackets[i].y = game.rackets[i].y;
 		}
 		this.profiles = [];
-		for (const i in this.profiles) {
+		for (const i in game.profiles) {
 			this.profiles[i] = {
-				x: game.profiles[i].x,
-				y: game.profiles[i].y,
-				rotation: game.profiles[i].rotation,
 				score: game.profiles[i].score,
 				red: game.profiles[i].red
 			};

@@ -10,6 +10,10 @@ import { Socket } from 'socket.io-client';
 import { GameDto } from '@/dto/GameDto';
 import Profile from '@/game2.0/Profile';
 import ProfileUserDto from '@/dto/ProfileUserDto';
+import { SmallGameDto } from '@/dto/SmallGameDto';
+import { BallDto } from '@/dto/BallDto';
+import ProfileDto from '@/dto/ProfileDto';
+import { RacketDto } from '@/dto/RacketDto';
 
 let socket: Socket = inject('socket')!;
 let run = true;
@@ -17,7 +21,6 @@ let run = true;
 let me: Ref<ProfileUserDto> = inject('user')!;
 let rotation = 0;
 let gameDto: GameDto | undefined = undefined;
-let isOwner = inject('isOwner')!;
 var mov = 0;
 let rackets: Konva.Rect[] = [];
 let walls: Konva.Rect[] = [];
@@ -25,21 +28,51 @@ let balls: Konva.Circle[] = [];
 let profiles: Profile[] = [];
 var container: any;
 
-onMounted(async () => {
-	update();
-});
 function focus() {
 	container.focus();
 }
-async function update() {
+socket.on('init_game', (game: string) => {
+	gameDto = JSON.parse(game);
+});
+onMounted(async () => {
+	socket.emit('get_game');
 	socket.on('update_game', (game: string) => {
-		// console.log(game)
-		gameDto = JSON.parse(game);
-		// console.log(gameDto);
-		// if (bool) {
-		// 	bool = false;
-		// 	loop();
-		// }
+		let newGame: SmallGameDto = JSON.parse(game);
+		if (!gameDto || gameDto == undefined || !game)
+			return;
+		gameDto.start = newGame.start;
+		if (gameDto.balls.length != newGame.balls.length)
+			console.log('balls: ', gameDto.balls.length, newGame.balls.length);
+		for (let i = 0; i < newGame.balls.length; i++) {
+			if (!gameDto.balls[i])
+				gameDto.balls.push(newGame.balls[i]);
+			else {
+				gameDto.balls[i].x = newGame.balls[i].x;
+				gameDto.balls[i].y = newGame.balls[i].y;
+			}
+		}
+		while (gameDto.balls.length > newGame.balls.length)
+			gameDto.balls.pop();
+		if (gameDto.rackets.length != newGame.rackets.length)
+			console.log('rackets: ', gameDto.rackets.length, newGame.rackets.length);
+		for (let i = 0; i < newGame.rackets.length; i++) {
+			if (!gameDto.rackets[i])
+				gameDto.rackets.push(newGame.rackets[i]);
+			else {
+				gameDto.rackets[i].x = newGame.rackets[i].x;
+				gameDto.rackets[i].y = newGame.rackets[i].y;
+			}
+		}
+		while (gameDto.rackets.length > newGame.rackets.length)
+			gameDto.rackets.pop();
+		if (gameDto.profiles.length != newGame.profiles.length)
+			console.log('profiles: ', gameDto.profiles.length, newGame.profiles.length);
+		for (let i = 0; i < newGame.profiles.length; i++) {
+			gameDto.profiles[i].score = newGame.profiles[i].score;
+			gameDto.profiles[i].red = newGame.profiles[i].red;
+		}
+		while (gameDto.profiles.length > newGame.profiles.length)
+			gameDto.profiles.pop();
 	});
 	var sceneWidth = 1000;
 	var sceneHeight = 1000;
@@ -76,12 +109,10 @@ async function update() {
 	fitStageIntoParentContainer();
 	window.addEventListener('resize', fitStageIntoParentContainer);
 
-	while (gameDto === undefined) {
+	while (gameDto === undefined || !gameDto.walls) {
 		await delay(100);
 	}
-	if (gameDto.owner === me.value.login) {
-		isOwner.value = true;
-	}
+	console.log(gameDto);
 	for (let player of gameDto.profiles) {
 		if (me?.value?.login == player.login) break;
 		rotation -= 360 / gameDto.nbrPlayer;
@@ -172,14 +203,14 @@ async function update() {
 		});
 		e.preventDefault();
 	});
-}
+});
 async function loop() {
 	while (gameDto === undefined) {
 		await delay(100);
 	}
 	while (run) {
 		if (gameDto.start)
-			for (let i = 0; i < gameDto.nbrBall; ++i) {
+			for (let i = 0; i < balls.length; ++i) {
 				balls[i].x(gameDto.balls[i].x);
 				balls[i].y(gameDto.balls[i].y);
 			}
