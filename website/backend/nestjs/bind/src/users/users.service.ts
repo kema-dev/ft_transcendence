@@ -62,6 +62,18 @@ export class UsersService {
 		// throw new HttpException('E_USER_NOT_FOUND', HttpStatus.NOT_FOUND);
 	}
 
+	async getBySocketId(socketId: string, relations?: any) {
+		let params;
+		if (relations) params = { where: { socketId: socketId }, relations: relations };
+		else params = { where: { socketId: socketId } };
+		const user = await this.usersRepository.findOne(params);
+		if (user) {
+			return user;
+		}
+		console.error('getBySocketId: ' + socketId + ' not found, returning ✘');
+		throw new HttpException('E_USER_NOT_FOUND', HttpStatus.NOT_FOUND);
+	}
+
 	async getByLoginFiltred(filter: string) {
 		const maxUsers = 20;
 		console.log("getByLoginFiltred: starting for '" + filter + "'");

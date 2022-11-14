@@ -221,7 +221,7 @@ function privMsgRead() {
 		&& privsRef.value[index.value].readed == false
 	) {
 		privsRef.value[index.value].readed = true;
-		mySocket.emit('privReaded', {sender: userName, receiver: me});
+		mySocket.emit('privReaded', {sender: userName});
 	}
 }
 

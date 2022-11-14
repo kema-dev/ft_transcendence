@@ -63,8 +63,8 @@ export class AppGateway
 	}
 	// Disconnection
 	async handleDisconnect(client: Socket) {
-		this.logger.log(`Client disconnected: ${client.id}`);
 		let user = client.handshake.query.login as string;
+		this.logger.log(`Client disconnected: ${user}`);
 		this.leftGame({ login: user });
 		this.server.emit('userStatus', { user: user, status: 'offline' });
 	}
@@ -437,11 +437,11 @@ export class AppGateway
 		@MessageBody() data: NewPrivMsgDto,
 		@ConnectedSocket() client: Socket,
 	) {
-		const priv = await this.chatService.addPrivMsg(data);
-		const sender = await this.userService.getByLogin(data.userSend);
+		const sender = await this.userService.getBySocketId(client.id);
+		const priv = await this.chatService.addPrivMsg(sender, data);
 		const receiver = await this.userService.getByLogin(data.userReceive);
 		const msg = new MessageDto(
-			data.userSend,
+			sender.login,
 			data.message,
 			new Date(data.date),
 		);
@@ -470,10 +470,11 @@ export class AppGateway
 
 	@SubscribeMessage('privReaded')
 	async privReaded(
-		@MessageBody() data: { sender: string; receiver: string },
+		@MessageBody() data: {sender: string},
 		@ConnectedSocket() client: Socket,
 	) {
-		this.chatService.markPrivReaded(data.sender, data.receiver);
+		const receiver = await this.userService.getBySocketId(client.id);
+		this.chatService.markPrivReaded(data.sender, receiver.login);
 	}
 
 	// ========== CHANNELS
@@ -483,15 +484,13 @@ export class AppGateway
 		@MessageBody() data: NewChanMsgDto,
 		@ConnectedSocket() client: Socket,
 	) {
-		const chan = await this.chatService.addChanMsg(data);
+		const sender = await this.userService.getBySocketId(client.id);
+		const chan = await this.chatService.addChanMsg(sender, data);
 		const msg = new MessageDto(
-			data.userSend,
+			sender.login,
 			data.message,
 			new Date(data.date),
 		);
-		// let allUsers = chan.admins.concat(chan.users).concat(chan.mutes);
-		// if (chan.owner)
-		// 	allUsers.push(chan.owner);
 		let allUsers = this.chatService.getAllChanUsers(chan);
 		for (let user of allUsers) {
 			this.server
@@ -505,6 +504,7 @@ export class AppGateway
 		@MessageBody() data: { chan: string, login: string },
 		@ConnectedSocket() client: Socket,
 	) {
+		const sender = await this.userService.getBySocketId(client.id);
 		this.chatService.newChannelUser(this.server, data);
 	}
 
@@ -513,6 +513,7 @@ export class AppGateway
 		@MessageBody() data: { login: string, chan: string },
 		@ConnectedSocket() client: Socket,
 	) {
+		const sender = await this.userService.getBySocketId(client.id);
 		this.chatService.userQuitChan(this.server, data);
 	}
 
@@ -521,12 +522,8 @@ export class AppGateway
 		@MessageBody() data: ModifChanDto,
 		@ConnectedSocket() client: Socket,
 	) {
-		try {
-			this.chatService.modifChan(this.server, data);
-		}
-		catch (e) {
-			console.log(e);
-		}
+		const sender = await this.userService.getBySocketId(client.id);
+		this.chatService.modifChan(this.server, data);
 	}
 
 	@SubscribeMessage('invite_to_game')

@@ -87,9 +87,8 @@ export class ChatService {
 		return priv;
 	}
 
-	async addPrivMsg(data: NewPrivMsgDto) {
+	async addPrivMsg(userSend: UserEntity, data: NewPrivMsgDto) {
 		console.log(`addPrivMsg Chatservice, msg = '${data.message}'`);
-		const userSend = await this.userService.getByLogin(data.userSend);
 		const userReceive = await this.userService.getByLogin(data.userReceive);
 		const msg = this.msgRepository.create({
 			user: userSend,
@@ -353,9 +352,9 @@ export class ChatService {
 		return this.createChanDto(newChan);
 	}
 
-	async addChanMsg(data: NewChanMsgDto) {
+	async addChanMsg(userSend : UserEntity, data: NewChanMsgDto) {
 		console.log(`addChanMsg Chatservice, msg = '${data.message}'`);
-		const userSend = await this.userService.getByLogin(data.userSend);
+		// const userSend = await this.userService.getByLogin(data.userSend);
 		const msg = this.msgRepository.create({
 			user: userSend,
 			message: data.message,
