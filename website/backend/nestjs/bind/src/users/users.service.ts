@@ -67,11 +67,13 @@ export class UsersService {
 		if (relations) params = { where: { socketId: socketId }, relations: relations };
 		else params = { where: { socketId: socketId } };
 		const user = await this.usersRepository.findOne(params);
-		if (user) {
+		if (user)
 			return user;
+		else {
+			console.error('getBySocketId: ' + socketId + ' not found, returning ✘');
+			return null;
 		}
-		console.error('getBySocketId: ' + socketId + ' not found, returning ✘');
-		throw new HttpException('E_USER_NOT_FOUND', HttpStatus.NOT_FOUND);
+		// throw new HttpException('E_USER_NOT_FOUND', HttpStatus.NOT_FOUND);
 	}
 
 	async getByLoginFiltred(filter: string) {

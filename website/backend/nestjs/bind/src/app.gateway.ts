@@ -438,6 +438,8 @@ export class AppGateway
 		@ConnectedSocket() client: Socket,
 	) {
 		const sender = await this.userService.getBySocketId(client.id);
+		if (!sender)
+			return;
 		const priv = await this.chatService.addPrivMsg(sender, data);
 		const receiver = await this.userService.getByLogin(data.userReceive);
 		const msg = new MessageDto(
@@ -474,6 +476,8 @@ export class AppGateway
 		@ConnectedSocket() client: Socket,
 	) {
 		const receiver = await this.userService.getBySocketId(client.id);
+		if (!receiver)
+			return;
 		this.chatService.markPrivReaded(data.sender, receiver.login);
 	}
 
@@ -485,6 +489,8 @@ export class AppGateway
 		@ConnectedSocket() client: Socket,
 	) {
 		const sender = await this.userService.getBySocketId(client.id);
+		if (!sender)
+			return
 		const chan = await this.chatService.addChanMsg(sender, data);
 		const msg = new MessageDto(
 			sender.login,
@@ -505,6 +511,8 @@ export class AppGateway
 		@ConnectedSocket() client: Socket,
 	) {
 		const sender = await this.userService.getBySocketId(client.id);
+		if (!sender)
+			return;
 		this.chatService.newChannelUser(this.server, data);
 	}
 
@@ -514,6 +522,8 @@ export class AppGateway
 		@ConnectedSocket() client: Socket,
 	) {
 		const sender = await this.userService.getBySocketId(client.id);
+		if (!sender)
+			return;
 		this.chatService.userQuitChan(this.server, data);
 	}
 
@@ -523,6 +533,8 @@ export class AppGateway
 		@ConnectedSocket() client: Socket,
 	) {
 		const sender = await this.userService.getBySocketId(client.id);
+		if (!sender)
+			return;
 		this.chatService.modifChan(this.server, data);
 	}
 
