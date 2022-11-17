@@ -168,10 +168,6 @@ async function register() {
 		return;
 	}
 	API.post('auth/register', {
-		headers: {
-			login: cookies.get('login'),
-			token: cookies.get('session'),
-		},
 		email: email_register.value,
 		login: login_register.value,
 		password: password_register.value,
@@ -215,10 +211,6 @@ async function auth() {
 		return;
 	}
 	await API.post('auth/login', {
-		headers: {
-			login: cookies.get('login'),
-			token: cookies.get('session'),
-		},
 		email: email_auth.value,
 		password: password_auth.value,
 		mfa: totp_val.value,
@@ -271,10 +263,6 @@ onMounted(async () => {
 	let code = urlParams.get('code');
 	if (code) {
 		await API.post('auth/login42', {
-			headers: {
-				login: cookies.get('login'),
-				token: cookies.get('session'),
-			},
 			code: code,
 			mfa: totp_val.value,
 		})

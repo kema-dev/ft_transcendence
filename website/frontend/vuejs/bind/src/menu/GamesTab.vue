@@ -62,10 +62,6 @@ function isDone() {
 onMounted(async () => {
 	update_invitations();
 	API.post('/match/get_user_history', {
-		headers: {
-			login: cookies.get('login'),
-			token: cookies.get('session'),
-		},
 		login: myName,
 	})
 		.then((res) => {

@@ -84,10 +84,6 @@ let avatar = ref([]);
 async function get_avatars() {
 	for (let i = 0; i < props.match.players.length; i++) {
 		await API.post('/user/get_user_avatar', {
-			headers: {
-				login: cookies.get('login'),
-				token: cookies.get('session'),
-			},
 			login: props.match.players[i],
 		})
 			.then((res) => {

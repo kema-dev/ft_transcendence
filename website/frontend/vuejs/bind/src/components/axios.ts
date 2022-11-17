@@ -8,10 +8,6 @@ const { cookies } = useCookies();
 
 export const API = axios.create({
 	baseURL: data.FQDN + api_url,
-	headers: {
-		login: cookies.get('login'),
-		session: cookies.get('session'),
-	},
 });
 
 export default API;

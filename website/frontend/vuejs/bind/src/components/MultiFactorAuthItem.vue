@@ -65,10 +65,6 @@ let router = useRouter();
 
 function change_username() {
 	API.post('user/change_username', {
-		headers: {
-			login: cookies.get('login'),
-			token: cookies.get('session'),
-		},
 		username: email.value,
 		new_username: new_username.value,
 	})
@@ -93,10 +89,6 @@ function change_username() {
 
 function get_totp_url() {
 	API.post('auth/set_tmp_totp', {
-		headers: {
-			login: cookies.get('login'),
-			token: cookies.get('session'),
-		},
 		email: email.value,
 	})
 		.then((response) => {
@@ -118,10 +110,6 @@ function close() {
 
 function debug() {
 	API.post('auth/debug', {
-		headers: {
-			login: cookies.get('login'),
-			token: cookies.get('session'),
-		},
 		email: email.value,
 	})
 		.then((response) => {
@@ -135,10 +123,6 @@ function debug() {
 function verify() {
 	// console.log(email.value, code.value);
 	API.post('auth/verify_tmp_totp', {
-		headers: {
-			login: cookies.get('login'),
-			token: cookies.get('session'),
-		},
 		name: email.value,
 		code: code.value,
 	})
@@ -156,10 +140,6 @@ function verify() {
 
 async function disable() {
 	await API.post('auth/check_totp_status', {
-		headers: {
-			login: cookies.get('login'),
-			token: cookies.get('session'),
-		},
 		name: email.value,
 	})
 		.then((response) => {
@@ -169,10 +149,6 @@ async function disable() {
 				return;
 			} else {
 				API.post('auth/verify_totp', {
-					headers: {
-						login: cookies.get('login'),
-						token: cookies.get('session'),
-					},
 					name: email.value,
 					code: code.value,
 				})
@@ -194,10 +170,6 @@ async function disable() {
 
 function disable_totp_api() {
 	API.post('auth/disable_totp', {
-		headers: {
-			login: cookies.get('login'),
-			token: cookies.get('session'),
-		},
 		name: email.value,
 	})
 		.then((response) => {
@@ -212,10 +184,6 @@ function disable_totp_api() {
 
 async function get_infos() {
 	await API.get('user/getEmail/' + $cookies.get('login'), {
-		headers: {
-			login: cookies.get('login'),
-			token: cookies.get('session'),
-		},
 		params: {
 			login: $cookies.get('login'),
 		},

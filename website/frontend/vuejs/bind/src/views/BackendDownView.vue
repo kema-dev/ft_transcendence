@@ -36,10 +36,6 @@ const toast = useToast();
 
 onMounted(() => {
 	API.get('auth/status', {
-		headers: {
-			login: cookies.get('login'),
-			token: cookies.get('session'),
-		},
 	})
 		.then(() => {
 			backend_status.value = true;
