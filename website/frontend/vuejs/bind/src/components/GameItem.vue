@@ -11,16 +11,12 @@ import { GameDto } from '@/dto/GameDto';
 import Profile from '@/game2.0/Profile';
 import ProfileUserDto from '@/dto/ProfileUserDto';
 import { SmallGameDto } from '@/dto/SmallGameDto';
-import { BallDto } from '@/dto/BallDto';
-import ProfileDto from '@/dto/ProfileDto';
-import { RacketDto } from '@/dto/RacketDto';
 
+let props = defineProps(['game']);
+let gameDto: GameDto = props.game;
 let socket: Socket = inject('socket')!;
-let run = true;
-// let nbrPlayer = ref(props.nbrPlayer)
 let me: Ref<ProfileUserDto> = inject('user')!;
 let rotation = 0;
-let gameDto: GameDto | undefined = undefined;
 var mov = 0;
 let rackets: Konva.Rect[] = [];
 let walls: Konva.Rect[] = [];
@@ -31,48 +27,43 @@ var container: any;
 function focus() {
 	container.focus();
 }
-socket.on('init_game', (game: string) => {
-	gameDto = JSON.parse(game);
-});
 onMounted(async () => {
-	socket.emit('get_game');
-	socket.on('update_game', (game: string) => {
-		let newGame: SmallGameDto = JSON.parse(game);
-		if (!gameDto || gameDto == undefined || !game)
+	socket.on('update_game', (data: SmallGameDto) => {
+		if (!data || !gameDto)
 			return;
-		gameDto.start = newGame.start;
-		if (gameDto.balls.length != newGame.balls.length)
-			console.log('balls: ', gameDto.balls.length, newGame.balls.length);
-		for (let i = 0; i < newGame.balls.length; i++) {
-			if (!gameDto.balls[i])
-				gameDto.balls.push(newGame.balls[i]);
-			else {
-				gameDto.balls[i].x = newGame.balls[i].x;
-				gameDto.balls[i].y = newGame.balls[i].y;
+		let newGame: SmallGameDto = data;
+		if (newGame.start) {
+			if (balls.length == newGame.balls.length)
+				for (let i = 0; i < newGame.balls.length; i++) {
+					balls[i].x(newGame.balls[i].x);
+					balls[i].y(newGame.balls[i].y);
+				}
+			if (profiles.length == newGame.profiles.length)
+				for (let i in profiles) {
+					let p = profiles[i];
+					p.konvaScore.text(newGame.profiles[i].score.toString());
+					if (newGame.profiles[i].red) {
+						p.konvaScore.fontSize(30);
+						p.konvaScore.fill('#E00D0D');
+						p.konvaBackground.stroke('#E00D0D');
+						p.konvaRound.stroke('#E00D0D');
+						p.konvaRound.strokeWidth(5);
+						p.konvaBackground.strokeWidth(5);
+					} else {
+						p.konvaBackground.stroke('#16638D');
+						p.konvaBackground.strokeWidth(3);
+						p.konvaRound.stroke('#16638D');
+						p.konvaRound.strokeWidth(3);
+						p.konvaScore.fontSize(25);
+						p.konvaScore.fill('#16638D');
+					}
+				}
+		}
+		if (newGame.profiles.length == profiles.length)
+			for (let i in rackets) {
+				rackets[i].x(newGame.rackets[i].x);
+				rackets[i].y(newGame.rackets[i].y);
 			}
-		}
-		while (gameDto.balls.length > newGame.balls.length)
-			gameDto.balls.pop();
-		if (gameDto.rackets.length != newGame.rackets.length)
-			console.log('rackets: ', gameDto.rackets.length, newGame.rackets.length);
-		for (let i = 0; i < newGame.rackets.length; i++) {
-			if (!gameDto.rackets[i])
-				gameDto.rackets.push(newGame.rackets[i]);
-			else {
-				gameDto.rackets[i].x = newGame.rackets[i].x;
-				gameDto.rackets[i].y = newGame.rackets[i].y;
-			}
-		}
-		while (gameDto.rackets.length > newGame.rackets.length)
-			gameDto.rackets.pop();
-		if (gameDto.profiles.length != newGame.profiles.length)
-			console.log('profiles: ', gameDto.profiles.length, newGame.profiles.length);
-		for (let i = 0; i < newGame.profiles.length; i++) {
-			gameDto.profiles[i].score = newGame.profiles[i].score;
-			gameDto.profiles[i].red = newGame.profiles[i].red;
-		}
-		while (gameDto.profiles.length > newGame.profiles.length)
-			gameDto.profiles.pop();
 	});
 	var sceneWidth = 1000;
 	var sceneHeight = 1000;
@@ -108,11 +99,9 @@ onMounted(async () => {
 	}
 	fitStageIntoParentContainer();
 	window.addEventListener('resize', fitStageIntoParentContainer);
-
-	while (gameDto === undefined || !gameDto.walls) {
-		await delay(100);
-	}
 	console.log(gameDto);
+	if (gameDto == undefined)
+		return;
 	for (let player of gameDto.profiles) {
 		if (me?.value?.login == player.login) break;
 		rotation -= 360 / gameDto.nbrPlayer;
@@ -172,7 +161,6 @@ onMounted(async () => {
 	game.add(background);
 	game.add(objects);
 	layer.add(game);
-	loop();
 	container.addEventListener('keydown', function (e: any) {
 		if (e.key == 'ArrowLeft') {
 			mov = -1;
@@ -204,50 +192,7 @@ onMounted(async () => {
 		e.preventDefault();
 	});
 });
-async function loop() {
-	while (gameDto === undefined) {
-		await delay(100);
-	}
-	while (run) {
-		if (gameDto.start)
-			for (let i = 0; i < balls.length; ++i) {
-				balls[i].x(gameDto.balls[i].x);
-				balls[i].y(gameDto.balls[i].y);
-			}
-		for (let i in gameDto.rackets) {
-			rackets[i].x(gameDto.rackets[i].x);
-			rackets[i].y(gameDto.rackets[i].y);
-		}
-		for (let i in gameDto.profiles) {
-			let p = profiles[i];
-			p.konvaScore.text(gameDto.profiles[i].score.toString());
-			if (gameDto.profiles[i].red) {
-				p.konvaScore.fontSize(30);
-				p.konvaScore.fill('#E00D0D');
-				p.konvaBackground.stroke('#E00D0D');
-				p.konvaRound.stroke('#E00D0D');
-				p.konvaRound.strokeWidth(5);
-				p.konvaBackground.strokeWidth(5);
-			} else {
-				p.konvaBackground.stroke('#16638D');
-				p.konvaBackground.strokeWidth(3);
-				p.konvaRound.stroke('#16638D');
-				p.konvaRound.strokeWidth(3);
-				p.konvaScore.fontSize(25);
-				p.konvaScore.fill('#16638D');
-			}
-		}
-		// if (
-		// 	rack.y() + mov * deltaTime > walls.get(0)!.y &&
-		// 	rack.y() + mov * deltaTime <
-		// 		walls.get(0)!.y + (walls.get(0)!.width / 4) * 3
-		// )
-		// 	rack.y(rack.y() + mov * deltaTime);
-		await delay(1);
-	}
-}
 onUnmounted(() => {
-	run = false;
 	socket.off('update_game');
 	// window.removeEventListener("resize", () => {});
 });

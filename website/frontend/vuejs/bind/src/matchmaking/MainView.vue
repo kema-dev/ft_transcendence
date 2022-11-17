@@ -70,8 +70,11 @@ function back() {
 }
 function create() {
 	console.log('create');
-	isGame.value = true;
-	socket.emit('newLobby');
+	socket.emit('newLobby', function (status: string) {
+		console.log(status);
+		isGame.value = true;
+		isJoin.value = false;
+	});
 }
 function join() {
 	isJoin.value = true;

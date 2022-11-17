@@ -25,7 +25,7 @@ export default class Racket {
 		this.startX = this.x;
 		this.startY = this.y;
 		this.angle = wall.angle;
-		this.speed = 2.56;
+		this.speed = 0.2;
 		this.wall = wall;
 		if (this.angle < 90)
 			this.max = new Vector(this.y, this.y + this.vector.x * this.height * 3);

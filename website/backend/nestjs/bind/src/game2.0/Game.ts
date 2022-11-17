@@ -33,9 +33,12 @@ export default class Game {
 	socketsViewers: string[];
 	owner: string;
 	img: string;
+	startTime: number;
 	match_service: MatchService;
 	app: AppGateway;
 	fieldpoints: Array<{ x: number, y: number }>;
+	interval: any;
+	maxDelta: number;
 	constructor(
 		nbrPlayer: number,
 		nbrBall: number,
@@ -59,6 +62,7 @@ export default class Game {
 		this.deltaTime = 0.175;
 		this.rackets = [];
 		this.profiles = [];
+		this.maxDelta = 0;
 		this.img = img;
 		this.players = players;
 		this.sockets = [];
@@ -69,8 +73,9 @@ export default class Game {
 			this.sockets.push(player.socketId);
 		this.logger = new Logger();
 		this.init();
-		this.setDto();
-		this.loop();
+		this.update();
+		this.startTime = Date.now();
+		this.interval = setInterval(this.loop, 1000 / 60, this);
 	}
 	init() {
 		const radius = 410;
@@ -130,7 +135,7 @@ export default class Game {
 		else
 			this.balls.pop();
 		this.nbrBall = nbrBall;
-		this.setDto();
+		this.update();
 	}
 	getScores() {
 		let scores = [];
@@ -148,100 +153,53 @@ export default class Game {
 	}
 	update() {
 		this.setDto();
-		this.server.to(this.sockets).emit('init_game', JSON.stringify(this.dto));
+		this.server.to(this.sockets).emit('init_game', this.dto);
 	}
 	destructor() {
 		this.run = false;
+		clearInterval(this.interval);
 	}
-	async loop() {
-		let start = performance.now();
-		while (this.run) {
-			if (this.start) {
-				for (const ball of this.balls) {
-					let login: any;
-					if ((login = ball.detectCollision(this.objects))) {
-						this.run = false;
-						if (this.nbrPlayer == 1) {
-							this.match_service.add_match(this);
-							this.server.to(this.players[0].socketId).emit('end', { win: true });
-						}
-						else if (this.nbrPlayer == 2) {
-							this.match_service.add_match(this);
-							this.server.to(this.players.find((p) => p.login != login)?.socketId).emit('end', { win: true });
-							this.server.to(this.players.find((p) => p.login == login)?.socketId).emit('end', { win: false });
-						}
-						else
-							this.server.to(this.players.find((p) => p.login == login)?.socketId).emit('end', { win: false });
-						this.app.quitGame(login, { lose: true });
-						return;
+	async loop(game: Game) {
+		if (game.start) {
+			for (const ball of game.balls) {
+				if (ball.speed == 0)
+					continue;
+				let login: any;
+				if ((login = ball.detectCollision(game.objects))) {
+					game.run = false;
+					if (game.nbrPlayer == 1) {
+						game.match_service.add_match(game);
+						game.server.to(game.players[0].socketId).emit('end', { win: true });
 					}
-					ball.x = ball.x + ball.v.x * ball.speed * this.deltaTime;
-					ball.y = ball.y + ball.v.y * ball.speed * this.deltaTime;
+					else if (game.nbrPlayer == 2) {
+						game.match_service.add_match(game);
+						game.server.to(game.players.find((p) => p.login != login)?.socketId).emit('end', { win: true });
+						game.server.to(game.players.find((p) => p.login == login)?.socketId).emit('end', { win: false });
+					}
+					else
+						game.server.to(game.players.find((p) => p.login == login)?.socketId).emit('end', { win: false });
+					game.app.quitGame(login, { lose: true });
+					game.destructor();
+					return;
 				}
+				ball.x = ball.x + ball.v.x * ball.speed * game.deltaTime;
+				ball.y = ball.y + ball.v.y * ball.speed * game.deltaTime;
 			}
-			for (const i in this.profiles) {
-				const mov = this.profiles[i].mov;
-				if (mov == 0) continue;
-				const rack = this.rackets[i];
-				const x = rack.x + -rack.vector.y * (this.deltaTime * mov);
-				const y = rack.y + rack.vector.x * (this.deltaTime * mov);
-
-				const rack_number = parseInt(i);
-				const left_point = this.fieldpoints[rack_number * 2];
-				let right_point;
-				if (rack_number - 1 < 0) {
-					right_point = this.fieldpoints[this.fieldpoints.length - 1];
-				} else {
-					right_point = this.fieldpoints[rack_number * 2 - 1];
-				}
-
-				const rack_offset = {
-					x: rack.startX - left_point.x,
-					y: rack.startY - left_point.y,
-				};
-				const left_with_offset = {
-					x: left_point.x + rack_offset.x,
-					y: left_point.y + rack_offset.y,
-				};
-				const right_with_offset = {
-					x: right_point.x + rack_offset.x,
-					y: right_point.y + rack_offset.y,
-				};
-				const rack_size = {
-					x: rack.height * Math.sin(((rack.angle * -1) / 360) * 2 * Math.PI),
-					y: rack.height * Math.cos(((rack.angle * -1) / 360) * 2 * Math.PI),
-				};
-				const rack_start = {
-					x: x,
-					y: y,
-				};
-				const rack_end = {
-					x: x + rack_size.x,
-					y: y + rack_size.y,
-				};
-				let move = false;
-				if (
-					this.point_between(rack_start, left_with_offset, right_with_offset) &&
-					this.point_between(rack_end, left_with_offset, right_with_offset)
-				) {
-					move = true;
-				}
-				if (move == true) {
-					rack.x = x;
-					rack.y = y;
-				}
-			}
-			this.setSmallDto();
-			this.server.to(this.sockets).emit('update_game', JSON.stringify(this.smallDto));
-			const hrTime = process.hrtime();
-			const end = hrTime[0] * 1000 + hrTime[1] / 1000000;
-			this.deltaTime = end - start;
-			this.deltaTime /= 1000;
-			this.deltaTime *= 60;
-			// console.log(this.deltaTime);
-			start = end;
-			await delay(16 - this.deltaTime);
 		}
+		for (const i in game.profiles) {
+			const mov = game.profiles[i].mov;
+			if (mov == 0) continue;
+			game.movRacket(game, i, mov);
+		}
+		game.setSmallDto();
+		game.server.to(game.sockets).emit('update_game', game.smallDto);
+		const endTime = Date.now();
+		game.deltaTime = (endTime - game.startTime);
+		if (game.deltaTime > game.maxDelta && game.start) {
+			game.maxDelta = game.deltaTime;
+			console.log(game.deltaTime);
+		}
+		game.startTime = endTime;
 	}
 	point_between(point: any, left: any, right: any) {
 		const x_min = Math.min(left.x, right.x);
@@ -258,6 +216,56 @@ export default class Game {
 			return true;
 		}
 		return false;
+	}
+	movRacket(game: Game, i: string, mov: number) {
+		const rack = game.rackets[parseInt(i)];
+			const x = rack.x + -rack.vector.y * (game.deltaTime * mov);
+			const y = rack.y + rack.vector.x * (game.deltaTime * mov);
+
+			const rack_number = parseInt(i);
+			const left_point = game.fieldpoints[rack_number * 2];
+			let right_point;
+			if (rack_number - 1 < 0) {
+				right_point = game.fieldpoints[game.fieldpoints.length - 1];
+			} else {
+				right_point = game.fieldpoints[rack_number * 2 - 1];
+			}
+
+			const rack_offset = {
+				x: rack.startX - left_point.x,
+				y: rack.startY - left_point.y,
+			};
+			const left_with_offset = {
+				x: left_point.x + rack_offset.x,
+				y: left_point.y + rack_offset.y,
+			};
+			const right_with_offset = {
+				x: right_point.x + rack_offset.x,
+				y: right_point.y + rack_offset.y,
+			};
+			const rack_size = {
+				x: rack.height * Math.sin(((rack.angle * -1) / 360) * 2 * Math.PI),
+				y: rack.height * Math.cos(((rack.angle * -1) / 360) * 2 * Math.PI),
+			};
+			const rack_start = {
+				x: x,
+				y: y,
+			};
+			const rack_end = {
+				x: x + rack_size.x,
+				y: y + rack_size.y,
+			};
+			let move = false;
+			if (
+				game.point_between(rack_start, left_with_offset, right_with_offset) &&
+				game.point_between(rack_end, left_with_offset, right_with_offset)
+			) {
+				move = true;
+			}
+			if (move == true) {
+				rack.x = x;
+				rack.y = y;
+			}
 	}
 }
 

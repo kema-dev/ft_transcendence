@@ -26,7 +26,6 @@ import { ModifChanDto } from './chat/dto/ModifChanDto';
 import { UserEntity } from 'src/users/user.entity';
 import { MatchDto } from 'src/match/match.dto';
 import { MatchService } from './match/match.service';
-import { delay } from 'rxjs';
 import { InfoDto } from 'src/game2.0/dto/InfoDto';
 
 @WebSocketGateway({
@@ -163,7 +162,7 @@ export class AppGateway
 		// console.log(args.lobby_name);
 	}
 	@SubscribeMessage('newLobby')
-	async newLobby(@ConnectedSocket() client: Socket): Promise<void> {
+	async newLobby(@ConnectedSocket() client: Socket) {
 		const user: UserEntity = await this.userService.getBySocketId(client.id, {
 			requestFriend: true,
 			friends: true,
@@ -195,6 +194,7 @@ export class AppGateway
 		this.userService.saveUser(user);
 		this.server.to(user.socketId).emit('userUpdate', new ProfileUserDto(user));
 		this.server.emit('lobbys', this.sendLobbys(this.games));
+		return 'newLobby';
 	}
 	sendLobbys(games: Game[]) {
 		let lobbys: MatchDto[] = [];
@@ -214,6 +214,11 @@ export class AppGateway
 		let game = this.games.find((game) => game.lobby_name === user.lobby_name);
 		game?.update();
 	}
+	/*
+	envoie de la demande de cration de partie
+	envoie de la demande de status
+	giggz
+	*/
 	@SubscribeMessage('get_game_info')
 	async isOwner(@ConnectedSocket() client: Socket) {
 		const user: UserEntity = await this.userService.getBySocketId(client.id);
@@ -222,7 +227,8 @@ export class AppGateway
 			return;
 		}
 		let game = this.games.find((game) => game.lobby_name === user.lobby_name);
-		console.log(game)
+		console.log('game:', game)
+
 		if (game) {
 			if (game.owner === user.login) {
 				this.server.to(user.socketId).emit('get_game_info', { owner: true, nbrBall: game.nbrBall });
@@ -383,11 +389,16 @@ export class AppGateway
 		this.logger.log('Init');
 	}
 	@SubscribeMessage('updateLobby')
-	updateLobby(client: Socket, payload: any): void {
+	async updateLobby(client: Socket, payload: any) {
 		if (payload.nbrBall < 1 || payload.nbrBall > 3)
 			return;
-		const game = this.games.find((game) => game.lobby_name === payload.lobby_name);
-		if (game) {
+		const user: UserEntity = await this.userService.getBySocketId(client.id);
+		if (!user) {
+			console.log('user not found');
+			return;
+		}
+		const game = this.games.find((game) => game.lobby_name === user.lobby_name);
+		if (game && game.owner === user.login) {
 			game.updateBalls(payload.nbrBall);
 			this.server.to(game.sockets).emit('info_game', new InfoDto(game, client.handshake.query.login as string, true));
 		}

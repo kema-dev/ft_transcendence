@@ -2,7 +2,7 @@
   <div>
 		<div class="center column stack" id="create">
 			<div id="game_pos">
-				<GameItem :key="remount" />
+				<GameItem v-if="gameDto" :key="remount" :game="gameDto"/>
 			</div>
 			<div v-if="!start && isOwner" id="settings">
 				<h1>{{ nbrBall }}</h1>
@@ -34,6 +34,7 @@ import { Socket } from 'socket.io-client';
 import GameItem from '@/components/GameItem.vue';
 import { useToast } from 'vue-toastification';
 import { InfoDto } from '@/dto/InfoDto';
+import { GameDto } from '@/dto/GameDto';
 
 let colors = inject('colors');
 let socket: Socket = inject('socket')!;
@@ -41,15 +42,22 @@ let start = ref(false);
 provide('playing', start);
 let isOwner = ref(false);
 let nbrBall = ref(1);
-socket.on('get_game_info', (data) => {
-	isOwner.value = data.owner;
-	nbrBall.value = data.nbrBall;
-});
 let remount = ref(false);
 let win = ref(false);
 let lose = ref(false);
 const toast = useToast();
 let me: Ref<any> = inject('user')!;
+let gameDto: Ref<GameDto | undefined> = ref(undefined);
+socket.on('get_game_info', (data) => {
+	console.log('get_game_info', data);
+	isOwner.value = data.owner;
+	nbrBall.value = data.nbrBall;
+});
+socket.on('init_game', (data: GameDto) => {
+	gameDto.value = data;
+	console.log('reload');
+});
+socket.emit('get_game');
 
 onMounted(() => {
 	socket.emit('get_game_info');
@@ -79,7 +87,6 @@ function incrBall() {
 	if (nbrBall.value + 1 <= 3) {
 		nbrBall.value++;
 		socket.emit('updateLobby', {
-			lobby_name: me?.value?.lobby_name,
 			nbrBall: nbrBall.value,
 		});
 		remount.value = !remount.value;
@@ -92,7 +99,6 @@ function decrBall() {
 	if (nbrBall.value - 1 >= 1) {
 		nbrBall.value--;
 		socket.emit('updateLobby', {
-			lobby_name: me?.value?.lobby_name,
 			nbrBall: nbrBall.value,
 		});
 		remount.value = !remount.value;

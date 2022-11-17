@@ -24,11 +24,11 @@ export default class Ball {
 		this.y = y;
 		this.startX = x;
 		this.startY = y;
-		this.r = 25;
+		this.r = 10;
 		this.v = new Vector(0, 0);
 		this.logger = new Logger();
 		this.touch = 0;
-		this.initSpeed = 8;
+		this.initSpeed = 0.5;
 		this.speed = this.initSpeed;
 		this.start();
 	}
@@ -46,7 +46,7 @@ export default class Ball {
 		this.v = new Vector(ballX, ballY);
 		this.v.normalize();
 	}
-	detectCollision(objects: Array<any>): boolean {
+	detectCollision(objects: Array<any>) {
 		for (let i = 0; i < objects.length; ++i) {
 			const object = objects[i];
 			if (!object || object == this) return false;
@@ -67,16 +67,16 @@ export default class Ball {
 					v.multiplication(v.dotPorduct(this.v.reverse()) * 2),
 				);
 				// check if is wall or racket for the score
-				if (object.side) {
-					object.profile.red = true;
-					object.profile.score -= 1;
-					this.start().then(() => {
-						object.profile.red = false;
-					});
-					if (object.profile.score <= 0) {
-						return object.profile.login;
-					}
-				}
+				// if (object.side) {
+				// 	object.profile.red = true;
+				// 	object.profile.score -= 1;
+				// 	this.start().then(() => {
+				// 		object.profile.red = false;
+				// 	});
+				// 	if (object.profile.score <= 0) {
+				// 		return object.profile.login;
+				// 	}
+				// }
 			}
 		}
 	}
