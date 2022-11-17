@@ -194,10 +194,6 @@ onMounted(async () => {
 	const usr_login = cookies.get('login');
 	const usr_token = cookies.get('session');
 	API.post('/match/get_user_stats/', {
-		headers: {
-			login: usr_login,
-			token: usr_token,
-		},
 		login: user_login,
 	}).then((res) => {
 		user_stats.value = res.data;
@@ -210,10 +206,6 @@ onMounted(async () => {
 		show.value = false;
 	});
 	API.post('/match/get_user_history', {
-		headers: {
-			login: usr_login,
-			token: usr_token,
-		},
 		login: user_login,
 	}).then((res) => {
 		user_history.value = res.data;
@@ -224,10 +216,6 @@ onMounted(async () => {
 		show.value = false;
 	});
 	API.post('/user/get_user_avatar', {
-		headers: {
-			login: usr_login,
-			token: usr_token,
-		},
 		login: user_login,
 	}).then((res) => {
 		other_user_avatar.value = res.data;

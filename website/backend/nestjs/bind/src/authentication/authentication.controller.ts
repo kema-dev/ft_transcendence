@@ -12,6 +12,7 @@ import { AuthenticationService } from './authentication.service';
 import RegisterDto from './dto/register.dto';
 import TotpDto from './dto/totp.dto';
 import LogInDto from './dto/logIn.dto';
+import LogIn42Dto from './dto/logIn42.dto';
 import CheckDto from './dto/check.dto';
 import { AuthGuard } from './auth.guard';
 import { UsersService } from '../users/users.service';
@@ -35,6 +36,7 @@ export class AuthenticationController {
 		console.log('Debug headers: ' + JSON.stringify(headers));
 	}
 
+	@UseGuards(AuthGuard)
 	@Post('disable_totp')
 	async disable_totp(@Body() data: any) {
 		this.authenticationService.disable_totp(data.name);
@@ -143,10 +145,10 @@ export class AuthenticationController {
 
 	@HttpCode(200)
 	@Post('login42')
-	public async create(@Body('code') code: string) {
+	public async create(@Body() body: LogIn42Dto) {
 		let usr;
 		try {
-			usr = await this.authenticationService.auth42(code);
+			usr = await this.authenticationService.auth42(body.code, body.mfa);
 		} catch (error) {
 			throw error;
 		}

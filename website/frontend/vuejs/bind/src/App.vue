@@ -10,7 +10,7 @@
 import { onMounted, provide, ref } from 'vue';
 import { FQDN } from '../.env.json';
 
-provide('apiPath', FQDN + ':3000/api/v1/');
+provide('apiPath', FQDN + '/api/v1/');
 provide('playing', false);
 provide('colors', {
 	color0: '#fff',
