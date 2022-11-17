@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import * as Joi from 'joi';
 import { DatabaseModule } from './database/database.module';
 import { AuthenticationModule } from './authentication/authentication.module';
@@ -8,6 +8,7 @@ import { UsersModule } from './users/users.module';
 import { ChatModule } from './chat/chat.module';
 import { AppGateway } from './app.gateway';
 import { MatchModule } from './match/match.module';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
 	imports: [
@@ -24,6 +25,14 @@ import { MatchModule } from './match/match.module';
 				API_42_UID: Joi.string().required(),
 				API_42_SECRET: Joi.string().required(),
 				API_42_REDIRECT_URI: Joi.string().required(),
+			}),
+		}),
+		JwtModule.registerAsync({
+			inject: [ConfigService],
+			imports: [ConfigModule],
+			useFactory: async (configService: ConfigService) => ({
+				secret: configService.get<string>('JWT_SECRET'),
+				signOptions: { expiresIn: '1d' },
 			}),
 		}),
 		DatabaseModule,
