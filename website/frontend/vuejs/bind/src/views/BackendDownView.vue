@@ -20,7 +20,7 @@ const { cookies } = useCookies();
 
 const router = useRouter();
 
-let apiPath = FQDN + ':3000/api/v1/';
+let apiPath = FQDN + '/api/v1/';
 
 let BACKEND_DOWN_MESSAGE =
 	'🖱️ Backend is down, please authorize our self-signed certificate manually by clicking this text';
@@ -36,10 +36,6 @@ const toast = useToast();
 
 onMounted(() => {
 	API.get('auth/status', {
-		headers: {
-			login: cookies.get('login'),
-			token: cookies.get('session'),
-		},
 	})
 		.then(() => {
 			backend_status.value = true;

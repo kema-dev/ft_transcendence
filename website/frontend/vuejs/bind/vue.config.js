@@ -1,21 +1,29 @@
-const { defineConfig } = require('@vue/cli-service')
-const data = require('./.env.json')
+const { defineConfig } = require('@vue/cli-service');
+const data = require('./.env.json');
 module.exports = defineConfig({
 	devServer: {
 		port: 443,
+		host: '0.0.0.0',
 		server: {
 			type: 'https',
 		},
+		client: {
+			webSocketURL: {
+				hostname: data.HOSTNAME,
+			},
+		},
 		proxy: {
 			'/api': {
-				target: data.FQDN + ':3000',
+				target: 'https://s_nestjs:3000',
 				changeOrigin: true,
 				secure: false,
-				pathRewrite: {
-					'^/api': ''
-				}
-			}
-		}
+			},
+			'/socket.io': {
+				target: 'https://s_nestjs:3000',
+				changeOrigin: true,
+				secure: false,
+			},
+		},
 	},
 	css: {
 		loaderOptions: {
@@ -24,7 +32,7 @@ module.exports = defineConfig({
 			// so this assumes you have a file named `src/variables.sass`
 			// Note: this option is named as "prependData" in sass-loader v8
 			sass: {
-				additionalData: `@import "~@/assets/scss/_shared.scss";`
+				additionalData: `@import "~@/assets/scss/_shared.scss";`,
 			},
 			// by default the `sass` option will apply to both syntaxes
 			// because `scss` syntax is also processed by sass-loader underlyingly
@@ -32,9 +40,9 @@ module.exports = defineConfig({
 			// `scss` syntax requires an semicolon at the end of a statement, while `sass` syntax requires none
 			// in that case, we can target the `scss` syntax separately using the `scss` option
 			scss: {
-				additionalData: `@import "~@/assets/scss/_shared.scss";`
+				additionalData: `@import "~@/assets/scss/_shared.scss";`,
 			},
-		}
+		},
 	},
 
 	// 	plugins: [
@@ -56,4 +64,4 @@ module.exports = defineConfig({
 	// configureWebpack: {
 	// 	stats: { warnings: false }
 	// }
-})
+});

@@ -50,6 +50,7 @@
 									v-model="password_confirmation"
 									placeholder="password"
 									type="password"
+									@keyup.enter="register()"
 								/>
 								<button class="login-btn" @click="register()">Register</button>
 							</div>
@@ -67,6 +68,7 @@
 									v-model="password_auth"
 									placeholder="password"
 									type="password"
+									@keyup.enter="auth()"
 								/>
 								<input
 									v-if="totp_enabled"
@@ -74,6 +76,7 @@
 									v-model="totp_val"
 									placeholder="mfa code"
 									type="text"
+									@keyup.enter="auth()"
 								/>
 								<button @click="auth()">Login</button>
 								<div class="ft_login">
@@ -101,9 +104,13 @@ import { VueCookies } from 'vue-cookies';
 import API from '../components/axios';
 import { FQDN, API_42_UID, API_42_REDIRECT_URI } from '../../.env.json';
 
+function debug() {
+	console.log('debug');
+}
+
 const router = useRouter();
 let colors = inject('colors');
-let apiPath = FQDN + ':3000/api/v1/';
+let apiPath = FQDN + '/api/v1/';
 let api42Path =
 	'https://api.intra.42.fr/oauth/authorize?client_id=' +
 	API_42_UID +
@@ -161,10 +168,6 @@ async function register() {
 		return;
 	}
 	API.post('auth/register', {
-		headers: {
-			login: cookies.get('login'),
-			token: cookies.get('session'),
-		},
 		email: email_register.value,
 		login: login_register.value,
 		password: password_register.value,
@@ -178,11 +181,6 @@ async function register() {
 				'Registration success, welcome ' + response.data.login + ' !',
 			);
 			router.push('/home');
-			try {
-				router.go(0);
-			} catch (error) {
-				console.error('on refresh:', error);
-			}
 		})
 		.catch((error) => {
 			if (error.response.data.message === 'E_EMAIL_OR_LOGIN_ALREADY_EXISTS') {
@@ -213,10 +211,6 @@ async function auth() {
 		return;
 	}
 	await API.post('auth/login', {
-		headers: {
-			login: cookies.get('login'),
-			token: cookies.get('session'),
-		},
 		email: email_auth.value,
 		password: password_auth.value,
 		mfa: totp_val.value,
@@ -228,11 +222,6 @@ async function auth() {
 				'Authentication success, welcome ' + response.data.login + ' !',
 			);
 			router.push('/home');
-			try {
-				router.go(0);
-			} catch (error) {
-				console.error('on refresh:', error);
-			}
 		})
 		.catch((error) => {
 			console.log(error);
@@ -274,11 +263,8 @@ onMounted(async () => {
 	let code = urlParams.get('code');
 	if (code) {
 		await API.post('auth/login42', {
-			headers: {
-				login: cookies.get('login'),
-				token: cookies.get('session'),
-			},
 			code: code,
+			mfa: totp_val.value,
 		})
 			.then((response) => {
 				console.log(response);
@@ -288,14 +274,14 @@ onMounted(async () => {
 					'Authentication success, welcome ' + response.data.login + ' !',
 				);
 				router.push('/home');
-				try {
-					router.go(0);
-				} catch (error) {
-					console.error('on refresh:', error);
-				}
 			})
 			.catch((error) => {
-				if (error.response.data.message === 'E_NO_CODE_PROVIDED') {
+				if (error.response.data.message === 'E_USER_HAS_TOTP') {
+					toast.warning(E_USER_HAS_TOTP);
+					totp_enabled.value = true;
+				} else if (error.response.data.message === 'E_TOTP_FAIL') {
+					toast.warning(E_TOTP_FAIL);
+				} else if (error.response.data.message === 'E_NO_CODE_PROVIDED') {
 					toast.warning(E_NO_CODE_PROVIDED);
 				} else if (error.response.data.message === 'E_CODE_IN_USE') {
 					// toast.warning(E_CODE_IN_USE);

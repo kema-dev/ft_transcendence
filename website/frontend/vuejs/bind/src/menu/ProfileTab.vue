@@ -32,7 +32,9 @@
 				<h3 class="statValue">{{ user_stats.loses }}</h3>
 			</div>
 		</div>
+		<hr class="separator">
 		<MultiFactorAuthItem />
+		<hr class="separator">
 		<div v-if="userDone">
 			<button @click="showBlocks = !showBlocks" id="showBlocksBtn">
 				{{(showBlocks? 'Hide' : 'Show') + ' blocked users'}}
@@ -146,10 +148,6 @@ onMounted(async () => {
 		reader.readAsDataURL(input.files[0]);
 	});
 	API.post('/user/get_user_avatar', {
-		headers: {
-			login: cookies.get('login'),
-			token: cookies.get('session'),
-		},
 		login: myName,
 	}).then((res) => {
 		user_avatar.value = res.data;
@@ -159,10 +157,6 @@ onMounted(async () => {
 		console.log(err);
 	});
 	API.post('/match/get_user_stats', {
-		headers: {
-			login: cookies.get('login'),
-			token: cookies.get('session'),
-		},
 		login: myName,
 	}).then((res) => {
 		user_stats.value = res.data;
@@ -174,10 +168,6 @@ onMounted(async () => {
 		console.log(err);
 	});
 	API.post('/match/get_user_history', {
-		headers: {
-			login: cookies.get('login'),
-			token: cookies.get('session'),
-		},
 		login: myName,
 	}).then((res) => {
 		user_history.value = res.data;
