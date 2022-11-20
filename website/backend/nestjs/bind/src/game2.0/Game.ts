@@ -75,7 +75,7 @@ export default class Game {
 		this.init();
 		this.update();
 		this.startTime = Date.now();
-		this.interval = setInterval(this.loop, 1000 / 60, this);
+		this.interval = setInterval(this.loop, 1000 / 120, this);
 	}
 	init() {
 		const radius = 410;

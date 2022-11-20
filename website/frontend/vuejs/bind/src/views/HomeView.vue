@@ -2,7 +2,7 @@
 	<div id="home" class="wrap">
 		<NavbarItem />
 		<div id="game" class="center column">
-			<MatchmakingItem />
+			<MainView />
 		</div>
 		<NavmenuItem />
 	</div>
@@ -16,8 +16,8 @@ import { VueCookies } from 'vue-cookies';
 import { useRoute } from 'vue-router';
 import HTTP from '../components/axios';
 import { FQDN } from '../../.env.json';
+import MainView from '@/matchmaking/MainView.vue';
 import { HOSTNAME } from '../../.env.json';
-import MatchmakingItem from '@/components/MatchmakingItem.vue';
 import NavbarItem from '@/components/NavbarItem.vue';
 import NavmenuItem from '@/components/NavmenuItem.vue';
 import { PrivConvDto } from '@/chat/dto/PrivConvDto';

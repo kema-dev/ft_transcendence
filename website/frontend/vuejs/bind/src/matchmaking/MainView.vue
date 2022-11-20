@@ -10,15 +10,16 @@
 		<div v-if="!isGame && !isJoin" class="center column choice">
 			<h1>Create or join</h1>
 			<h2>Create or join a game</h2>
-			<div class="center column"><div class="center row">
-				<button class="start" @click="create()">create</button>
-				<button class="start" @click="join()">join</button>
-			</div>
+			<div class="center column">
+				<div class="center row">
+					<button class="start" @click="create()">create</button>
+					<button class="start" @click="join()">join</button>
+				</div>
 				<button class="start" @click="autoQueue()">automatic</button>
 			</div>
 		</div>
 		<JoinView v-else-if="isJoin" />
-		<GameView v-else-if="isGame"/>
+		<GameView v-else-if="isGame" />
 	</div>
 </template>
 
@@ -51,19 +52,25 @@ socket.on('join_failure', (data) => {
 	autoQueue();
 });
 function autoQueue() {
-	// if (lobbys.value.length > lob_id) {
-	// 	socket.emit('join_lobby', {
-	// 		login: me?.value?.login,
-	// 		lobby: lobbys.value[lob_id].lobby_name,
-	// 	});
-	// } else {
-	// 	create();
-	// 	lob_id = 0;
-	// }
+	let lobbys = ref([]);
+	socket.emit('lobbys', (data: any) => {
+		lobbys.value = data;
+		if (lobbys.value.length > lob_id) {
+			socket.emit('join_lobby', {
+				login: me?.value?.login,
+				lobby: lobbys.value[lob_id].lobby_name,
+			});
+		isGame.value = true;
+		isJoin.value = false;
+		} else {
+			create();
+			lob_id = 0;
+		}
+	});
 }
 function back() {
 	if (isGame.value)
-		socket.emit('leftGame', {login: me?.value?.login});
+		socket.emit('leftGame', { login: me?.value?.login });
 	isGame.value = false;
 	isJoin.value = false;
 	lob_id = 0;
@@ -111,22 +118,21 @@ socket.on('create_from_invitation', (data: any) => {
 	min-height: 300px;
 	/* padding: 0 calc(); */
 }
-.msg {
-	position: absolute;
-	top: calc(50 - 25px);
-	z-index: 10;
-}
+
 .choice {
 	margin: 150px 0;
 }
+
 .button {
 	margin: 20px 10px;
 	font-size: 1rem;
 }
+
 .title {
 	margin-bottom: -18px;
 	font-size: 1.25rem;
 }
+
 .start {
 	/* margin-top: 10px; */
 	/* margin-bottom: 95px; */
@@ -138,6 +144,7 @@ socket.on('create_from_invitation', (data: any) => {
 	height: 1.8rem;
 	margin: 1rem 0.5rem 0 0.5rem;
 }
+
 .backBtn {
 	position: absolute;
 	top: 0;
@@ -151,6 +158,7 @@ socket.on('create_from_invitation', (data: any) => {
 	background-color: v-bind("colors.color2");
 	z-index: 2;
 }
+
 .imgLogo {
 	width: 26px;
 	height: 26px;

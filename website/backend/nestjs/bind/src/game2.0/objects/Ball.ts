@@ -62,27 +62,32 @@ export default class Ball {
 				const v = object.vector;
 				this.touch++;
 				if (this.touch >= 60) this.start();
-				if (this.speed < this.initSpeed * 3) this.speed += this.initSpeed / 10;
+				if (this.speed < this.initSpeed * 3) this.speed += this.initSpeed * 0.10;
 				this.v = this.v.add(
 					v.multiplication(v.dotPorduct(this.v.reverse()) * 2),
 				);
 				// check if is wall or racket for the score
-				// if (object.side) {
-				// 	object.profile.red = true;
-				// 	object.profile.score -= 1;
-				// 	this.start().then(() => {
-				// 		object.profile.red = false;
-				// 	});
-				// 	if (object.profile.score <= 0) {
-				// 		return object.profile.login;
-				// 	}
-				// }
+				if (object.side) {
+					object.profile.red = true;
+					object.profile.score -= 1;
+					this.start().then(() => {
+						object.profile.red = false;
+					});
+					if (object.profile.score <= 0) {
+						return object.profile.login;
+					}
+				}
 			}
 		}
 	}
 }
 function detectCollisionRC(rect: Wall | Racket, circle: Ball) {
 	let cx, cy;
+	circle.x = Number(circle.x.toFixed(3));
+	circle.y = Number(circle.y.toFixed(3));
+	rect.x = Number(rect.x.toFixed(3));
+	rect.y = Number(rect.y.toFixed(3));
+	// console.log(rect.angle, circle.x, circle.y, rect.x, rect.y);
 	const angleOfRad = degToRad(-rect.angle);
 	if (typeof rect === typeof Wall) {
 		rect.height += 400;
@@ -120,6 +125,11 @@ function detectCollisionRC(rect: Wall | Racket, circle: Ball) {
 	return false;
 }
 function distance(x1: number, y1: number, x2: number, y2: number) {
+	x1 = Number(x1.toFixed(3));
+	y1 = Number(y1.toFixed(3));
+	x2 = Number(x2.toFixed(3));
+	y2 = Number(y2.toFixed(3));
+	// console.log(x1, y1, x2, y2);
 	return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
 }
 function degToRad(deg: number) {

@@ -18,12 +18,12 @@
 				<h2 class="title">Balls</h2>
 				<h2 style="margin-top: 3%;">Waiting for owner to start</h2>
 			</div>
-		</div>
-		<div v-if="win" class="msg">
-			<h1>YOU WIN !</h1>
-		</div>
-		<div v-if="lose" class="msg">
-			<h1>YOU LOSE</h1>
+			<div v-if="win" class="msg">
+				<h1>YOU WIN !</h1>
+			</div>
+			<div v-if="lose" class="msg">
+				<h1>YOU LOSE</h1>
+			</div>
 		</div>
   </div>
 </template>
@@ -48,29 +48,31 @@ let lose = ref(false);
 const toast = useToast();
 let me: Ref<any> = inject('user')!;
 let gameDto: Ref<GameDto | undefined> = ref(undefined);
-socket.on('get_game_info', (data) => {
-	console.log('get_game_info', data);
-	isOwner.value = data.owner;
-	nbrBall.value = data.nbrBall;
-});
 socket.on('init_game', (data: GameDto) => {
 	gameDto.value = data;
 	console.log('reload');
+	remount.value = !remount.value;
 });
 socket.emit('get_game');
 
 onMounted(() => {
 	socket.emit('get_game_info');
 	socket.on('info_game', (data: InfoDto) => {
-		if (data.left != "")
+		console.log('info', data);
+		if (data.left !== undefined)
 			toast.warning(data.left + ' left the game');
-		remount.value = !data.remount;
-		win.value = data.isWin;
-		lose.value = data.isLose;
-		start.value = data.isStart;
-		console.log("is owner: ", me?.value?.lobby_name == me?.value?.login + "'s lobby")
-		if (me?.value?.lobby_name == me?.value?.login + "'s lobby")
-			isOwner.value = true;
+		if (data.isWin !== undefined)
+			win.value = data.isWin;
+		if (data.isLose !== undefined)
+			lose.value = data.isLose;
+		if (data.isStart !== undefined)
+			start.value = data.isStart;
+		if (data.owner !== undefined)
+			isOwner.value = data.owner == me?.value?.login;
+		if (data.nbrBall !== undefined)
+			nbrBall.value = data.nbrBall;
+		if (data.remount !== undefined && data.remount)
+			remount.value = !remount.value;
 	});
 })
 onUnmounted(() => {
@@ -89,7 +91,6 @@ function incrBall() {
 		socket.emit('updateLobby', {
 			nbrBall: nbrBall.value,
 		});
-		remount.value = !remount.value;
 		socket.emit('send_game_info');
 	} else {
 		toast.warning('3 balls maximum');
@@ -101,7 +102,6 @@ function decrBall() {
 		socket.emit('updateLobby', {
 			nbrBall: nbrBall.value,
 		});
-		remount.value = !remount.value;
 		socket.emit('send_game_info');
 	} else {
 		toast.warning('1 balls minimum');
@@ -127,6 +127,11 @@ function decrBall() {
 .title {
 	margin-bottom: -18px;
 	font-size: 1.25rem;
+}
+.msg {
+	position: absolute;
+	top: calc(50 - 25px);
+	z-index: 10;
 }
 .start {
 	/* margin-top: 10px; */
