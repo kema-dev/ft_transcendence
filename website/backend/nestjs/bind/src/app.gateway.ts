@@ -35,7 +35,8 @@ import { InfoDto } from 'src/game2.0/dto/InfoDto';
 })
 @Injectable()
 export class AppGateway
-	implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+	implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+{
 	@WebSocketServer() server: Server;
 	games: Game[] = [];
 	private logger: Logger = new Logger('AppGateway');
@@ -63,17 +64,16 @@ export class AppGateway
 	// Disconnection
 	async handleDisconnect(client: Socket) {
 		this.logger.log(`Client disconnected: ${client.id}`);
-		let user = client.handshake.query.login as string;
+		const user = client.handshake.query.login as string;
 		this.leftGame(client, {});
 		this.server.emit('userStatus', { user: user, status: 'offline' });
 	}
-
 
 	// ============================ MATCHMAKING =====================================
 
 	@SubscribeMessage('leftGame')
 	async leftGame(@ConnectedSocket() client: Socket, @MessageBody() data: any) {
-		this.quitGame(client.handshake.query.login as string, data)
+		this.quitGame(client.handshake.query.login as string, data);
 	}
 	async quitGame(login: string, data: any) {
 		console.log('leftGame <---------------------------', login);
@@ -82,7 +82,7 @@ export class AppGateway
 			console.log('user not found');
 			return;
 		}
-		let game = this.games.find((game) => game.lobby_name === user.lobby_name);
+		const game = this.games.find((game) => game.lobby_name === user.lobby_name);
 		this.userService.set_status(user.login, 'online');
 		this.server.emit('userStatus', { user: user.login, status: 'online' });
 		user.lobby_name = '';
@@ -110,7 +110,9 @@ export class AppGateway
 			console.log('game.players.length - 1 > 0');
 			let game_owner: string = game.owner;
 			if (game.owner == user.login)
-				game_owner = game.players.filter((player) => player.login !== user.login)[0].login
+				game_owner = game.players.filter(
+					(player) => player.login !== user.login,
+				)[0].login;
 			const newGame = new Game(
 				game.nbrPlayer - 1,
 				game.nbrBall,
@@ -126,14 +128,16 @@ export class AppGateway
 			this.games.push(newGame);
 			newGame.start = game.start;
 			if (game.owner == user.login)
-				this.server.to(newGame.sockets).emit('info_game', <InfoDto>{ owner: game_owner });
-			if (!data.lose)
 				this.server
 					.to(newGame.sockets)
-					.emit('info_game', <InfoDto>{ isStart: newGame.start, left: user.login });
+					.emit('info_game', <InfoDto>{ owner: game_owner });
+			if (!data.lose)
+				this.server.to(newGame.sockets).emit('info_game', <InfoDto>{
+					isStart: newGame.start,
+					left: user.login,
+				});
 			newGame.update();
-		}
-		else if (game.players.length - 1 == 1) {
+		} else if (game.players.length - 1 == 1) {
 			console.log('game.players.length - 1 == 1');
 			this.server
 				.to(game.players.find((player) => player.login !== user.login).socketId)
@@ -197,7 +201,10 @@ export class AppGateway
 		return lobbys;
 	}
 	@SubscribeMessage('look_lobby2')
-	async lookLobby2(@ConnectedSocket() client: Socket, @MessageBody() data: { spec: string, player: string },) {
+	async lookLobby2(
+		@ConnectedSocket() client: Socket,
+		@MessageBody() data: { spec: string; player: string },
+	) {
 		const user: UserEntity = await this.userService.getBySocketId(client.id);
 		if (!user) {
 			console.log('user not found');
@@ -210,7 +217,10 @@ export class AppGateway
 		this.lookLobby(client, { login: user.login, lobby_name: lobbyName });
 	}
 	@SubscribeMessage('look_lobby')
-	async lookLobby(@ConnectedSocket() client: Socket, @MessageBody() data: { login: string, lobby_name: string },) {
+	async lookLobby(
+		@ConnectedSocket() client: Socket,
+		@MessageBody() data: { login: string; lobby_name: string },
+	) {
 		const user: UserEntity = await this.userService.getBySocketId(client.id);
 		if (!user) {
 			console.log('user not found');
@@ -221,11 +231,14 @@ export class AppGateway
 		if (!game) return;
 		game.addViewer(client.id);
 		game.update();
-		this.server.to(client.id).emit('info_game', <InfoDto>{ isStart: game.start, nbrBall: game.nbrBall });
+		this.server.to(client.id).emit('info_game', <InfoDto>{
+			isStart: game.start,
+			nbrBall: game.nbrBall,
+		});
 	}
 	@SubscribeMessage('lobbys')
 	async getLobbyList(@ConnectedSocket() client: Socket) {
-		let rt = this.sendLobbys(this.games);
+		const rt = this.sendLobbys(this.games);
 		client.emit('lobbys', rt);
 		return rt;
 	}
@@ -307,7 +320,9 @@ export class AppGateway
 		game.destructor();
 		this.games.push(newGame);
 		newGame.update();
-		this.server.to(client.id).emit('info_game', <InfoDto>{ nbrBall: newGame.nbrBall });
+		this.server
+			.to(client.id)
+			.emit('info_game', <InfoDto>{ nbrBall: newGame.nbrBall });
 		// this.server.to(newGame.sockets).emit('info_game', <InfoDto>{remount: true});
 		this.games.splice(this.games.indexOf(game), 1);
 		this.server.emit('lobbys', this.sendLobbys(this.games));
@@ -322,8 +337,7 @@ export class AppGateway
 	}
 	@SubscribeMessage('updateLobby')
 	async updateLobby(client: Socket, payload: any) {
-		if (payload.nbrBall < 1 || payload.nbrBall > 3)
-			return;
+		if (payload.nbrBall < 1 || payload.nbrBall > 3) return;
 		const user: UserEntity = await this.userService.getBySocketId(client.id);
 		if (!user) {
 			console.log('user not found');
@@ -332,10 +346,11 @@ export class AppGateway
 		const game = this.games.find((game) => game.lobby_name === user.lobby_name);
 		if (game && game.owner === user.login) {
 			game.updateBalls(payload.nbrBall);
-			this.server.to(game.sockets).emit('info_game', <InfoDto>{ nbrBall: payload.nbrBall });
+			this.server
+				.to(game.sockets)
+				.emit('info_game', <InfoDto>{ nbrBall: payload.nbrBall });
 		}
 	}
-
 
 	// ============================ GAME =====================================
 
@@ -344,7 +359,7 @@ export class AppGateway
 		// console.log('setMov');
 		// console.log(args);
 		const user: UserEntity = await this.userService.getBySocketId(client.id);
-		let game = this.games.find((game) => game.lobby_name === user.lobby_name);
+		const game = this.games.find((game) => game.lobby_name === user.lobby_name);
 		if (game) game.setMov(args.mov, user.login);
 		// console.log(args.lobby_name);
 	}
@@ -356,7 +371,7 @@ export class AppGateway
 			console.log('user not found');
 			return;
 		}
-		let game = this.games.find((game) => game.lobby_name === user.lobby_name);
+		const game = this.games.find((game) => game.lobby_name === user.lobby_name);
 		game?.update();
 	}
 	@SubscribeMessage('get_game_info')
@@ -366,12 +381,16 @@ export class AppGateway
 			console.log('user not found');
 			return;
 		}
-		let game = this.games.find((game) => game.lobby_name === user.lobby_name);
+		const game = this.games.find((game) => game.lobby_name === user.lobby_name);
 		if (!game) {
 			console.log('get_game_info: game not found');
 			return;
 		}
-		this.server.to(client.id).emit('info_game', <InfoDto>{ nbrBall: game.nbrBall, owner: game.owner, isStart: game.start });
+		this.server.to(client.id).emit('info_game', <InfoDto>{
+			nbrBall: game.nbrBall,
+			owner: game.owner,
+			isStart: game.start,
+		});
 	}
 	@SubscribeMessage('send_game_info')
 	async sendGameInfo(@ConnectedSocket() client: Socket) {
@@ -380,13 +399,12 @@ export class AppGateway
 			console.log('user not found');
 			return;
 		}
-		let game = this.games.find((game) => game.lobby_name === user.lobby_name);
+		const game = this.games.find((game) => game.lobby_name === user.lobby_name);
 		if (!game) {
 			console.log('send_game_info: game not found:', user.lobby_name);
 			return;
 		}
 		game.update();
-
 	}
 	@SubscribeMessage('start')
 	async start(client: Socket) {
@@ -395,7 +413,7 @@ export class AppGateway
 			console.log('user not found');
 			return;
 		}
-		let game = this.games.find((game) => game.lobby_name === user.lobby_name);
+		const game = this.games.find((game) => game.lobby_name === user.lobby_name);
 		if (game) {
 			console.log('start: Starting for', 'login:', game.players.length);
 			game.players.forEach((player) => {
@@ -407,15 +425,14 @@ export class AppGateway
 			});
 			game.start = true;
 			this.server.emit('lobbys', this.sendLobbys(this.games));
-			this.server.to(game.sockets).emit('info_game', <InfoDto>{ isStart: true });
-		}
-		else
-			console.log('start: game not found:', user.lobby_name);
+			this.server
+				.to(game.sockets)
+				.emit('info_game', <InfoDto>{ isStart: true });
+		} else console.log('start: game not found:', user.lobby_name);
 	}
 	afterInit(server: Server) {
 		this.logger.log('Init');
 	}
-
 
 	// ============================ USER =====================================
 
