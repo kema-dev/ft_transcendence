@@ -75,7 +75,7 @@ export default class Game {
 		this.init();
 		this.update();
 		this.startTime = Date.now();
-		this.interval = setInterval(this.loop, 1000 / 120, this);
+		this.interval = setInterval(this.loop, 1000 / 90, this);
 	}
 	init() {
 		const radius = 410;
@@ -114,10 +114,61 @@ export default class Game {
 			this.objects.push(wall);
 		});
 	}
+	async loop(game: Game) {
+		let time = 0;
+		let timeBalls = [];
+		const timeStart = Date.now();
+		game.setSmallDto();
+		if (game.start) {
+			for (const ball of game.balls) {
+				timeBalls.push(game.movBall(game, ball));
+			}
+		}
+		for (const i in game.profiles) {
+			const mov = game.profiles[i].mov;
+			if (mov == 0) continue;
+			game.movRacket(game, i, mov);
+		}
+		game.server.to(game.sockets).emit('update_game', game.smallDto);
+		const endTime = Date.now();
+		time = Date.now() - timeStart;
+		game.deltaTime = (endTime - game.startTime);
+		if (game.deltaTime > game.maxDelta && game.start) {
+			game.maxDelta = game.deltaTime;
+			console.log(game.deltaTime, time, timeBalls);
+		}
+		game.startTime = endTime;
+	}
+	async movBall(game: Game, ball: Ball) {
+		const timeStart = performance.now();
+		if (ball.speed == 0)
+			return;
+		let login: any;
+		if ((login = ball.detectCollision(game.objects))) {
+			game.run = false;
+			if (game.nbrPlayer == 1) {
+				game.match_service.add_match(game);
+				game.server.to(game.players[0].socketId).emit('end', { win: true });
+			}
+			else if (game.nbrPlayer == 2) {
+				game.match_service.add_match(game);
+				game.server.to(game.players.find((p) => p.login != login)?.socketId).emit('end', { win: true });
+				game.server.to(game.players.find((p) => p.login == login)?.socketId).emit('end', { win: false });
+			}
+			else
+				game.server.to(game.players.find((p) => p.login == login)?.socketId).emit('end', { win: false });
+			game.app.quitGame(login, { lose: true });
+			game.destructor();
+			return;
+		}
+		ball.x = ball.x + ball.v.x * ball.speed * game.deltaTime;
+		ball.y = ball.y + ball.v.y * ball.speed * game.deltaTime;
+		return Number(performance.now() - timeStart).toFixed(3);
+	}
 	setDto() {
 		this.dto = new GameDto(this);
 	}
-	setSmallDto() {
+	async setSmallDto() {
 		this.smallDto = new SmallGameDto(this);
 	}
 	setMov(value: number, login: string) {
@@ -159,48 +210,6 @@ export default class Game {
 		this.run = false;
 		clearInterval(this.interval);
 	}
-	async loop(game: Game) {
-		if (game.start) {
-			for (const ball of game.balls) {
-				if (ball.speed == 0)
-					continue;
-				let login: any;
-				if ((login = ball.detectCollision(game.objects))) {
-					game.run = false;
-					if (game.nbrPlayer == 1) {
-						game.match_service.add_match(game);
-						game.server.to(game.players[0].socketId).emit('end', { win: true });
-					}
-					else if (game.nbrPlayer == 2) {
-						game.match_service.add_match(game);
-						game.server.to(game.players.find((p) => p.login != login)?.socketId).emit('end', { win: true });
-						game.server.to(game.players.find((p) => p.login == login)?.socketId).emit('end', { win: false });
-					}
-					else
-						game.server.to(game.players.find((p) => p.login == login)?.socketId).emit('end', { win: false });
-					game.app.quitGame(login, { lose: true });
-					game.destructor();
-					return;
-				}
-				ball.x = ball.x + ball.v.x * ball.speed * game.deltaTime;
-				ball.y = ball.y + ball.v.y * ball.speed * game.deltaTime;
-			}
-		}
-		for (const i in game.profiles) {
-			const mov = game.profiles[i].mov;
-			if (mov == 0) continue;
-			game.movRacket(game, i, mov);
-		}
-		game.setSmallDto();
-		game.server.to(game.sockets).emit('update_game', game.smallDto);
-		const endTime = Date.now();
-		game.deltaTime = (endTime - game.startTime);
-		if (game.deltaTime > game.maxDelta && game.start) {
-			game.maxDelta = game.deltaTime;
-			console.log(game.deltaTime);
-		}
-		game.startTime = endTime;
-	}
 	point_between(point: any, left: any, right: any) {
 		const x_min = Math.min(left.x, right.x);
 		const x_max = Math.max(left.x, right.x);
@@ -217,55 +226,55 @@ export default class Game {
 		}
 		return false;
 	}
-	movRacket(game: Game, i: string, mov: number) {
+	async movRacket(game: Game, i: string, mov: number) {
 		const rack = game.rackets[parseInt(i)];
-			const x = rack.x + -rack.vector.y * (game.deltaTime * mov);
-			const y = rack.y + rack.vector.x * (game.deltaTime * mov);
+		const x = rack.x + -rack.vector.y * (game.deltaTime * mov);
+		const y = rack.y + rack.vector.x * (game.deltaTime * mov);
 
-			const rack_number = parseInt(i);
-			const left_point = game.fieldpoints[rack_number * 2];
-			let right_point;
-			if (rack_number - 1 < 0) {
-				right_point = game.fieldpoints[game.fieldpoints.length - 1];
-			} else {
-				right_point = game.fieldpoints[rack_number * 2 - 1];
-			}
+		const rack_number = parseInt(i);
+		const left_point = game.fieldpoints[rack_number * 2];
+		let right_point;
+		if (rack_number - 1 < 0) {
+			right_point = game.fieldpoints[game.fieldpoints.length - 1];
+		} else {
+			right_point = game.fieldpoints[rack_number * 2 - 1];
+		}
 
-			const rack_offset = {
-				x: rack.startX - left_point.x,
-				y: rack.startY - left_point.y,
-			};
-			const left_with_offset = {
-				x: left_point.x + rack_offset.x,
-				y: left_point.y + rack_offset.y,
-			};
-			const right_with_offset = {
-				x: right_point.x + rack_offset.x,
-				y: right_point.y + rack_offset.y,
-			};
-			const rack_size = {
-				x: rack.height * Math.sin(((rack.angle * -1) / 360) * 2 * Math.PI),
-				y: rack.height * Math.cos(((rack.angle * -1) / 360) * 2 * Math.PI),
-			};
-			const rack_start = {
-				x: x,
-				y: y,
-			};
-			const rack_end = {
-				x: x + rack_size.x,
-				y: y + rack_size.y,
-			};
-			let move = false;
-			if (
-				game.point_between(rack_start, left_with_offset, right_with_offset) &&
-				game.point_between(rack_end, left_with_offset, right_with_offset)
-			) {
-				move = true;
-			}
-			if (move == true) {
-				rack.x = x;
-				rack.y = y;
-			}
+		const rack_offset = {
+			x: rack.startX - left_point.x,
+			y: rack.startY - left_point.y,
+		};
+		const left_with_offset = {
+			x: left_point.x + rack_offset.x,
+			y: left_point.y + rack_offset.y,
+		};
+		const right_with_offset = {
+			x: right_point.x + rack_offset.x,
+			y: right_point.y + rack_offset.y,
+		};
+		const rack_size = {
+			x: rack.height * Math.sin(((rack.angle * -1) / 360) * 2 * Math.PI),
+			y: rack.height * Math.cos(((rack.angle * -1) / 360) * 2 * Math.PI),
+		};
+		const rack_start = {
+			x: x,
+			y: y,
+		};
+		const rack_end = {
+			x: x + rack_size.x,
+			y: y + rack_size.y,
+		};
+		let move = false;
+		if (
+			game.point_between(rack_start, left_with_offset, right_with_offset) &&
+			game.point_between(rack_end, left_with_offset, right_with_offset)
+		) {
+			move = true;
+		}
+		if (move == true) {
+			rack.x = x;
+			rack.y = y;
+		}
 	}
 }
 

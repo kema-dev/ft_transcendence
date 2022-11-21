@@ -421,7 +421,7 @@ export class AppGateway
 
 	@SubscribeMessage('userUpdate')
 	async userUpdate(client: Socket, payload: any): Promise<void> {
-		const user = await this.userService.getByLogin(payload.login, {
+		const user = await this.userService.getBySocketId(client.id, {
 			requestFriend: true,
 			friends: true,
 			blockeds: true,
