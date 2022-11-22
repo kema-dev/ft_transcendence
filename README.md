@@ -52,10 +52,10 @@ cd ft_transcendence
 3. Rename `.env.example` to `.env`
 
 ```sh
-mv .env.example .env
+cp .env.example .env
 ```
 
-4. Change default values (passwords, emails...) and add your 42 API credentials (API_42_UID, API_42_SECRET, and API_42_REDIRECT_URI) in `.env` file
+4. Change default values (passwords, emails...) and replace `PLACEHOLDERS` under `# Your environment ?` in `.env` file
 
 <!-- USAGE EXAMPLES -->
 ## Usage
