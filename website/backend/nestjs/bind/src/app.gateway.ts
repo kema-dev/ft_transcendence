@@ -505,26 +505,40 @@ export class AppGateway
 		@MessageBody() data: string,
 		@ConnectedSocket() client: Socket,
 	) {
-		console.log(`get userStatus`);
+		const sender = await this.userService.getBySocketId(client.id);
+		if (!sender) {
+			console.log(`get_user_status error: Sender user not found"`);
+			return;
+		}
 		const status = await this.userService.get_user_status(data);
 		client.emit('userStatus', { user: data, status: status });
 	}
 
 	@SubscribeMessage('blockUser')
 	async blockUser(
-		@MessageBody() data: { blocker: string; blocked: string },
+		@MessageBody() data: {blocked: string },
 		@ConnectedSocket() client: Socket,
 	) {
-		const blocked = await this.chatService.blockUser(data);
+		const blocker = await this.userService.getBySocketId(client.id);
+		if (!blocker) {
+			console.log(`blockUser error: blocker user not found"`);
+			return;
+		}
+		const blocked = await this.chatService.blockUser(blocker.login, data.blocked);
 		client.emit('userBlock', new ResumUserDto(blocked));
 	}
 
 	@SubscribeMessage('unblockUser')
 	async unblockUser(
-		@MessageBody() data: { blocker: string; blocked: string },
+		@MessageBody() data: { blocked: string },
 		@ConnectedSocket() client: Socket,
 	) {
-		this.chatService.unblockUser(data, this.server);
+		const blocker = await this.userService.getBySocketId(client.id);
+		if (!blocker) {
+			console.log(`blockUser error: blocker user not found"`);
+			return;
+		}
+		this.chatService.unblockUser(blocker.login, data.blocked, this.server);
 	}
 
 	// ============================ CHAT =====================================
@@ -536,11 +550,17 @@ export class AppGateway
 		@MessageBody() data: NewPrivMsgDto,
 		@ConnectedSocket() client: Socket,
 	) {
-		const priv = await this.chatService.addPrivMsg(data);
-		const sender = await this.userService.getByLogin(data.userSend);
+		const sender = await this.userService.getBySocketId(client.id);
+		if (!sender) {
+			console.log(`NewPrivMsg error: Sender user not found"`);
+			return;
+		}
+		const priv = await this.chatService.addPrivMsg(sender, data);
+		if (!priv)
+			return
 		const receiver = await this.userService.getByLogin(data.userReceive);
 		const msg = new MessageDto(
-			data.userSend,
+			sender.login,
 			data.message,
 			new Date(data.date),
 		);
@@ -569,10 +589,20 @@ export class AppGateway
 
 	@SubscribeMessage('privReaded')
 	async privReaded(
-		@MessageBody() data: { sender: string; receiver: string },
+		@MessageBody() data: {sender: string},
 		@ConnectedSocket() client: Socket,
 	) {
-		this.chatService.markPrivReaded(data.sender, data.receiver);
+		const receiver = await this.userService.getBySocketId(client.id);
+		if (!receiver) {
+			console.log(`privReaded error : Receiver user not found`)
+			return;
+		}
+		const sender = await this.userService.getByLogin(data.sender);
+		if (!sender) {
+			console.log(`privReaded error : Sender user not found`);
+			return;
+		}
+		this.chatService.markPrivReaded(sender.login, receiver.login);
 	}
 
 	// ========== CHANNELS
@@ -582,15 +612,15 @@ export class AppGateway
 		@MessageBody() data: NewChanMsgDto,
 		@ConnectedSocket() client: Socket,
 	) {
-		const chan = await this.chatService.addChanMsg(data);
-		const msg = new MessageDto(
-			data.userSend,
-			data.message,
-			new Date(data.date),
-		);
-		// let allUsers = chan.admins.concat(chan.users).concat(chan.mutes);
-		// if (chan.owner)
-		// 	allUsers.push(chan.owner);
+		const sender = await this.userService.getBySocketId(client.id);
+		if (!sender) {
+			console.log(`NewChanMsg error: Sender user not found"`);
+			return;
+		}
+		const chan = await this.chatService.addChanMsg(sender, data);
+		if (!chan)
+			return;
+		const msg = new MessageDto(sender.login, data.message, new Date(data.date));
 		const allUsers = this.chatService.getAllChanUsers(chan);
 		for (const user of allUsers) {
 			this.server
@@ -604,6 +634,11 @@ export class AppGateway
 		@MessageBody() data: { chan: string; login: string },
 		@ConnectedSocket() client: Socket,
 	) {
+		const sender = await this.userService.getBySocketId(client.id);
+		if (!sender) {
+			console.log(`newChannelUser error: Sender user not found"`);
+			return;
+		}
 		this.chatService.newChannelUser(this.server, data);
 	}
 
@@ -612,7 +647,12 @@ export class AppGateway
 		@MessageBody() data: { login: string; chan: string },
 		@ConnectedSocket() client: Socket,
 	) {
-		this.chatService.userQuitChan(this.server, data);
+		const sender = await this.userService.getBySocketId(client.id);
+		if (!sender) {
+			console.log(`userQuitChan error: Sender user not found"`);
+			return;
+		}
+		this.chatService.userQuitChan(this.server, sender.login, data.chan);
 	}
 
 	@SubscribeMessage('modifChan')
@@ -620,11 +660,12 @@ export class AppGateway
 		@MessageBody() data: ModifChanDto,
 		@ConnectedSocket() client: Socket,
 	) {
-		try {
-			this.chatService.modifChan(this.server, data);
-		} catch (e) {
-			console.log(e);
+		const sender = await this.userService.getBySocketId(client.id);
+		if (!sender) {
+			console.log(`modifChan error: Sender user not found"`);
+			return;
 		}
+		this.chatService.modifChan(this.server, sender, data);
 	}
 
 	@SubscribeMessage('invite_to_game')

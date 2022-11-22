@@ -18,11 +18,11 @@ export class UsersService {
 	) {}
 	async getBySocketId(socketId: string, relations?: any) {
 		let params;
-		if (relations) params = { where: { socketId: socketId }, relations: relations };
+		if (relations)
+			params = { where: { socketId: socketId }, relations: relations };
 		else params = { where: { socketId: socketId } };
 		const user = await this.usersRepository.findOne(params);
-		if (user)
-			return user;
+		if (user) return user;
 		console.error('getBySocket: ' + socketId + ' not found, returning ✘');
 	}
 	async saveSocket(login: string, socket: string) {
@@ -39,7 +39,7 @@ export class UsersService {
 			.save(user)
 			.catch((e) => console.log('Save saveSocket error'));
 	}
-	async saveUser(user:UserEntity) {
+	async saveUser(user: UserEntity) {
 		await this.usersRepository.save(user);
 	}
 
@@ -73,7 +73,7 @@ export class UsersService {
 	async getByLoginFiltred(filter: string) {
 		const maxUsers = 20;
 		console.log("getByLoginFiltred: starting for '" + filter + "'");
-		let users = await this.usersRepository.find({
+		const users = await this.usersRepository.find({
 			where: { login: Like(filter + '%') },
 			take: maxUsers,
 		});
