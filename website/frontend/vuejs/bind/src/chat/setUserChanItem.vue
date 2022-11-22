@@ -206,17 +206,17 @@ const props = defineProps({
 
 function promote() {
 	mySocket.emit("modifChan", 
-		new ModifChanDto(myName, props.chan, "promotAdm", props.login));
+		new ModifChanDto(props.chan, "promotAdm", props.login));
 }
 
 function demote() {
 	mySocket.emit("modifChan", 
-		new ModifChanDto(myName, props.chan, "demotUser", props.login));
+		new ModifChanDto(props.chan, "demotUser", props.login));
 }
 
 function kickUser() {
 	mySocket.emit("modifChan", 
-		new ModifChanDto(myName, props.chan, "kick", props.login, props.group));
+		new ModifChanDto(props.chan, "kick", props.login, props.group));
 }
 
 function sendPrivMsg() {
@@ -269,7 +269,7 @@ function muteBan(sanction: string) {
 			secondsInput.classList.add("invalidInput");
 		}, 50);
 	mySocket.emit("modifChan", 
-		new ModifChanDto(myName, props.chan, sanction, props.login, props.group, time));
+		new ModifChanDto(props.chan, sanction, props.login, props.group, time));
 	resetSanction();
 }
 
@@ -290,7 +290,7 @@ function restoreUser() {
 	props.group == "mutes" ? 
 		restore = "restoreMute" : restore = "restoreBan";
 	mySocket.emit("modifChan", 
-		new ModifChanDto(myName, props.chan, restore, props.login));
+		new ModifChanDto(props.chan, restore, props.login));
 }
 
 onMounted(() => {

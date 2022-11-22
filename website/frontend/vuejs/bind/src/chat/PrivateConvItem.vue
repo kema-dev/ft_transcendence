@@ -211,7 +211,7 @@ function toProfile() {
 
 function sendMsg() {
 	if (myMsg.value != "") {
-		mySocket.emit("newPrivMsg", new NewPrivMsgDto(me, userName, myMsg.value));
+		mySocket.emit("newPrivMsg", new NewPrivMsgDto(userName, myMsg.value));
 		myMsg.value = "";
 	}
 }
