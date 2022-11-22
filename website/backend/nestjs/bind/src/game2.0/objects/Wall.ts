@@ -11,6 +11,7 @@ export default class Wall {
 	y: number;
 	angle: number;
 	index: number;
+	d: number;
 	racket?: Racket;
 	profile?: Profile;
 	constructor(
@@ -28,6 +29,7 @@ export default class Wall {
 		this.index = index;
 		this.x = coordonate.x;
 		this.y = coordonate.y;
+		this.d = -(this.x * this.vector.x + this.y * this.vector.y);
 		this.angle = index * (360 / nbrWall);
 		if (this.side) {
 			this.racket = new Racket(this);

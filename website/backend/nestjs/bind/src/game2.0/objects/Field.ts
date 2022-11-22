@@ -24,7 +24,7 @@ export default class Field {
 		const halfFaceLength = this.radius * Math.sin(this.angleBase / 2);
 		const pos = new Vector(-distanceToWall, -halfFaceLength);
 		for (let i = 0; i < this.nbrWall; ++i) {
-			let racket = false
+			let racket = false;
 			if (i % 2 == 0)
 				racket = true;
 			if (i == 2 && this.solo)

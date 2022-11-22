@@ -25,8 +25,14 @@ export default class Vector {
 		this.x = Math.round(this.x * 100) / 100;
 		this.y = Math.round(this.y * 100) / 100;
 	}
-
-	dotPorduct(v: Vector): number {
+	rtNormalize() {
+		const size = Math.sqrt(this.x ** 2 + this.y ** 2);
+		let v = new Vector(this.x / size, this.y / size);
+		v.x = Math.round(v.x * 100) / 100;
+		v.y = Math.round(v.y * 100) / 100;
+		return v;
+	}
+	dotProduct(v: Vector): number {
 		return this.x * v.x + this.y * v.y;
 	}
 

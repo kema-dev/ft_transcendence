@@ -1,5 +1,8 @@
 <template>
 	<div class="security-view">
+		<button @click="close" v-show="totp_code" class="mfaBtn">
+			Close settings
+		</button>
 		<input
 			class="new_username"
 			type="text"
@@ -35,7 +38,6 @@
 		<button @click="disable" v-show="totp_code" class="mfaBtn">
 			DISABLE TOTP
 		</button>
-		<hr class="separator" v-show="totp_code" />
 		<!-- </div> -->
 	</div>
 </template>
@@ -63,10 +65,6 @@ let router = useRouter();
 
 function change_username() {
 	API.post('user/change_username', {
-		headers: {
-			login: cookies.get('login'),
-			token: cookies.get('session'),
-		},
 		username: email.value,
 		new_username: new_username.value,
 	})
@@ -91,15 +89,11 @@ function change_username() {
 
 function get_totp_url() {
 	API.post('auth/set_tmp_totp', {
-		headers: {
-			login: cookies.get('login'),
-			token: cookies.get('session'),
-		},
 		email: email.value,
 	})
 		.then((response) => {
 			totp_url.value = response.data.img_src;
-			console.log(response.data.img_src);
+			// console.log(response.data.img_src);
 			totp_code.value = response.data.url.match(/secret%3D(.*)%26/)[1];
 		})
 		.catch((error) => {
@@ -107,16 +101,19 @@ function get_totp_url() {
 		});
 }
 
+function close() {
+	totp_url.value = '';
+	totp_code.value = '';
+	new_username.value = '';
+	totp_code.value = '';
+}
+
 function debug() {
 	API.post('auth/debug', {
-		headers: {
-			login: cookies.get('login'),
-			token: cookies.get('session'),
-		},
 		email: email.value,
 	})
 		.then((response) => {
-			console.log(response);
+			// console.log(response);
 		})
 		.catch((error) => {
 			console.error(error);
@@ -124,17 +121,13 @@ function debug() {
 }
 
 function verify() {
-	console.log(email.value, code.value);
+	// console.log(email.value, code.value);
 	API.post('auth/verify_tmp_totp', {
-		headers: {
-			login: cookies.get('login'),
-			token: cookies.get('session'),
-		},
 		name: email.value,
 		code: code.value,
 	})
 		.then((response) => {
-			console.log(response);
+			// console.log(response);
 			toast.success(
 				'TOTP Verified ! You can now login with your email and TOTP code',
 			);
@@ -147,23 +140,15 @@ function verify() {
 
 async function disable() {
 	await API.post('auth/check_totp_status', {
-		headers: {
-			login: cookies.get('login'),
-			token: cookies.get('session'),
-		},
 		name: email.value,
 	})
 		.then((response) => {
-			console.log(response.data);
+			// console.log(response.data);
 			if (response.data == false) {
 				toast.success('You already have TOTP disabled');
 				return;
 			} else {
 				API.post('auth/verify_totp', {
-					headers: {
-						login: cookies.get('login'),
-						token: cookies.get('session'),
-					},
 					name: email.value,
 					code: code.value,
 				})
@@ -185,10 +170,6 @@ async function disable() {
 
 function disable_totp_api() {
 	API.post('auth/disable_totp', {
-		headers: {
-			login: cookies.get('login'),
-			token: cookies.get('session'),
-		},
 		name: email.value,
 	})
 		.then((response) => {
@@ -203,10 +184,6 @@ function disable_totp_api() {
 
 async function get_infos() {
 	await API.get('user/getEmail/' + $cookies.get('login'), {
-		headers: {
-			login: cookies.get('login'),
-			token: cookies.get('session'),
-		},
 		params: {
 			login: $cookies.get('login'),
 		},

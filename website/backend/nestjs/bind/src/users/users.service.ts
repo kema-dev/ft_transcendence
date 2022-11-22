@@ -16,7 +16,15 @@ export class UsersService {
 		@InjectRepository(UserEntity)
 		private usersRepository: Repository<UserEntity>,
 	) {}
-
+	async getBySocketId(socketId: string, relations?: any) {
+		let params;
+		if (relations) params = { where: { socketId: socketId }, relations: relations };
+		else params = { where: { socketId: socketId } };
+		const user = await this.usersRepository.findOne(params);
+		if (user)
+			return user;
+		console.error('getBySocket: ' + socketId + ' not found, returning ✘');
+	}
 	async saveSocket(login: string, socket: string) {
 		const user = await this.getByLogin(login);
 		user.socketId = socket;

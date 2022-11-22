@@ -49,10 +49,10 @@ git clone https://github.com/kema-dev/ft_transcendence.git
 cd ft_transcendence
 ```
 
-3. Create a `.env` file by executing a script
+3. Rename `.env.example` to `.env`
 
 ```sh
-./generate_env_file.sh
+mv .env.example .env
 ```
 
 4. Change default values (passwords, emails...) and add your 42 API credentials (API_42_UID, API_42_SECRET, and API_42_REDIRECT_URI) in `.env` file

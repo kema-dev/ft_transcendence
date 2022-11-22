@@ -52,10 +52,6 @@ watch(props, async (new_search, old_search) => {
 		return;
 	}
 	API.post('/match/get_user_stats/', {
-		headers: {
-			login: usr_login,
-			token: usr_token,
-		},
 		login: props.search,
 	}).then((res) => {
 		user_stats.value = res.data;
@@ -67,10 +63,6 @@ watch(props, async (new_search, old_search) => {
 		show.value = false;
 	});
 	API.post('/match/get_user_history', {
-		headers: {
-			login: usr_login,
-			token: usr_token,
-		},
 		login: props.search,
 	}).then((res) => {
 		user_history.value = res.data;
@@ -80,10 +72,6 @@ watch(props, async (new_search, old_search) => {
 		show.value = false;
 	});
 	API.post('/user/get_user_avatar', {
-		headers: {
-			login: usr_login,
-			token: usr_token,
-		},
 		login: props.search,
 	}).then((res) => {
 		other_user_avatar.value = res.data;
@@ -93,10 +81,6 @@ watch(props, async (new_search, old_search) => {
 		show.value = false;
 	});
 	API.post('/user/get_user_status', {
-		headers: {
-			login: usr_login,
-			token: usr_token,
-		},
 		login: props.search,
 	}).then((res) => {
 		user_status.value = res.data;
