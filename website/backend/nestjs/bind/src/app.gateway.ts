@@ -459,7 +459,7 @@ export class AppGateway
 
 	@SubscribeMessage('blockUser')
 	async blockUser(
-		@MessageBody() data: {blocked: string },
+		@MessageBody() data: { blocked: string },
 		@ConnectedSocket() client: Socket,
 	) {
 		const blocker = await this.userService.getBySocketId(client.id);
@@ -467,7 +467,10 @@ export class AppGateway
 			console.log(`blockUser error: blocker user not found"`);
 			return;
 		}
-		const blocked = await this.chatService.blockUser(blocker.login, data.blocked);
+		const blocked = await this.chatService.blockUser(
+			blocker.login,
+			data.blocked,
+		);
 		client.emit('userBlock', new ResumUserDto(blocked));
 	}
 
@@ -499,8 +502,7 @@ export class AppGateway
 			return;
 		}
 		const priv = await this.chatService.addPrivMsg(sender, data);
-		if (!priv)
-			return
+		if (!priv) return;
 		const receiver = await this.userService.getByLogin(data.userReceive);
 		const msg = new MessageDto(sender.login, data.message, new Date(data.date));
 		if (priv.messages.length == 1) {
@@ -533,7 +535,7 @@ export class AppGateway
 	) {
 		const receiver = await this.userService.getBySocketId(client.id);
 		if (!receiver) {
-			console.log(`privReaded error : Receiver user not found`)
+			console.log(`privReaded error : Receiver user not found`);
 			return;
 		}
 		const sender = await this.userService.getByLogin(data.sender);
@@ -557,8 +559,7 @@ export class AppGateway
 			return;
 		}
 		const chan = await this.chatService.addChanMsg(sender, data);
-		if (!chan) 
-			return;
+		if (!chan) return;
 		const msg = new MessageDto(sender.login, data.message, new Date(data.date));
 		const allUsers = this.chatService.getAllChanUsers(chan);
 		for (const user of allUsers) {
