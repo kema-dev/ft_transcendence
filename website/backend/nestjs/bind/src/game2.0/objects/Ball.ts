@@ -92,7 +92,7 @@ export default class Ball {
 		const centerToBall: Vector = new Vector(circle.x - this.startX, circle.y - this.startY);
 		// -(a * centerAera.x + b * centerAera.y + d) / (a * v.x + b * v.y)
 		let sizeToCollideWall: number = -(rect.vector.x * this.startX + rect.vector.y * this.startY + rect.d) / (rect.vector.x * centerToBall.x + rect.vector.y * centerToBall.y);
-		console.log(sizeToCollideWall);
+		// console.log(sizeToCollideWall);
 		if (sizeToCollideWall >= 0 && sizeToCollideWall <= 1.065)
 			return true;
 		return false;

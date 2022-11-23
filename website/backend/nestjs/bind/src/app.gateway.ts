@@ -66,6 +66,7 @@ export class AppGateway
 		this.logger.log(`Client disconnected: ${client.id}`);
 		const user = client.handshake.query.login as string;
 		this.leftGame(client, {});
+		this.userService.set_status(user, 'offline');
 		this.server.emit('userStatus', { user: user, status: 'offline' });
 	}
 
@@ -188,6 +189,7 @@ export class AppGateway
 		user.lobby_name = newGame.lobby_name;
 		user.status = 'ingame';
 		await this.userService.saveUser(user);
+		this.server.emit('userStatus', { user: user.login, status: 'ingame' });
 		this.server.to(user.socketId).emit('userUpdate', new ProfileUserDto(user));
 		this.server.emit('lobbys', this.sendLobbys(this.games)); // ?
 		return 'newLobby';
@@ -330,6 +332,7 @@ export class AppGateway
 		user.lobby_name = newGame.lobby_name;
 		user.status = 'ingame';
 		this.userService.saveUser(user);
+		this.server.emit('userStatus', { user: user.login, status: 'ingame' });
 		this.server.to(user.socketId).emit('userUpdate', new ProfileUserDto(user));
 		this.server.to(user.socketId).emit('flush_invitations');
 		this.server.to(user.socketId).emit('accept_success');
