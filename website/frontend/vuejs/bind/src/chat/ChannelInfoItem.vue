@@ -339,8 +339,6 @@ function addUserReq() {
 		})
 	HTTP.get(`${apiPath}chat/invitChanUser/${chanName}/${newUser.value}`)
 	.then(res => {
-		// mySocket.emit("modifChan", 
-		// 	new ModifChanDto(chanName, 'invitUser', newUser.value));
 		mySocket.emit("newChannelUser", {chan: chanName, login: newUser.value})
 		newUser.value = "";
 		invitUser.value = false;
@@ -388,13 +386,13 @@ function modifPswReq() {
 	if (chansRef.value[props.i].psw) {
 		if (!pswCheckBox.value)
 			mySocket.emit("modifChan",
-				new ModifChanDto(myName, chanName, "psw", ""));
+				new ModifChanDto(chanName, "psw", ""));
 		else if (pswValue.value != "")
 			mySocket.emit("modifChan", 
-				new ModifChanDto(myName, chanName, "psw", pswValue.value));
+				new ModifChanDto(chanName, "psw", pswValue.value));
 	} else if (pswCheckBox.value)
 		mySocket.emit("modifChan", 
-			new ModifChanDto(myName, chanName, "psw", pswValue.value));
+			new ModifChanDto(chanName, "psw", pswValue.value));
 	pswShow.value = false;
 }
 
@@ -412,7 +410,7 @@ function modifPrivReq() {
 	if ((chansRef.value[props.i].priv && !privCheck.value)
 		|| (!chansRef.value[props.i].priv && privCheck.value)) 
 		mySocket.emit("modifChan",
-			new ModifChanDto(myName, chanName, "priv", privCheck.value));
+			new ModifChanDto(chanName, "priv", privCheck.value));
 	privShow.value = false;
 }
 

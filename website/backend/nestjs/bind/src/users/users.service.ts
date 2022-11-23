@@ -39,7 +39,7 @@ export class UsersService {
 			.save(user)
 			.catch((e) => console.log('Save saveSocket error'));
 	}
-	async saveUser(user:UserEntity) {
+	async saveUser(user: UserEntity) {
 		await this.usersRepository.save(user);
 	}
 
@@ -73,7 +73,7 @@ export class UsersService {
 	async getByLoginFiltred(filter: string) {
 		const maxUsers = 20;
 		console.log("getByLoginFiltred: starting for '" + filter + "'");
-		let users = await this.usersRepository.find({
+		const users = await this.usersRepository.find({
 			where: { login: Like(filter + '%') },
 			take: maxUsers,
 		});

@@ -211,7 +211,7 @@ function toProfile() {
 
 function sendMsg() {
 	if (myMsg.value != "") {
-		mySocket.emit("newPrivMsg", new NewPrivMsgDto(me, userName, myMsg.value));
+		mySocket.emit("newPrivMsg", new NewPrivMsgDto(userName, myMsg.value));
 		myMsg.value = "";
 	}
 }
@@ -221,7 +221,7 @@ function privMsgRead() {
 		&& privsRef.value[index.value].readed == false
 	) {
 		privsRef.value[index.value].readed = true;
-		mySocket.emit('privReaded', {sender: userName, receiver: me});
+		mySocket.emit('privReaded', {sender: userName});
 	}
 }
 
