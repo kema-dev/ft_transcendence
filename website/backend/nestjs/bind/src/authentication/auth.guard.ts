@@ -20,7 +20,21 @@ export class AuthGuard implements CanActivate {
 		const cookie = context.switchToHttp().getRequest().headers.cookie;
 		const cookieArray = cookie.split(';');
 		// extract work after 'session=' using regex
-		const session = cookieArray[1].match(/session=(.*)/)[1];
+		let session_cookie;
+		for (const c of cookieArray) {
+			if (c.match(/session=/)) {
+				session_cookie = c;
+				break;
+			}
+		}
+		let login_cookie;
+		for (const c of cookieArray) {
+			if (c.match(/login=/)) {
+				login_cookie = c;
+				break;
+			}
+		}
+		const session = session_cookie.match(/session=(.*)/)[1];
 		if (!session) {
 			console.log('AuthGuard: No session');
 			return false;
@@ -31,7 +45,7 @@ export class AuthGuard implements CanActivate {
 		let check = this.jwtService.verify(session);
 		const decoded_login = JSON.parse(JSON.stringify(decoded_obj)).login;
 		// console.log('Decoded login:', decoded_login);
-		const req_login = cookieArray[2].match(/login=(.*)/)[1];
+		const req_login = login_cookie.match(/login=(.*)/)[1];
 		if (!req_login) {
 			console.log('AuthGuard: No login');
 			return false;
