@@ -176,7 +176,7 @@ function init() {
 
 watch(findPrivIndex, () => {
 	if (findPrivIndex.value == true) {
-		// console.log(`findPrivIndex privConvItem IN`)
+		console.log(`findPrivIndex privConvItem IN`)
 		index.value = privsRef.value
 			.findIndex((priv) => priv.user.login == userName);
 		findPrivIndex.value = false;

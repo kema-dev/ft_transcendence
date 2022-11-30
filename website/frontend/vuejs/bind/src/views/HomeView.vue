@@ -173,7 +173,7 @@ socket.on('newPrivMsg', (data: { msg: MessageDto; id: number }) => {
 	}
 	if (i != 0) {
 		putPrivFirst(i);
-		// console.log(`putPrivFirst`)
+		console.log(`putPrivFirst`)
 		findPrivIndex.value = true;
 	} 
 });
