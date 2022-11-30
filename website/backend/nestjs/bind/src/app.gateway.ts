@@ -35,8 +35,7 @@ import { InfoDto } from 'src/game2.0/dto/InfoDto';
 })
 @Injectable()
 export class AppGateway
-	implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
-{
+	implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
 	@WebSocketServer() server: Server;
 	games: Game[] = [];
 	private logger: Logger = new Logger('AppGateway');
@@ -65,7 +64,8 @@ export class AppGateway
 	async handleDisconnect(client: Socket) {
 		this.logger.log(`Client disconnected: ${client.id}`);
 		const user = client.handshake.query.login as string;
-		this.leftGame(client, {});
+		await this.leftGame(client, {});
+		this.userService.set_status(user, 'offline');
 		this.server.emit('userStatus', { user: user, status: 'offline' });
 	}
 
@@ -73,7 +73,7 @@ export class AppGateway
 
 	@SubscribeMessage('leftGame')
 	async leftGame(@ConnectedSocket() client: Socket, @MessageBody() data: any) {
-		this.quitGame(client.handshake.query.login as string, data);
+		await this.quitGame(client.handshake.query.login as string, data);
 	}
 	async quitGame(login: string, data: any) {
 		console.log('leftGame <---------------------------', login);
@@ -162,6 +162,7 @@ export class AppGateway
 		const user: UserEntity = await this.userService.getBySocketId(client.id, {
 			requestFriend: true,
 			friends: true,
+			blockeds: true
 		});
 		if (!user) {
 			console.log('user not found');
@@ -188,6 +189,7 @@ export class AppGateway
 		user.lobby_name = newGame.lobby_name;
 		user.status = 'ingame';
 		await this.userService.saveUser(user);
+		this.server.emit('userStatus', { user: user.login, status: 'ingame' });
 		this.server.to(user.socketId).emit('userUpdate', new ProfileUserDto(user));
 		this.server.emit('lobbys', this.sendLobbys(this.games)); // ?
 		return 'newLobby';
@@ -250,6 +252,7 @@ export class AppGateway
 		const user: UserEntity = await this.userService.getBySocketId(client.id, {
 			requestFriend: true,
 			friends: true,
+			blockeds: true
 		});
 		const game = this.games.find((game) => game.lobby_name == data.lobby);
 		if (!game) {
@@ -330,6 +333,7 @@ export class AppGateway
 		user.lobby_name = newGame.lobby_name;
 		user.status = 'ingame';
 		this.userService.saveUser(user);
+		this.server.emit('userStatus', { user: user.login, status: 'ingame' });
 		this.server.to(user.socketId).emit('userUpdate', new ProfileUserDto(user));
 		this.server.to(user.socketId).emit('flush_invitations');
 		this.server.to(user.socketId).emit('accept_success');
@@ -516,7 +520,7 @@ export class AppGateway
 
 	@SubscribeMessage('blockUser')
 	async blockUser(
-		@MessageBody() data: {blocked: string },
+		@MessageBody() data: { blocked: string },
 		@ConnectedSocket() client: Socket,
 	) {
 		const blocker = await this.userService.getBySocketId(client.id);
@@ -589,7 +593,7 @@ export class AppGateway
 
 	@SubscribeMessage('privReaded')
 	async privReaded(
-		@MessageBody() data: {sender: string},
+		@MessageBody() data: { sender: string },
 		@ConnectedSocket() client: Socket,
 	) {
 		const receiver = await this.userService.getBySocketId(client.id);
