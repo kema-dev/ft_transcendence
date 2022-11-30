@@ -289,9 +289,9 @@ export class AuthenticationService {
 				const existing_usr = await this.usersService.getByEmail(
 					logobj.data.email,
 				);
-				if (existing_usr.password != '') {
+				if (existing_usr.password == '') {
 					// TODO check if suffixed mail already exists
-					logobj.data.email = logobj.data.email + '_42';
+					logobj.data.login = logobj.data.login + '_42';
 					if (
 						(await this.usersService.checkEmailExistence(logobj.data.email)) ==
 						true

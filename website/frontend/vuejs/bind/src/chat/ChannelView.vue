@@ -264,8 +264,8 @@ function submitChannel() {
 		.then(res => {
 			let newChan = res.data as ChannelDto;
 			newChan.creation = new Date(newChan.creation);
-			newChannel.value = false;
 			chansRef.value.unshift(newChan);
+			newChannel.value = false;
 		})
 		.catch(e => {
 			if (e.response.data.message === 'CHAN_ALREADY_EXIST') {

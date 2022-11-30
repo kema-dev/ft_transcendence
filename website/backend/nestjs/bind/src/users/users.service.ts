@@ -331,7 +331,7 @@ export class UsersService {
 	}
 
 	async set_status(login: string, status: string) {
-		// console.log('set_status: starting for ' + login);
+		console.log('set_status: starting for ' + login + ', status = ' + status);
 		const user = await this.getByAny(login);
 		if (user) {
 			// console.log('set_status: found ' + login + ', updating ✔');

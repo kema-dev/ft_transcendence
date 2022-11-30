@@ -98,7 +98,7 @@
 
 <script setup lang="ts">
 import { useToast } from 'vue-toastification';
-import { inject, onMounted, onUnmounted, provide, ref } from 'vue';
+import { inject, onMounted, onUnmounted, provide, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { VueCookies } from 'vue-cookies';
 import API from '../components/axios';
@@ -252,6 +252,9 @@ function resize() {
 	console.log(heightField);
 	console.log(widthField);
 }
+watch(totp_val, (val) => {
+	$cookies.set('mfa', val);
+});
 onMounted(async () => {
 	if ($cookies.get('session')) {
 		router.push('/home');
@@ -264,7 +267,7 @@ onMounted(async () => {
 	if (code) {
 		await API.post('auth/login42', {
 			code: code,
-			mfa: totp_val.value,
+			mfa: $cookies.get('mfa'),
 		})
 			.then((response) => {
 				console.log(response);
@@ -281,6 +284,7 @@ onMounted(async () => {
 					totp_enabled.value = true;
 				} else if (error.response.data.message === 'E_TOTP_FAIL') {
 					toast.warning(E_TOTP_FAIL);
+					totp_enabled.value = true;
 				} else if (error.response.data.message === 'E_NO_CODE_PROVIDED') {
 					toast.warning(E_NO_CODE_PROVIDED);
 				} else if (error.response.data.message === 'E_CODE_IN_USE') {

@@ -176,6 +176,7 @@ function init() {
 
 watch(findPrivIndex, () => {
 	if (findPrivIndex.value == true) {
+		// console.log(`findPrivIndex privConvItem IN`)
 		index.value = privsRef.value
 			.findIndex((priv) => priv.user.login == userName);
 		findPrivIndex.value = false;
@@ -200,7 +201,7 @@ function userExistOrBlocked() {
 			console.error(`Bad userName, it's yours`)
 			else if (e.response.data.message === 'USER_BLOCKED') {
 				userBlocked.value = true;
-				console.error(`This user is blocked`)
+				// console.error(`This user is blocked`)
 			}
 		});
 }
