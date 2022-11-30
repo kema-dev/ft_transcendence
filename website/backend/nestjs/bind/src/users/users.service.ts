@@ -18,11 +18,11 @@ export class UsersService {
 	) {}
 	async getBySocketId(socketId: string, relations?: any) {
 		let params;
-		if (relations) params = { where: { socketId: socketId }, relations: relations };
+		if (relations)
+			params = { where: { socketId: socketId }, relations: relations };
 		else params = { where: { socketId: socketId } };
 		const user = await this.usersRepository.findOne(params);
-		if (user)
-			return user;
+		if (user) return user;
 		console.error('getBySocket: ' + socketId + ' not found, returning ✘');
 	}
 	async saveSocket(login: string, socket: string) {
@@ -105,12 +105,12 @@ export class UsersService {
 		const userReceiver = await this.getByLogin(receiver, {
 			requestFriend: true,
 			friends: true,
-			blockeds: true
+			blockeds: true,
 		});
 		const userSender = await this.getByLogin(sender, {
 			requestFriend: true,
 			friends: true,
-			blockeds: true
+			blockeds: true,
 		});
 		if (userReceiver.login == userSender.login) return;
 		if (!userReceiver.requestFriend) userReceiver.requestFriend = [];
@@ -130,7 +130,7 @@ export class UsersService {
 		const userSender = await this.getByLogin(sender, {
 			requestFriend: true,
 			friends: true,
-			blockeds: true
+			blockeds: true,
 		});
 		if (!userSender.requestFriend) userSender.requestFriend = [];
 		userSender.requestFriend = userSender.requestFriend.filter(
@@ -147,12 +147,12 @@ export class UsersService {
 		const userSender = await this.getByLogin(sender, {
 			requestFriend: true,
 			friends: true,
-			blockeds: true
+			blockeds: true,
 		});
 		const userReceiver = await this.getByLogin(receiver, {
 			requestFriend: true,
 			friends: true,
-			blockeds: true
+			blockeds: true,
 		});
 		if (!userSender.friends) userSender.friends = [];
 		if (!userReceiver.friends) userReceiver.friends = [];
@@ -182,12 +182,12 @@ export class UsersService {
 		const userSender = await this.getByLogin(sender, {
 			requestFriend: true,
 			friends: true,
-			blockeds: true
+			blockeds: true,
 		});
 		const userReceiver = await this.getByLogin(receiver, {
 			requestFriend: true,
 			friends: true,
-			blockeds: true
+			blockeds: true,
 		});
 		if (!userSender.friends) userSender.friends = [];
 		if (!userReceiver.friends) userReceiver.friends = [];
@@ -332,14 +332,20 @@ export class UsersService {
 
 	async set_status(login: string, status: string) {
 		console.log('set_status: starting for ' + login + ', status = ' + status);
-		const user = await this.getByAny(login);
+		let user;
+		try {
+			user = await this.getByAny(login);
+		} catch (e) {
+			console.error('set_status: ' + login + ' not found, updating aborted ✘');
+			// throw new HttpException('E_USER_NOT_FOUND', HttpStatus.NOT_FOUND);
+		}
 		if (user) {
 			// console.log('set_status: found ' + login + ', updating ✔');
 			user.status = status;
 			await this.usersRepository.save(user);
 		} else {
 			console.error('set_status: ' + login + ' not found, updating aborted ✘');
-			throw new HttpException('E_USER_NOT_FOUND', HttpStatus.NOT_FOUND);
+			// throw new HttpException('E_USER_NOT_FOUND', HttpStatus.NOT_FOUND);
 		}
 	}
 
@@ -414,6 +420,20 @@ export class UsersService {
 		return usr.avatar;
 	}
 
+	async disconnect_user_changename(user: string, new_username: string) {
+		console.log('disconnect_user: starting for', user);
+		const usr = await this.getByAny(user);
+		usr.session_token = '';
+		usr.session_expiration = new Date();
+		usr.socketId = '';
+		usr.match = [];
+		usr.lobby_name = '';
+		usr.status = 'offline';
+		usr.login = new_username;
+		this.usersRepository.save(usr);
+		console.log('disconnect_user: ' + user + ', returning ✔');
+	}
+
 	async change_username(username: string, new_username: string) {
 		console.log('change_username: starting for', username);
 		let usr;
@@ -440,7 +460,7 @@ export class UsersService {
 					HttpStatus.BAD_REQUEST,
 				);
 			}
-			usr.login = new_username;
+			this.disconnect_user_changename(username, new_username);
 			this.usersRepository.save(usr);
 		}
 		console.log('change_username: ', username, ', returning ✔');
