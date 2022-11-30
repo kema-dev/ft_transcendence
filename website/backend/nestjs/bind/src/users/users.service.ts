@@ -105,10 +105,12 @@ export class UsersService {
 		const userReceiver = await this.getByLogin(receiver, {
 			requestFriend: true,
 			friends: true,
+			blockeds: true
 		});
 		const userSender = await this.getByLogin(sender, {
 			requestFriend: true,
 			friends: true,
+			blockeds: true
 		});
 		if (userReceiver.login == userSender.login) return;
 		if (!userReceiver.requestFriend) userReceiver.requestFriend = [];
@@ -128,6 +130,7 @@ export class UsersService {
 		const userSender = await this.getByLogin(sender, {
 			requestFriend: true,
 			friends: true,
+			blockeds: true
 		});
 		if (!userSender.requestFriend) userSender.requestFriend = [];
 		userSender.requestFriend = userSender.requestFriend.filter(
@@ -144,10 +147,12 @@ export class UsersService {
 		const userSender = await this.getByLogin(sender, {
 			requestFriend: true,
 			friends: true,
+			blockeds: true
 		});
 		const userReceiver = await this.getByLogin(receiver, {
 			requestFriend: true,
 			friends: true,
+			blockeds: true
 		});
 		if (!userSender.friends) userSender.friends = [];
 		if (!userReceiver.friends) userReceiver.friends = [];
@@ -177,10 +182,12 @@ export class UsersService {
 		const userSender = await this.getByLogin(sender, {
 			requestFriend: true,
 			friends: true,
+			blockeds: true
 		});
 		const userReceiver = await this.getByLogin(receiver, {
 			requestFriend: true,
 			friends: true,
+			blockeds: true
 		});
 		if (!userSender.friends) userSender.friends = [];
 		if (!userReceiver.friends) userReceiver.friends = [];
