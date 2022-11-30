@@ -785,7 +785,7 @@ export class ChatService {
 		});
 		if (toDelete.length) {
 			for (let sanction of toDelete) {
-				let requestor = 'time';
+				// let requestor = 'time';
 				let chanName = sanction.chan.name;
 				let userName = sanction.user.login; 
 				let type : string; 
@@ -800,7 +800,7 @@ export class ChatService {
 				await this.sanctionRepository.remove(sanction)
 					.catch((e) => console.log('Remove sanction checkSanctions error'));
 				for (const user of this.getAllChanUsers(sanction.chan)) {
-					let modifChanDto = new ModifChanDto(requestor, chanName, type, userName);
+					let modifChanDto = new ModifChanDto(chanName, type, userName);
 					server.to(user.socketId).emit("modifChan", modifChanDto);
 				}
 			}

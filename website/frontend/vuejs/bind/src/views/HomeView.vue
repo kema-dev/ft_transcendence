@@ -167,10 +167,15 @@ socket.on('newPrivMsg', (data: { msg: MessageDto; id: number }) => {
 		route.path != '/home/chat/private/' + data.msg.user &&
 		!blocked
 	) {
+		// console.log(`findIndex Homview`);
 		nbPrivNR.value.push(privsRef.value[i].id);
-		findPrivIndex.value = true;
+		// findPrivIndex.value = true;
 	}
-	if (i != 0) putPrivFirst(i);
+	if (i != 0) {
+		putPrivFirst(i);
+		// console.log(`putPrivFirst`)
+		findPrivIndex.value = true;
+	} 
 });
 
 function putPrivFirst(index: number) {
@@ -309,94 +314,96 @@ socket.on('userQuitChan', (data: { login: string; chan: string }) => {
 socket.on('modifChan', (data: ModifChanDto) => {
 	console.log(`Chan '${data.chan}' modified`);
 	let i = chansRef.value.findIndex((chan) => chan.name == data.chan);
-	if (data.psw != undefined) {
-		console.log(`Psw from chan '${data.chan}' modified`);
-		data.psw == ''
-			? (chansRef.value[i].psw = undefined)
-			: (chansRef.value[i].psw = data.psw);
-	}
-	if (data.priv != undefined) {
-		console.log(`Private from chan '${data.chan}' modified`);
-		chansRef.value[i].priv = data.priv;
-	} else if (data.promotAdm) {
-		console.log(
-			`User '${data.promotAdm}' from chan '${data.chan}' promoted to Admin`,
-		);
-		let j = chansRef.value[i].users.findIndex(
-			(user) => user.login == data.promotAdm,
-		);
-		chansRef.value[i].admins.push(chansRef.value[i].users[j]);
-		chansRef.value[i].users.splice(j, 1);
-	} else if (data.demotUser) {
-		console.log(
-			`Admin '${data.demotUser}' from chan '${data.chan}' demoted to User`,
-		);
-		let j = chansRef.value[i].admins.findIndex(
-			(user) => user.login == data.demotUser,
-		);
-		chansRef.value[i].users.push(chansRef.value[i].admins[j]);
-		chansRef.value[i].admins.splice(j, 1);
-	} else if (data.mute) {
-		console.log(`User '${data.mute}' from chan '${data.chan}' is muted`);
-		let j = (
-			chansRef.value[i][data.group as keyof ChannelDto] as BasicUserDto[]
-		).findIndex((user) => user.login == data.mute);
-		chansRef.value[i].mutes.push(
-			(chansRef.value[i][data.group as keyof ChannelDto] as BasicUserDto[])[j],
-		);
-		(
-			chansRef.value[i][data.group as keyof ChannelDto] as BasicUserDto[]
-		).splice(j, 1);
-	} else if (data.restoreMute) {
-		console.log(
-			`User '${data.restoreMute}' from chan '${data.chan}' is unmuted`,
-		);
-		let j = chansRef.value[i].mutes.findIndex(
-			(user) => user.login == data.restoreMute,
-		);
-		chansRef.value[i].users.push(chansRef.value[i].mutes[j]);
-		chansRef.value[i].mutes.splice(i, 1);
-	} else if (data.kick) {
-		console.log(`User '${data.kick}' from chan '${data.chan}' is kicked`);
-		if (data.kick == me) {
-			chanBan.value = data.chan;
-			setTimeout(() => {
-				chansRef.value.splice(i, 1);
-				chanBan.value = '';
-			}, 200);
+	if (i != -1) {
+		if (data.psw != undefined) {
+			console.log(`Psw from chan '${data.chan}' modified`);
+			data.psw == ''
+				? (chansRef.value[i].psw = undefined)
+				: (chansRef.value[i].psw = data.psw);
 		}
-		let j = (
-			chansRef.value[i][data.group as keyof ChannelDto] as BasicUserDto[]
-		).findIndex((user) => user.login == data.ban);
-		(
-			chansRef.value[i][data.group as keyof ChannelDto] as BasicUserDto[]
-		).splice(j, 1);
-	} else if (data.ban) {
-		console.log(`User '${data.ban}' from chan '${data.chan}' is banned`);
-		if (data.ban == me) {
-			chanBan.value = data.chan;
-			setTimeout(() => {
-				chansRef.value.splice(i, 1);
-				chanBan.value = '';
-			}, 200);
+		if (data.priv != undefined) {
+			console.log(`Private from chan '${data.chan}' modified`);
+			chansRef.value[i].priv = data.priv;
+		} else if (data.promotAdm) {
+			console.log(
+				`User '${data.promotAdm}' from chan '${data.chan}' promoted to Admin`,
+			);
+			let j = chansRef.value[i].users.findIndex(
+				(user) => user.login == data.promotAdm,
+			);
+			chansRef.value[i].admins.push(chansRef.value[i].users[j]);
+			chansRef.value[i].users.splice(j, 1);
+		} else if (data.demotUser) {
+			console.log(
+				`Admin '${data.demotUser}' from chan '${data.chan}' demoted to User`,
+			);
+			let j = chansRef.value[i].admins.findIndex(
+				(user) => user.login == data.demotUser,
+			);
+			chansRef.value[i].users.push(chansRef.value[i].admins[j]);
+			chansRef.value[i].admins.splice(j, 1);
+		} else if (data.mute) {
+			console.log(`User '${data.mute}' from chan '${data.chan}' is muted`);
+			let j = (
+				chansRef.value[i][data.group as keyof ChannelDto] as BasicUserDto[]
+			).findIndex((user) => user.login == data.mute);
+			chansRef.value[i].mutes.push(
+				(chansRef.value[i][data.group as keyof ChannelDto] as BasicUserDto[])[j],
+			);
+			(
+				chansRef.value[i][data.group as keyof ChannelDto] as BasicUserDto[]
+			).splice(j, 1);
+		} else if (data.restoreMute) {
+			console.log(
+				`User '${data.restoreMute}' from chan '${data.chan}' is unmuted`,
+			);
+			let j = chansRef.value[i].mutes.findIndex(
+				(user) => user.login == data.restoreMute,
+			);
+			chansRef.value[i].users.push(chansRef.value[i].mutes[j]);
+			chansRef.value[i].mutes.splice(i, 1);
+		} else if (data.kick) {
+			console.log(`User '${data.kick}' from chan '${data.chan}' is kicked`);
+			if (data.kick == me) {
+				chanBan.value = data.chan;
+				setTimeout(() => {
+					chansRef.value.splice(i, 1);
+					chanBan.value = '';
+				}, 200);
+			}
+			let j = (
+				chansRef.value[i][data.group as keyof ChannelDto] as BasicUserDto[]
+			).findIndex((user) => user.login == data.ban);
+			(
+				chansRef.value[i][data.group as keyof ChannelDto] as BasicUserDto[]
+			).splice(j, 1);
+		} else if (data.ban) {
+			console.log(`User '${data.ban}' from chan '${data.chan}' is banned`);
+			if (data.ban == me) {
+				chanBan.value = data.chan;
+				setTimeout(() => {
+					chansRef.value.splice(i, 1);
+					chanBan.value = '';
+				}, 200);
+			}
+			let j = (
+				chansRef.value[i][data.group as keyof ChannelDto] as BasicUserDto[]
+			).findIndex((user) => user.login == data.ban);
+			chansRef.value[i].bans.push(
+				(chansRef.value[i][data.group as keyof ChannelDto] as BasicUserDto[])[j],
+			);
+			(
+				chansRef.value[i][data.group as keyof ChannelDto] as BasicUserDto[]
+			).splice(j, 1);
+		} else if (data.restoreBan && data.restoreBan != me) {
+			console.log(
+				`User '${data.restoreBan}' from chan '${data.chan}' is unbaned`,
+			);
+			let j = chansRef.value[i].bans.findIndex(
+				(user) => user.login == data.restoreBan,
+			);
+			chansRef.value[i].bans.splice(i, 1);
 		}
-		let j = (
-			chansRef.value[i][data.group as keyof ChannelDto] as BasicUserDto[]
-		).findIndex((user) => user.login == data.ban);
-		chansRef.value[i].bans.push(
-			(chansRef.value[i][data.group as keyof ChannelDto] as BasicUserDto[])[j],
-		);
-		(
-			chansRef.value[i][data.group as keyof ChannelDto] as BasicUserDto[]
-		).splice(j, 1);
-	} else if (data.restoreBan && data.restoreBan != me) {
-		console.log(
-			`User '${data.restoreBan}' from chan '${data.chan}' is unbaned`,
-		);
-		let j = chansRef.value[i].bans.findIndex(
-			(user) => user.login == data.restoreBan,
-		);
-		chansRef.value[i].bans.splice(i, 1);
 	}
 });
 
