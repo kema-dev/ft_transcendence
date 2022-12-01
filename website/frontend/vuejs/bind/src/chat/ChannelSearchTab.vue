@@ -96,7 +96,6 @@ function joinChannel() {
 			}, 50);
 	}
 	HTTP.post(apiPath + "chat/joinChanRequest/", {
-		requestor: me.value.login,
 		chanName: props.infos.name,
 		psw: props.infos.psw ? psw.value : undefined,
 	})

@@ -188,7 +188,7 @@ function init() {
 // ===================== METHODS =====================
 
 function userExistOrBlocked() {
-	HTTP.get(`${apiPath}chat/userExistOrBlocked/${userName}/${me}`)
+	HTTP.get(`${apiPath}chat/userExistOrBlocked/${userName}`)
 		.then((res) => {
 			userExist.value = res.data;
 			userExistDone.value = true;

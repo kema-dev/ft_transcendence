@@ -228,7 +228,7 @@ function sortChans(privs : ChannelDto[]) {
 }
 
 function getServerChans() {
-	HTTP.get(apiPath + "chat/getServerChansFiltred/" + myName + "/" + search.value)
+	HTTP.get(apiPath + "chat/getServerChansFiltred/" + search.value)
 		.then((res) => {
 			let chansTmp: ChannelTabDto[] = [];
 			res.data.forEach((chan: ChannelTabDto) => {
@@ -283,7 +283,7 @@ function submitChannel() {
 			pswElem!.classList.add("invalidInput");
 		})
 	HTTP.post(apiPath + "chat/createChan", 
-		new NewChanDto(nameInput.value, myName, privCB.value, pswInput.value))
+		new NewChanDto(nameInput.value, privCB.value, pswInput.value))
 		.then(res => {
 			let newChan = res.data as ChannelDto;
 			newChan.creation = new Date(newChan.creation);

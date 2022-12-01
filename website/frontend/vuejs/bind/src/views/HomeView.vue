@@ -116,7 +116,8 @@ provide('privDone', privDone);
 provide('findPrivIndex', findPrivIndex);
 
 function getPrivsRequest() {
-	HTTP.get(apiPath + 'chat/getPrivs/' + me)
+	// HTTP.get(apiPath + 'chat/getPrivs/' + me)
+	HTTP.get(apiPath + 'chat/getPrivs')
 		.then((res) => {
 			if (!res.data) {
 				privsRef.value = [];
@@ -233,7 +234,7 @@ provide('reloadChanIndex', reloadChanIndex);
 
 
 function getChansRequest() {
-	HTTP.get(apiPath + 'chat/getChans/' + me)
+	HTTP.get(apiPath + 'chat/getChans')
 		.then((res) => {
 			if (!res.data) chansRef.value = [];
 			else {

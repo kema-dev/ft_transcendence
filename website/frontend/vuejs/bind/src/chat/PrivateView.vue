@@ -180,7 +180,7 @@ watch(search, () => {
 // ====================== METHODS ======================
 
 function getServerUsers() {
-	HTTP.get(apiPath + "chat/getServerUsersFiltred/" + me.value.login + "/" + search.value)
+	HTTP.get(apiPath + "chat/getServerUsersFiltred/" + search.value)
 		.then((res) => {
 			serverUsers.value = res.data;
 			filterServerUsers();
