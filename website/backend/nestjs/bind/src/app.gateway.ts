@@ -35,7 +35,8 @@ import { InfoDto } from 'src/game2.0/dto/InfoDto';
 })
 @Injectable()
 export class AppGateway
-	implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+	implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+{
 	@WebSocketServer() server: Server;
 	games: Game[] = [];
 	private logger: Logger = new Logger('AppGateway');
@@ -162,7 +163,7 @@ export class AppGateway
 		const user: UserEntity = await this.userService.getBySocketId(client.id, {
 			requestFriend: true,
 			friends: true,
-			blockeds: true
+			blockeds: true,
 		});
 		if (!user) {
 			console.log('user not found');
@@ -252,7 +253,7 @@ export class AppGateway
 		const user: UserEntity = await this.userService.getBySocketId(client.id, {
 			requestFriend: true,
 			friends: true,
-			blockeds: true
+			blockeds: true,
 		});
 		const game = this.games.find((game) => game.lobby_name == data.lobby);
 		if (!game) {
@@ -338,6 +339,20 @@ export class AppGateway
 		this.server.to(user.socketId).emit('flush_invitations');
 		this.server.to(user.socketId).emit('accept_success');
 		console.log('join_lobby: Success, returning');
+	}
+	@SubscribeMessage('flush_my_invitations')
+	async flushMyInvitations(@ConnectedSocket() client: Socket) {
+		const user: UserEntity = await this.userService.getBySocketId(client.id, {
+			requestFriend: true,
+			friends: true,
+			blockeds: true,
+		});
+		if (!user) {
+			console.log('join_lobby: User not found, Returning');
+			this.server.to(client.id).emit('join_failure');
+			return;
+		}
+		this.server.to(user.socketId).emit('flush_invitations');
 	}
 	@SubscribeMessage('updateLobby')
 	async updateLobby(client: Socket, payload: any) {
@@ -528,7 +543,10 @@ export class AppGateway
 			console.log(`blockUser error: blocker user not found"`);
 			return;
 		}
-		const blocked = await this.chatService.blockUser(blocker.login, data.blocked);
+		const blocked = await this.chatService.blockUser(
+			blocker.login,
+			data.blocked,
+		);
 		client.emit('userBlock', new ResumUserDto(blocked));
 	}
 
@@ -560,14 +578,9 @@ export class AppGateway
 			return;
 		}
 		const priv = await this.chatService.addPrivMsg(sender, data);
-		if (!priv)
-			return
+		if (!priv) return;
 		const receiver = await this.userService.getByLogin(data.userReceive);
-		const msg = new MessageDto(
-			sender.login,
-			data.message,
-			new Date(data.date),
-		);
+		const msg = new MessageDto(sender.login, data.message, new Date(data.date));
 		if (priv.messages.length == 1) {
 			const userSend = new BasicUserDto(sender.login, sender.avatar);
 			const userReceive = new BasicUserDto(receiver.login, receiver.avatar);
@@ -598,7 +611,7 @@ export class AppGateway
 	) {
 		const receiver = await this.userService.getBySocketId(client.id);
 		if (!receiver) {
-			console.log(`privReaded error : Receiver user not found`)
+			console.log(`privReaded error : Receiver user not found`);
 			return;
 		}
 		const sender = await this.userService.getByLogin(data.sender);
@@ -622,8 +635,7 @@ export class AppGateway
 			return;
 		}
 		const chan = await this.chatService.addChanMsg(sender, data);
-		if (!chan)
-			return;
+		if (!chan) return;
 		const msg = new MessageDto(sender.login, data.message, new Date(data.date));
 		const allUsers = this.chatService.getAllChanUsers(chan);
 		for (const user of allUsers) {
@@ -802,5 +814,10 @@ export class AppGateway
 		@ConnectedSocket() client: Socket,
 	) {
 		client.emit('remove_invit', data.game);
+	}
+
+	@SubscribeMessage('logout')
+	async logout(@ConnectedSocket() client: Socket) {
+		client.handshake.query.login = '';
 	}
 }

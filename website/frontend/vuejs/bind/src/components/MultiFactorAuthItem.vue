@@ -50,6 +50,7 @@ import { VueCookies } from 'vue-cookies';
 import { useToast } from 'vue-toastification';
 import { useCookies } from 'vue3-cookies';
 import { useRouter } from 'vue-router';
+import { Socket } from 'socket.io-client';
 
 const { cookies } = useCookies();
 const toast = useToast();
@@ -63,6 +64,8 @@ let code = ref('');
 let new_username = ref('');
 let router = useRouter();
 
+let socket: Socket = inject('socket')!;
+
 function change_username() {
 	API.post('user/change_username', {
 		username: email.value,
@@ -71,6 +74,7 @@ function change_username() {
 		.then((response) => {
 			$cookies.set('login', '');
 			$cookies.set('session', '');
+			socket.emit('logout');
 			toast.success('Username changed ! Please log in again');
 		})
 		.catch((error) => {

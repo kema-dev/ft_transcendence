@@ -49,6 +49,8 @@ socket.off('join_failure')
 socket.on('join_failure', (data) => {
 	console.log('join failed for lobby', lob_id);
 	lob_id += 1;
+	socket.emit('flush_my_invitations');
+	toast.warning('Join failed, creating new lobby');
 	autoQueue();
 });
 function autoQueue() {
