@@ -340,6 +340,20 @@ export class AppGateway
 		this.server.to(user.socketId).emit('accept_success');
 		console.log('join_lobby: Success, returning');
 	}
+	@SubscribeMessage('flush_my_invitations')
+	async flushMyInvitations(@ConnectedSocket() client: Socket) {
+		const user: UserEntity = await this.userService.getBySocketId(client.id, {
+			requestFriend: true,
+			friends: true,
+			blockeds: true,
+		});
+		if (!user) {
+			console.log('join_lobby: User not found, Returning');
+			this.server.to(client.id).emit('join_failure');
+			return;
+		}
+		this.server.to(user.socketId).emit('flush_invitations');
+	}
 	@SubscribeMessage('updateLobby')
 	async updateLobby(client: Socket, payload: any) {
 		if (payload.nbrBall < 1 || payload.nbrBall > 3) return;
