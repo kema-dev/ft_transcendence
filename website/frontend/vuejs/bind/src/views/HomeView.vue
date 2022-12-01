@@ -362,7 +362,7 @@ socket.on('modifChan', (data: ModifChanDto) => {
 				(user) => user.login == data.restoreMute,
 			);
 			chansRef.value[i].users.push(chansRef.value[i].mutes[j]);
-			chansRef.value[i].mutes.splice(i, 1);
+			chansRef.value[i].mutes.splice(j, 1);
 		} else if (data.kick) {
 			console.log(`User '${data.kick}' from chan '${data.chan}' is kicked`);
 			if (data.kick == me) {
@@ -403,7 +403,7 @@ socket.on('modifChan', (data: ModifChanDto) => {
 			let j = chansRef.value[i].bans.findIndex(
 				(user) => user.login == data.restoreBan,
 			);
-			chansRef.value[i].bans.splice(i, 1);
+			chansRef.value[i].bans.splice(j, 1);
 		}
 	}
 });
