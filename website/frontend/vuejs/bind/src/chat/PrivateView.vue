@@ -22,7 +22,7 @@
 			</div>
 		</div>
 		<div v-if="!newMsg && userDone" class="myConversations center column">
-			<!-- <ConversationTab
+			<ConversationTab
 				v-for="(data, i) in sortPrivs(privsFiltred)"
 				:key="i"
 				:name-conv="data.user.login"
@@ -32,8 +32,8 @@
 				:read="data.readed"
 				:avatar="data.user.avatar"
 				class="center"
-			/> -->
-			<ConversationTab
+			/>
+			<!-- <ConversationTab
 				v-for="(data, i) in privsFiltred"
 				:key="i"
 				:name-conv="data.user.login"
@@ -43,7 +43,7 @@
 				:read="data.readed"
 				:avatar="data.user.avatar"
 				class="center"
-			/>
+			/> -->
 			<h2 v-if="!privsRef.length" class="comment">
 				No conversations
 			</h2>
@@ -190,7 +190,7 @@ function getServerUsers() {
 }
 
 function sortPrivs(privs : PrivConvDto[]) {
-	console.log(`sortPriv privateView`)
+	// console.log(`sortPriv privateView`)
 	return privs.sort( (a, b) => {
 		// console.log(a.messages.at(-1)?.date, b.messages.at(-1)?.date);
 		if (a.messages.at(-1)?.date.getTime() > b.messages.at(-1)?.date.getTime())

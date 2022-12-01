@@ -90,7 +90,7 @@ socket.on('userUnblock', (data: PrivConvDto) => {
 	priv.messages.forEach((m) => (m.date = new Date(m.date)));
 	let i = userRef.value.blockeds.findIndex((b) => b.login == priv.user.login);
 	userRef.value.blockeds.splice(i, 1);
-	privsRef.value.unshift(priv);
+	privsRef.value.push(priv);
 });
 
 socket.on('userUnblockNoPriv', (data: string) => {
@@ -144,7 +144,7 @@ socket.on('newPrivConv', (data: PrivConvDto) => {
 	console.log(`New private created`);
 	let newPriv = data;
 	newPriv.messages.forEach((msg) => (msg.date = new Date(msg.date)));
-	privsRef.value.unshift(newPriv);
+	privsRef.value.push(newPriv);
 	findPrivIndex.value = true;
 	if (data.messages[0].user != me) nbPrivNR.value.push(data.id);
 });
@@ -167,15 +167,15 @@ socket.on('newPrivMsg', (data: { msg: MessageDto; id: number }) => {
 		route.path != '/home/chat/private/' + data.msg.user &&
 		!blocked
 	) {
-		// console.log(`findIndex Homview`);
 		nbPrivNR.value.push(privsRef.value[i].id);
-		// findPrivIndex.value = true;
 	}
-	if (i != 0) {
-		putPrivFirst(i);
-		console.log(`putPrivFirst`)
-		findPrivIndex.value = true;
-	} 
+	// if (i != 0) {
+	// 	putPrivFirst(i);
+	// 	console.log(`putPrivFirst`)
+	// 	console.log(`1 finIndex = ${findPrivIndex.value}`)
+	// 	findPrivIndex.value = true;
+	// 	console.log(`2 finIndex = ${findPrivIndex.value}`)
+	// } 
 });
 
 function putPrivFirst(index: number) {
@@ -266,10 +266,11 @@ socket.on('newChanMsg', (data: { msg: MessageDto; name: string }) => {
 	) {
 		nbChanNR.value.push(chansRef.value[i].name);
 	}
-	if (i != 0) {
-		putChanFirst(i);
-		findChanIndex.value = true;
-	}
+	// if (i != 0) {
+	// 	putChanFirst(i);
+	// 	console.log(`putChanfirst Homeview`)
+	// 	findChanIndex.value = true;
+	// }
 });
 
 socket.on('newChannel', (data: ChannelDto) => {
@@ -279,8 +280,8 @@ socket.on('newChannel', (data: ChannelDto) => {
 		newChan.creation = new Date(newChan.creation);
 		newChan.messages.forEach((msg) => (msg.date = new Date(msg.date)));
 		newChan.readed = false;
-		chansRef.value.unshift(newChan);
-		findChanIndex.value = true;
+		chansRef.value.push(newChan);
+		// findChanIndex.value = true;
 		nbChanNR.value.push(chansRef.value[0].name);
 	}
 });

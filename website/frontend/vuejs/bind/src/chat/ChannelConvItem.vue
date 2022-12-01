@@ -147,15 +147,15 @@ watch(chanBan, () => {
 	}
 })
 
-watch(findChanIndex, () => {
-	// console.log(`findChanIndex ChannelConvItem OUT`);
-	if (findChanIndex.value == true) {
-		console.log(`findChanIndex ChannelConvItem IN`);
-		index.value = chansRef.value.findIndex((chan) => chan.name == chanName);
-		chanRead(index.value, true);
-		findChanIndex.value = false;
-	}
-}, {flush: 'post'})
+// watch(findChanIndex, () => {
+// 	// console.log(`findChanIndex ChannelConvItem OUT`);
+// 	if (findChanIndex.value == true) {
+// 		console.log(`findChanIndex ChannelConvItem IN`);
+// 		index.value = chansRef.value.findIndex((chan) => chan.name == chanName);
+// 		chanRead(index.value, true);
+// 		findChanIndex.value = false;
+// 	}
+// }, {flush: 'post'})
 
 
 // ================= METHODS =================

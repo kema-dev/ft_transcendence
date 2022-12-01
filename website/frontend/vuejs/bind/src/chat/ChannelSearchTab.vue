@@ -104,7 +104,7 @@ function joinChannel() {
 			let newChan = res.data as ChannelDto;
 			newChan.creation = new Date(newChan.creation);
 			newChan.messages.forEach(msg => msg.date = new Date(msg.date));
-			chansRef.value.unshift(newChan);
+			chansRef.value.push(newChan);
 			mySocket.emit("newChannelUser", {chan: props.infos.name, login: myName});
 			router.push({name: 'ChanConv', params: {conv_name: props.infos.name }});
 		})
