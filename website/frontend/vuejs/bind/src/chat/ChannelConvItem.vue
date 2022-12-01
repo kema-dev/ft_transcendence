@@ -31,7 +31,8 @@
 			</div>
 		</div>
 		<div v-if="!info" class="conversation_content stack">
-			<div v-if="index != -1" id="msgsCont" class="messages">
+			<!-- <div v-if="index != -1" id="msgsCont" class="messages"> -->
+			<div v-if="chanBan == '' && index != -1" id="msgsCont" class="messages">
 				<div class="date">{{displayDate(chansRef[index].creation, 0)}}</div>
 				<div v-for="(message, i) in filterBlockMsgs()" 
 					:key="i" class="center column"
@@ -102,6 +103,7 @@ let chanExist = ref(false);
 let chanExistDone = ref(false);
 let index = ref(-1);
 let filtredMsgs: MessageDto[] = [];
+let reloadChanIndex: Ref<boolean> = inject("reloadChanIndex")!;
 
 // VERIFY IF CHAN EXIST
 HTTP.get(apiPath + "chat/chanExist/" + chanName)
@@ -142,10 +144,31 @@ watch(userDone, () => {
 // ================= WATCHERS =================
 
 watch(chanBan, () => {
+	console.log(`start chanBan`)
 	if (chanBan.value == chansRef.value[index.value].name) {
+		console.log(`chanBan watcher, kicked from chan`)
+		chanBan.value = '';
 		router.push({name: 'channels'});
 	}
-})
+	else if (chanBan.value != '') {
+		console.log(`reloadChanIndex ChannelConItem`)
+		setTimeout(() => {
+			console.log(`find new Index reload chan`)
+			index.value = chansRef.value.findIndex((chan) => chan.name == chanName);
+			chanBan.value = '';
+		}, 200)
+	}
+}, {flush: 'post'})
+
+// watch(reloadChanIndex, () => {
+// 	if (reloadChanIndex.value) {
+// 		console.log(`reloadChanIndex ChannelConItem`)
+// 		setTimeout(() => {
+// 			index.value = chansRef.value.findIndex((chan) => chan.name == chanName);
+// 			reloadChanIndex.value = false;
+// 		}, 300)
+// 	}
+// }, {flush: 'post'})
 
 // watch(findChanIndex, () => {
 // 	// console.log(`findChanIndex ChannelConvItem OUT`);

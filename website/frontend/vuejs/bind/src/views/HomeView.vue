@@ -228,6 +228,10 @@ provide('chanDone', chanDone);
 provide('chanBan', chanBan);
 provide('findChanIndex', findChanIndex);
 
+const reloadChanIndex = ref(false);
+provide('reloadChanIndex', reloadChanIndex);
+
+
 function getChansRequest() {
 	HTTP.get(apiPath + 'chat/getChans/' + me)
 		.then((res) => {
@@ -301,15 +305,15 @@ socket.on('userQuitChan', (data: { login: string; chan: string }) => {
 	else if (
 		(y = chansRef.value[i].admins.findIndex((u) => u.login == data.login)) != -1
 	)
-		chansRef.value[i].admins.splice(i, 1);
+		chansRef.value[i].admins.splice(y, 1);
 	else if (
 		(y = chansRef.value[i].users.findIndex((u) => u.login == data.login)) != -1
 	)
-		chansRef.value[i].users.splice(i, 1);
+		chansRef.value[i].users.splice(y, 1);
 	else if (
 		(y = chansRef.value[i].mutes.findIndex((u) => u.login == data.login)) != -1
 	)
-		chansRef.value[i].mutes.splice(i, 1);
+		chansRef.value[i].mutes.splice(y, 1);
 });
 
 socket.on('modifChan', (data: ModifChanDto) => {
@@ -369,7 +373,7 @@ socket.on('modifChan', (data: ModifChanDto) => {
 				chanBan.value = data.chan;
 				setTimeout(() => {
 					chansRef.value.splice(i, 1);
-					chanBan.value = '';
+					console.log(`chan spliced`);
 				}, 200);
 			}
 			let j = (
@@ -385,6 +389,7 @@ socket.on('modifChan', (data: ModifChanDto) => {
 				setTimeout(() => {
 					chansRef.value.splice(i, 1);
 					chanBan.value = '';
+					// findChanIndex.value = true;
 				}, 200);
 			}
 			let j = (
