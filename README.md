@@ -49,8 +49,7 @@ git clone https://github.com/kema-dev/ft_transcendence.git
 cd ft_transcendence
 ```
 
-3. Rename `.env.example` to `.env`
-
+3. Create `.env` file from `.env.example` template
 ```sh
 cp .env.example .env
 ```
