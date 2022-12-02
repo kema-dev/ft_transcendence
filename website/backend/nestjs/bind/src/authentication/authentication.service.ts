@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Headers } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import RegisterDto from './dto/register.dto';
 import * as bcrypt from 'bcrypt';
@@ -232,6 +232,20 @@ export class AuthenticationService {
 		await this.usersService.set_status(login, 'offline');
 		console.log('logOut: ' + 'session deleted successfully, returning ✔');
 		return true;
+	}
+
+	get_login_from_cookie(@Headers() headers: any) {
+		let login: string;
+		try {
+			login = JSON.stringify(headers.cookie)
+				.split(';')
+				.find((x) => x.includes('login'))
+				.split('=')[1]
+				.replace(/"/g, '');
+		} catch (e) {
+			throw new HttpException('Bad Request', 400);
+		}
+		return login;
 	}
 
 	// public async getCookieFromJwt(userId: number) {
@@ -491,17 +505,17 @@ export class AuthenticationService {
 		};
 	}
 
-	public async verify_totp(request: TotpDto) {
-		console.log('verify_totp: starting for ' + request.name);
-		if (!request.name) {
+	public async verify_totp(login: string, code: string) {
+		console.log('verify_totp: starting for ' + login);
+		if (!login) {
 			console.error('verify_totp: ' + 'no email / login provided, returning ✘');
 			throw new HttpException('E_NO_NAME', HttpStatus.BAD_REQUEST);
-		} else if (!request.code) {
+		} else if (!code) {
 			console.error('verify_totp: ' + 'no code provided, returning ✘');
 			throw new HttpException('E_NO_TOTP_PROVIDED', HttpStatus.BAD_REQUEST);
 		}
 		try {
-			if ((await this.check_totp_code(request.name, request.code)) === true) {
+			if ((await this.check_totp_code(login, code)) === true) {
 				console.log('verify_totp: ' + 'code match, returning ✔');
 				return { success: true };
 			}
@@ -517,23 +531,21 @@ export class AuthenticationService {
 		throw new HttpException('E_TOTP_MISMATCH', HttpStatus.CONFLICT);
 	}
 
-	public async verify_tmp_totp(request: TotpDto) {
-		console.log('verify_tmp_totp: starting for ' + request.name);
-		if (!request.name) {
+	public async verify_tmp_totp(login: string, code: string) {
+		console.log('verify_tmp_totp: starting for ' + login);
+		if (!login) {
 			console.error(
 				'verify_tmp_totp: ' + 'no email / login provided, returning ✘',
 			);
 			throw new HttpException('E_NO_NAME', HttpStatus.BAD_REQUEST);
-		} else if (!request.code) {
+		} else if (!code) {
 			console.error('verify_tmp_totp: ' + 'no code provided, returning ✘');
 			throw new HttpException('E_NO_TOTP_PROVIDED', HttpStatus.BAD_REQUEST);
 		}
 		try {
-			if (
-				(await this.check_tmp_totp_code(request.name, request.code)) === true
-			) {
+			if ((await this.check_tmp_totp_code(login, code)) === true) {
 				console.log('verify_tmp_totp: ' + 'code match, returning ✔');
-				this.validate_totp(request.name);
+				this.validate_totp(login);
 				return { success: true };
 			}
 		} catch (error) {

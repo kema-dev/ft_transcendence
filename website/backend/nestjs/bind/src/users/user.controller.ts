@@ -10,6 +10,7 @@ import {
 	UseGuards,
 	Param,
 	Logger,
+	Headers,
 } from '@nestjs/common';
 import { AuthGuard } from '../authentication/auth.guard';
 import ProfileUserDto from 'src/users/dto/ProfileUserDto';
@@ -25,11 +26,11 @@ export class UsersController {
 	@UseGuards(AuthGuard)
 	@Get('getMyProfile/:login')
 	async getMyProfile(@Param() params: { login: string }) {
-		console.log(`Get profile for user '${params.login}'`)
+		console.log(`Get profile for user '${params.login}'`);
 		const user = await this.usersService.getByLogin(params.login, {
 			friends: true,
 			requestFriend: true,
-			blockeds: true
+			blockeds: true,
 		});
 		return new ProfileUserDto(user);
 	}
@@ -37,7 +38,6 @@ export class UsersController {
 	@UseGuards(AuthGuard)
 	@Get('getBasicUser/:login')
 	async getBasicUser(@Param() params: { login: string }) {
-		// TODO do not send login
 		console.log(`login = ${params.login}`);
 		const user = await this.usersService.getByLogin(params.login);
 		return new BasicUserDto(user.login, user.avatar);
@@ -45,9 +45,14 @@ export class UsersController {
 
 	@UseGuards(AuthGuard)
 	@Post('change_username')
-	async change_username(@Body() data: any) {
-		// TODO do not send login
-		return this.usersService.change_username(data.username, data.new_username);
+	async change_username(@Body() data: any, @Headers() headers: any) {
+		let login: string;
+		try {
+			login = this.usersService.get_login_from_cookie(headers);
+		} catch (error) {
+			throw error;
+		}
+		return this.usersService.change_username(login, data.new_username);
 	}
 
 	@UseGuards(AuthGuard)
@@ -62,7 +67,7 @@ export class UsersController {
 	async getUser(@Body() params: any) {
 		// TODO do not send a full user
 		console.log('getUser: starting for ' + params.login);
-		let test = new ProfileUserDto(
+		const test = new ProfileUserDto(
 			await this.usersService.getByLogin(params.login),
 		);
 		this.logger.log('getUser: ' + test.login);

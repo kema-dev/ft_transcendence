@@ -68,7 +68,7 @@ let socket: Socket = inject('socket')!;
 
 function change_username() {
 	API.post('user/change_username', {
-		username: email.value,
+		// username: email.value,
 		new_username: new_username.value,
 	})
 		.then((response) => {
@@ -93,7 +93,7 @@ function change_username() {
 
 function get_totp_url() {
 	API.post('auth/set_tmp_totp', {
-		email: email.value,
+		// email: email.value,
 	})
 		.then((response) => {
 			totp_url.value = response.data.img_src;
@@ -127,7 +127,7 @@ function debug() {
 function verify() {
 	// console.log(email.value, code.value);
 	API.post('auth/verify_tmp_totp', {
-		name: email.value,
+		// name: email.value,
 		code: code.value,
 	})
 		.then((response) => {
@@ -144,7 +144,7 @@ function verify() {
 
 async function disable() {
 	await API.post('auth/check_totp_status', {
-		name: email.value,
+		// name: email.value,
 	})
 		.then((response) => {
 			// console.log(response.data);
@@ -153,7 +153,7 @@ async function disable() {
 				return;
 			} else {
 				API.post('auth/verify_totp', {
-					name: email.value,
+					// name: email.value,
 					code: code.value,
 				})
 					.then((response) => {
@@ -174,7 +174,7 @@ async function disable() {
 
 function disable_totp_api() {
 	API.post('auth/disable_totp', {
-		name: email.value,
+		// name: email.value,
 	})
 		.then((response) => {
 			toast.success('TOTP removal successful');

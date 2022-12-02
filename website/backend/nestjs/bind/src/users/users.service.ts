@@ -1,4 +1,10 @@
-import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
+import {
+	HttpException,
+	HttpStatus,
+	Injectable,
+	Logger,
+	Headers,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like } from 'typeorm';
 import { UserEntity } from './user.entity';
@@ -429,6 +435,20 @@ export class UsersService {
 		usr.login = new_username;
 		this.usersRepository.save(usr);
 		console.log('disconnect_user: ' + user + ', returning ✔');
+	}
+
+	get_login_from_cookie(@Headers() headers: any) {
+		let login: string;
+		try {
+			login = JSON.stringify(headers.cookie)
+				.split(';')
+				.find((x) => x.includes('login'))
+				.split('=')[1]
+				.replace(/"/g, '');
+		} catch (e) {
+			throw new HttpException('Bad Request', 400);
+		}
+		return login;
 	}
 
 	async change_username(username: string, new_username: string) {

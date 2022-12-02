@@ -7,6 +7,7 @@ import {
 	Get,
 	Headers,
 	UseGuards,
+	HttpException,
 } from '@nestjs/common';
 import { AuthenticationService } from './authentication.service';
 import RegisterDto from './dto/register.dto';
@@ -38,15 +39,25 @@ export class AuthenticationController {
 
 	@UseGuards(AuthGuard)
 	@Post('disable_totp')
-	async disable_totp(@Body() data: any) {
-		// TODO do not send login
-		this.authenticationService.disable_totp(data.name);
+	async disable_totp(@Headers() headers: any) {
+		let login: string;
+		try {
+			login = this.authenticationService.get_login_from_cookie(headers);
+		} catch (error) {
+			throw error;
+		}
+		this.authenticationService.disable_totp(login);
 	}
 
 	@Post('check_totp_status')
-	async check_totp_status(@Body() data: any) {
-		// TODO do not send login
-		return this.authenticationService.check_totp_status(data.name);
+	async check_totp_status(@Headers() headers: any) {
+		let login: string;
+		try {
+			login = this.authenticationService.get_login_from_cookie(headers);
+		} catch (error) {
+			throw error;
+		}
+		return this.authenticationService.check_totp_status(login);
 	}
 
 	@Post('register')
@@ -88,30 +99,50 @@ export class AuthenticationController {
 
 	@UseGuards(AuthGuard)
 	@Post('set_totp')
-	set_totp(@Body('email') email: string) {
-		// TODO do not send login
-		return this.authenticationService.set_totp(email);
+	set_totp(@Headers() headers: any) {
+		let login: string;
+		try {
+			login = this.authenticationService.get_login_from_cookie(headers);
+		} catch (error) {
+			throw error;
+		}
+		return this.authenticationService.set_totp(login);
 	}
 
 	@UseGuards(AuthGuard)
 	@Post('set_tmp_totp')
-	set_tmp_totp(@Body('email') email: string) {
-		// TODO do not send login
-		return this.authenticationService.set_tmp_totp(email);
+	set_tmp_totp(@Headers() headers: any) {
+		let login: string;
+		try {
+			login = this.authenticationService.get_login_from_cookie(headers);
+		} catch (error) {
+			throw error;
+		}
+		return this.authenticationService.set_tmp_totp(login);
 	}
 
 	@UseGuards(AuthGuard)
 	@Post('verify_totp')
-	verify_totp(@Body() request: TotpDto) {
-		// TODO do not send login
-		return this.authenticationService.verify_totp(request);
+	verify_totp(@Body() data: any, @Headers() headers: any) {
+		let login: string;
+		try {
+			login = this.authenticationService.get_login_from_cookie(headers);
+		} catch (error) {
+			throw error;
+		}
+		return this.authenticationService.verify_totp(login, data.code);
 	}
 
 	@UseGuards(AuthGuard)
 	@Post('verify_tmp_totp')
-	verify_tmp_totp(@Body() request: TotpDto) {
-		// TODO do not send login
-		return this.authenticationService.verify_tmp_totp(request);
+	verify_tmp_totp(@Body() data: any, @Headers() headers: any) {
+		let login: string;
+		try {
+			login = this.authenticationService.get_login_from_cookie(headers);
+		} catch (error) {
+			throw error;
+		}
+		return this.authenticationService.verify_tmp_totp(login, data.code);
 	}
 
 	@HttpCode(200)
@@ -145,9 +176,14 @@ export class AuthenticationController {
 	@UseGuards(AuthGuard)
 	@HttpCode(200)
 	@Post('logout')
-	async logOut(@Body() body: { login: string }) {
-		// TODO do not send login
-		return this.authenticationService.logOut(body.login);
+	async logOut(@Headers() headers: any) {
+		let login: string;
+		try {
+			login = this.authenticationService.get_login_from_cookie(headers);
+		} catch (error) {
+			throw error;
+		}
+		return this.authenticationService.logOut(login);
 	}
 
 	@HttpCode(200)
