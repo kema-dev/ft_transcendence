@@ -30,7 +30,13 @@ export class UsersService {
 		console.error('getBySocket: ' + socketId + ' not found, returning ✘');
 	}
 	async saveSocket(login: string, socket: string) {
-		const user = await this.getByLogin(login);
+		let user;
+		try {
+			user = await this.getByLogin(login);
+		} catch (e) {
+			console.log('saveSocket: User not found');
+			return;
+		}
 		user.socketId = socket;
 		await this.usersRepository
 			.save(user)
