@@ -114,7 +114,6 @@ function accept_invit() {
 		// deny_invit();
 	});
 	mySocket.emit('join_lobby', {
-		login: me?.value?.login,
 		lobby: props.match.name,
 	});
 }

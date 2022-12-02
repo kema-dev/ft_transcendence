@@ -35,8 +35,7 @@ import { InfoDto } from 'src/game2.0/dto/InfoDto';
 })
 @Injectable()
 export class AppGateway
-	implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
-{
+	implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
 	@WebSocketServer() server: Server;
 	games: Game[] = [];
 	private logger: Logger = new Logger('AppGateway');
@@ -234,10 +233,11 @@ export class AppGateway
 		if (!game) return;
 		game.addViewer(client.id);
 		game.update();
-		this.server.to(client.id).emit('info_game', <InfoDto>{
-			isStart: game.start,
-			nbrBall: game.nbrBall,
-		});
+		// await delay(1000)
+		// this.server.to(client.id).emit('info_game', <InfoDto>{
+		// 	isStart: game.start,
+		// 	nbrBall: game.nbrBall,
+		// });
 	}
 	@SubscribeMessage('lobbys')
 	async getLobbyList(@ConnectedSocket() client: Socket) {
@@ -324,16 +324,16 @@ export class AppGateway
 		game.destructor();
 		this.games.push(newGame);
 		newGame.update();
-		this.server
-			.to(client.id)
-			.emit('info_game', <InfoDto>{ nbrBall: newGame.nbrBall });
+		// this.server
+		// 	.to(client.id)
+		// 	.emit('info_game', <InfoDto>{ nbrBall: newGame.nbrBall });
 		// this.server.to(newGame.sockets).emit('info_game', <InfoDto>{remount: true});
 		this.games.splice(this.games.indexOf(game), 1);
 		this.server.emit('lobbys', this.sendLobbys(this.games));
 		console.log(newGame.lobby_name);
 		user.lobby_name = newGame.lobby_name;
 		user.status = 'ingame';
-		this.userService.saveUser(user);
+		await this.userService.saveUser(user);
 		this.server.emit('userStatus', { user: user.login, status: 'ingame' });
 		this.server.to(user.socketId).emit('userUpdate', new ProfileUserDto(user));
 		this.server.to(user.socketId).emit('flush_invitations');
@@ -400,10 +400,18 @@ export class AppGateway
 			console.log('user not found');
 			return;
 		}
-		const game = this.games.find((game) => game.lobby_name === user.lobby_name);
+		let game = this.games.find((game) => game.lobby_name === user.lobby_name);
 		if (!game) {
-			console.log('get_game_info: game not found');
-			return;
+			// for (const g of this.games)
+			// 	for (const sock of g.socketsViewers)
+			// 		if (sock == user.socketId) {
+			// 			game = g;
+			// 			break;
+			// 		}
+			if (!game) {
+				console.log('get_game_info: game not found: ', user.lobby_name);
+				return;
+			}
 		}
 		this.server.to(client.id).emit('info_game', <InfoDto>{
 			nbrBall: game.nbrBall,
@@ -434,14 +442,14 @@ export class AppGateway
 		}
 		const game = this.games.find((game) => game.lobby_name === user.lobby_name);
 		if (game) {
-			console.log('start: Starting for', 'login:', game.players.length);
-			game.players.forEach((player) => {
-				this.userService.set_status(player.login, 'ingame');
-				this.server.emit('userStatus', {
-					user: player.login,
-					status: 'ingame',
-				});
-			});
+			// console.log('start: Starting for', 'login:', game.players.length);
+			// game.players.forEach((player) => {
+			// 	this.userService.set_status(player.login, 'ingame');
+			// 	this.server.emit('userStatus', {
+			// 		user: player.login,
+			// 		status: 'ingame',
+			// 	});
+			// });
 			game.start = true;
 			this.server.emit('lobbys', this.sendLobbys(this.games));
 			this.server

@@ -1,5 +1,4 @@
 <template>
-
 	<div class="stack center" id="page">
 		<button v-if="isJoin || isGame" @click="back()" class="backBtn center">
 			<img src="@/assets/undo_logo.svg" alt="" class="imgLogo">

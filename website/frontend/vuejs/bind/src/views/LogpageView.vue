@@ -304,6 +304,9 @@ onUnmounted(() => {
 	window.removeEventListener('resize', resize);
 });
 document.documentElement.style.overflow = 'hidden';
+onUnmounted(() => {
+	document.documentElement.style.overflow = 'auto';
+});
 </script>
 
 <style scoped>

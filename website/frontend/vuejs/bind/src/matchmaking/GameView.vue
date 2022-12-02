@@ -52,6 +52,7 @@ socket.on('init_game', (data: GameDto) => {
 	gameDto.value = data;
 	console.log('reload');
 	remount.value = !remount.value;
+	socket.emit('get_game_info');
 });
 socket.emit('get_game');
 
@@ -79,6 +80,7 @@ onUnmounted(() => {
 	socket.off('end');
 	socket.off('info_game');
 	socket.off('get_game_info');
+	console.log('unmount game');
 })
 
 function launch() {
