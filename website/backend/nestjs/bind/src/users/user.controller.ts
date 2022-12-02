@@ -37,7 +37,8 @@ export class UsersController {
 	@UseGuards(AuthGuard)
 	@Get('getBasicUser/:login')
 	async getBasicUser(@Param() params: { login: string }) {
-		console.log(`login = ${params.login}`)
+		// TODO do not send login
+		console.log(`login = ${params.login}`);
 		const user = await this.usersService.getByLogin(params.login);
 		return new BasicUserDto(user.login, user.avatar);
 	}
@@ -45,6 +46,7 @@ export class UsersController {
 	@UseGuards(AuthGuard)
 	@Post('change_username')
 	async change_username(@Body() data: any) {
+		// TODO do not send login
 		return this.usersService.change_username(data.username, data.new_username);
 	}
 
@@ -58,6 +60,7 @@ export class UsersController {
 	@UseGuards(AuthGuard)
 	@Post('getUser')
 	async getUser(@Body() params: any) {
+		// TODO do not send a full user
 		console.log('getUser: starting for ' + params.login);
 		let test = new ProfileUserDto(
 			await this.usersService.getByLogin(params.login),
@@ -68,6 +71,7 @@ export class UsersController {
 	@UseGuards(AuthGuard)
 	@Post('getUsers')
 	async getUsers(@Body() str: string) {
+		// TODO do not send a full user
 		this.logger.log('getUsers: starting for ' + str.toString());
 		return this.usersService.getByLoginFiltred(str);
 	}

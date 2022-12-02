@@ -1,7 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Server } from 'socket.io';
-import { WebSocketServer} from '@nestjs/websockets';
-import { Injectable, HttpException, HttpStatus, Inject, forwardRef } from '@nestjs/common';
+import { WebSocketServer } from '@nestjs/websockets';
+import {
+	Injectable,
+	HttpException,
+	HttpStatus,
+	Inject,
+	forwardRef,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like } from 'typeorm';
 import { MessageEntity } from './entites/message.entity';
@@ -21,7 +27,6 @@ import { ModifChanDto } from './dto/ModifChanDto';
 import { SanctionEntity } from './entites/sanction.entity';
 import { JwtService } from '@nestjs/jwt';
 
-
 @Injectable()
 export class ChatService {
 	constructor(
@@ -36,7 +41,7 @@ export class ChatService {
 		@InjectRepository(SanctionEntity)
 		private sanctionRepository: Repository<SanctionEntity>,
 		private readonly userService: UsersService,
-		private readonly jwtService: JwtService,	
+		private readonly jwtService: JwtService,
 	) {}
 
 	@WebSocketServer() server: Server;
@@ -44,23 +49,21 @@ export class ChatService {
 	// ========================= GET_REQ_INFO =========================
 
 	getLoginByHeaderReq(cookie: string) {
-		const session_cookie = cookie.split(';').find(c => c.match(/session=/));
+		const session_cookie = cookie.split(';').find((c) => c.match(/session=/));
 		const session = session_cookie.match(/session=(.*)/)[1];
-		const decoded_obj = this.jwtService.decode(session) as {login: string};
+		const decoded_obj = this.jwtService.decode(session) as { login: string };
 		return decoded_obj.login;
 	}
-
 
 	// ========================= PRIVATES =========================
 
 	async getUserPrivs(login: string) {
 		const user = this.userService.getByLogin(login);
-		if (!user)
-			throw new HttpException('USER_NOT_FOUND', HttpStatus.NOT_FOUND);
+		if (!user) throw new HttpException('USER_NOT_FOUND', HttpStatus.NOT_FOUND);
 		const userPrivs = await this.userRepository.findOne({
-			relations: { 
-				blockeds: true, 
-				privates: { users: true, messages: { user: true } } 
+			relations: {
+				blockeds: true,
+				privates: { users: true, messages: { user: true } },
 			},
 			where: { login: login },
 			order: {
@@ -71,10 +74,14 @@ export class ChatService {
 				},
 			},
 		});
-		let privs = userPrivs.privates.filter(p => !userPrivs.blockeds.map(b => b.login)
-			.some(b => p.users.map(u => u.login).includes(b)));
+		const privs = userPrivs.privates.filter(
+			(p) =>
+				!userPrivs.blockeds
+					.map((b) => b.login)
+					.some((b) => p.users.map((u) => u.login).includes(b)),
+		);
 		return privs;
-}
+	}
 
 	async getPriv(logins: [string, string]) {
 		const privates = await this.privateRepository.find({
@@ -123,8 +130,7 @@ export class ChatService {
 				.save(priv)
 				.catch((e) => console.log('Save priv error'));
 			return priv;
-		}
-		else {
+		} else {
 			console.log('creation New PrivateConv');
 			const newPriv = this.privateRepository.create({ readed: false });
 			newPriv.users = [userSend, userReceive];
@@ -139,8 +145,10 @@ export class ChatService {
 
 	async sortPrivs(privs: PrivateEntity[]) {
 		privs.sort(function (x, y) {
-			if ( x.messages.at(-1).createdAt.getTime() 
-				< y.messages.at(-1).createdAt.getTime()) 
+			if (
+				x.messages.at(-1).createdAt.getTime() <
+				y.messages.at(-1).createdAt.getTime()
+			)
 				return 1;
 			return -1;
 		});
@@ -148,7 +156,7 @@ export class ChatService {
 
 	async createPrivsDto(requestor: string, privs: PrivateEntity[]) {
 		const privsDto: PrivConvDto[] = [];
-		for (let priv of privs) {
+		for (const priv of privs) {
 			let login: string;
 			if (priv.users[0].login == requestor) login = priv.users[1].login;
 			else login = priv.users[0].login;
@@ -160,24 +168,26 @@ export class ChatService {
 			priv.messages.forEach((msg) =>
 				msgs.push(new MessageDto(msg.user.login, msg.message, msg.createdAt)),
 			);
-			let newPrivDto = new PrivConvDto(basicUser, msgs, read, id);
+			const newPrivDto = new PrivConvDto(basicUser, msgs, read, id);
 			privsDto.push(newPrivDto);
-		};
+		}
 		return privsDto;
 	}
 
 	async getServerUsersFiltred(login: string, filter: string) {
-		let requestor = await this.userService.getByLogin(login, {blockeds : true});
+		const requestor = await this.userService.getByLogin(login, {
+			blockeds: true,
+		});
 		if (!requestor)
 			throw new HttpException('USER_NOT_FOUND', HttpStatus.NOT_FOUND);
-		let users = (await this.userService.getByLoginFiltred(filter))
-			.filter(u => u.login != login)
-			.filter(u => !requestor.blockeds.map(b => b.login).includes(u.login))
-		return users.map(u => new BasicUserDto(u.login, u.avatar))
+		const users = (await this.userService.getByLoginFiltred(filter))
+			.filter((u) => u.login != login)
+			.filter((u) => !requestor.blockeds.map((b) => b.login).includes(u.login));
+		return users.map((u) => new BasicUserDto(u.login, u.avatar));
 	}
 
 	async markPrivReaded(sender: string, receiver: string) {
-		let priv = await this.getPriv([sender, receiver]);
+		const priv = await this.getPriv([sender, receiver]);
 		if (!priv) {
 			console.log(`markPrivReaded error: Private conv not found"`);
 			return;
@@ -211,13 +221,13 @@ export class ChatService {
 		console.log(`readed = ${priv.readed}`);
 		priv.messages.forEach((msg) => console.log(`${msg.msg}`));
 	}
-	
+
 	printPrivsDto(privs: PrivConvDto[]) {
 		console.log(`PrintPrivsDto :`);
 		if (!privs.length) {
 			return console.log(`No privs`);
 		}
-		privs.forEach((priv : PrivConvDto) => {
+		privs.forEach((priv: PrivConvDto) => {
 			this.printPrivDto(priv);
 		});
 	}
@@ -226,57 +236,74 @@ export class ChatService {
 
 	async getUserChans(login: string) {
 		const user = this.userService.getByLogin(login);
-		if (!user)
-			throw new HttpException('USER_NOT_FOUND', HttpStatus.NOT_FOUND);
+		if (!user) throw new HttpException('USER_NOT_FOUND', HttpStatus.NOT_FOUND);
 		const ownChans = await this.userRepository.findOne({
 			relations: {
-				chansOwner : {owner: true, admins: true, users: true, 
-					sanctions: {user: true}, messages: {user: true}},
+				chansOwner: {
+					owner: true,
+					admins: true,
+					users: true,
+					sanctions: { user: true },
+					messages: { user: true },
+				},
 			},
-			where: {login: login},
+			where: { login: login },
 			order: {
-				chansOwner: { messages: { createdAt: 'ASC'} },
-			}
+				chansOwner: { messages: { createdAt: 'ASC' } },
+			},
 		});
 		const admChans = await this.userRepository.findOne({
 			relations: {
-				chansAdmin : {owner: true, admins: true, users: true, 
-					sanctions: {user: true}, messages: {user: true}},
+				chansAdmin: {
+					owner: true,
+					admins: true,
+					users: true,
+					sanctions: { user: true },
+					messages: { user: true },
+				},
 			},
-			where: {login: login},
+			where: { login: login },
 			order: {
-				chansAdmin: { messages: { createdAt: 'ASC'} },
-			}
+				chansAdmin: { messages: { createdAt: 'ASC' } },
+			},
 		});
 		const userChans = await this.userRepository.findOne({
 			relations: {
-				chansUser : {owner: true, admins: true, users: true, 
-					sanctions: {user: true}, messages: {user: true}},
+				chansUser: {
+					owner: true,
+					admins: true,
+					users: true,
+					sanctions: { user: true },
+					messages: { user: true },
+				},
 			},
-			where: {login: login},
+			where: { login: login },
 			order: {
-				chansUser: { messages: { createdAt: 'ASC'} },
-			}
+				chansUser: { messages: { createdAt: 'ASC' } },
+			},
 		});
 		const sanctions = await this.sanctionRepository.find({
 			relations: {
 				user: true,
-				chan : {
-					owner: true, admins: true, users: true, 
-					sanctions: {user: true}, messages: {user: true}
-				}
+				chan: {
+					owner: true,
+					admins: true,
+					users: true,
+					sanctions: { user: true },
+					messages: { user: true },
+				},
 			},
 			where: {
 				user: {
-					login: login
+					login: login,
 				},
 				type: 'mute',
 			},
 			order: {
-				chan: { messages: { createdAt: 'ASC'} },
-			}
+				chan: { messages: { createdAt: 'ASC' } },
+			},
 		});
-		let sanctionChans = sanctions.map(s => s.chan);
+		const sanctionChans = sanctions.map((s) => s.chan);
 		return ownChans.chansOwner
 			.concat(admChans.chansAdmin)
 			.concat(userChans.chansUser)
@@ -285,10 +312,10 @@ export class ChatService {
 
 	async getChan(chanName: string) {
 		const chan = await this.channelRepository.findOne({
-			where: {name : chanName},
+			where: { name: chanName },
 			relations: {
 				owner: true,
-				admins:true,
+				admins: true,
 				users: true,
 				sanctions: {
 					user: true,
@@ -320,45 +347,60 @@ export class ChatService {
 			} else {
 				date2 = y.messages.at(-1).date.getTime();
 			}
-			if ( date1 < date2) 
-				return 1;
+			if (date1 < date2) return 1;
 			return -1;
 		});
 	}
 
 	createChanDto(chan: ChannelEntity) {
-		let name = chan.name;
-		let psw = chan.password;
-		let creation = chan.createdAt;
+		const name = chan.name;
+		const psw = chan.password;
+		const creation = chan.createdAt;
 		let owner;
-		chan.owner ? owner = new BasicUserDto(chan.owner.login, chan.owner.avatar)
-			: owner = null;
-		let priv = chan.private;
-		let read = true;
-		let avatar = chan.avatar;
-		let admins : BasicUserDto[] = [];
-		chan.admins?.forEach(admin => admins
-			.push(new BasicUserDto(admin.login, admin.avatar)));
-		let users : BasicUserDto[] = [];
-		chan.users?.forEach(user => users
-			.push(new BasicUserDto(user.login, user.avatar)));
-		let bans : BasicUserDto[] = [];
-		let mutes : BasicUserDto[] = [];
-		chan.sanctions?.forEach(s => {
+		chan.owner
+			? (owner = new BasicUserDto(chan.owner.login, chan.owner.avatar))
+			: (owner = null);
+		const priv = chan.private;
+		const read = true;
+		const avatar = chan.avatar;
+		const admins: BasicUserDto[] = [];
+		chan.admins?.forEach((admin) =>
+			admins.push(new BasicUserDto(admin.login, admin.avatar)),
+		);
+		const users: BasicUserDto[] = [];
+		chan.users?.forEach((user) =>
+			users.push(new BasicUserDto(user.login, user.avatar)),
+		);
+		const bans: BasicUserDto[] = [];
+		const mutes: BasicUserDto[] = [];
+		chan.sanctions?.forEach((s) => {
 			if (s.type == 'ban')
 				bans.push(new BasicUserDto(s.user.login, s.user.avatar));
 			else if (s.type == 'mute')
 				mutes.push(new BasicUserDto(s.user.login, s.user.avatar));
-		})
-		let msgs : MessageDto[] = [];
-		chan.messages?.forEach((msg) => msgs
-			.push(new MessageDto(msg.user.login, msg.message, msg.createdAt)))
-		return new ChannelDto(name, avatar, creation, owner, 
-			priv, psw, admins, users, msgs, bans, mutes, read);
+		});
+		const msgs: MessageDto[] = [];
+		chan.messages?.forEach((msg) =>
+			msgs.push(new MessageDto(msg.user.login, msg.message, msg.createdAt)),
+		);
+		return new ChannelDto(
+			name,
+			avatar,
+			creation,
+			owner,
+			priv,
+			psw,
+			admins,
+			users,
+			msgs,
+			bans,
+			mutes,
+			read,
+		);
 	}
 
 	createChansDto(chans: ChannelEntity[]) {
-		let chansDto : ChannelDto[] = [];
+		const chansDto: ChannelDto[] = [];
 		chans.forEach((chan, i) => {
 			chansDto.push(this.createChanDto(chan));
 		});
@@ -366,23 +408,29 @@ export class ChatService {
 	}
 
 	async createNewChan(data: NewChanDto, requestorLogin: string) {
-		let owner = await this.userService.getByLogin(requestorLogin);
-		if (!owner)
-			throw new HttpException('USER_NOT_FOUND', HttpStatus.NOT_FOUND);
-		let chanAlreadyExist = await this.channelRepository
-			.findOne({where: {name : data.chanName}});
+		const owner = await this.userService.getByLogin(requestorLogin);
+		if (!owner) throw new HttpException('USER_NOT_FOUND', HttpStatus.NOT_FOUND);
+		const chanAlreadyExist = await this.channelRepository.findOne({
+			where: { name: data.chanName },
+		});
 		if (chanAlreadyExist)
 			throw new HttpException('CHAN_ALREADY_EXIST', HttpStatus.CONFLICT);
-		let newChan = this.channelRepository
-			.create({name: data.chanName, private: data.priv,
-			owner: owner, password: data.psw}); 
-		await this.channelRepository.save(newChan)
+		const newChan = this.channelRepository.create({
+			name: data.chanName,
+			private: data.priv,
+			owner: owner,
+			password: data.psw,
+		});
+		await this.channelRepository
+			.save(newChan)
 			.catch((e) => console.log('Save channel error'));
 		return this.createChanDto(newChan);
 	}
 
-	async addChanMsg(userSend : UserEntity, data: NewChanMsgDto) {
-		console.log(`addChanMsg Chatservice,chan = ${data.chanName}, msg = '${data.message}'`);
+	async addChanMsg(userSend: UserEntity, data: NewChanMsgDto) {
+		console.log(
+			`addChanMsg Chatservice,chan = ${data.chanName}, msg = '${data.message}'`,
+		);
 		const chan = await this.getChan(data.chanName);
 		if (!chan) {
 			console.log(`addChanMsg error : Channel'${data.chanName} not found'`);
@@ -406,8 +454,8 @@ export class ChatService {
 		const requestor = this.userService.getByLogin(login);
 		if (!requestor)
 			throw new HttpException('USER_NOT_FOUND', HttpStatus.NOT_FOUND);
-		console.log(`getServerChansFiltred for '${login}' and filter '${filter}'`)
-		let maxUsers = 20;
+		console.log(`getServerChansFiltred for '${login}' and filter '${filter}'`);
+		const maxUsers = 20;
 		const chans = await this.channelRepository.find({
 			relations: {
 				owner: true,
@@ -415,187 +463,192 @@ export class ChatService {
 				users: true,
 				sanctions: {
 					user: true,
-				}
+				},
 			},
 			where: { name: Like(filter + '%'), private: false },
 			take: maxUsers,
 		});
 		const channelTabs: ChannelTabDto[] = [];
-		for (let chan of chans) {
+		for (const chan of chans) {
 			if (
-				chan.owner.login != login
-				&& !chan.admins.map(a => a.login).includes(login) 
-				&& !chan.users.map(u => u.login).includes(login)
-				&& !chan.sanctions.filter(s => s.type == 'mute')
-					.map(s => s.user.login).includes(login)
+				chan.owner.login != login &&
+				!chan.admins.map((a) => a.login).includes(login) &&
+				!chan.users.map((u) => u.login).includes(login) &&
+				!chan.sanctions
+					.filter((s) => s.type == 'mute')
+					.map((s) => s.user.login)
+					.includes(login)
 			) {
-				channelTabs.push(new ChannelTabDto(
-					chan.name,
-					chan.admins.length + chan.users.length
-						+ (chan.owner? 1 : 0),
-					chan.password ? true : false,
-				))
+				channelTabs.push(
+					new ChannelTabDto(
+						chan.name,
+						chan.admins.length + chan.users.length + (chan.owner ? 1 : 0),
+						chan.password ? true : false,
+					),
+				);
 			}
 		}
 		return channelTabs;
 	}
 
 	async joinChanRequest(
-		data: {chanName: string, psw: string | undefined}, requestor: string) 
-	{
-		let user = await this.userService.getByLogin(requestor);
-		if (!user)
-			throw new HttpException('USER_NOT_FOUND', HttpStatus.NOT_FOUND);
-		console.log(`joinChanRequest for chan = ${data.chanName}, user = ${requestor}, psw = ${data.psw}`)
-		let chan = await this.getChan(data.chanName);
+		data: { chanName: string; psw: string | undefined },
+		requestor: string,
+	) {
+		const user = await this.userService.getByLogin(requestor);
+		if (!user) throw new HttpException('USER_NOT_FOUND', HttpStatus.NOT_FOUND);
+		console.log(
+			`joinChanRequest for chan = ${data.chanName}, user = ${requestor}, psw = ${data.psw}`,
+		);
+		const chan = await this.getChan(data.chanName);
 		if (!chan) {
-			console.log(`joinChanRequest Error: Chan don't exist`)
+			console.log(`joinChanRequest Error: Chan don't exist`);
 			throw new HttpException('CHAN_NOT_FOUND', HttpStatus.NOT_FOUND);
 		} else if (data.psw && chan.password != data.psw) {
-			console.log(`joinChanRequest Error: Wrong Password`)
+			console.log(`joinChanRequest Error: Wrong Password`);
 			throw new HttpException('WRONG_PSW', HttpStatus.BAD_REQUEST);
 		} else if (
-				chan.sanctions.filter(s => s.type == 'ban')
-					.findIndex(s => s.user.login == requestor) != -1
-			) {
-			console.log(`joinChanRequest Error: User Banned`)
+			chan.sanctions
+				.filter((s) => s.type == 'ban')
+				.findIndex((s) => s.user.login == requestor) != -1
+		) {
+			console.log(`joinChanRequest Error: User Banned`);
 			throw new HttpException('USER_BANNDED', HttpStatus.UNAUTHORIZED);
 		} else {
-			console.log(`user '${user.login}' join chanel '${chan.name}'`)
+			console.log(`user '${user.login}' join chanel '${chan.name}'`);
 			chan.users.push(user);
-			await this.channelRepository.save(chan)
+			await this.channelRepository
+				.save(chan)
 				.catch((e) => console.log('Save chan error'));
 			console.log(`chan.owner = ${chan.owner.login}`);
 			return this.createChanDto(chan);
 		}
 	}
 
-	async userExistOrBlocked (login: string, requestorLogin : string) {
+	async userExistOrBlocked(login: string, requestorLogin: string) {
 		const requestor = this.userService.getByLogin(requestorLogin);
 		if (!requestor)
 			throw new HttpException('USER_NOT_FOUND', HttpStatus.NOT_FOUND);
 		if (login == requestorLogin)
 			throw new HttpException('IS_YOU', HttpStatus.BAD_REQUEST);
-		let user = await this.userRepository.findOne({
-			where: {login: login}
+		const user = await this.userRepository.findOne({
+			where: { login: login },
 		});
-		if (!user)
-			throw new HttpException('DO_NOT_EXIST', HttpStatus.NOT_FOUND);
-		let asker = await this.userRepository.findOne({
-			where: {login: requestorLogin}, relations: {blockeds: true},
+		if (!user) throw new HttpException('DO_NOT_EXIST', HttpStatus.NOT_FOUND);
+		const asker = await this.userRepository.findOne({
+			where: { login: requestorLogin },
+			relations: { blockeds: true },
 		});
-		if (asker.blockeds.map(b => b.login).includes(login))
+		if (asker.blockeds.map((b) => b.login).includes(login))
 			throw new HttpException('USER_BLOCKED', HttpStatus.BAD_REQUEST);
-		else
-			return new BasicUserDto(user.login, user.avatar);
+		else return new BasicUserDto(user.login, user.avatar);
 	}
 
-	async chanExist (chanName: string) {
-		console.log(`verify if channel '${chanName}' exist`)
-		let chan = await this.channelRepository.findOne({
-			where: {name: chanName}
+	async chanExist(chanName: string) {
+		console.log(`verify if channel '${chanName}' exist`);
+		const chan = await this.channelRepository.findOne({
+			where: { name: chanName },
 		});
-		if (chan)
-			return true;
-		else
-			return false;
+		if (chan) return true;
+		else return false;
 	}
 
 	async invitChanUser(chanName: string, login: string, requestorLogin: string) {
-		const requestor = await this.userService
-			.getByLogin(requestorLogin, {chansOwner:true, chansAdmin:true});
+		const requestor = await this.userService.getByLogin(requestorLogin, {
+			chansOwner: true,
+			chansAdmin: true,
+		});
 		if (!requestor)
 			throw new HttpException('USER_NOT_FOUND', HttpStatus.NOT_FOUND);
-		const requestorChans = requestor.chansOwner.map(o => o.name)
-			.concat(requestor.chansAdmin.map(a => a.name));
+		const requestorChans = requestor.chansOwner
+			.map((o) => o.name)
+			.concat(requestor.chansAdmin.map((a) => a.name));
 		if (!requestorChans.includes(chanName))
 			throw new HttpException('WRONG_RIGHTS', HttpStatus.UNAUTHORIZED);
-		let user = await this.userRepository.findOne({
-			where: {login: login},
-		})
-		if (!user)
-			throw new HttpException('DO_NOT_EXIST', HttpStatus.NOT_FOUND);
-		let chan = await this.getChan(chanName);
+		const user = await this.userRepository.findOne({
+			where: { login: login },
+		});
+		if (!user) throw new HttpException('DO_NOT_EXIST', HttpStatus.NOT_FOUND);
+		const chan = await this.getChan(chanName);
 		if (!chan)
 			throw new HttpException('CHAN_DO_NOT_EXIST', HttpStatus.NOT_FOUND);
-		let allUsers = this.getAllChanUsers(chan);
-		let isUser = allUsers.find(user => user.login == login)
-		if (isUser)
-			throw new HttpException('ALREADY_USER', HttpStatus.CONFLICT);
-		let banned = chan.sanctions.filter(s => s.type == 'ban')
-			.find(sanction => sanction.user.login == login)
-		if (banned)
-			throw new HttpException('IS_BANNED', HttpStatus.UNAUTHORIZED);
+		const allUsers = this.getAllChanUsers(chan);
+		const isUser = allUsers.find((user) => user.login == login);
+		if (isUser) throw new HttpException('ALREADY_USER', HttpStatus.CONFLICT);
+		const banned = chan.sanctions
+			.filter((s) => s.type == 'ban')
+			.find((sanction) => sanction.user.login == login);
+		if (banned) throw new HttpException('IS_BANNED', HttpStatus.UNAUTHORIZED);
 		return true;
 	}
 
-	async newChannelUser(
-		server: Server,
-		data: {chan: string, login: string}) 
-	{
-		let newUser = await this.userService.getByLogin(data.login);
+	async newChannelUser(server: Server, data: { chan: string; login: string }) {
+		const newUser = await this.userService.getByLogin(data.login);
 		if (!newUser) {
 			console.log(`newChannelUser error : User not found'`);
 			return;
 		}
-		let chan = await this.getChan(data.chan);
+		const chan = await this.getChan(data.chan);
 		if (!chan) {
 			console.log(`newChannelUser error : Channel not found'`);
 			return;
 		}
-		console.log(`newUser '${data.login}' want to join '${data.chan}'`)
-		if (!chan.users.map(user => user.login).includes(data.login)) {
+		console.log(`newUser '${data.login}' want to join '${data.chan}'`);
+		if (!chan.users.map((user) => user.login).includes(data.login)) {
 			chan.users.push(newUser);
-			this.channelRepository.save(chan)
+			this.channelRepository
+				.save(chan)
 				.catch((e) => console.log('Save chan error'));
 		}
-		server.to(newUser.socketId).emit("newChannel", this.createChanDto(chan));
-		let allUsers = this.getAllChanUsers(chan);
-		for (let user of allUsers) {
+		server.to(newUser.socketId).emit('newChannel', this.createChanDto(chan));
+		const allUsers = this.getAllChanUsers(chan);
+		for (const user of allUsers) {
 			if (user.login != newUser.login)
-				server.to(user.socketId).emit("newChannelUser", {
+				server.to(user.socketId).emit('newChannelUser', {
 					name: chan.name,
 					user: new BasicUserDto(newUser.login, newUser.avatar),
 				});
 		}
 	}
 
-	async userQuitChan(
-		server: Server,
-		login: string, chanName: string
-	){
-		let chan = await this.getChan(chanName);
+	async userQuitChan(server: Server, login: string, chanName: string) {
+		const chan = await this.getChan(chanName);
 		if (!chan) {
 			console.log(`UserQuitChan error: Chan '${chanName} not found'`);
 			return;
 		}
 		console.log(`User '${login}' left the channel '${chan.name}'`);
 		let i;
-		if (chan.owner && login == chan.owner.login)
-			chan.owner = null;
-		else if ((i = chan.admins.findIndex(u => u.login == login)) != -1)
+		if (chan.owner && login == chan.owner.login) chan.owner = null;
+		else if ((i = chan.admins.findIndex((u) => u.login == login)) != -1)
 			chan.admins.splice(i, 1);
-		else if ((i = chan.users.findIndex(u => u.login == login)) != -1)
+		else if ((i = chan.users.findIndex((u) => u.login == login)) != -1)
 			chan.users.splice(i, 1);
 		else if (
-			(i = chan.sanctions.filter(s => s.type == 'mute')
-				.findIndex(s => s.user.login == login)) != -1
+			(i = chan.sanctions
+				.filter((s) => s.type == 'mute')
+				.findIndex((s) => s.user.login == login)) != -1
 		)
 			this.removeSanction(chan, login, 'mute');
 		if (
-			(chan.owner ? 1 : 0) + chan.admins.length + chan.users.length 
-				+ chan.sanctions.filter(s => s.type == 'mute').length == 0
+			(chan.owner ? 1 : 0) +
+				chan.admins.length +
+				chan.users.length +
+				chan.sanctions.filter((s) => s.type == 'mute').length ==
+			0
 		)
-			this.channelRepository.remove(chan)
-			.catch((e) => console.log('Remove chan error'));
+			this.channelRepository
+				.remove(chan)
+				.catch((e) => console.log('Remove chan error'));
 		else
-			this.channelRepository.save(chan)
-			.catch((e) => console.log('Save chan error'));
-		let allUsers = this.getAllChanUsers(chan);
-		for (let user of allUsers) {
+			this.channelRepository
+				.save(chan)
+				.catch((e) => console.log('Save chan error'));
+		const allUsers = this.getAllChanUsers(chan);
+		for (const user of allUsers) {
 			if (user.login != login) {
-				console.log(`send to ${user.login}`)			
-				server.to(user.socketId).emit("userQuitChan", {
+				console.log(`send to ${user.login}`);
+				server.to(user.socketId).emit('userQuitChan', {
 					login: login,
 					chan: chan.name,
 				});
@@ -604,200 +657,249 @@ export class ChatService {
 	}
 
 	isOwner(user: UserEntity, chan: ChannelEntity) {
-		if (chan.owner && chan.owner.login == user.login)
-			return true;
+		if (chan.owner && chan.owner.login == user.login) return true;
 		return false;
 	}
 
 	isAdm(user: UserEntity, chan: ChannelEntity) {
-		return chan.admins.map(a => a.login).includes(user.login);
+		return chan.admins.map((a) => a.login).includes(user.login);
 	}
 
 	async modifChan(server: Server, requestor: UserEntity, modif: ModifChanDto) {
 		// let requestor = await this.userService.getByLogin(modif.requestor);
-		let chan = await this.getChan(modif.chan);
+		const chan = await this.getChan(modif.chan);
 		if (!chan) {
 			console.log(`modifChan error: Chan '${modif.chan} not found'`);
 			return;
 		}
 		if (!this.isOwner(requestor, chan) && !this.isAdm(requestor, chan))
 			throw new HttpException('NOT_OWNER_OR_ADMIN', HttpStatus.BAD_REQUEST);
-		if (await this.updateChanSetting(chan, modif, server) == 1) {
-			let allUsers = this.getAllChanUsers(chan, true);
-			for (let user of allUsers)
-				server.to(user.socketId).emit("modifChan", modif);
+		if ((await this.updateChanSetting(chan, modif, server)) == 1) {
+			const allUsers = this.getAllChanUsers(chan, true);
+			for (const user of allUsers)
+				server.to(user.socketId).emit('modifChan', modif);
 		}
 	}
 
-	async updateChanSetting(chan: ChannelEntity, modif: ModifChanDto, server: Server) {
+	async updateChanSetting(
+		chan: ChannelEntity,
+		modif: ModifChanDto,
+		server: Server,
+	) {
 		if (modif.psw != undefined) {
-			console.log(`Modif chan psw : ${modif.psw == "" ? "no psw" : modif.psw}`)
-			modif.psw == "" ?
-				chan.password = null : chan.password = modif.psw;
-		}
-		else if (modif.priv != undefined) {
-			console.log(`Modif chan '${modif.chan}' : private = ${modif.priv}`)
+			console.log(`Modif chan psw : ${modif.psw == '' ? 'no psw' : modif.psw}`);
+			modif.psw == '' ? (chan.password = null) : (chan.password = modif.psw);
+		} else if (modif.priv != undefined) {
+			console.log(`Modif chan '${modif.chan}' : private = ${modif.priv}`);
 			chan.private = modif.priv;
-		}
-		else if (modif.promotAdm) {
-			let i = chan.users.findIndex(user => user.login == modif.promotAdm);
+		} else if (modif.promotAdm) {
+			const i = chan.users.findIndex((user) => user.login == modif.promotAdm);
 			if (i == -1) {
-				console.log(`updateChanSetting error: promotAdm ${modif.promotAdm} not found in users`);
+				console.log(
+					`updateChanSetting error: promotAdm ${modif.promotAdm} not found in users`,
+				);
 				return 0;
 			}
-			console.log(`Modif chan promotAdm : chan = ${modif.chan}, newAdm = ${modif.promotAdm}`)
+			console.log(
+				`Modif chan promotAdm : chan = ${modif.chan}, newAdm = ${modif.promotAdm}`,
+			);
 			chan.admins.push(chan.users[i]);
 			chan.users.splice(i, 1);
-		}
-		else if (modif.demotUser){
-			let i = chan.admins.findIndex(user => user.login == modif.demotUser);
+		} else if (modif.demotUser) {
+			const i = chan.admins.findIndex((user) => user.login == modif.demotUser);
 			if (i == -1) {
-				console.log(`updateChanSetting error: demotUser ${modif.demotUser} not found in admins`);
+				console.log(
+					`updateChanSetting error: demotUser ${modif.demotUser} not found in admins`,
+				);
 				return 0;
 			}
-			console.log(`Modif chan demotUser : chan = ${modif.chan}, newUser = ${modif.demotUser}`)
+			console.log(
+				`Modif chan demotUser : chan = ${modif.chan}, newUser = ${modif.demotUser}`,
+			);
 			chan.users.push(chan.admins[i]);
 			chan.admins.splice(i, 1);
-		}
-		else if (modif.mute) {
+		} else if (modif.mute) {
 			if (modif.group != 'admins' && modif.group != 'users') {
-				console.log(`updateChanSetting error: modif.group '${modif.group}' not correct`);
+				console.log(
+					`updateChanSetting error: modif.group '${modif.group}' not correct`,
+				);
 				return 0;
 			}
 			if (modif.group == 'admins') {
-				let i = chan.admins.findIndex(u => u.login == modif.mute);
+				const i = chan.admins.findIndex((u) => u.login == modif.mute);
 				if (i == -1) {
-					console.log(`updateChanSetting error: User muted ${modif.mute} not found in admins`);
+					console.log(
+						`updateChanSetting error: User muted ${modif.mute} not found in admins`,
+					);
 					return 0;
 				}
 				chan.admins.splice(i, 1);
-			}
-			else if (modif.group == 'users') {
-				let i = chan.users.findIndex(u => u.login == modif.mute);
+			} else if (modif.group == 'users') {
+				const i = chan.users.findIndex((u) => u.login == modif.mute);
 				if (i == -1) {
-					console.log(`updateChanSetting error: User muted ${modif.mute} not found in users`);
+					console.log(
+						`updateChanSetting error: User muted ${modif.mute} not found in users`,
+					);
 					return 0;
 				}
 				chan.users.splice(i, 1);
 			}
-			console.log(`User '${modif.mute}' from group '${modif.group}' of chan '${modif.chan}' is muted`);
-			if (await this.addSanction(chan, modif.mute, 'mute', modif.time) == 0)
+			console.log(
+				`User '${modif.mute}' from group '${modif.group}' of chan '${modif.chan}' is muted`,
+			);
+			if ((await this.addSanction(chan, modif.mute, 'mute', modif.time)) == 0)
 				return 0;
-		}
-		else if (modif.restoreMute) {
-			let user = chan.sanctions.filter(s => s.type == 'mute')
-				.find(s => s.user.login == modif.restoreMute).user;
+		} else if (modif.restoreMute) {
+			const user = chan.sanctions
+				.filter((s) => s.type == 'mute')
+				.find((s) => s.user.login == modif.restoreMute).user;
 			if (!user) {
-				console.log(`updateChanSetting error: User restoreMute ${modif.restoreMute} not found in mutes`);
+				console.log(
+					`updateChanSetting error: User restoreMute ${modif.restoreMute} not found in mutes`,
+				);
 				return 0;
 			}
-			console.log(`User '${modif.restoreMute}' from chan '${modif.chan}' is unmuted`);
+			console.log(
+				`User '${modif.restoreMute}' from chan '${modif.chan}' is unmuted`,
+			);
 			chan.users.push(user);
-			return await this.removeSanction(chan, modif.restoreMute, 'mute')
-		}
-		else if (modif.kick) { 
+			return await this.removeSanction(chan, modif.restoreMute, 'mute');
+		} else if (modif.kick) {
 			if (
-				modif.group != 'admins' && modif.group != 'users'
-				&& modif.group != 'mutes' && modif.group != 'bans'
+				modif.group != 'admins' &&
+				modif.group != 'users' &&
+				modif.group != 'mutes' &&
+				modif.group != 'bans'
 			) {
-				console.log(`updateChanSetting error: modif.group '${modif.group}' not correct`);
+				console.log(
+					`updateChanSetting error: modif.group '${modif.group}' not correct`,
+				);
 				return 0;
 			}
-			let kicked = await this.userService.getByLogin(modif.kick);
+			const kicked = await this.userService.getByLogin(modif.kick);
 			if (!kicked) {
-				console.log(`updateChanSetting error: User kicked ${modif.kick} not found`);
+				console.log(
+					`updateChanSetting error: User kicked ${modif.kick} not found`,
+				);
 				return 0;
 			}
 			if (modif.group == 'admins') {
-				let i = chan.admins.findIndex(u => u.login == modif.kick);
+				const i = chan.admins.findIndex((u) => u.login == modif.kick);
 				if (i == -1) {
-					console.log(`updateChanSetting error: User kicked ${modif.kick} not found in admins`);
+					console.log(
+						`updateChanSetting error: User kicked ${modif.kick} not found in admins`,
+					);
 					return 0;
 				}
 				chan.admins.splice(i, 1);
-			}
-			else if (modif.group == 'users') {
-				let i = chan.users.findIndex(u => u.login == modif.kick);
+			} else if (modif.group == 'users') {
+				const i = chan.users.findIndex((u) => u.login == modif.kick);
 				if (i == -1) {
-					console.log(`updateChanSetting error: User kicked ${modif.kick} not found in users`);
+					console.log(
+						`updateChanSetting error: User kicked ${modif.kick} not found in users`,
+					);
 					return 0;
 				}
 				chan.users.splice(i, 1);
-			}
-			else if (modif.group == 'mutes') {
-				if (await this.removeSanction(chan, modif.kick, 'mute') == 0)
+			} else if (modif.group == 'mutes') {
+				if ((await this.removeSanction(chan, modif.kick, 'mute')) == 0)
 					return 0;
+			} else if (modif.group == 'bans') {
+				if ((await this.removeSanction(chan, modif.kick, 'ban')) == 0) return 0;
 			}
-			else if (modif.group == 'bans') {
-				if (await this.removeSanction(chan, modif.kick, 'ban') == 0)
-					return 0;
-			}
-			console.log(`User '${modif.kick}' from group '${modif.group}' of chan '${modif.chan}' is kicked`);
+			console.log(
+				`User '${modif.kick}' from group '${modif.group}' of chan '${modif.chan}' is kicked`,
+			);
 			if (modif.group != 'bans')
-				server.to(kicked.socketId).emit("modifChan", modif);
-		}
-		else if (modif.ban) {
-			if (modif.group != 'admins' && modif.group != 'users' && modif.group != 'mutes') {
-				console.log(`updateChanSetting error: modif.group '${modif.group}' not correct`);
+				server.to(kicked.socketId).emit('modifChan', modif);
+		} else if (modif.ban) {
+			if (
+				modif.group != 'admins' &&
+				modif.group != 'users' &&
+				modif.group != 'mutes'
+			) {
+				console.log(
+					`updateChanSetting error: modif.group '${modif.group}' not correct`,
+				);
 				return 0;
 			}
 			if (modif.group == 'admins') {
-				let i = chan.admins.findIndex(u => u.login == modif.ban);
+				const i = chan.admins.findIndex((u) => u.login == modif.ban);
 				if (i == -1) {
-					console.log(`updateChanSetting error: User ban ${modif.ban} not found in admins`);
+					console.log(
+						`updateChanSetting error: User ban ${modif.ban} not found in admins`,
+					);
 					return 0;
 				}
 				chan.admins.splice(i, 1);
-			}
-			else if (modif.group == 'users') {
-				let i = chan.users.findIndex(u => u.login == modif.ban);
+			} else if (modif.group == 'users') {
+				const i = chan.users.findIndex((u) => u.login == modif.ban);
 				if (i == -1) {
-					console.log(`updateChanSetting error: User ban ${modif.ban} not found in users`);
+					console.log(
+						`updateChanSetting error: User ban ${modif.ban} not found in users`,
+					);
 					return 0;
 				}
 				chan.users.splice(i, 1);
+			} else if (modif.group == 'mutes') {
+				if ((await this.removeSanction(chan, modif.ban, 'mute')) == 0) return 0;
 			}
-			else if (modif.group == 'mutes') {
-				if (await this.removeSanction(chan, modif.ban, 'mute') == 0)
-					return 0;
-			}
-			if (await this.addSanction(chan, modif.ban, 'ban', modif.time) == 0)
+			if ((await this.addSanction(chan, modif.ban, 'ban', modif.time)) == 0)
 				return 0;
-			console.log(`User '${modif.ban}' from group '${modif.group}' of chan '${modif.chan}' is baned`);
-		}
-		else if (modif.restoreBan) {
-			console.log(`User '${modif.restoreBan}' from chan '${modif.chan}' is unbanned`);
+			console.log(
+				`User '${modif.ban}' from group '${modif.group}' of chan '${modif.chan}' is baned`,
+			);
+		} else if (modif.restoreBan) {
+			console.log(
+				`User '${modif.restoreBan}' from chan '${modif.chan}' is unbanned`,
+			);
 			return this.removeSanction(chan, modif.restoreBan, 'ban');
 		}
-		this.channelRepository.save(chan)
+		this.channelRepository
+			.save(chan)
 			.catch((e) => console.log('Save Channel modifChannel error'));
 		return 1;
 	}
 
-	async addSanction(chan: ChannelEntity, user: string, sanction: string, seconds: number) {
-		let endSanction = new Date(Date.now() + seconds * 1000);
-		let userSanc = await this.userService.getByLogin(user);
+	async addSanction(
+		chan: ChannelEntity,
+		user: string,
+		sanction: string,
+		seconds: number,
+	) {
+		const endSanction = new Date(Date.now() + seconds * 1000);
+		const userSanc = await this.userService.getByLogin(user);
 		if (!userSanc) {
-			console.log(`addSanction error: User ${user} not found`)
+			console.log(`addSanction error: User ${user} not found`);
 			return 0;
 		}
-		const newSanction = this.sanctionRepository
-			.create({user: userSanc, type: sanction, chan: chan, end: endSanction});
+		const newSanction = this.sanctionRepository.create({
+			user: userSanc,
+			type: sanction,
+			chan: chan,
+			end: endSanction,
+		});
 		console.debug(`user ${sanction} until ${endSanction}`);
 		chan.sanctions.push(newSanction);
 		return 1;
 	}
 
 	async removeSanction(chan: ChannelEntity, user: string, sanction: string) {
-		let sanct = chan.sanctions.find(s => s.user.login == user && s.type == sanction);
+		const sanct = chan.sanctions.find(
+			(s) => s.user.login == user && s.type == sanction,
+		);
 		if (!sanct) {
-			console.log(`removeSanction error: user '${user}' not found in ${sanction}s`);
+			console.log(
+				`removeSanction error: user '${user}' not found in ${sanction}s`,
+			);
 			return 0;
 		}
-		this.sanctionRepository.remove(sanct)
-		.catch((e) => console.log('Remove sanction removeSanction error'));
-		chan.sanctions = chan.sanctions.filter(s => s.user.login != user); 
-		await this.channelRepository.save(chan)
+		this.sanctionRepository
+			.remove(sanct)
+			.catch((e) => console.log('Remove sanction removeSanction error'));
+		chan.sanctions = chan.sanctions.filter((s) => s.user.login != user);
+		await this.channelRepository
+			.save(chan)
 			.catch((e) => console.log('Save chan removeSanction error'));
 		return 1;
 	}
@@ -806,111 +908,130 @@ export class ChatService {
 		const allSanctions = await this.sanctionRepository.find({
 			relations: {
 				user: true,
-				chan : {
+				chan: {
 					owner: true,
 					admins: true,
 					users: true,
 					sanctions: {
 						user: true,
-					}
+					},
 				},
-			} 
+			},
 		});
 		const now = new Date();
 		const toDelete: SanctionEntity[] = [];
 		allSanctions.forEach((sanction) => {
-			if (now.getTime() >= sanction.end.getTime())
-				toDelete.push(sanction);
+			if (now.getTime() >= sanction.end.getTime()) toDelete.push(sanction);
 		});
 		if (toDelete.length) {
-			for (let sanction of toDelete) {
+			for (const sanction of toDelete) {
 				// let requestor = 'time';
-				let chanName = sanction.chan.name;
-				let userName = sanction.user.login; 
-				let type : string; 
-				sanction.type == 'ban' ? type = 'restoreBan' : type = 'restoreMute';
+				const chanName = sanction.chan.name;
+				const userName = sanction.user.login;
+				let type: string;
+				sanction.type == 'ban' ? (type = 'restoreBan') : (type = 'restoreMute');
 				if (sanction.type == 'mute') {
 					sanction.chan.users.push(sanction.user);
-					sanction.chan.sanctions = sanction.chan.sanctions
-						.filter(s => s.user.login != userName);
-					this.channelRepository.save(sanction.chan)
+					sanction.chan.sanctions = sanction.chan.sanctions.filter(
+						(s) => s.user.login != userName,
+					);
+					this.channelRepository
+						.save(sanction.chan)
 						.catch((e) => console.log('Save chan error'));
 				}
-				await this.sanctionRepository.remove(sanction)
+				await this.sanctionRepository
+					.remove(sanction)
 					.catch((e) => console.log('Remove sanction checkSanctions error'));
 				for (const user of this.getAllChanUsers(sanction.chan)) {
-					let modifChanDto = new ModifChanDto(chanName, type, userName);
-					server.to(user.socketId).emit("modifChan", modifChanDto);
+					const modifChanDto = new ModifChanDto(chanName, type, userName);
+					server.to(user.socketId).emit('modifChan', modifChanDto);
 				}
 			}
 		}
 	}
 
 	async blockUser(blockerLogin: string, blockedLogin: string) {
-		let blocker = await this.userService.getByLogin(blockerLogin, {blockeds: true});
-		let blocked = await this.userService.getByLogin(blockedLogin);
+		const blocker = await this.userService.getByLogin(blockerLogin, {
+			blockeds: true,
+		});
+		const blocked = await this.userService.getByLogin(blockedLogin);
 		if (!blocked) {
 			console.log(`BlockUser error : User '${blockedLogin}' not found`);
 			return;
 		}
 		console.log(`User '${blockerLogin}' block '${blockedLogin}'`);
 		blocker.blockeds.push(blocked);
-		await this.userRepository.save(blocker)
+		await this.userRepository
+			.save(blocker)
 			.catch((e) => console.log('Save User error'));
 		return blocked;
 	}
 
-	async unblockUser(blockerLogin: string, blockedLogin: string, server: Server) {
-		let blocker = await this.userService.getByLogin(blockerLogin, {blockeds: true});
-		let i = blocker.blockeds.findIndex(b => b.login == blockedLogin)
+	async unblockUser(
+		blockerLogin: string,
+		blockedLogin: string,
+		server: Server,
+	) {
+		const blocker = await this.userService.getByLogin(blockerLogin, {
+			blockeds: true,
+		});
+		const i = blocker.blockeds.findIndex((b) => b.login == blockedLogin);
 		if (i == -1) {
-			console.log(`unblockUser error : User '${blockedLogin}' not found in blocked users`);
+			console.log(
+				`unblockUser error : User '${blockedLogin}' not found in blocked users`,
+			);
 			return;
 		}
 		console.log(`User '${blockerLogin}' unblock '${blockedLogin}'`);
 		blocker.blockeds.splice(i, 1);
-		await this.userRepository.save(blocker)
+		await this.userRepository
+			.save(blocker)
 			.catch((e) => console.log('Save User error'));
-		let priv = await this.getPriv([blockedLogin,blockerLogin]);
+		const priv = await this.getPriv([blockedLogin, blockerLogin]);
 		if (!priv)
 			server.to(blocker.socketId).emit('userUnblockNoPriv', blockedLogin);
 		else {
-			let basicUser = (priv.users[0].login == blockerLogin ? 
-				new BasicUserDto(priv.users[1].login, priv.users[1].avatar)
-				: new BasicUserDto(priv.users[0].login, priv.users[0].avatar))
-			let msgs = priv.messages
-				.map(m => new MessageDto(m.user.login, m.message, m.createdAt));
-			let privDto = new PrivConvDto(basicUser, msgs, priv.readed, priv.id);
+			const basicUser =
+				priv.users[0].login == blockerLogin
+					? new BasicUserDto(priv.users[1].login, priv.users[1].avatar)
+					: new BasicUserDto(priv.users[0].login, priv.users[0].avatar);
+			const msgs = priv.messages.map(
+				(m) => new MessageDto(m.user.login, m.message, m.createdAt),
+			);
+			const privDto = new PrivConvDto(basicUser, msgs, priv.readed, priv.id);
 			server.to(blocker.socketId).emit('userUnblock', privDto);
 		}
 	}
 
 	getAllChanUsers(chan: ChannelEntity, bans?: boolean) {
-		let allUsers = chan.admins.concat(chan.users)
-			.concat(chan.sanctions.filter(s => s.type == 'mute').map(s => s.user));
+		let allUsers = chan.admins
+			.concat(chan.users)
+			.concat(
+				chan.sanctions.filter((s) => s.type == 'mute').map((s) => s.user),
+			);
 		if (bans == true)
-			allUsers =  allUsers.concat(chan.sanctions
-				.filter(s => s.type == 'ban').map(s => s.user));
-		if (chan.owner)
-			allUsers.push(chan.owner);
+			allUsers = allUsers.concat(
+				chan.sanctions.filter((s) => s.type == 'ban').map((s) => s.user),
+			);
+		if (chan.owner) allUsers.push(chan.owner);
 		return allUsers;
 	}
-	
+
 	printChanDto(chan: ChannelDto) {
 		console.log(`psw = ${chan.psw}`);
 		console.log(`creation = ${chan.creation}`);
 		console.log(`readed = ${chan.readed}`);
-		console.log(`admins = ${chan.admins.map(admin => admin.login + ', ')}`);
-		console.log(`users = ${chan.users.map(user => user.login + ', ')}`);
+		console.log(`admins = ${chan.admins.map((admin) => admin.login + ', ')}`);
+		console.log(`users = ${chan.users.map((user) => user.login + ', ')}`);
 		chan.messages.forEach((msg) => console.log(`${msg.msg}`));
 	}
-	
+
 	printChansDto(chans: ChannelDto[]) {
 		console.log(`PrintChansDto :`);
 		if (!chans.length) {
 			return console.log(`No channels`);
 		}
-		chans.forEach((chan : ChannelDto) => {
+		chans.forEach((chan: ChannelDto) => {
 			console.log(`PrintChanDto : ${chan.name}`);
 			this.printChanDto(chan);
 		});
@@ -919,15 +1040,25 @@ export class ChatService {
 	async printChan(chan: ChannelEntity) {
 		console.log(`Chan info :`);
 		console.log(`name : ${chan.name}`);
-		console.log(`admins : ${chan.admins.map(admin => admin.login + ', ')}`);
-		console.log(`users : ${chan.users.map(user => user.login + ', ')}`);
-		console.log(`mutes : ${chan.sanctions.filter(s => s.type == 'mute').map(s => `'` + s.user.login + `'`)}`);
-		console.log(`bans : ${chan.sanctions.filter(s => s.type == 'ban').map(s => s.user.login + ', ')}`);
-		console.log(`msgs : ${chan.messages.map(msg => `'` + msg.message + `'`)}`);
+		console.log(`admins : ${chan.admins.map((admin) => admin.login + ', ')}`);
+		console.log(`users : ${chan.users.map((user) => user.login + ', ')}`);
+		console.log(
+			`mutes : ${chan.sanctions
+				.filter((s) => s.type == 'mute')
+				.map((s) => `'` + s.user.login + `'`)}`,
+		);
+		console.log(
+			`bans : ${chan.sanctions
+				.filter((s) => s.type == 'ban')
+				.map((s) => s.user.login + ', ')}`,
+		);
+		console.log(
+			`msgs : ${chan.messages.map((msg) => `'` + msg.message + `'`)}`,
+		);
 	}
 
 	async printChans(chans: ChannelEntity[]) {
-		console.log(`printChans()`)
+		console.log(`printChans()`);
 		if (!chans.length) {
 			return console.log(`No channels`);
 		}
@@ -935,5 +1066,4 @@ export class ChatService {
 			await this.printChan(chan);
 		});
 	}
-
 }

@@ -24,26 +24,28 @@ export class AuthenticationController {
 		private readonly usersService: UsersService,
 	) {}
 
-	@UseGuards(AuthGuard)
-	@Get('debug')
-	async debug_get(@Headers() headers: any) {
-		console.log('Debug headers: ' + JSON.stringify(headers));
-	}
+	// @UseGuards(AuthGuard)
+	// @Get('debug')
+	// async debug_get(@Headers() headers: any) {
+	// 	console.log('Debug headers: ' + JSON.stringify(headers));
+	// }
 
-	@UseGuards(AuthGuard)
-	@Post('debug')
-	async debug_post(@Headers() headers: any) {
-		console.log('Debug headers: ' + JSON.stringify(headers));
-	}
+	// @UseGuards(AuthGuard)
+	// @Post('debug')
+	// async debug_post(@Headers() headers: any) {
+	// 	console.log('Debug headers: ' + JSON.stringify(headers));
+	// }
 
 	@UseGuards(AuthGuard)
 	@Post('disable_totp')
 	async disable_totp(@Body() data: any) {
+		// TODO do not send login
 		this.authenticationService.disable_totp(data.name);
 	}
 
 	@Post('check_totp_status')
 	async check_totp_status(@Body() data: any) {
+		// TODO do not send login
 		return this.authenticationService.check_totp_status(data.name);
 	}
 
@@ -87,24 +89,28 @@ export class AuthenticationController {
 	@UseGuards(AuthGuard)
 	@Post('set_totp')
 	set_totp(@Body('email') email: string) {
+		// TODO do not send login
 		return this.authenticationService.set_totp(email);
 	}
 
 	@UseGuards(AuthGuard)
 	@Post('set_tmp_totp')
 	set_tmp_totp(@Body('email') email: string) {
+		// TODO do not send login
 		return this.authenticationService.set_tmp_totp(email);
 	}
 
 	@UseGuards(AuthGuard)
 	@Post('verify_totp')
 	verify_totp(@Body() request: TotpDto) {
+		// TODO do not send login
 		return this.authenticationService.verify_totp(request);
 	}
 
 	@UseGuards(AuthGuard)
 	@Post('verify_tmp_totp')
 	verify_tmp_totp(@Body() request: TotpDto) {
+		// TODO do not send login
 		return this.authenticationService.verify_tmp_totp(request);
 	}
 
@@ -140,6 +146,7 @@ export class AuthenticationController {
 	@HttpCode(200)
 	@Post('logout')
 	async logOut(@Body() body: { login: string }) {
+		// TODO do not send login
 		return this.authenticationService.logOut(body.login);
 	}
 

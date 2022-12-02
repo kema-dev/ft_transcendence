@@ -13,14 +13,12 @@ import { NewChanDto } from './dto/NewChanDto';
 
 @Controller('chat')
 export class ChatController {
-	constructor(
-		private readonly chatService: ChatService,	
-	) {}
-	
+	constructor(private readonly chatService: ChatService) {}
+
 	@UseGuards(AuthGuard)
 	@Get('getPrivs')
 	async getPrivs(@Headers('cookie') cookie: string) {
-		let login = this.chatService.getLoginByHeaderReq(cookie);
+		const login = this.chatService.getLoginByHeaderReq(cookie);
 		console.log(`getPrivs for user '${login}'`);
 		const privs = await this.chatService.getUserPrivs(login);
 		await this.chatService.sortPrivs(privs);
@@ -30,12 +28,11 @@ export class ChatController {
 	@UseGuards(AuthGuard)
 	@Get('getChans')
 	async getChans(@Headers('cookie') cookie: string) {
-		let login = this.chatService.getLoginByHeaderReq(cookie);
-		console.log(`getChans for user '${login }'`);
+		const login = this.chatService.getLoginByHeaderReq(cookie);
+		console.log(`getChans for user '${login}'`);
 		const chans = await this.chatService.getUserChans(login);
-		let chansDto = this.chatService.createChansDto(chans);
-		if (chansDto.length)
-			this.chatService.sortChans(chansDto);
+		const chansDto = this.chatService.createChansDto(chans);
+		if (chansDto.length) this.chatService.sortChans(chansDto);
 		return chansDto;
 	}
 
@@ -43,15 +40,15 @@ export class ChatController {
 	@Get('userExistOrBlocked/:login')
 	async userExist(
 		@Headers('cookie') cookie: string,
-		@Param() params : {login: string},
+		@Param() params: { login: string },
 	) {
-		let requestor = this.chatService.getLoginByHeaderReq(cookie);
+		const requestor = this.chatService.getLoginByHeaderReq(cookie);
 		return this.chatService.userExistOrBlocked(params.login, requestor);
 	}
 
 	@UseGuards(AuthGuard)
 	@Get('chanExist/:chan')
-	async chanExist(@Param() params : {chan: string}) {
+	async chanExist(@Param() params: { chan: string }) {
 		return this.chatService.chanExist(params.chan);
 	}
 
@@ -59,9 +56,9 @@ export class ChatController {
 	@Get('invitChanUser/:chan/:login')
 	async invitChanUser(
 		@Headers('cookie') cookie: string,
-		@Param() params : {chan:string, login: string}
+		@Param() params: { chan: string; login: string },
 	) {
-		let requestor = this.chatService.getLoginByHeaderReq(cookie);
+		const requestor = this.chatService.getLoginByHeaderReq(cookie);
 		return this.chatService.invitChanUser(params.chan, params.login, requestor);
 	}
 
@@ -69,9 +66,9 @@ export class ChatController {
 	@Get('getServerUsersFiltred/:filter')
 	async getServerUsersFiltred(
 		@Headers('cookie') cookie: string,
-		@Param() params: {filter: string },
+		@Param() params: { filter: string },
 	) {
-		let requestor = this.chatService.getLoginByHeaderReq(cookie);
+		const requestor = this.chatService.getLoginByHeaderReq(cookie);
 		return await this.chatService.getServerUsersFiltred(
 			requestor,
 			params.filter,
@@ -84,7 +81,7 @@ export class ChatController {
 		@Headers('cookie') cookie: string,
 		@Param() params: { filter: string },
 	) {
-		let requestor = this.chatService.getLoginByHeaderReq(cookie);
+		const requestor = this.chatService.getLoginByHeaderReq(cookie);
 		return await this.chatService.getServerChansFiltred(
 			requestor,
 			params.filter,
@@ -93,11 +90,11 @@ export class ChatController {
 
 	@UseGuards(AuthGuard)
 	@Post('createChan')
-	async createChan( 
+	async createChan(
 		@Headers('cookie') cookie: string,
-		@Body() data: NewChanDto
+		@Body() data: NewChanDto,
 	) {
-		let requestor = this.chatService.getLoginByHeaderReq(cookie);
+		const requestor = this.chatService.getLoginByHeaderReq(cookie);
 		return await this.chatService.createNewChan(data, requestor);
 	}
 
@@ -105,12 +102,12 @@ export class ChatController {
 	@Post('joinChanRequest')
 	async joinChanRequest(
 		@Headers('cookie') cookie: string,
-		@Body() data: {chanName: string, psw: string | undefined}
+		@Body() data: { chanName: string; psw: string | undefined },
 	) {
-		let requestor = this.chatService.getLoginByHeaderReq(cookie);
+		const requestor = this.chatService.getLoginByHeaderReq(cookie);
 		return await this.chatService.joinChanRequest(data, requestor);
 	}
-	
+
 	// @UseGuards(AuthGuard)
 	// @Get('getPrivs/:login')
 	// async getPrivs(@Param() params: { login: string }) {
@@ -184,5 +181,4 @@ export class ChatController {
 	// ) {
 	// 	return await this.chatService.joinChanRequest(data);
 	// }
-
 }
