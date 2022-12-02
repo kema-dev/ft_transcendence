@@ -7,8 +7,6 @@ import ResumUserDto from 'src/users/dto/ResumUserDto';
 import ProfileUserDto from 'src/users/dto/ProfileUserDto';
 import { avatars } from 'src/users/avatars';
 
-// NOTE - API's documentation can be found at `docs/api/v1.md`
-
 @Injectable()
 export class UsersService {
 	private logger: Logger = new Logger('UsersService');
@@ -234,7 +232,6 @@ export class UsersService {
 			return user.login;
 		}
 		console.error('getRank: ' + login + ' not found, returning ✘');
-		// FIXME this return is unsafe, use a proper exception instead
 		return 'Not found';
 	}
 

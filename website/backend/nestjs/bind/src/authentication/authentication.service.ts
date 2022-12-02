@@ -290,7 +290,6 @@ export class AuthenticationService {
 					logobj.data.email,
 				);
 				if (existing_usr.password == '') {
-					// TODO check if suffixed mail already exists
 					logobj.data.login = logobj.data.login + '_42';
 					if (
 						(await this.usersService.checkEmailExistence(logobj.data.email)) ==
