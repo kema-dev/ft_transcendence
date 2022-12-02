@@ -96,7 +96,6 @@ function joinChannel() {
 			}, 50);
 	}
 	HTTP.post(apiPath + "chat/joinChanRequest/", {
-		requestor: me.value.login,
 		chanName: props.infos.name,
 		psw: props.infos.psw ? psw.value : undefined,
 	})
@@ -104,7 +103,7 @@ function joinChannel() {
 			let newChan = res.data as ChannelDto;
 			newChan.creation = new Date(newChan.creation);
 			newChan.messages.forEach(msg => msg.date = new Date(msg.date));
-			chansRef.value.unshift(newChan);
+			chansRef.value.push(newChan);
 			mySocket.emit("newChannelUser", {chan: props.infos.name, login: myName});
 			router.push({name: 'ChanConv', params: {conv_name: props.infos.name }});
 		})

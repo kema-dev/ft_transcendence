@@ -19,7 +19,7 @@ import { NewChanDto } from './dto/NewChanDto';
 import { ChannelTabDto } from './dto/ChannelTabDto ';
 import { ModifChanDto } from './dto/ModifChanDto';
 import { SanctionEntity } from './entites/sanction.entity';
-import { type } from 'os';
+import { JwtService } from '@nestjs/jwt';
 
 
 @Injectable()
@@ -36,14 +36,28 @@ export class ChatService {
 		@InjectRepository(SanctionEntity)
 		private sanctionRepository: Repository<SanctionEntity>,
 		private readonly userService: UsersService,
+		private readonly jwtService: JwtService,	
 	) {}
 
 	@WebSocketServer() server: Server;
 
+	// ========================= GET_REQ_INFO =========================
+
+	getLoginByHeaderReq(cookie: string) {
+		const session_cookie = cookie.split(';').find(c => c.match(/session=/));
+		const session = session_cookie.match(/session=(.*)/)[1];
+		const decoded_obj = this.jwtService.decode(session) as {login: string};
+		return decoded_obj.login;
+	}
+
+
 	// ========================= PRIVATES =========================
 
 	async getUserPrivs(login: string) {
-		const user = await this.userRepository.findOne({
+		const user = this.userService.getByLogin(login);
+		if (!user)
+			throw new HttpException('USER_NOT_FOUND', HttpStatus.NOT_FOUND);
+		const userPrivs = await this.userRepository.findOne({
 			relations: { 
 				blockeds: true, 
 				privates: { users: true, messages: { user: true } } 
@@ -57,7 +71,7 @@ export class ChatService {
 				},
 			},
 		});
-		let privs = user.privates.filter(p => !user.blockeds.map(b => b.login)
+		let privs = userPrivs.privates.filter(p => !userPrivs.blockeds.map(b => b.login)
 			.some(b => p.users.map(u => u.login).includes(b)));
 		return privs;
 }
@@ -154,6 +168,8 @@ export class ChatService {
 
 	async getServerUsersFiltred(login: string, filter: string) {
 		let requestor = await this.userService.getByLogin(login, {blockeds : true});
+		if (!requestor)
+			throw new HttpException('USER_NOT_FOUND', HttpStatus.NOT_FOUND);
 		let users = (await this.userService.getByLoginFiltred(filter))
 			.filter(u => u.login != login)
 			.filter(u => !requestor.blockeds.map(b => b.login).includes(u.login))
@@ -209,6 +225,9 @@ export class ChatService {
 	// ========================= CHANNELS =========================
 
 	async getUserChans(login: string) {
+		const user = this.userService.getByLogin(login);
+		if (!user)
+			throw new HttpException('USER_NOT_FOUND', HttpStatus.NOT_FOUND);
 		const ownChans = await this.userRepository.findOne({
 			relations: {
 				chansOwner : {owner: true, admins: true, users: true, 
@@ -346,12 +365,14 @@ export class ChatService {
 		return chansDto;
 	}
 
-	async createNewChan(data: NewChanDto) {
+	async createNewChan(data: NewChanDto, requestorLogin: string) {
+		let owner = await this.userService.getByLogin(requestorLogin);
+		if (!owner)
+			throw new HttpException('USER_NOT_FOUND', HttpStatus.NOT_FOUND);
 		let chanAlreadyExist = await this.channelRepository
 			.findOne({where: {name : data.chanName}});
 		if (chanAlreadyExist)
 			throw new HttpException('CHAN_ALREADY_EXIST', HttpStatus.CONFLICT);
-		let owner = await this.userService.getByLogin(data.admin);
 		let newChan = this.channelRepository
 			.create({name: data.chanName, private: data.priv,
 			owner: owner, password: data.psw}); 
@@ -382,6 +403,9 @@ export class ChatService {
 	}
 
 	async getServerChansFiltred(login: string, filter: string) {
+		const requestor = this.userService.getByLogin(login);
+		if (!requestor)
+			throw new HttpException('USER_NOT_FOUND', HttpStatus.NOT_FOUND);
 		console.log(`getServerChansFiltred for '${login}' and filter '${filter}'`)
 		let maxUsers = 20;
 		const chans = await this.channelRepository.find({
@@ -417,10 +441,12 @@ export class ChatService {
 	}
 
 	async joinChanRequest(
-		data: {requestor: string, chanName: string, psw: string | undefined}) 
+		data: {chanName: string, psw: string | undefined}, requestor: string) 
 	{
-		let user = await this.userService.getByLogin(data.requestor);
-		console.log(`joinChanRequest for chan = ${data.chanName}, user = ${data.requestor}, psw = ${data.psw}`)
+		let user = await this.userService.getByLogin(requestor);
+		if (!user)
+			throw new HttpException('USER_NOT_FOUND', HttpStatus.NOT_FOUND);
+		console.log(`joinChanRequest for chan = ${data.chanName}, user = ${requestor}, psw = ${data.psw}`)
 		let chan = await this.getChan(data.chanName);
 		if (!chan) {
 			console.log(`joinChanRequest Error: Chan don't exist`)
@@ -430,7 +456,7 @@ export class ChatService {
 			throw new HttpException('WRONG_PSW', HttpStatus.BAD_REQUEST);
 		} else if (
 				chan.sanctions.filter(s => s.type == 'ban')
-					.findIndex(s => s.user.login == data.requestor) != -1
+					.findIndex(s => s.user.login == requestor) != -1
 			) {
 			console.log(`joinChanRequest Error: User Banned`)
 			throw new HttpException('USER_BANNDED', HttpStatus.UNAUTHORIZED);
@@ -444,8 +470,11 @@ export class ChatService {
 		}
 	}
 
-	async userExistOrBlocked (login: string, requestor : string) {
-		if (login == requestor)
+	async userExistOrBlocked (login: string, requestorLogin : string) {
+		const requestor = this.userService.getByLogin(requestorLogin);
+		if (!requestor)
+			throw new HttpException('USER_NOT_FOUND', HttpStatus.NOT_FOUND);
+		if (login == requestorLogin)
 			throw new HttpException('IS_YOU', HttpStatus.BAD_REQUEST);
 		let user = await this.userRepository.findOne({
 			where: {login: login}
@@ -453,7 +482,7 @@ export class ChatService {
 		if (!user)
 			throw new HttpException('DO_NOT_EXIST', HttpStatus.NOT_FOUND);
 		let asker = await this.userRepository.findOne({
-			where: {login: requestor}, relations: {blockeds: true},
+			where: {login: requestorLogin}, relations: {blockeds: true},
 		});
 		if (asker.blockeds.map(b => b.login).includes(login))
 			throw new HttpException('USER_BLOCKED', HttpStatus.BAD_REQUEST);
@@ -472,13 +501,23 @@ export class ChatService {
 			return false;
 	}
 
-	async invitChanUser(chanName: string, login: string) {
+	async invitChanUser(chanName: string, login: string, requestorLogin: string) {
+		const requestor = await this.userService
+			.getByLogin(requestorLogin, {chansOwner:true, chansAdmin:true});
+		if (!requestor)
+			throw new HttpException('USER_NOT_FOUND', HttpStatus.NOT_FOUND);
+		const requestorChans = requestor.chansOwner.map(o => o.name)
+			.concat(requestor.chansAdmin.map(a => a.name));
+		if (!requestorChans.includes(chanName))
+			throw new HttpException('WRONG_RIGHTS', HttpStatus.UNAUTHORIZED);
 		let user = await this.userRepository.findOne({
 			where: {login: login},
 		})
 		if (!user)
 			throw new HttpException('DO_NOT_EXIST', HttpStatus.NOT_FOUND);
 		let chan = await this.getChan(chanName);
+		if (!chan)
+			throw new HttpException('CHAN_DO_NOT_EXIST', HttpStatus.NOT_FOUND);
 		let allUsers = this.getAllChanUsers(chan);
 		let isUser = allUsers.find(user => user.login == login)
 		if (isUser)
@@ -530,7 +569,7 @@ export class ChatService {
 			console.log(`UserQuitChan error: Chan '${chanName} not found'`);
 			return;
 		}
-		console.log(`User '${login}' left the channel '${chan}'`);
+		console.log(`User '${login}' left the channel '${chan.name}'`);
 		let i;
 		if (chan.owner && login == chan.owner.login)
 			chan.owner = null;

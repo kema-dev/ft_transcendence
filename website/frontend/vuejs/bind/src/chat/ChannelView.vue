@@ -51,7 +51,10 @@
 		<div v-if="chanDone && !findChannel && !newChannel && userDone"
 			class="myChannels center column"
 		>
-			<div v-for="(data, i) in chansFiltred" :key="i" 
+			<!-- <div v-for="(data, i) in chansFiltred" :key="i" 
+				:set="ind = findIndexMsg(data.messages)" class="center"
+			> -->
+			<div v-for="(data, i) in sortChans(chansFiltred)" :key="i" 
 				:set="ind = findIndexMsg(data.messages)" class="center"
 			>
 				<ConversationTab
@@ -204,8 +207,28 @@ watch(search, () => {
 
 // ================= METHODS =================
 
+function sortChans(privs : ChannelDto[]) {
+	console.log(`sortChans ChannelView`)
+	return privs.sort( (a, b) => {
+		let date_a: number;
+		let date_b: number;
+		if (!a.messages.length)
+			date_a = a.creation.getTime();
+		else
+			date_a = a.messages.at(-1)!.date.getTime();
+		if (!b.messages.length)
+			date_b = b.creation.getTime();
+		else
+			date_b = b.messages.at(-1)!.date.getTime();
+		if (date_a > date_b)
+			return -1;
+		else
+			return 1;
+	});
+}
+
 function getServerChans() {
-	HTTP.get(apiPath + "chat/getServerChansFiltred/" + myName + "/" + search.value)
+	HTTP.get(apiPath + "chat/getServerChansFiltred/" + search.value)
 		.then((res) => {
 			let chansTmp: ChannelTabDto[] = [];
 			res.data.forEach((chan: ChannelTabDto) => {
@@ -260,11 +283,11 @@ function submitChannel() {
 			pswElem!.classList.add("invalidInput");
 		})
 	HTTP.post(apiPath + "chat/createChan", 
-		new NewChanDto(nameInput.value, myName, privCB.value, pswInput.value))
+		new NewChanDto(nameInput.value, privCB.value, pswInput.value))
 		.then(res => {
 			let newChan = res.data as ChannelDto;
 			newChan.creation = new Date(newChan.creation);
-			chansRef.value.unshift(newChan);
+			chansRef.value.push(newChan);
 			newChannel.value = false;
 		})
 		.catch(e => {

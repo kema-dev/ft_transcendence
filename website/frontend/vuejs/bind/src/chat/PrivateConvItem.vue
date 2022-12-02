@@ -174,20 +174,21 @@ function init() {
 	}, {flush: 'post'})
 }
 
-watch(findPrivIndex, () => {
-	if (findPrivIndex.value == true) {
-		// console.log(`findPrivIndex privConvItem IN`)
-		index.value = privsRef.value
-			.findIndex((priv) => priv.user.login == userName);
-		findPrivIndex.value = false;
-	}
-})
+// watch(findPrivIndex, () => {
+// 	console.log(`findPrivIndex privConvItem OUT`)
+// 	if (findPrivIndex.value == true) {
+// 		console.log(`findPrivIndex privConvItem IN`)
+// 		index.value = privsRef.value
+// 			.findIndex((priv) => priv.user.login == userName);
+// 		findPrivIndex.value = false;
+// 	}
+// })
 
 
 // ===================== METHODS =====================
 
 function userExistOrBlocked() {
-	HTTP.get(`${apiPath}chat/userExistOrBlocked/${userName}/${me}`)
+	HTTP.get(`${apiPath}chat/userExistOrBlocked/${userName}`)
 		.then((res) => {
 			userExist.value = res.data;
 			userExistDone.value = true;

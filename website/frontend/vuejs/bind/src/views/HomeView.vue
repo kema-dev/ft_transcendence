@@ -90,7 +90,7 @@ socket.on('userUnblock', (data: PrivConvDto) => {
 	priv.messages.forEach((m) => (m.date = new Date(m.date)));
 	let i = userRef.value.blockeds.findIndex((b) => b.login == priv.user.login);
 	userRef.value.blockeds.splice(i, 1);
-	privsRef.value.unshift(priv);
+	privsRef.value.push(priv);
 });
 
 socket.on('userUnblockNoPriv', (data: string) => {
@@ -116,7 +116,8 @@ provide('privDone', privDone);
 provide('findPrivIndex', findPrivIndex);
 
 function getPrivsRequest() {
-	HTTP.get(apiPath + 'chat/getPrivs/' + me)
+	// HTTP.get(apiPath + 'chat/getPrivs/' + me)
+	HTTP.get(apiPath + 'chat/getPrivs')
 		.then((res) => {
 			if (!res.data) {
 				privsRef.value = [];
@@ -144,7 +145,7 @@ socket.on('newPrivConv', (data: PrivConvDto) => {
 	console.log(`New private created`);
 	let newPriv = data;
 	newPriv.messages.forEach((msg) => (msg.date = new Date(msg.date)));
-	privsRef.value.unshift(newPriv);
+	privsRef.value.push(newPriv);
 	findPrivIndex.value = true;
 	if (data.messages[0].user != me) nbPrivNR.value.push(data.id);
 });
@@ -167,15 +168,15 @@ socket.on('newPrivMsg', (data: { msg: MessageDto; id: number }) => {
 		route.path != '/home/chat/private/' + data.msg.user &&
 		!blocked
 	) {
-		// console.log(`findIndex Homview`);
 		nbPrivNR.value.push(privsRef.value[i].id);
-		// findPrivIndex.value = true;
 	}
-	if (i != 0) {
-		putPrivFirst(i);
-		// console.log(`putPrivFirst`)
-		findPrivIndex.value = true;
-	} 
+	// if (i != 0) {
+	// 	putPrivFirst(i);
+	// 	console.log(`putPrivFirst`)
+	// 	console.log(`1 finIndex = ${findPrivIndex.value}`)
+	// 	findPrivIndex.value = true;
+	// 	console.log(`2 finIndex = ${findPrivIndex.value}`)
+	// } 
 });
 
 function putPrivFirst(index: number) {
@@ -228,8 +229,12 @@ provide('chanDone', chanDone);
 provide('chanBan', chanBan);
 provide('findChanIndex', findChanIndex);
 
+const reloadChanIndex = ref(false);
+provide('reloadChanIndex', reloadChanIndex);
+
+
 function getChansRequest() {
-	HTTP.get(apiPath + 'chat/getChans/' + me)
+	HTTP.get(apiPath + 'chat/getChans')
 		.then((res) => {
 			if (!res.data) chansRef.value = [];
 			else {
@@ -266,10 +271,11 @@ socket.on('newChanMsg', (data: { msg: MessageDto; name: string }) => {
 	) {
 		nbChanNR.value.push(chansRef.value[i].name);
 	}
-	if (i != 0) {
-		putChanFirst(i);
-		findChanIndex.value = true;
-	}
+	// if (i != 0) {
+	// 	putChanFirst(i);
+	// 	console.log(`putChanfirst Homeview`)
+	// 	findChanIndex.value = true;
+	// }
 });
 
 socket.on('newChannel', (data: ChannelDto) => {
@@ -279,8 +285,8 @@ socket.on('newChannel', (data: ChannelDto) => {
 		newChan.creation = new Date(newChan.creation);
 		newChan.messages.forEach((msg) => (msg.date = new Date(msg.date)));
 		newChan.readed = false;
-		chansRef.value.unshift(newChan);
-		findChanIndex.value = true;
+		chansRef.value.push(newChan);
+		// findChanIndex.value = true;
 		nbChanNR.value.push(chansRef.value[0].name);
 	}
 });
@@ -300,15 +306,15 @@ socket.on('userQuitChan', (data: { login: string; chan: string }) => {
 	else if (
 		(y = chansRef.value[i].admins.findIndex((u) => u.login == data.login)) != -1
 	)
-		chansRef.value[i].admins.splice(i, 1);
+		chansRef.value[i].admins.splice(y, 1);
 	else if (
 		(y = chansRef.value[i].users.findIndex((u) => u.login == data.login)) != -1
 	)
-		chansRef.value[i].users.splice(i, 1);
+		chansRef.value[i].users.splice(y, 1);
 	else if (
 		(y = chansRef.value[i].mutes.findIndex((u) => u.login == data.login)) != -1
 	)
-		chansRef.value[i].mutes.splice(i, 1);
+		chansRef.value[i].mutes.splice(y, 1);
 });
 
 socket.on('modifChan', (data: ModifChanDto) => {
@@ -361,14 +367,14 @@ socket.on('modifChan', (data: ModifChanDto) => {
 				(user) => user.login == data.restoreMute,
 			);
 			chansRef.value[i].users.push(chansRef.value[i].mutes[j]);
-			chansRef.value[i].mutes.splice(i, 1);
+			chansRef.value[i].mutes.splice(j, 1);
 		} else if (data.kick) {
 			console.log(`User '${data.kick}' from chan '${data.chan}' is kicked`);
 			if (data.kick == me) {
 				chanBan.value = data.chan;
 				setTimeout(() => {
 					chansRef.value.splice(i, 1);
-					chanBan.value = '';
+					console.log(`chan spliced`);
 				}, 200);
 			}
 			let j = (
@@ -384,6 +390,7 @@ socket.on('modifChan', (data: ModifChanDto) => {
 				setTimeout(() => {
 					chansRef.value.splice(i, 1);
 					chanBan.value = '';
+					// findChanIndex.value = true;
 				}, 200);
 			}
 			let j = (
@@ -402,7 +409,7 @@ socket.on('modifChan', (data: ModifChanDto) => {
 			let j = chansRef.value[i].bans.findIndex(
 				(user) => user.login == data.restoreBan,
 			);
-			chansRef.value[i].bans.splice(i, 1);
+			chansRef.value[i].bans.splice(j, 1);
 		}
 	}
 });
