@@ -62,24 +62,24 @@ export class UsersController {
 		return user.email;
 	}
 
-	@UseGuards(AuthGuard)
-	@Post('getUser')
-	async getUser(@Body() params: any) {
-		// TODO do not send a full user
-		console.log('getUser: starting for ' + params.login);
-		const test = new ProfileUserDto(
-			await this.usersService.getByLogin(params.login),
-		);
-		this.logger.log('getUser: ' + test.login);
-		return test;
-	}
-	@UseGuards(AuthGuard)
-	@Post('getUsers')
-	async getUsers(@Body() str: string) {
-		// TODO do not send a full user
-		this.logger.log('getUsers: starting for ' + str.toString());
-		return this.usersService.getByLoginFiltred(str);
-	}
+	// @UseGuards(AuthGuard)
+	// @Post('getUser')
+	// async getUser(@Body() params: any) {
+	// 	// TODO do not send a full user
+	// 	console.log('getUser: starting for ' + params.login);
+	// 	const test = new ProfileUserDto(
+	// 		await this.usersService.getByLogin(params.login),
+	// 	);
+	// 	this.logger.log('getUser: ' + test.login);
+	// 	return test;
+	// }
+	// @UseGuards(AuthGuard)
+	// @Post('getUsers')
+	// async getUsers(@Body() str: string) {
+	// 	// TODO do not send a full user
+	// 	this.logger.log('getUsers: starting for ' + str.toString());
+	// 	return this.usersService.getByLoginFiltred(str);
+	// }
 	// @Post('getAnyByLogin')
 	// async getAnyByLogin(@Body() params: any) {
 	// 	return this.usersService.getAnyByLogin(params.login, params.infos);
