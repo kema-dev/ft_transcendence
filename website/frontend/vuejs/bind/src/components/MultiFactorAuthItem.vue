@@ -76,6 +76,7 @@ function change_username() {
 			$cookies.set('session', '');
 			socket.emit('logout');
 			toast.success('Username changed ! Please log in again');
+			router.go(0);
 		})
 		.catch((error) => {
 			// console.log(error);
