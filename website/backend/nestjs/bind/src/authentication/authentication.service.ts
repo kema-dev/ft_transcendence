@@ -363,11 +363,7 @@ export class AuthenticationService {
 		return { login: logobj.data.email, success: true };
 	}
 
-	async auth_42_new_email(
-		logobj: any,
-		response: any,
-		code: string,
-	) {
+	async auth_42_new_email(logobj: any, response: any, code: string) {
 		try {
 			const existing_usr = await this.usersService.getByLogin(
 				logobj.data.login,
@@ -397,6 +393,7 @@ export class AuthenticationService {
 
 	public async auth42(code: string, mfa: string): Promise<AuthResponse> {
 		console.log('auth42: starting');
+		// check if code is valid
 		if (!code) {
 			console.error('auth42: ' + 'no code provided, returning ✘');
 			throw new HttpException('E_NO_CODE_PROVIDED', HttpStatus.BAD_REQUEST);
@@ -404,9 +401,9 @@ export class AuthenticationService {
 			console.error('auth42: ' + 'code already in use, returning ✘');
 			throw new HttpException('E_CODE_IN_USE', HttpStatus.BAD_REQUEST);
 		}
+		// get infos from 42 api
 		let logobj: any;
 		let response: any;
-		// get infos from 42 api
 		try {
 			response = await firstValueFrom(
 				this.httpService.post('https://api.intra.42.fr/oauth/token', {
@@ -427,7 +424,7 @@ export class AuthenticationService {
 		} catch (error) {
 			console.error('auth42: unexpected error' + error);
 		}
-		// check if user with this email (which cannot be changed manually) exists
+		// proceed for user with this email (which cannot be changed manually)
 		try {
 			if (
 				(await this.usersService.checkEmailExistence(logobj.data.email)) == true
