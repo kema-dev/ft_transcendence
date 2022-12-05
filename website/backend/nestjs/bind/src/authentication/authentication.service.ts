@@ -364,12 +364,14 @@ export class AuthenticationService {
 	}
 
 	async auth_42_new_email(logobj: any, response: any, code: string) {
+		// we assume that the email fetched from 42 is unique and cannot be used by another user, nor changed
+		// thus, a new user is created with the email and his login, or a randomly suffixed one if the login is already taken
 		try {
 			const existing_usr = await this.usersService.getByLogin(
 				logobj.data.login,
 			);
 			if (existing_usr) {
-				logobj.data.login = logobj.data.login + '_42';
+				logobj.data.login = this.find_valid_username(logobj.data.login);
 			}
 			const createdUser = await this.usersService.ft_create(
 				new CreateUserDto({
