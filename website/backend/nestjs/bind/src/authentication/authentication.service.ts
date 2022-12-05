@@ -14,6 +14,8 @@ import TotpDto from './dto/totp.dto';
 import axios from 'axios';
 import CreateUserDto from '../users/dto/createUser.dto';
 import CheckDto from './dto/check.dto';
+import e from 'express';
+import { UserEntity } from '../users/user.entity';
 
 @Injectable()
 export class AuthenticationService {
@@ -285,74 +287,36 @@ export class AuthenticationService {
 		return login;
 	}
 
-	async auth_42_existing_email(
-		logobj: any,
-		response: any,
-		code: string,
-		mfa: string,
-	) {
-		const existing_usr = await this.usersService.getByEmail(logobj.data.email);
-		if (existing_usr.password == '') {
-			logobj.data.login = logobj.data.login + '_42';
-			if (
-				(await this.usersService.checkEmailExistence(logobj.data.email)) == true
-			) {
-				if (existing_usr.totp_code !== '' && mfa === '') {
-					console.error(
-						'auth42: ' + existing_usr.login + ' has totp code, returning ✘',
-					);
-					throw new HttpException('E_USER_HAS_TOTP', HttpStatus.BAD_REQUEST);
-				} else if (existing_usr.totp_code !== '' && mfa !== '') {
-					const mfa_check = await this.check_totp_code(existing_usr.login, mfa);
-					if (mfa_check == false) {
-						console.error(
-							'auth42: ' +
-								existing_usr.login +
-								' totp code check failed, returning ✘',
-						);
-						throw new HttpException('E_TOTP_FAIL', HttpStatus.BAD_REQUEST);
-					}
-				} else {
-					console.log(
-						'auth42: ' + existing_usr.login + ' has no totp code, passing',
-					);
-				}
-				await this.usersService.ft_update(
-					logobj.data.email,
-					response.data.access_token,
-					response.data.expires_in,
-					new Date(),
+	async auth_42_check_mfa(mfa: string, existing_usr: UserEntity) {
+		if (existing_usr.totp_code !== '' && mfa === '') {
+			console.error(
+				'auth42: ' + existing_usr.login + ' has totp code, returning ✘',
+			);
+			throw new HttpException('E_USER_HAS_TOTP', HttpStatus.BAD_REQUEST);
+		} else if (existing_usr.totp_code !== '' && mfa !== '') {
+			const mfa_check = await this.check_totp_code(existing_usr.login, mfa);
+			if (mfa_check == false) {
+				console.error(
+					'auth42: ' +
+						existing_usr.login +
+						' totp code check failed, returning ✘',
 				);
-				console.log('auth42: ' + logobj.data.login + ' updated, returning ✔');
-				return { login: logobj.data.email, success: true };
-			} else {
-				try {
-					const existing_usr = await this.usersService.getByLogin(
-						logobj.data.login,
-					);
-					if (existing_usr) {
-						logobj.data.login = logobj.data.login + '_42';
-					}
-					const createdUser = await this.usersService.ft_create(
-						new CreateUserDto({
-							email: logobj.data.email,
-							login: logobj.data.login,
-							ft_code: code,
-							ft_accessToken: response.data.access_token,
-							ft_refreshToken: response.data.access_token,
-							ft_expiresIn: response.data.expires_in,
-							ft_tokenType: response.data.token_type,
-							ft_scope: response.data.scope,
-						}),
-					);
-					console.log('auth42: ' + createdUser.login + ' created, returning ✔');
-					return { login: createdUser.login, success: true };
-				} catch (error) {
-					console.error('auth42: unexpected error: ' + error + ' returning ✘');
-					throw new HttpException('E_UNEXPECTED_ERROR', HttpStatus.CONFLICT);
-				}
+				throw new HttpException('E_TOTP_FAIL', HttpStatus.BAD_REQUEST);
 			}
+		} else {
+			console.log(
+				'auth42: ' + existing_usr.login + ' has no totp code, passing',
+			);
 		}
+	}
+
+	async auth_42_existing_email(logobj: any, response: any, mfa: string) {
+		const existing_usr = await this.usersService.getByEmail(logobj.data.email);
+		// we assume that the email fetched from 42 is unique and cannot be used by another user, nor changed
+		// auth_42_check_mfa will throw if any error occur
+		// check mfa
+		this.auth_42_check_mfa(mfa, existing_usr);
+		// update user's auth data
 		await this.usersService.ft_update(
 			logobj.data.email,
 			response.data.access_token,
@@ -431,7 +395,7 @@ export class AuthenticationService {
 			if (
 				(await this.usersService.checkEmailExistence(logobj.data.email)) == true
 			) {
-				return await this.auth_42_existing_email(logobj, response, code, mfa);
+				return await this.auth_42_existing_email(logobj, response, mfa);
 			} else {
 				return await this.auth_42_new_email(logobj, response, code);
 			}
