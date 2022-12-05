@@ -428,7 +428,7 @@ socket.on('modifChan', (data: ModifChanDto) => {
 			}
 			let j = (
 				chansRef.value[i][data.group as keyof ChannelDto] as BasicUserDto[]
-			).findIndex((user) => user.login == data.ban);
+			).findIndex((user) => user.login == data.kick);
 			(
 				chansRef.value[i][data.group as keyof ChannelDto] as BasicUserDto[]
 			).splice(j, 1);
