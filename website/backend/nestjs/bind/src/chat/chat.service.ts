@@ -471,7 +471,7 @@ export class ChatService {
 		const channelTabs: ChannelTabDto[] = [];
 		for (const chan of chans) {
 			if (
-				chan.owner.login != login &&
+				(!chan.owner || (chan.owner && chan.owner.login != login)) &&
 				!chan.admins.map((a) => a.login).includes(login) &&
 				!chan.users.map((u) => u.login).includes(login) &&
 				!chan.sanctions
@@ -520,7 +520,6 @@ export class ChatService {
 			await this.channelRepository
 				.save(chan)
 				.catch((e) => console.log('Save chan error'));
-			console.log(`chan.owner = ${chan.owner.login}`);
 			return this.createChanDto(chan);
 		}
 	}
