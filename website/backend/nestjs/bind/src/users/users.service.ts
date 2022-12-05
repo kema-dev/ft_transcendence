@@ -439,7 +439,7 @@ export class UsersService {
 		usr.lobby_name = '';
 		usr.status = 'offline';
 		usr.login = new_username;
-		this.usersRepository.save(usr);
+		await this.usersRepository.save(usr);
 		console.log('disconnect_user: ' + user + ', returning ✔');
 	}
 
@@ -483,8 +483,7 @@ export class UsersService {
 					HttpStatus.BAD_REQUEST,
 				);
 			}
-			this.disconnect_user_changename(username, new_username);
-			this.usersRepository.save(usr);
+			await this.disconnect_user_changename(username, new_username);
 		}
 		console.log('change_username: ', username, ', returning ✔');
 	}
