@@ -40,6 +40,10 @@ export class UsersService {
 			console.log('saveSocket: User not found');
 			return;
 		}
+		if (!user) {
+			console.log('saveSocket: User not found');
+			return;
+		}
 		user.socketId = socket;
 		await this.usersRepository
 			.save(user)
