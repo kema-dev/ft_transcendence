@@ -174,15 +174,15 @@ function init() {
 	}, {flush: 'post'})
 }
 
-// watch(findPrivIndex, () => {
-// 	console.log(`findPrivIndex privConvItem OUT`)
-// 	if (findPrivIndex.value == true) {
-// 		console.log(`findPrivIndex privConvItem IN`)
-// 		index.value = privsRef.value
-// 			.findIndex((priv) => priv.user.login == userName);
-// 		findPrivIndex.value = false;
-// 	}
-// })
+watch(findPrivIndex, () => {
+	console.log(`findPrivIndex privConvItem OUT`)
+	if (findPrivIndex.value == true) {
+		console.log(`findPrivIndex privConvItem IN`)
+		index.value = privsRef.value
+			.findIndex((priv) => priv.user.login == userName);
+		findPrivIndex.value = false;
+	}
+})
 
 
 // ===================== METHODS =====================

@@ -67,7 +67,7 @@ provide('isCreate', ref(false));
 provide('isJoin', ref(false));
 
 function getMyProfile() {
-	HTTP.get(apiPath + 'user/getMyProfile/' + me)
+	HTTP.get(apiPath + 'user/getMyProfile/')
 		.then((res) => {
 			userRef.value = res.data;
 			notifs.value = res.data.requestFriend.length;
@@ -98,6 +98,53 @@ socket.on('userUnblockNoPriv', (data: string) => {
 	let i = userRef.value.blockeds.findIndex((b) => b.login == data);
 	userRef.value.blockeds.splice(i, 1);
 });
+
+socket.on('change_username', (data: {oldUserName: string, newUserName: string}) => {
+	modifyLoginAvatar(data.oldUserName, data.newUserName, 'login');
+})
+
+socket.on('change_avatar', (data: {login: string, avatar: any}) => {
+	modifyLoginAvatar(data.login, data.avatar, 'avatar')
+})
+
+function modifyLoginAvatar(condition: string, value: any, modification: string) {
+	for (let f of userRef.value.friends) {
+		if (f.login == condition)
+			f[modification as keyof ResumUserDto] = value;
+	}
+	for (let b of userRef.value.blockeds) {
+		if (b.login == condition)
+			b[modification as keyof ResumUserDto] = value;
+	}
+	for (let r of userRef.value.requestFriend) {
+		if (r.login == condition)
+			r[modification as keyof ResumUserDto] = value;
+	}
+	for (let p of privsRef.value) {
+		if (p.user.login == condition)
+			p.user[modification as keyof BasicUserDto] = value;
+	}
+	for (let c of chansRef.value) {
+		if (c.owner.login == condition)
+			c.owner[modification as keyof BasicUserDto] = value;
+		for (let a of c.admins) {
+			if (a.login == condition)
+				a[modification as keyof BasicUserDto] = value;
+		}
+		for (let u of c.users) {
+			if (u.login == condition)
+				u[modification as keyof BasicUserDto] = value;
+		}
+		for (let m of c.mutes) {
+			if (m.login == condition)
+				m[modification as keyof BasicUserDto] = value;
+		}
+		for (let b of c.bans) {
+			if (b.login == condition)
+				b[modification as keyof BasicUserDto] = value;
+		}
+	}
+}
 
 //	===================== CHAT =====================
 

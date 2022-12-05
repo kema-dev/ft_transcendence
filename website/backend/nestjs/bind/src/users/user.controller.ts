@@ -24,10 +24,16 @@ export class UsersController {
 	constructor(private readonly usersService: UsersService) {}
 
 	@UseGuards(AuthGuard)
-	@Get('getMyProfile/:login')
-	async getMyProfile(@Param() params: { login: string }) {
-		console.log(`Get profile for user '${params.login}'`);
-		const user = await this.usersService.getByLogin(params.login, {
+	@Get('getMyProfile')
+	async getMyProfile(@Headers() headers: any) {
+		let login: string;
+		try {
+			login = this.usersService.get_login_from_cookie(headers);
+		} catch (error) {
+			throw error;
+		}
+		console.log(`Get profile for user '${login}'`);
+		const user = await this.usersService.getByLogin(login, {
 			friends: true,
 			requestFriend: true,
 			blockeds: true,
@@ -43,17 +49,17 @@ export class UsersController {
 		return new BasicUserDto(user.login, user.avatar);
 	}
 
-	@UseGuards(AuthGuard)
-	@Post('change_username')
-	async change_username(@Body() data: any, @Headers() headers: any) {
-		let login: string;
-		try {
-			login = this.usersService.get_login_from_cookie(headers);
-		} catch (error) {
-			throw error;
-		}
-		return this.usersService.change_username(login, data.new_username);
-	}
+	// @UseGuards(AuthGuard)
+	// @Post('change_username')
+	// async change_username(@Body() data: any, @Headers() headers: any) {
+	// 	let login: string;
+	// 	try {
+	// 		login = this.usersService.get_login_from_cookie(headers);
+	// 	} catch (error) {
+	// 		throw error;
+	// 	}
+	// 	return this.usersService.change_username(login, data.new_username);
+	// }
 
 	@UseGuards(AuthGuard)
 	@Get('getEmail/:login')

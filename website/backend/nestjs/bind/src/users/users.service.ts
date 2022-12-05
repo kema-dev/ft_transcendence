@@ -12,6 +12,9 @@ import CreateUserDto from './dto/createUser.dto';
 import ResumUserDto from 'src/users/dto/ResumUserDto';
 import ProfileUserDto from 'src/users/dto/ProfileUserDto';
 import { avatars } from 'src/users/avatars';
+import { Server } from 'socket.io';
+
+
 
 @Injectable()
 export class UsersService {
@@ -215,8 +218,8 @@ export class UsersService {
 			.to(userReceiver.socketId)
 			.emit('userUpdate', new ProfileUserDto(userReceiver));
 	}
-	async changeAvatar(login: string, avatar: string) {
-		const user = await this.getByLogin(login);
+	async changeAvatar(user: UserEntity, avatar: string) {
+		// const user = await this.getByLogin(login);
 		user.avatar = avatar;
 		this.usersRepository.save(user);
 	}
@@ -457,7 +460,7 @@ export class UsersService {
 		return login;
 	}
 
-	async change_username(username: string, new_username: string) {
+	async change_username(username: string, new_username: string, server: Server) {
 		console.log('change_username: starting for', username);
 		let usr;
 		try {
@@ -468,7 +471,8 @@ export class UsersService {
 			pot_usr = await this.getByAny(new_username);
 		} catch (e) {}
 		if (pot_usr) {
-			throw new HttpException('E_USERNAME_NOT_AVAILABLE', HttpStatus.NOT_FOUND);
+			// throw new HttpException('E_USERNAME_NOT_AVAILABLE', HttpStatus.NOT_FOUND);
+			return 'E_USERNAME_NOT_AVAILABLE';
 		}
 		if (usr) {
 			if (
@@ -478,12 +482,15 @@ export class UsersService {
 				console.error(
 					'register: ' + 'login does not meet requirements, returning ✘',
 				);
-				throw new HttpException(
-					'E_LOGIN_NOT_MEET_REQUIREMENTS',
-					HttpStatus.BAD_REQUEST,
-				);
+				// throw new HttpException(
+				// 	'E_LOGIN_NOT_MEET_REQUIREMENTS',
+				// 	HttpStatus.BAD_REQUEST,
+				// );
+				return 'E_LOGIN_NOT_MEET_REQUIREMENTS';
 			}
 			await this.disconnect_user_changename(username, new_username);
+			server.emit('change_username', {oldUserName: username, newUserName: new_username});
+			return 'OK';
 		}
 		console.log('change_username: ', username, ', returning ✔');
 	}
