@@ -285,6 +285,116 @@ export class AuthenticationService {
 		return login;
 	}
 
+	async auth_42_existing_email(
+		logobj: any,
+		response: any,
+		code: string,
+		mfa: string,
+	) {
+		const existing_usr = await this.usersService.getByEmail(logobj.data.email);
+		if (existing_usr.password == '') {
+			logobj.data.login = logobj.data.login + '_42';
+			if (
+				(await this.usersService.checkEmailExistence(logobj.data.email)) == true
+			) {
+				if (existing_usr.totp_code !== '' && mfa === '') {
+					console.error(
+						'auth42: ' + existing_usr.login + ' has totp code, returning ✘',
+					);
+					throw new HttpException('E_USER_HAS_TOTP', HttpStatus.BAD_REQUEST);
+				} else if (existing_usr.totp_code !== '' && mfa !== '') {
+					const mfa_check = await this.check_totp_code(existing_usr.login, mfa);
+					if (mfa_check == false) {
+						console.error(
+							'auth42: ' +
+								existing_usr.login +
+								' totp code check failed, returning ✘',
+						);
+						throw new HttpException('E_TOTP_FAIL', HttpStatus.BAD_REQUEST);
+					}
+				} else {
+					console.log(
+						'auth42: ' + existing_usr.login + ' has no totp code, passing',
+					);
+				}
+				await this.usersService.ft_update(
+					logobj.data.email,
+					response.data.access_token,
+					response.data.expires_in,
+					new Date(),
+				);
+				console.log('auth42: ' + logobj.data.login + ' updated, returning ✔');
+				return { login: logobj.data.email, success: true };
+			} else {
+				try {
+					const existing_usr = await this.usersService.getByLogin(
+						logobj.data.login,
+					);
+					if (existing_usr) {
+						logobj.data.login = logobj.data.login + '_42';
+					}
+					const createdUser = await this.usersService.ft_create(
+						new CreateUserDto({
+							email: logobj.data.email,
+							login: logobj.data.login,
+							ft_code: code,
+							ft_accessToken: response.data.access_token,
+							ft_refreshToken: response.data.access_token,
+							ft_expiresIn: response.data.expires_in,
+							ft_tokenType: response.data.token_type,
+							ft_scope: response.data.scope,
+						}),
+					);
+					console.log('auth42: ' + createdUser.login + ' created, returning ✔');
+					return { login: createdUser.login, success: true };
+				} catch (error) {
+					console.error('auth42: unexpected error: ' + error + ' returning ✘');
+					throw new HttpException('E_UNEXPECTED_ERROR', HttpStatus.CONFLICT);
+				}
+			}
+		}
+		await this.usersService.ft_update(
+			logobj.data.email,
+			response.data.access_token,
+			response.data.expires_in,
+			new Date(),
+		);
+		console.log('auth42: ' + logobj.data.login + ' updated, returning ✔');
+		return { login: logobj.data.email, success: true };
+	}
+
+	async auth_42_new_email(
+		logobj: any,
+		response: any,
+		code: string,
+	) {
+		try {
+			const existing_usr = await this.usersService.getByLogin(
+				logobj.data.login,
+			);
+			if (existing_usr) {
+				logobj.data.login = logobj.data.login + '_42';
+			}
+			const createdUser = await this.usersService.ft_create(
+				new CreateUserDto({
+					email: logobj.data.email,
+					login: logobj.data.login,
+					ft_code: code,
+					ft_accessToken: response.data.access_token,
+					ft_refreshToken: response.data.access_token,
+					ft_expiresIn: response.data.expires_in,
+					ft_tokenType: response.data.token_type,
+					ft_scope: response.data.scope,
+				}),
+			);
+			console.log('auth42: ' + createdUser.login + ' created, returning ✔');
+			return { login: createdUser.login, success: true };
+		} catch (error) {
+			console.error('auth42: unexpected error: ' + error + ' returning ✘');
+			throw new HttpException('E_UNEXPECTED_ERROR', HttpStatus.CONFLICT);
+		}
+	}
+
 	public async auth42(code: string, mfa: string): Promise<AuthResponse> {
 		console.log('auth42: starting');
 		if (!code) {
@@ -295,8 +405,10 @@ export class AuthenticationService {
 			throw new HttpException('E_CODE_IN_USE', HttpStatus.BAD_REQUEST);
 		}
 		let logobj: any;
+		let response: any;
+		// get infos from 42 api
 		try {
-			const response = await firstValueFrom(
+			response = await firstValueFrom(
 				this.httpService.post('https://api.intra.42.fr/oauth/token', {
 					grant_type: 'authorization_code',
 					client_id: process.env.API_42_UID,
@@ -315,123 +427,14 @@ export class AuthenticationService {
 		} catch (error) {
 			console.error('auth42: unexpected error' + error);
 		}
+		// check if user with this email (which cannot be changed manually) exists
 		try {
 			if (
 				(await this.usersService.checkEmailExistence(logobj.data.email)) == true
 			) {
-				const existing_usr = await this.usersService.getByEmail(
-					logobj.data.email,
-				);
-				if (existing_usr.password == '') {
-					logobj.data.login = logobj.data.login + '_42';
-					if (
-						(await this.usersService.checkEmailExistence(logobj.data.email)) ==
-						true
-					) {
-						if (existing_usr.totp_code !== '' && mfa === '') {
-							console.error(
-								'auth42: ' + existing_usr.login + ' has totp code, returning ✘',
-							);
-							throw new HttpException(
-								'E_USER_HAS_TOTP',
-								HttpStatus.BAD_REQUEST,
-							);
-						} else if (existing_usr.totp_code !== '' && mfa !== '') {
-							const mfa_check = await this.check_totp_code(
-								existing_usr.login,
-								mfa,
-							);
-							if (mfa_check == false) {
-								console.error(
-									'auth42: ' +
-										existing_usr.login +
-										' totp code check failed, returning ✘',
-								);
-								throw new HttpException('E_TOTP_FAIL', HttpStatus.BAD_REQUEST);
-							}
-						} else {
-							console.log(
-								'auth42: ' + existing_usr.login + ' has no totp code, passing',
-							);
-						}
-						await this.usersService.ft_update(
-							logobj.data.email,
-							response.data.access_token,
-							response.data.expires_in,
-							new Date(),
-						);
-						console.log(
-							'auth42: ' + logobj.data.login + ' updated, returning ✔',
-						);
-						return { login: logobj.data.email, success: true };
-					} else {
-						try {
-							const existing_usr = await this.usersService.getByLogin(
-								logobj.data.login,
-							);
-							if (existing_usr) {
-								logobj.data.login = logobj.data.login + '_42';
-							}
-							const createdUser = await this.usersService.ft_create(
-								new CreateUserDto({
-									email: logobj.data.email,
-									login: logobj.data.login,
-									ft_code: code,
-									ft_accessToken: response.data.access_token,
-									ft_refreshToken: response.data.access_token,
-									ft_expiresIn: response.data.expires_in,
-									ft_tokenType: response.data.token_type,
-									ft_scope: response.data.scope,
-								}),
-							);
-							console.log(
-								'auth42: ' + createdUser.login + ' created, returning ✔',
-							);
-							return { login: createdUser.login, success: true };
-						} catch (error) {
-							console.error(
-								'auth42: unexpected error: ' + error + ' returning ✘',
-							);
-							throw new HttpException(
-								'E_UNEXPECTED_ERROR',
-								HttpStatus.CONFLICT,
-							);
-						}
-					}
-				}
-				await this.usersService.ft_update(
-					logobj.data.email,
-					response.data.access_token,
-					response.data.expires_in,
-					new Date(),
-				);
-				console.log('auth42: ' + logobj.data.login + ' updated, returning ✔');
-				return { login: logobj.data.email, success: true };
-			}
-			try {
-				const existing_usr = await this.usersService.getByLogin(
-					logobj.data.login,
-				);
-				if (existing_usr) {
-					logobj.data.login = logobj.data.login + '_42';
-				}
-				const createdUser = await this.usersService.ft_create(
-					new CreateUserDto({
-						email: logobj.data.email,
-						login: logobj.data.login,
-						ft_code: code,
-						ft_accessToken: response.data.access_token,
-						ft_refreshToken: response.data.access_token,
-						ft_expiresIn: response.data.expires_in,
-						ft_tokenType: response.data.token_type,
-						ft_scope: response.data.scope,
-					}),
-				);
-				console.log('auth42: ' + createdUser.login + ' created, returning ✔');
-				return { login: createdUser.login, success: true };
-			} catch (error) {
-				console.error('auth42: unexpected error: ' + error + ' returning ✘');
-				throw new HttpException('E_UNEXPECTED_ERROR', HttpStatus.CONFLICT);
+				return await this.auth_42_existing_email(logobj, response, code, mfa);
+			} else {
+				return await this.auth_42_new_email(logobj, response, code);
 			}
 		} catch (error) {
 			if (error.message == 'E_USER_HAS_TOTP') {
@@ -441,7 +444,7 @@ export class AuthenticationService {
 			}
 			console.error('auth42: unexpected error' + error);
 		}
-		throw new HttpException('E_UNEXPECTED_ERROR', HttpStatus.CONFLICT);
+		// throw new HttpException('E_UNEXPECTED_ERROR', HttpStatus.CONFLICT);
 	}
 
 	public async set_totp(name: string) {
