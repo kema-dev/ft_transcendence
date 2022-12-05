@@ -50,7 +50,7 @@ export class MatchService {
 		// console.log(match);
 		for (const profile of game.profiles) {
 			await this.assign_match_to_user(profile.login, match.id);
-			this.usersService.set_status(profile.login, 'online');
+			await this.usersService.set_status(profile.login, 'online');
 		}
 	}
 
