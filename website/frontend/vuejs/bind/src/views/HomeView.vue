@@ -108,6 +108,8 @@ socket.on('change_avatar', (data: {login: string, avatar: any}) => {
 })
 
 function modifyLoginAvatar(condition: string, value: any, modification: string) {
+	if (modification == 'avatar' && userRef.value.login == condition)
+		userRef.value.avatar = value;
 	for (let f of userRef.value.friends) {
 		if (f.login == condition)
 			f[modification as keyof ResumUserDto] = value;
