@@ -19,6 +19,13 @@ export class MatchService {
 
 	async add_match(game: Game) {
 		const game_players = game.profiles.map((profile) => profile.login);
+		// for each player, use their email
+		for (let i = 0; i < game_players.length; i++) {
+			const usr = await this.usersService.getByAny(game_players[i]);
+			if (usr) {
+				game_players[i] = usr.email;
+			}
+		}
 		const game_scores = game.profiles.map((profile) => profile.score);
 		console.log('match players: ', game_players);
 		console.log('match scores: ', game_scores);
@@ -78,6 +85,15 @@ export class MatchService {
 			const match = await this.get_match(match_id);
 			if (match) {
 				matches.push(match);
+			}
+		}
+		// for each match, change the login to the email
+		for (const match of matches) {
+			for (let i = 0; i < match.players.length; i++) {
+				const usr = await this.usersService.getByAny(match.players[i]);
+				if (usr) {
+					match.players[i] = usr.login;
+				}
 			}
 		}
 		matches.reverse();
