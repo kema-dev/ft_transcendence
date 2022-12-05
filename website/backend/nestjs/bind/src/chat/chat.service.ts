@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Server } from 'socket.io';
-import { WebSocketServer } from '@nestjs/websockets';
+// import { WebSocketServer } from '@nestjs/websockets';
 import {
 	Injectable,
 	HttpException,
@@ -44,12 +44,12 @@ export class ChatService {
 		private readonly jwtService: JwtService,
 	) {}
 
-	@WebSocketServer() server: Server;
+	// @WebSocketServer() server: Server;
 
 	// ========================= GET_REQ_INFO =========================
 
 	getLoginByHeaderReq(cookie: string) {
-		const session_cookie = cookie.split(';').find((c) => c.match(/session=/));
+		const session_cookie = cookie.split(';').find((c) => c.match(/^\s?session=/));
 		const session = session_cookie.match(/session=(.*)/)[1];
 		const decoded_obj = this.jwtService.decode(session) as { login: string };
 		return decoded_obj.login;

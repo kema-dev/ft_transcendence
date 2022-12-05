@@ -67,29 +67,50 @@ let router = useRouter();
 let socket: Socket = inject('socket')!;
 
 function change_username() {
-	API.post('user/change_username', {
-		// username: email.value,
-		new_username: new_username.value,
-	})
-		.then((response) => {
+	// API.post('user/change_username', {
+	// 	// username: email.value,
+	// 	new_username: new_username.value,
+	// })
+	// 	.then((response) => {
+	// 		$cookies.set('login', '');
+	// 		$cookies.set('session', '');
+	// 		socket.emit('logout');
+	// 		toast.success('Username changed ! Please log in again');
+	// 		router.go(0);
+	// 	})
+	// 	.catch((error) => {
+	// 		// console.log(error);
+	// 		if (error.response.data.message == 'E_USERNAME_NOT_AVAILABLE') {
+	// 			toast.warning(
+	// 				'This username is not available, please slect another one',
+	// 			);
+	// 		} else if (error.response.data.message == 'E_LOGIN_NOT_MEET_REQUIREMENTS') {
+	// 			toast.warning('This username does not meet the requirements, please slect another one');
+	// 		} else {
+	// 			toast.error('An error occured');
+	// 		}
+	// 	});
+	socket.emit('change_username', new_username.value, (ret: any) => {
+		// console.log(ret);
+		if (ret == 'OK') {
 			$cookies.set('login', '');
 			$cookies.set('session', '');
 			socket.emit('logout');
 			toast.success('Username changed ! Please log in again');
 			router.go(0);
-		})
-		.catch((error) => {
-			// console.log(error);
-			if (error.response.data.message == 'E_USERNAME_NOT_AVAILABLE') {
-				toast.warning(
-					'This username is not available, please slect another one',
-				);
-			} else if (error.response.data.message == 'E_LOGIN_NOT_MEET_REQUIREMENTS') {
-				toast.warning('This username does not meet the requirements, please slect another one');
-			} else {
-				toast.error('An error occured');
-			}
-		});
+		}
+		else if (ret == 'E_USERNAME_NOT_AVAILABLE') {
+			toast.warning(
+				'This username is not available, please slect another one',
+			);
+		}
+		else if (ret == 'E_LOGIN_NOT_MEET_REQUIREMENTS') {
+			toast.warning('This username does not meet the requirements, please slect another one');
+		}
+		else {
+			toast.error('An error occured');
+		}
+	} )
 }
 
 function get_totp_url() {

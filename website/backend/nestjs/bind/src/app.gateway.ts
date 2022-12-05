@@ -524,8 +524,14 @@ export class AppGateway
 		);
 	}
 	@SubscribeMessage('changeAvatar')
-	changeAvatar(client: Socket, payload: any): void {
-		this.userService.changeAvatar(payload.login, payload.avatar);
+	async changeAvatar(client: Socket, payload: any) {
+		const sender = await this.userService.getBySocketId(client.id);
+		if (!sender) {
+			console.log(`NewChanMsg error: Sender user not found"`);
+			return;
+		}
+		this.userService.changeAvatar(sender, payload.avatar);
+		this.server.emit('change_avatar', {login: sender.login, avatar: payload.avatar})
 	}
 	@SubscribeMessage('userStatus')
 	async get_user_status(
@@ -828,4 +834,19 @@ export class AppGateway
 	async logout(@ConnectedSocket() client: Socket) {
 		client.handshake.query.login = '';
 	}
+
+	@SubscribeMessage('change_username')
+	async change_username(
+		@MessageBody() data: string,
+		@ConnectedSocket() client: Socket
+	) {
+		const requestor = await this.userService.getBySocketId(client.id);
+		if (!requestor) {
+			console.log(`change_username error : Requestor user not found`);
+			return 'NOT_FOUND';
+		}
+		return this.userService.change_username(requestor.login, data, this.server);
+	}
+
+
 }
