@@ -273,18 +273,15 @@ export class AuthenticationService {
 	// 	return jwtPayload;
 	// }
 
-	find_valid_username(login: string): string {
-		console.log('find_42_username: starting');
-		let valid = false;
-		while (valid !== true) {
-			const exists = this.usersService.getByLogin(login);
-			if (exists) {
-				login += Math.floor(Math.random() * 10).toString();
-			} else {
-				valid = true;
-			}
+	async find_valid_username(login: string): Promise<string> {
+		// append a number to the end of the login if it already exists
+		let new_login = login;
+		let i = 1;
+		while (await this.usersService.getByLogin(new_login)) {
+			new_login = login + i;
+			i++;
 		}
-		return login;
+		return new_login;
 	}
 
 	async auth_42_check_mfa(mfa: string, existing_usr: UserEntity) {
@@ -335,7 +332,7 @@ export class AuthenticationService {
 				logobj.data.login,
 			);
 			if (existing_usr) {
-				logobj.data.login = this.find_valid_username(logobj.data.login);
+				logobj.data.login = await this.find_valid_username(logobj.data.login);
 			}
 			const createdUser = await this.usersService.ft_create(
 				new CreateUserDto({
