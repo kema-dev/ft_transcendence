@@ -36,7 +36,7 @@ export default class Game {
 	startTime: number;
 	match_service: MatchService;
 	app: AppGateway;
-	fieldpoints: Array<{ x: number, y: number }>;
+	fieldpoints: Array<{ x: number; y: number }>;
 	interval: any;
 	maxDelta: number;
 	constructor(
@@ -69,8 +69,7 @@ export default class Game {
 		this.socketsViewers = [];
 		this.owner = owner;
 		this.fieldpoints = [];
-		for (let player of this.players)
-			this.sockets.push(player.socketId);
+		for (const player of this.players) this.sockets.push(player.socketId);
 		this.logger = new Logger();
 		this.init();
 		this.update();
@@ -116,7 +115,7 @@ export default class Game {
 	}
 	async loop(game: Game) {
 		let time = 0;
-		let timeBalls = [];
+		const timeBalls = [];
 		const timeStart = Date.now();
 		game.setSmallDto();
 		if (game.start) {
@@ -132,7 +131,7 @@ export default class Game {
 		game.server.to(game.sockets).emit('update_game', game.smallDto);
 		const endTime = Date.now();
 		time = Date.now() - timeStart;
-		game.deltaTime = (endTime - game.startTime);
+		game.deltaTime = endTime - game.startTime;
 		if (game.deltaTime > game.maxDelta && game.start) {
 			game.maxDelta = game.deltaTime;
 			console.log(game.deltaTime, time, timeBalls);
@@ -141,22 +140,25 @@ export default class Game {
 	}
 	async movBall(game: Game, ball: Ball) {
 		const timeStart = performance.now();
-		if (ball.speed == 0)
-			return;
+		if (ball.speed == 0) return;
 		let login: any;
 		if ((login = ball.detectCollision(game.objects))) {
 			game.run = false;
 			if (game.nbrPlayer == 1) {
 				game.match_service.add_match(game);
 				game.server.to(game.players[0].socketId).emit('end', { win: true });
-			}
-			else if (game.nbrPlayer == 2) {
+			} else if (game.nbrPlayer == 2) {
 				game.match_service.add_match(game);
-				game.server.to(game.players.find((p) => p.login != login)?.socketId).emit('end', { win: true });
-				game.server.to(game.players.find((p) => p.login == login)?.socketId).emit('end', { win: false });
-			}
-			else
-				game.server.to(game.players.find((p) => p.login == login)?.socketId).emit('end', { win: false });
+				game.server
+					.to(game.players.find((p) => p.login != login)?.socketId)
+					.emit('end', { win: true });
+				game.server
+					.to(game.players.find((p) => p.login == login)?.socketId)
+					.emit('end', { win: false });
+			} else
+				game.server
+					.to(game.players.find((p) => p.login == login)?.socketId)
+					.emit('end', { win: false });
 			game.app.quitGame(login, { lose: true });
 			game.destructor();
 			return;
@@ -181,16 +183,14 @@ export default class Game {
 	}
 	updateBalls(nbrBall: number) {
 		const radius = 410;
-		if (nbrBall > this.balls.length)
-			this.balls.push(new Ball(radius, radius));
-		else
-			this.balls.pop();
+		if (nbrBall > this.balls.length) this.balls.push(new Ball(radius, radius));
+		else this.balls.pop();
 		this.nbrBall = nbrBall;
 		this.update();
 	}
 	getScores() {
-		let scores = [];
-		for (let p of this.profiles) scores.push(p.score);
+		const scores = [];
+		for (const p of this.profiles) scores.push(p.score);
 		return scores;
 	}
 	addViewer(socketId: string) {
