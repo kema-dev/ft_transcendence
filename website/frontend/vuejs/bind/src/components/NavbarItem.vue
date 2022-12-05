@@ -44,7 +44,7 @@ function toProfile() {
 
 function logout() {
 	API.post('auth/logout', {
-		login: $cookies.get('login'),
+		// login: $cookies.get('login'),
 	}).then(() => {
 		$cookies.remove('session');
 		$cookies.remove('login');

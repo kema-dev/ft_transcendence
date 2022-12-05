@@ -1,4 +1,10 @@
-import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
+import {
+	HttpException,
+	HttpStatus,
+	Injectable,
+	Logger,
+	Headers,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like } from 'typeorm';
 import { UserEntity } from './user.entity';
@@ -6,8 +12,6 @@ import CreateUserDto from './dto/createUser.dto';
 import ResumUserDto from 'src/users/dto/ResumUserDto';
 import ProfileUserDto from 'src/users/dto/ProfileUserDto';
 import { avatars } from 'src/users/avatars';
-
-// NOTE - API's documentation can be found at `docs/api/v1.md`
 
 @Injectable()
 export class UsersService {
@@ -26,7 +30,13 @@ export class UsersService {
 		console.error('getBySocket: ' + socketId + ' not found, returning ✘');
 	}
 	async saveSocket(login: string, socket: string) {
-		const user = await this.getByLogin(login);
+		let user;
+		try {
+			user = await this.getByLogin(login);
+		} catch (e) {
+			console.log('saveSocket: User not found');
+			return;
+		}
 		user.socketId = socket;
 		await this.usersRepository
 			.save(user)
@@ -234,7 +244,6 @@ export class UsersService {
 			return user.login;
 		}
 		console.error('getRank: ' + login + ' not found, returning ✘');
-		// FIXME this return is unsafe, use a proper exception instead
 		return 'Not found';
 	}
 
@@ -432,6 +441,20 @@ export class UsersService {
 		usr.login = new_username;
 		this.usersRepository.save(usr);
 		console.log('disconnect_user: ' + user + ', returning ✔');
+	}
+
+	get_login_from_cookie(@Headers() headers: any) {
+		let login: string;
+		try {
+			login = JSON.stringify(headers.cookie)
+				.split(';')
+				.find((x) => x.includes('login'))
+				.split('=')[1]
+				.replace(/"/g, '');
+		} catch (e) {
+			throw new HttpException('Bad Request', 400);
+		}
+		return login;
 	}
 
 	async change_username(username: string, new_username: string) {

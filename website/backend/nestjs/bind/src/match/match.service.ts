@@ -5,8 +5,6 @@ import Game from '../game2.0/Game';
 import { UsersService } from '../users/users.service';
 import { MatchEntity } from './match.entity';
 
-// NOTE - API's documentation can be found at `docs/api/v1.md`
-
 @Injectable()
 export class MatchService {
 	constructor(

@@ -10,6 +10,7 @@ import {
 	UseGuards,
 	Param,
 	Logger,
+	Headers,
 } from '@nestjs/common';
 import { AuthGuard } from '../authentication/auth.guard';
 import ProfileUserDto from 'src/users/dto/ProfileUserDto';
@@ -25,11 +26,11 @@ export class UsersController {
 	@UseGuards(AuthGuard)
 	@Get('getMyProfile/:login')
 	async getMyProfile(@Param() params: { login: string }) {
-		console.log(`Get profile for user '${params.login}'`)
+		console.log(`Get profile for user '${params.login}'`);
 		const user = await this.usersService.getByLogin(params.login, {
 			friends: true,
 			requestFriend: true,
-			blockeds: true
+			blockeds: true,
 		});
 		return new ProfileUserDto(user);
 	}
@@ -37,15 +38,21 @@ export class UsersController {
 	@UseGuards(AuthGuard)
 	@Get('getBasicUser/:login')
 	async getBasicUser(@Param() params: { login: string }) {
-		console.log(`login = ${params.login}`)
+		console.log(`login = ${params.login}`);
 		const user = await this.usersService.getByLogin(params.login);
 		return new BasicUserDto(user.login, user.avatar);
 	}
 
 	@UseGuards(AuthGuard)
 	@Post('change_username')
-	async change_username(@Body() data: any) {
-		return this.usersService.change_username(data.username, data.new_username);
+	async change_username(@Body() data: any, @Headers() headers: any) {
+		let login: string;
+		try {
+			login = this.usersService.get_login_from_cookie(headers);
+		} catch (error) {
+			throw error;
+		}
+		return this.usersService.change_username(login, data.new_username);
 	}
 
 	@UseGuards(AuthGuard)
@@ -55,22 +62,24 @@ export class UsersController {
 		return user.email;
 	}
 
-	@UseGuards(AuthGuard)
-	@Post('getUser')
-	async getUser(@Body() params: any) {
-		console.log('getUser: starting for ' + params.login);
-		let test = new ProfileUserDto(
-			await this.usersService.getByLogin(params.login),
-		);
-		this.logger.log('getUser: ' + test.login);
-		return test;
-	}
-	@UseGuards(AuthGuard)
-	@Post('getUsers')
-	async getUsers(@Body() str: string) {
-		this.logger.log('getUsers: starting for ' + str.toString());
-		return this.usersService.getByLoginFiltred(str);
-	}
+	// @UseGuards(AuthGuard)
+	// @Post('getUser')
+	// async getUser(@Body() params: any) {
+	// 	// TODO do not send a full user
+	// 	console.log('getUser: starting for ' + params.login);
+	// 	const test = new ProfileUserDto(
+	// 		await this.usersService.getByLogin(params.login),
+	// 	);
+	// 	this.logger.log('getUser: ' + test.login);
+	// 	return test;
+	// }
+	// @UseGuards(AuthGuard)
+	// @Post('getUsers')
+	// async getUsers(@Body() str: string) {
+	// 	// TODO do not send a full user
+	// 	this.logger.log('getUsers: starting for ' + str.toString());
+	// 	return this.usersService.getByLoginFiltred(str);
+	// }
 	// @Post('getAnyByLogin')
 	// async getAnyByLogin(@Body() params: any) {
 	// 	return this.usersService.getAnyByLogin(params.login, params.infos);
