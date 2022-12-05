@@ -271,6 +271,20 @@ export class AuthenticationService {
 	// 	return jwtPayload;
 	// }
 
+	find_valid_username(login: string): string {
+		console.log('find_42_username: starting');
+		let valid = false;
+		while (valid !== true) {
+			const exists = this.usersService.getByLogin(login);
+			if (exists) {
+				login += Math.floor(Math.random() * 10).toString();
+			} else {
+				valid = true;
+			}
+		}
+		return login;
+	}
+
 	public async auth42(code: string, mfa: string): Promise<AuthResponse> {
 		console.log('auth42: starting');
 		if (!code) {
@@ -280,6 +294,7 @@ export class AuthenticationService {
 			console.error('auth42: ' + 'code already in use, returning ✘');
 			throw new HttpException('E_CODE_IN_USE', HttpStatus.BAD_REQUEST);
 		}
+		let logobj: any;
 		try {
 			const response = await firstValueFrom(
 				this.httpService.post('https://api.intra.42.fr/oauth/token', {
@@ -290,13 +305,17 @@ export class AuthenticationService {
 					redirect_uri: process.env.API_42_REDIRECT_URI,
 				}),
 			);
-			const logobj = await firstValueFrom(
+			logobj = await firstValueFrom(
 				this.httpService.get('https://api.intra.42.fr/v2/me', {
 					headers: {
 						Authorization: `Bearer ${response.data.access_token}`,
 					},
 				}),
 			);
+		} catch (error) {
+			console.error('auth42: unexpected error' + error);
+		}
+		try {
 			if (
 				(await this.usersService.checkEmailExistence(logobj.data.email)) == true
 			) {
