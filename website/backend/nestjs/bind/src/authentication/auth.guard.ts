@@ -19,17 +19,18 @@ export class AuthGuard implements CanActivate {
 		// extract session cookie
 		const cookie = context.switchToHttp().getRequest().headers.cookie;
 		const cookieArray = cookie.split(';');
+		// console.log('array:', cookieArray);
 		// extract work after 'session=' using regex
 		let session_cookie;
 		for (const c of cookieArray) {
-			if (c.match(/session=/)) {
+			if (c.match(/^\s?session=/)) {
 				session_cookie = c;
 				break;
 			}
 		}
 		let login_cookie;
 		for (const c of cookieArray) {
-			if (c.match(/login=/)) {
+			if (c.match(/^\s?login=/)) {
 				login_cookie = c;
 				break;
 			}
