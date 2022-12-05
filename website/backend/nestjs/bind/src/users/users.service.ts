@@ -435,7 +435,7 @@ export class UsersService {
 		usr.session_token = '';
 		usr.session_expiration = new Date();
 		usr.socketId = '';
-		usr.match = [];
+		// usr.match = [];
 		usr.lobby_name = '';
 		usr.status = 'offline';
 		usr.login = new_username;
