@@ -101,7 +101,6 @@ socket.on('userUnblockNoPriv', (data: string) => {
 
 socket.on('change_username', (data: {oldUserName: string, newUserName: string}) => {
 	modifyLoginAvatar(data.oldUserName, data.newUserName, 'login');
-	socket.emit('userUpdate');
 })
 
 socket.on('change_avatar', (data: {login: string, avatar: any}) => {
