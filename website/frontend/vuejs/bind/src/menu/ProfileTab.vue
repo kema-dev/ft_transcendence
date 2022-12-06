@@ -76,10 +76,6 @@ import API from '../components/axios';
 import { createWebHistory } from 'vue-router';
 import { useCookies } from 'vue3-cookies';
 import { useToast } from 'vue-toastification';
-import HTTP from '../components/axios';
-import { FQDN } from '../../.env.json';
-const apiPath = FQDN + '/api/v1/';
-
 
 const toast = useToast();
 const { cookies } = useCookies();
