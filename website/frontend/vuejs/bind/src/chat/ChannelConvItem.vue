@@ -156,7 +156,7 @@ watch(chanBan, () => {
 			console.log(`find new Index reload chan`)
 			index.value = chansRef.value.findIndex((chan) => chan.name == chanName);
 			chanBan.value = '';
-		}, 200)
+		}, 500)
 	}
 }, {flush: 'post'})
 

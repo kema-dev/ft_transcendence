@@ -424,33 +424,37 @@ socket.on('modifChan', (data: ModifChanDto) => {
 				setTimeout(() => {
 					chansRef.value.splice(i, 1);
 					console.log(`chan spliced`);
-				}, 200);
+				}, 300);
 			}
-			let j = (
-				chansRef.value[i][data.group as keyof ChannelDto] as BasicUserDto[]
-			).findIndex((user) => user.login == data.kick);
-			(
-				chansRef.value[i][data.group as keyof ChannelDto] as BasicUserDto[]
-			).splice(j, 1);
+			else {
+				let j = (
+					chansRef.value[i][data.group as keyof ChannelDto] as BasicUserDto[]
+				).findIndex((user) => user.login == data.kick);
+				(
+					chansRef.value[i][data.group as keyof ChannelDto] as BasicUserDto[]
+				).splice(j, 1);
+			}
 		} else if (data.ban) {
 			console.log(`User '${data.ban}' from chan '${data.chan}' is banned`);
 			if (data.ban == me) {
 				chanBan.value = data.chan;
 				setTimeout(() => {
 					chansRef.value.splice(i, 1);
-					chanBan.value = '';
-					// findChanIndex.value = true;
-				}, 200);
+					console.log(`chan spliced`);
+					// chanBan.value = '';
+				}, 300);
 			}
-			let j = (
-				chansRef.value[i][data.group as keyof ChannelDto] as BasicUserDto[]
-			).findIndex((user) => user.login == data.ban);
-			chansRef.value[i].bans.push(
-				(chansRef.value[i][data.group as keyof ChannelDto] as BasicUserDto[])[j],
-			);
-			(
-				chansRef.value[i][data.group as keyof ChannelDto] as BasicUserDto[]
-			).splice(j, 1);
+			else {
+				let j = (
+					chansRef.value[i][data.group as keyof ChannelDto] as BasicUserDto[]
+				).findIndex((user) => user.login == data.ban);
+				chansRef.value[i].bans.push(
+					(chansRef.value[i][data.group as keyof ChannelDto] as BasicUserDto[])[j],
+				);
+				(
+					chansRef.value[i][data.group as keyof ChannelDto] as BasicUserDto[]
+				).splice(j, 1);
+			}
 		} else if (data.restoreBan && data.restoreBan != me) {
 			console.log(
 				`User '${data.restoreBan}' from chan '${data.chan}' is unbaned`,
