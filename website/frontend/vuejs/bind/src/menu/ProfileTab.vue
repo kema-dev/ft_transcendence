@@ -37,20 +37,14 @@
 		<hr class="separator">
 		<div v-if="userDone">
 			<button @click="showBlocks = !showBlocks" id="showBlocksBtn">
-				{{(showBlocks? 'Hide' : 'Show') + ' blocked users'}}
+				{{ (showBlocks ? 'Hide' : 'Show') + ' blocked users' }}
 			</button>
 			<div v-if="showBlocks">
 				<div v-for="block in me.blockeds" class="center column">
 					<div class="center raw">
-						<BasicProfil :avatar="block.avatar" :login="block.login"/>
-						<button @click="unblockUser(block.login)"
-							class="restoreBtn center"
-						>
-							<img
-								src='~@/assets/restore.svg'
-								alt="Restore User"
-								class="restoreImg"
-							/>
+						<BasicProfil :avatar="block.avatar" :login="block.login" />
+						<button @click="unblockUser(block.login)" class="restoreBtn center">
+							<img src='~@/assets/restore.svg' alt="Restore User" class="restoreImg" />
 						</button>
 					</div>
 				</div>
@@ -61,15 +55,11 @@
 			<img src="@/assets/history.svg" class="logo">
 			<h2 class="title">Match history</h2>
 		</div>
-		<MatchItem
-			v-for="match in user_history"
-			v-bind:match="match"
-			:key="match.creation_date"
-		/>
-    <div v-if="!user_history.length">
-      <h3 class="noResults">Still no match, go play! </h3>
-      <img class="img" src="@/assets/svg/ball_fire.svg" />
-    </div>
+		<MatchItem v-for="match in user_history" v-bind:match="match" :key="match.creation_date" />
+		<div v-if="!user_history.length">
+			<h3 class="noResults">Still no match, go play! </h3>
+			<img class="img" src="@/assets/svg/ball_fire.svg" />
+		</div>
 	</div>
 </template>
 
@@ -86,13 +76,16 @@ import { ProfileUserDto } from '../dto/ProfileUserDto';
 import API from '../components/axios';
 import { createWebHistory } from 'vue-router';
 import { useCookies } from 'vue3-cookies';
+import { useToast } from 'vue-toastification';
 
+
+const toast = useToast();
 const { cookies } = useCookies();
 let define = inject('colors');
 let me: Ref<ProfileUserDto> = inject('user')!;
 let myName: string = inject("me")!;
 let userDone = inject('userDone')!;
-let socket : Socket = inject('socket')!;
+let socket: Socket = inject('socket')!;
 let showBlocks = ref(false);
 var ProgressBar = require('progressbar.js');
 let statDone = false;
@@ -118,7 +111,7 @@ function change_avatar() {
 
 function unblockUser(blocked: string) {
 	socket.emit("unblockUser",
-		{blocker: me.value.login, blocked: blocked});
+		{ blocker: me.value.login, blocked: blocked });
 }
 
 watch(show, () => {
@@ -130,8 +123,10 @@ watch(show, () => {
 		duration: 1400,
 	});
 	bar.animate(1 - user_ratio.value);
-}, {flush: 'post'})
-
+}, { flush: 'post' })
+function isFileImage(file: any) {
+	return file && file['type'].split('/')[0] === 'image';
+}
 onMounted(async () => {
 	let input = document.querySelector('#none');
 	input?.addEventListener('change', () => {
@@ -145,7 +140,12 @@ onMounted(async () => {
 				avatar: `${image}`,
 			});
 		});
-		reader.readAsDataURL(input.files[0]);
+		var re = new RegExp("[^\\s]+(.*?)\\.(jpg|jpeg|png|gif|JPG|JPEG|PNG|GIF)$");
+		// console.log(isFileImage(input.files[0]))
+		if (re.test(input.files[0].name) && isFileImage(input.files[0]))
+			reader.readAsDataURL(input.files[0]);
+		else
+			toast.error("Invalid file type");
 	});
 	API.post('/user/get_user_avatar', {
 		login: myName,
@@ -186,10 +186,12 @@ onMounted(async () => {
 	margin: 0;
 	color: #2c3e50;
 }
+
 .avatar-stack {
 	width: 40%;
 	height: 200px;
 }
+
 #avatar {
 	position: absolute;
 	width: 150px;
@@ -198,29 +200,33 @@ onMounted(async () => {
 	box-shadow: 0px 2px 5px #333;
 	cursor: pointer;
 	top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+	left: 50%;
+	transform: translate(-50%, -50%);
 }
+
 #img {
 	object-fit: cover;
 	width: 100%;
 	height: 100%;
 	border-radius: 50%;
 }
+
 #bar {
 	position: absolute;
 	width: 165px;
 	height: 165px;
 	top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+	left: 50%;
+	transform: translate(-50%, -50%);
 }
-.login{
+
+.login {
 	font-size: 1.5rem;
 	margin-bottom: 10px;
 	width: 100%;
 	overflow-wrap: break-word;
 }
+
 .separator {
 	flex-shrink: 0;
 	width: 60%;
@@ -228,6 +234,7 @@ onMounted(async () => {
 	background-color: v-bind("define.color2");
 	margin-bottom: 10px;
 }
+
 .separator2 {
 	flex-shrink: 0;
 	width: 90%;
@@ -235,18 +242,22 @@ onMounted(async () => {
 	background-color: grey;
 	margin-top: 20px;
 }
+
 .playerStatCont {
 	margin: 5px 0;
 	width: 60%;
 }
+
 .statTitle,
 .statValue {
 	width: 40%;
 	font-size: 0.9rem;
 }
+
 #none {
 	display: none;
 }
+
 #security {
 	margin-top: 15px;
 	margin-bottom: 15px;
@@ -255,6 +266,7 @@ onMounted(async () => {
 	color: #2c3e50;
 	text-decoration: underline;
 }
+
 #showBlocksBtn {
 	margin-bottom: 10px;
 	height: 1.5rem;
@@ -266,44 +278,50 @@ onMounted(async () => {
 	padding: 0 10px;
 	box-shadow: 0px 0px 4px #aaa;
 }
+
 .restoreBtn {
 	height: 30px;
 	width: 30px;
 	margin-left: 10px;
 	border-radius: 13px;
 }
+
 .restoreBtn:hover {
 	box-shadow: 0px 0px 4px #aaa;
 	background-color: white;
 }
+
 .restoreImg {
 	height: 26px;
 	width: 26px;
-	filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg)
-		brightness(86%) contrast(83%);
+	filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg) brightness(86%) contrast(83%);
 }
+
 .titleCont {
-  margin-top: 20px;
-  margin-bottom: 10px;
+	margin-top: 20px;
+	margin-bottom: 10px;
 	/* margin-right: auto;
 	margin-left: 40px; */
 }
+
 .title {
 	font-size: 1.2rem;
 }
+
 .noResults {
-  font-size: 0.9rem;
-  margin-top: 20px;
+	font-size: 0.9rem;
+	margin-top: 20px;
 }
+
 .img {
-  width: 50px;
-  height: 50px;
+	width: 50px;
+	height: 50px;
 }
+
 .logo {
-  width: 25px;
-  height: 25px;
-  margin-right: 10px;
-  filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg)
-		brightness(86%) contrast(83%);
+	width: 25px;
+	height: 25px;
+	margin-right: 10px;
+	filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg) brightness(86%) contrast(83%);
 }
 </style>

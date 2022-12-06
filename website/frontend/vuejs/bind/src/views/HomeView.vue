@@ -101,6 +101,7 @@ socket.on('userUnblockNoPriv', (data: string) => {
 
 socket.on('change_username', (data: {oldUserName: string, newUserName: string}) => {
 	modifyLoginAvatar(data.oldUserName, data.newUserName, 'login');
+	socket.emit('userUpdate');
 })
 
 socket.on('change_avatar', (data: {login: string, avatar: any}) => {
@@ -225,7 +226,7 @@ socket.on('newPrivMsg', (data: { msg: MessageDto; id: number }) => {
 	// 	console.log(`1 finIndex = ${findPrivIndex.value}`)
 	// 	findPrivIndex.value = true;
 	// 	console.log(`2 finIndex = ${findPrivIndex.value}`)
-	// } 
+	// }
 });
 
 function putPrivFirst(index: number) {

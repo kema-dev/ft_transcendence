@@ -484,7 +484,7 @@ export class AppGateway
 	@SubscribeMessage('addFriend')
 	addFriend(client: Socket, payload: any): void {
 		this.userService.sendFriendRequest(
-			payload.sender,
+			client.handshake.query.login as string,
 			payload.receiver,
 			this.server,
 		);
@@ -492,7 +492,7 @@ export class AppGateway
 	@SubscribeMessage('removeFriend')
 	removeFriend(client: Socket, payload: any): void {
 		this.userService.removeFriend(
-			payload.sender,
+			client.handshake.query.login as string,
 			payload.receiver,
 			this.server,
 		);
@@ -513,12 +513,12 @@ export class AppGateway
 	}
 	@SubscribeMessage('acceptFriend')
 	acceptFriend(client: Socket, payload: any): void {
-		this.userService.addFriend(payload.sender, payload.receiver, this.server);
+		this.userService.addFriend(client.handshake.query.login as string, payload.receiver, this.server);
 	}
 	@SubscribeMessage('declineFriend')
 	declineFriend(client: Socket, payload: any): void {
 		this.userService.declineFriendRequest(
-			payload.sender,
+			client.handshake.query.login as string,
 			payload.receiver,
 			this.server,
 		);
@@ -845,6 +845,7 @@ export class AppGateway
 			console.log(`change_username error : Requestor user not found`);
 			return 'NOT_FOUND';
 		}
+		
 		return this.userService.change_username(requestor.login, data, this.server);
 	}
 
