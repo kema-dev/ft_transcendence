@@ -140,7 +140,7 @@ onMounted(async () => {
 				avatar: `${image}`,
 			});
 		});
-		var re = new RegExp("[^\\s]+(.*?)\\.(jpg|jpeg|png|gif|JPG|JPEG|PNG|GIF)$");
+		var re = new RegExp("[^\\s]+(.*?)\\.(jpg|jpeg|png|JPG|JPEG|PNG)$");
 		// console.log(isFileImage(input.files[0]))
 		if (re.test(input.files[0].name) && isFileImage(input.files[0]))
 			reader.readAsDataURL(input.files[0]);
