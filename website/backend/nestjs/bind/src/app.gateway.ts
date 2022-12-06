@@ -8,7 +8,7 @@ import {
 	MessageBody,
 	ConnectedSocket,
 } from '@nestjs/websockets';
-import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
+import { Body, forwardRef, Inject, Injectable, Logger, UploadedFile } from '@nestjs/common';
 import { Socket, Server } from 'socket.io';
 import Vector from './game2.0/objects/Vector';
 import Game from './game2.0/Game';
@@ -27,6 +27,8 @@ import { UserEntity } from 'src/users/user.entity';
 import { MatchDto } from 'src/match/match.dto';
 import { MatchService } from './match/match.service';
 import { InfoDto } from 'src/game2.0/dto/InfoDto';
+import { validateMIMEType } from "validate-image-type";
+import { validateImage } from "image-validator";
 
 @WebSocketGateway({
 	cors: {
@@ -83,11 +85,11 @@ export class AppGateway
 			return;
 		}
 		const game = this.games.find((game) => game.lobby_name === user.lobby_name);
-		await this.userService.set_status(user.login, 'online');
-		this.server.emit('userStatus', { user: user.login, status: 'online' });
 		user.lobby_name = '';
 		user.level = user.level + 1;
+		user.status = 'online';
 		await this.userService.saveUser(user);
+		this.server.emit('userStatus', { user: user.login, status: 'online' });
 		if (!game) {
 			for (const g of this.games)
 				for (const sock of g.socketsViewers)
@@ -151,7 +153,6 @@ export class AppGateway
 			this.server
 				.to(user.socketId)
 				.emit('info_game', <InfoDto>{ isLose: true });
-		this.userService.saveUser(user);
 		this.games.splice(this.games.indexOf(game), 1);
 		this.server.emit('lobbys', this.sendLobbys(this.games));
 		console.log('game destroyed', this.games.length);
@@ -524,21 +525,24 @@ export class AppGateway
 		);
 	}
 	@SubscribeMessage('changeAvatar')
-	async changeAvatar(client: Socket, payload: any) {
+	async changeAvatar(@ConnectedSocket() client: Socket,
+		@Body() payload: any,
+	) {
 		const sender = await this.userService.getBySocketId(client.id);
 		if (!sender) {
 			console.log(`NewChanMsg error: Sender user not found"`);
 			return;
 		}
-		// var bytes = new Uint8Array(payload.bytes);
-		// if (bytes.length > 0) {
-		// 	if (((bytes[0] != 0xFF) || (bytes[1] != 0xD8)))
-		// 		return
-		// 	else if (((bytes[2] != 0x4E) || (bytes[3] != 0x47) || (bytes[4] != 0x0D) || (bytes[5] != 0x0A) || (bytes[6] != 0x1A) || (bytes[7] != 0x0A)))
-		// 		return
-		// }
-		this.userService.changeAvatar(sender, payload.avatar);
-		this.server.emit('change_avatar', { login: sender.login, avatar: payload.avatar })
+		let avatar: string = payload.avatar.toString();
+		let b = new Uint8Array(payload.bytes);
+		if (((b[0] == 0x89) && (b[1] == 0x50) && (b[2] == 0x4E) && (b[3] == 0x47) && (b[4] == 0x0D) && (b[5] == 0x0A) && (b[6] == 0x1A) && (b[7] == 0x0A)) ||
+			((b[0] == 0xFF) && (b[1] == 0xD8))) {
+			this.userService.changeAvatar(sender, avatar);
+			this.server.emit('change_avatar', { login: sender.login, avatar: avatar })
+			return { status: "ok" };
+		}
+		else
+			return { status: "Invalid image" };
 	}
 	@SubscribeMessage('userStatus')
 	async get_user_status(
