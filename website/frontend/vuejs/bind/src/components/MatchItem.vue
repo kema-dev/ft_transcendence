@@ -31,19 +31,19 @@
 							<div class="info_details center row space-around">
 								<div class="row center">
 									<h1 class="player_login">
-										{{ get_player_name(props.match.players[i - 1]) }}
+										{{ props.match.ranking[i - 1] }}
 									</h1>
 								</div>
 								<div class="row center">
 									<img class="podium icon" src="@/assets/svg/leaderboard.svg" />
-									<h1 class="number_details">{{ props.match.ranks[i - 1] }}</h1>
+									<h1 class="number_details">{{ i }}</h1>
 								</div>
-								<div class="row center">
+								<!-- <div class="row center">
 									<img class="icon small_icon" src="@/assets/svg/heart.svg" />
 									<h1 class="number_details">
-										{{ props.match.scores[i - 1] }}
+										{{ props.match.ranking[i - 1] }}
 									</h1>
-								</div>
+								</div> -->
 							</div>
 						</div>
 					</div>
@@ -69,11 +69,13 @@ let me: Ref<ProfileUserDto> = inject('user')!;
 let size = ref(0);
 const props = defineProps(['match']);
 
+props.match.ranking = props.match.ranking.reverse();
+
 function go_to_user_profile(i: number) {
 	let refresh = false;
 	if (route.path.startsWith('/home/player/'))
 		refresh = true;
-	router.push({name: 'player', params: {name: props.match.players[i - 1]}});
+	router.push({name: 'player', params: {name: props.match.ranking[i - 1]}});
 	if (refresh == true) {
 		console.log(`refresh`);
 		setTimeout(() => {
@@ -88,14 +90,7 @@ function open() {
 }
 
 function get_rank() {
-	let rank = 0;
-	for (let i = 0; i < props.match.players.length; i++) {
-		if (props.match.players[i] == me?.value?.login) {
-			rank = props.match.ranks[i];
-			break;
-		}
-	}
-	return rank;
+	return props.match.ranking.indexOf(me.value.login) + 1;
 }
 
 let avatar = ref([]);
@@ -103,7 +98,7 @@ let avatar = ref([]);
 async function get_avatars() {
 	for (let i = 0; i < props.match.players.length; i++) {
 		await API.post('/user/get_user_avatar', {
-			login: props.match.players[i],
+			login: props.match.ranking[i],
 		})
 			.then((res) => {
 				avatar.value.push(res.data);
@@ -144,7 +139,7 @@ onMounted(async () => {
 	border-left: 0;
 	background-color: v-bind('define.color0');
 	z-index: 10;
-	margin-bottom: v-bind("size ? (size - 1) * 55 + 'px' : 0");
+	margin-bottom: v-bind("size ? (size) * 50 + 5 + 65 + 'px' : 0");
 	cursor: pointer;
 	transition: all ease-in-out 0.2s;
 }

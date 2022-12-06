@@ -158,11 +158,13 @@ export class MatchService {
 	// 			ball_count: 2,
 	// 			lobby_name: 'lobby_name',
 	// 			owner: 'owner',
-	// 			players: ['q', 'w'],
-	// 			ranking: ['q', 'w'],
+	// 			players: ['q', 'w', 'e', 'r'],
+	// 			ranking: ['q', 'w', 'e', 'r'],
 	// 		});
+	// 		await this.matchRepository.save(match);
+	// 		console.log('simulate_5_matches: match: ', match);
 	// 		for (const profile of match.players) {
-	// 			this.assign_match_to_user(profile, match.id);
+	// 			await this.assign_match_to_user(profile, match.id);
 	// 		}
 	// 	}
 	// }
