@@ -129,23 +129,36 @@ function isFileImage(file: any) {
 }
 onMounted(async () => {
 	let input = document.querySelector('#none');
+	var png = new RegExp("[^\\s]+(.*?)\\.(png|PNG)$");
+	var jpg = new RegExp("[^\\s]+(.*?)\\.(jpg|jpeg|JPG|JPEG)$");
 	input?.addEventListener('change', () => {
-		console.log('change');
 		const reader = new FileReader();
-		reader.addEventListener('load', () => {
-			let image = reader.result;
-			document.querySelector('#img').src = `${image}`;
-			socket.emit('changeAvatar', {
-				login: me.value.login,
-				avatar: `${image}`,
-			});
-		});
+		var bytes;
+		reader.onload = function () {
+			let image = this.result;
+			bytes = new Uint8Array(image);
+			if (bytes.length > 0) {
+				if (jpg.test(input.files[0].name) && ((bytes[0] != 0xFF) || (bytes[1] != 0xD8)))
+					toast.error("Invalid image");
+				else if (png.test(input.files[0].name) && ((bytes[0] != 0x89) || (bytes[1] != 0x50) || (bytes[2] != 0x4E) || (bytes[3] != 0x47) || (bytes[4] != 0x0D) || (bytes[5] != 0x0A) || (bytes[6] != 0x1A) || (bytes[7] != 0x0A)))
+					toast.error("Invalid image");
+				else
+					reader.readAsDataURL(input.files[0]);
+			}
+			else {
+				document.querySelector('#img').src = `${image}`;
+				socket.emit('changeAvatar', {
+					login: me.value.login,
+					avatar: `${image}`,
+					// bytes: bytes
+				});
+			}
+		}
 		var re = new RegExp("[^\\s]+(.*?)\\.(jpg|jpeg|png|JPG|JPEG|PNG)$");
-		// console.log(isFileImage(input.files[0]))
 		if (re.test(input.files[0].name) && isFileImage(input.files[0]))
-			reader.readAsDataURL(input.files[0]);
+			reader.readAsArrayBuffer(input.files[0]);
 		else
-			toast.error("Invalid file type");
+			toast.error("Invalid file type, please use a png or jpg file");
 	});
 	API.post('/user/get_user_avatar', {
 		login: myName,

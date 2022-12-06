@@ -83,11 +83,11 @@ export class AppGateway
 			return;
 		}
 		const game = this.games.find((game) => game.lobby_name === user.lobby_name);
-		this.userService.set_status(user.login, 'online');
+		await this.userService.set_status(user.login, 'online');
 		this.server.emit('userStatus', { user: user.login, status: 'online' });
 		user.lobby_name = '';
 		user.level = user.level + 1;
-		this.userService.saveUser(user);
+		await this.userService.saveUser(user);
 		if (!game) {
 			for (const g of this.games)
 				for (const sock of g.socketsViewers)
@@ -530,8 +530,15 @@ export class AppGateway
 			console.log(`NewChanMsg error: Sender user not found"`);
 			return;
 		}
+		// var bytes = new Uint8Array(payload.bytes);
+		// if (bytes.length > 0) {
+		// 	if (((bytes[0] != 0xFF) || (bytes[1] != 0xD8)))
+		// 		return
+		// 	else if (((bytes[2] != 0x4E) || (bytes[3] != 0x47) || (bytes[4] != 0x0D) || (bytes[5] != 0x0A) || (bytes[6] != 0x1A) || (bytes[7] != 0x0A)))
+		// 		return
+		// }
 		this.userService.changeAvatar(sender, payload.avatar);
-		this.server.emit('change_avatar', {login: sender.login, avatar: payload.avatar})
+		this.server.emit('change_avatar', { login: sender.login, avatar: payload.avatar })
 	}
 	@SubscribeMessage('userStatus')
 	async get_user_status(
@@ -845,7 +852,7 @@ export class AppGateway
 			console.log(`change_username error : Requestor user not found`);
 			return 'NOT_FOUND';
 		}
-		
+
 		return this.userService.change_username(requestor.login, data, this.server);
 	}
 
