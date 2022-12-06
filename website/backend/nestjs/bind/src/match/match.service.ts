@@ -59,6 +59,9 @@ export class MatchService {
 		const match = await this.matchRepository.findOne({
 			where: { id: id },
 		});
+		if (!match) {
+			return;
+		}
 		match.ranking.push(login);
 		await this.matchRepository.save(match);
 		await this.assign_match_to_user(login, match.id);
