@@ -40,6 +40,10 @@ export class UsersService {
 			console.log('saveSocket: User not found');
 			return;
 		}
+		if (!user) {
+			console.log('saveSocket: User not found');
+			return;
+		}
 		user.socketId = socket;
 		await this.usersRepository
 			.save(user)
@@ -417,7 +421,7 @@ export class UsersService {
 		console.log('assign_match_to_user: starting for', user, 'and match', match);
 		const usr = await this.getByAny(user);
 		usr.match.push(match);
-		this.usersRepository.save(usr);
+		await this.usersRepository.save(usr);
 		console.log('assign_match_to_user: ' + user + ', returning ✔');
 	}
 
