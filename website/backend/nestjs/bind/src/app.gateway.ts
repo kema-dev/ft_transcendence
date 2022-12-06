@@ -38,6 +38,7 @@ export class AppGateway
 	implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
 	@WebSocketServer() server: Server;
 	games: Game[] = [];
+	id: number = 0;
 	private logger: Logger = new Logger('AppGateway');
 
 	constructor(
@@ -123,6 +124,7 @@ export class AppGateway
 				game.img,
 				this.matchService,
 				this,
+				game.id
 			);
 			for (const sock of game.socketsViewers) newGame.addViewer(sock);
 			this.games.push(newGame);
@@ -183,7 +185,9 @@ export class AppGateway
 			user.avatar,
 			this.matchService,
 			this,
+			this.id
 		);
+		this.id += 1;
 		console.log('newLobby', newGame.lobby_name);
 		this.games.push(newGame);
 		user.lobby_name = newGame.lobby_name;
@@ -318,6 +322,7 @@ export class AppGateway
 			game.img,
 			this.matchService,
 			this,
+			game.id
 		);
 		for (const sock of game.socketsViewers) newGame.addViewer(sock);
 		console.log('join_lobby: newGame created');
