@@ -30,8 +30,5 @@ export class MatchEntity {
 	players: string[];
 
 	@Column({ type: 'simple-array' })
-	scores: number[];
-
-	@Column({ type: 'simple-array' })
-	ranks: number[];
+	ranking: string[];
 }

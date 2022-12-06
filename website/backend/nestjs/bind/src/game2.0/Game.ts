@@ -145,20 +145,26 @@ export default class Game {
 		if ((login = ball.detectCollision(game.objects))) {
 			game.run = false;
 			if (game.nbrPlayer == 1) {
-				game.match_service.add_match(game);
+				// game.match_service.add_ranking(game.id, login);
 				game.server.to(game.players[0].socketId).emit('end', { win: true });
 			} else if (game.nbrPlayer == 2) {
-				game.match_service.add_match(game);
+				// game.match_service.add_ranking(game.id, login);
+				// game.match_service.add_ranking(
+				// 	game.id,
+				// 	game.players.find((p) => p.login != login).login,
+				// );
 				game.server
 					.to(game.players.find((p) => p.login != login)?.socketId)
 					.emit('end', { win: true });
 				game.server
 					.to(game.players.find((p) => p.login == login)?.socketId)
 					.emit('end', { win: false });
-			} else
+			} else {
+				// game.match_service.add_ranking(game.id, login);
 				game.server
 					.to(game.players.find((p) => p.login == login)?.socketId)
 					.emit('end', { win: false });
+			}
 			game.app.quitGame(login, { lose: true });
 			game.destructor();
 			return;

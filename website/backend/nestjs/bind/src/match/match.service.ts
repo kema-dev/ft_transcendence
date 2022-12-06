@@ -1,5 +1,6 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { identity } from 'rxjs';
 import { Repository } from 'typeorm';
 import Game from '../game2.0/Game';
 import { UsersService } from '../users/users.service';
@@ -17,7 +18,21 @@ export class MatchService {
 		console.log('        Debug: from MatchService');
 	}
 
-	async add_match(game: Game) {
+	async create_match(): Promise<number> {
+		console.log('create_match: Starting');
+		const match = await this.matchRepository.save({
+			player_count: -1,
+			ball_count: -1,
+			lobby_name: '',
+			owner: '',
+			players: [],
+			ranking: [],
+		});
+		return match.id;
+	}
+
+	async fill_match_infos(game: Game): Promise<number> {
+		console.log('create_match: Starting');
 		const game_players = game.profiles.map((profile) => profile.login);
 		// for each player, use their email
 		for (let i = 0; i < game_players.length; i++) {
@@ -27,17 +42,7 @@ export class MatchService {
 			}
 		}
 		const game_scores = game.profiles.map((profile) => profile.score);
-		console.log('match players: ', game_players);
-		console.log('match scores: ', game_scores);
-		const ranks = [];
-		for (let i = 0; i < game_scores.length; i++) {
-			ranks.push(1);
-			for (let j = 0; j < game_scores.length; j++) {
-				if (game_scores[j] > game_scores[i]) {
-					ranks[i]++;
-				}
-			}
-		}
+		const ranking: string[] = [];
 		const match = await this.matchRepository.save({
 			player_count: game.nbrPlayer,
 			ball_count: game.nbrBall,
@@ -45,13 +50,19 @@ export class MatchService {
 			owner: game.owner,
 			players: game_players,
 			scores: game_scores,
-			ranks: ranks,
+			ranking: ranking,
 		});
-		// console.log(match);
-		for (const profile of game.profiles) {
-			await this.assign_match_to_user(profile.login, match.id);
-			await this.usersService.set_status(profile.login, 'online');
-		}
+		return match.id;
+	}
+
+	async add_ranking(id: number, login: string) {
+		const match = await this.matchRepository.findOne({
+			where: { id: id },
+		});
+		match.ranking.push(login);
+		await this.matchRepository.save(match);
+		await this.assign_match_to_user(login, match.id);
+		await this.usersService.set_status(login, 'online');
 	}
 
 	async assign_match_to_user(login: string, match_id: number) {
@@ -123,19 +134,13 @@ export class MatchService {
 			level: level,
 		};
 		for (const match of matches) {
-			let winner_score = 0;
-			for (let i = 0; i < match.scores.length; i++) {
-				if (match.scores[i] > winner_score) {
-					winner_score = match.scores[i];
-				}
-			}
-			const index = match.players.indexOf(login);
-			if (match.scores[index] == 0) {
-				stats.loses += 1;
-			} else if (match.scores[index] == winner_score) {
+			const index = match.ranking.reverse().indexOf(login);
+			if (index == 0) {
 				stats.wins += 1;
+			} else {
+				stats.loses += 1;
 			}
-			stats.average_rank += (match.ranks[index] - 1) / (match.player_count - 1);
+			stats.average_rank += (index - 1) / (match.player_count - 1);
 		}
 		if (stats.total < 1) {
 			stats.average_rank = 0.5;
@@ -154,8 +159,7 @@ export class MatchService {
 	// 			lobby_name: 'lobby_name',
 	// 			owner: 'owner',
 	// 			players: ['q', 'w'],
-	// 			scores: [1, 0],
-	// 			ranks: [0, 1],
+	// 			ranking: ['q', 'w'],
 	// 		});
 	// 		for (const profile of match.players) {
 	// 			this.assign_match_to_user(profile, match.id);
