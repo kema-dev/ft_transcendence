@@ -50,6 +50,8 @@ let me: Ref<any> = inject('user')!;
 let gameDto: Ref<GameDto | undefined> = ref(undefined);
 socket.on('init_game', (data: GameDto) => {
 	gameDto.value = data;
+	if (gameDto.value.start)
+		start.value = true;
 	console.log('reload');
 	remount.value = !remount.value;
 	socket.emit('get_game_info');

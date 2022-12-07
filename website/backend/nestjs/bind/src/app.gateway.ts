@@ -139,14 +139,16 @@ export class AppGateway
 			newGame.update();
 		} else if (game.players.length - 1 == 1) {
 			console.log('game.players.length - 1 == 1');
-			if (data.lose)
+			if (data.lose || data.lose == undefined)
 				this.server
 					.to(game.players.find((player) => player.login !== user.login).socketId)
 					.emit('info_game', <InfoDto>{ isWin: true });
-			if (data.left)
+			if (!data.notLeft) {
 				this.server
 					.to(game.sockets.filter((sock) => sock !== user.socketId))
 					.emit('info_game', <InfoDto>{ left: user.login });
+				this.quitGame(game.players.find((player) => player.login !== user.login).login, { notLeft: true, lose: false });
+			}
 		}
 		if (data.lose)
 			this.server
