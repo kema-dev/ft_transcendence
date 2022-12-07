@@ -106,6 +106,8 @@ onUnmounted(() => {
 
 socket.off('create_from_invitation');
 socket.on('create_from_invitation', (data: any) => {
+	toast.success('You were not in a game, creating a new one');
+	toast.success('Please invite your friends again');
 	create();
 });
 
