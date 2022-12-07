@@ -27,8 +27,6 @@ import { UserEntity } from 'src/users/user.entity';
 import { MatchDto } from 'src/match/match.dto';
 import { MatchService } from './match/match.service';
 import { InfoDto } from 'src/game2.0/dto/InfoDto';
-import { validateMIMEType } from "validate-image-type";
-import { validateImage } from "image-validator";
 
 @WebSocketGateway({
 	cors: {

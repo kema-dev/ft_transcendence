@@ -57,6 +57,8 @@ socket.on('init_game', (data: GameDto) => {
 socket.emit('get_game');
 
 onMounted(() => {
+	win = ref(false);
+	lose = ref(false);
 	socket.emit('get_game_info');
 	socket.on('info_game', (data: InfoDto) => {
 		console.log('info', data);
