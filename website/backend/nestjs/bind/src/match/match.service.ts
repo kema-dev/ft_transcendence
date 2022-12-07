@@ -88,6 +88,9 @@ export class MatchService {
 		if (!usr) {
 			return;
 		}
+		if (match.ranking.includes(usr.email)) {
+			return;
+		}
 		match.ranking.push(usr.email);
 		await this.matchRepository.save(match);
 		await this.assign_match_to_user(login, match.id);

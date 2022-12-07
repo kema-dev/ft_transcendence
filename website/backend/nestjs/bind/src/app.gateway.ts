@@ -104,6 +104,7 @@ export class AppGateway
 					}
 			return;
 		}
+		await this.matchService.add_ranking(game.id, user.login);
 		game.destructor();
 		if (
 			(game.players.length - 1 >= 1 && !game.start) ||
