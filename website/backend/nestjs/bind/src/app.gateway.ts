@@ -105,6 +105,14 @@ export class AppGateway
 			return;
 		}
 		await this.matchService.add_ranking(game.id, user.login);
+		if (game.players.length == 2) {
+			// this is a hack to avoid a bug
+			const other_usr = game.players.filter(
+				(player) => player.login !== user.login,
+			)[0];
+			this.matchService.add_ranking(game.id, other_usr.login);
+		}
+		console.log('     after add ranking, players', game.players.length);
 		game.destructor();
 		if (
 			(game.players.length - 1 >= 1 && !game.start) ||
