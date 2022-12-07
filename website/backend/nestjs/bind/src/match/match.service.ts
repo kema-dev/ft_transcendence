@@ -150,6 +150,12 @@ export class MatchService {
 			level: level,
 		};
 		for (const match of matches) {
+			for (let i = 0; i < match.ranking.length; i++) {
+				const usr = await this.usersService.getByAny(match.ranking[i]);
+				if (usr) {
+					match.ranking[i] = usr.login;
+				}
+			}
 			const index = match.ranking.reverse().indexOf(login);
 			if (index == 0) {
 				stats.wins += 1;
