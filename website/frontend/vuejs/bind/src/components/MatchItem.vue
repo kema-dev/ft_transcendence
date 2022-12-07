@@ -60,7 +60,9 @@ import ProfileUserDto from '../dto/ProfileUserDto';
 import API from './axios';
 import { useCookies } from 'vue3-cookies';
 import { useRouter, useRoute } from 'vue-router';
+import { VueCookies } from 'vue-cookies';
 
+const $cookies = inject<VueCookies>('$cookies');
 const route = useRoute();
 const router = useRouter();
 const { cookies } = useCookies();
@@ -85,11 +87,8 @@ async function get_names() {
 				// console.log(err);
 			});
 	}
-	if (me.value == undefined) {
-		rank.value = 0;
-	} else {
-		rank.value = props.match.ranking.indexOf(me?.value?.login) + 1;
-	}
+	const my_login = $cookies.get('login');
+	rank.value = props.match.ranking.indexOf(my_login) + 1;
 }
 
 get_names();
