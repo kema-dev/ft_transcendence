@@ -84,6 +84,9 @@ export class MatchService {
 		if (!match) {
 			return;
 		}
+		if (match.started == false) {
+			return;
+		}
 		const usr = await this.usersService.getByAny(login);
 		if (!usr) {
 			return;
