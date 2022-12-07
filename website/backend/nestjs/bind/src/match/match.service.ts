@@ -94,7 +94,7 @@ export class MatchService {
 		match.ranking.push(usr.email);
 		await this.matchRepository.save(match);
 		await this.assign_match_to_user(login, match.id);
-		await this.usersService.set_status(usr.email, 'online');
+		// await this.usersService.set_status(usr.email, 'online');
 		console.log('add_ranking: rank: ', match.ranking);
 		console.log('add_ranking: Returning');
 	}
