@@ -457,6 +457,7 @@ export class AppGateway
 			// 	});
 			// });
 			game.start = true;
+			this.matchService.lock_match_infos(game.id);
 			this.server.emit('lobbys', this.sendLobbys(this.games));
 			this.server
 				.to(game.sockets)

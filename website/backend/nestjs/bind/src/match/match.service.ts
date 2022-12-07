@@ -27,6 +27,7 @@ export class MatchService {
 			owner: '',
 			players: [],
 			ranking: [],
+			started: false,
 		});
 		return match.id;
 	}
@@ -38,7 +39,7 @@ export class MatchService {
 		});
 		if (!match) {
 			return;
-		} else if (match.player_count >= game.nbrPlayer) {
+		} else if (match.started == true) {
 			return;
 		}
 		const game_players = game.profiles.map((profile) => profile.login);
@@ -57,6 +58,20 @@ export class MatchService {
 		match.owner = game.owner;
 		match.players = game_players;
 		match.ranking = ranking;
+		match.started = false;
+		await this.matchRepository.save(match);
+		return match.id;
+	}
+
+	async lock_match_infos(id: number): Promise<number> {
+		console.log('lock_match_infos: Starting');
+		const match = await this.matchRepository.findOne({
+			where: { id: id },
+		});
+		if (!match) {
+			return;
+		}
+		match.started = true;
 		await this.matchRepository.save(match);
 		return match.id;
 	}

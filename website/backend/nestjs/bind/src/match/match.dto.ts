@@ -9,6 +9,7 @@ export class MatchDto {
 	start: boolean;
 	img: string;
 	ranking: string[];
+	started: boolean;
 	public constructor(game: Game) {
 		this.lobby_name = game.lobby_name;
 		this.nbr_players = game.nbrPlayer;
@@ -19,6 +20,7 @@ export class MatchDto {
 		this.start = game.start;
 		this.img = game.img;
 		this.ranking = [];
+		this.started = false;
 	}
 }
 

@@ -31,4 +31,7 @@ export class MatchEntity {
 
 	@Column({ type: 'simple-array' })
 	ranking: string[];
+
+	@Column()
+	started: boolean;
 }
