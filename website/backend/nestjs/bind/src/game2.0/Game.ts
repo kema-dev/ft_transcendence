@@ -155,11 +155,12 @@ export default class Game {
 				game.server
 					.to(game.players.find((p) => p.login == login)?.socketId)
 					.emit('end', { win: false });
+				game.app.quitGame(login, { lose: false, left: false });
 			} else
 				game.server
 					.to(game.players.find((p) => p.login == login)?.socketId)
 					.emit('end', { win: false });
-			game.app.quitGame(login, { lose: true });
+			game.app.quitGame(login, { lose: true, left: false });
 			game.destructor();
 			return;
 		}

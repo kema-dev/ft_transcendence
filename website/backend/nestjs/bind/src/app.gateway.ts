@@ -142,7 +142,7 @@ export class AppGateway
 			this.server
 				.to(game.players.find((player) => player.login !== user.login).socketId)
 				.emit('info_game', <InfoDto>{ isWin: true });
-			if (!data.lose)
+			if (data.left)
 				this.server
 					.to(game.sockets.filter((sock) => sock !== user.socketId))
 					.emit('info_game', <InfoDto>{ left: user.login });
