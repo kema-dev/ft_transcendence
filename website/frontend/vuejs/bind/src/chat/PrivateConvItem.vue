@@ -164,11 +164,14 @@ function init() {
 		privMsgRead();
 		let msgsCont = document.getElementById("msgsCont");
 		if (msgsCont) {
-			let oldScrollTop = msgsCont!.scrollTop;
-			let oldScrollHeight = msgsCont!.scrollHeight;
-			let oldClientHeight = msgsCont!.clientHeight;
-			let lastMsg = msgsCont.lastElementChild!.clientHeight;
-			if (oldScrollTop + oldClientHeight + lastMsg == oldScrollHeight)
+			// let oldScrollTop = msgsCont!.scrollTop;
+			// let oldScrollHeight = msgsCont!.scrollHeight;
+			// let oldClientHeight = msgsCont!.clientHeight;
+			// let lastMsg = msgsCont.lastElementChild!.clientHeight;
+			// console.log(`oldscrolltop = `)
+			// if (oldScrollTop + oldClientHeight + lastMsg == oldScrollHeight){
+			// 		msgsCont!.scrollTop = msgsCont!.scrollHeight;
+			// }
 			msgsCont!.scrollTop = msgsCont!.scrollHeight;
 		}
 	}, {flush: 'post'})
