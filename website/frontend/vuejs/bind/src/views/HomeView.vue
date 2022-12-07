@@ -17,7 +17,6 @@ import { useRoute } from 'vue-router';
 import HTTP from '../components/axios';
 import { FQDN } from '../../.env.json';
 import MainView from '@/matchmaking/MainView.vue';
-import { HOSTNAME } from '../../.env.json';
 import NavbarItem from '@/components/NavbarItem.vue';
 import NavmenuItem from '@/components/NavmenuItem.vue';
 import { PrivConvDto } from '@/chat/dto/PrivConvDto';
@@ -225,7 +224,7 @@ socket.on('newPrivMsg', (data: { msg: MessageDto; id: number }) => {
 	// 	console.log(`1 finIndex = ${findPrivIndex.value}`)
 	// 	findPrivIndex.value = true;
 	// 	console.log(`2 finIndex = ${findPrivIndex.value}`)
-	// } 
+	// }
 });
 
 function putPrivFirst(index: number) {
