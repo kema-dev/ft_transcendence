@@ -6,7 +6,7 @@
 				<div class="info center row space-around">
 					<div class="row center">
 						<img class="podium icon" src="@/assets/svg/leaderboard.svg" />
-						<h1 class="number">{{ get_rank() }}</h1>
+						<h1 class="number">{{ rank }}</h1>
 					</div>
 					<div class="row center">
 						<img class="icon" src="@/assets/svg/user.svg" />
@@ -71,6 +71,8 @@ const props = defineProps(['match']);
 
 props.match.ranking = props.match.ranking.reverse();
 
+let rank: Ref<number> = ref(0);
+
 async function get_names() {
 	for (let i = 0; i < props.match.ranking.length; i++) {
 		await API.post('/user/get_user_login', {
@@ -83,30 +85,31 @@ async function get_names() {
 				// console.log(err);
 			});
 	}
+	if (me.value == undefined) {
+		rank.value = 0;
+	} else {
+		rank.value = props.match.ranking.indexOf(me?.value?.login) + 1;
+	}
 }
 
 get_names();
 
 function go_to_user_profile(i: number) {
-	let refresh = false;
-	if (route.path.startsWith('/home/player/'))
-		refresh = true;
+	// let refresh = false;
+	// if (route.path.startsWith('/home/player/'))
+	// 	refresh = true;
 	router.push({name: 'player', params: {name: props.match.ranking[i - 1]}});
-	if (refresh == true) {
-		console.log(`refresh`);
-		setTimeout(() => {
-			router.go(0);
-		}, 100);
-	}
+	// if (refresh == true) {
+	// 	console.log(`refresh`);
+	// 	setTimeout(() => {
+	// 		router.go(0);
+	// 	}, 100);
+	// }
 }
 
 function open() {
 	if (size.value) size.value = 0;
 	else size.value = props.match.player_count + 1;
-}
-
-function get_rank() {
-	return props.match.ranking.indexOf(me.value.login) + 1;
 }
 
 let avatar = ref([]);
