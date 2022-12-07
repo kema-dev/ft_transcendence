@@ -1,5 +1,5 @@
 <template>
-	<div class="column center" v-if="show">
+	<div class="column center">
 		<!-- <h2 id="player_search_title">Search for another player's profile</h2>
 		<SearchProfileItem v-model:search="search"/>
 		<OtherPlayerProfile
@@ -7,13 +7,13 @@
 		/> -->
 		<div class="stack avatar-stack">
 			<div id="bar"></div>
-			<div v-on:click="change_avatar()" id="avatar">
+			<div v-on:click="change_avatar()" id="avatar" v-if="show">
 				<img :src="user_avatar" id="img" />
 			</div>
 		</div>
 		<div class="playerInfoCont center column">
 			<h1 class="login">{{ me?.login }}</h1>
-			<hr class="separator">
+			<hr class="separator" />
 			<div class="playerStatCont center raw">
 				<h3 class="statTitle">Rank :</h3>
 				<h3 class="statValue">Top {{ user_ratio_rounded }}%</h3>
@@ -31,9 +31,9 @@
 				<h3 class="statValue">{{ user_stats.loses }}</h3>
 			</div>
 		</div>
-		<hr class="separator">
+		<hr class="separator" />
 		<MultiFactorAuthItem />
-		<hr class="separator">
+		<hr class="separator" />
 		<div v-if="userDone">
 			<button @click="showBlocks = !showBlocks" id="showBlocksBtn">
 				{{ (showBlocks ? 'Hide' : 'Show') + ' blocked users' }}
@@ -43,20 +43,28 @@
 					<div class="center raw">
 						<BasicProfil :avatar="block.avatar" :login="block.login" />
 						<button @click="unblockUser(block.login)" class="restoreBtn center">
-							<img src='~@/assets/restore.svg' alt="Restore User" class="restoreImg" />
+							<img
+								src="~@/assets/restore.svg"
+								alt="Restore User"
+								class="restoreImg"
+							/>
 						</button>
 					</div>
 				</div>
 			</div>
 		</div>
-		<hr class="separator2">
+		<hr class="separator2" />
 		<div class="titleCont center">
-			<img src="@/assets/history.svg" class="logo">
+			<img src="@/assets/history.svg" class="logo" />
 			<h2 class="title">Match history</h2>
 		</div>
-		<MatchItem v-for="match in user_history" v-bind:match="match" :key="match.creation_date" />
+		<MatchItem
+			v-for="match in user_history"
+			v-bind:match="match"
+			:key="match.creation_date"
+		/>
 		<div v-if="!user_history.length">
-			<h3 class="noResults">Still no match, go play! </h3>
+			<h3 class="noResults">Still no match, go play!</h3>
 			<img class="img" src="@/assets/svg/ball_fire.svg" />
 		</div>
 	</div>
@@ -64,7 +72,7 @@
 
 <script setup lang="ts">
 import { onMounted, inject, Ref, ref, watch } from 'vue';
-import { Socket } from "socket.io-client";
+import { Socket } from 'socket.io-client';
 import MultiFactorAuthItem from '../components/MultiFactorAuthItem.vue';
 import SearchProfileItem from '../components/SearchProfileItem.vue';
 import ScoreItem from '../components/ScoreItem.vue';
@@ -81,7 +89,7 @@ const toast = useToast();
 const { cookies } = useCookies();
 let define = inject('colors');
 let me: Ref<ProfileUserDto> = inject('user')!;
-let myName: string = inject("me")!;
+let myName: string = inject('me')!;
 let userDone = inject('userDone')!;
 let socket: Socket = inject('socket')!;
 let showBlocks = ref(false);
@@ -98,14 +106,13 @@ let user_stats = ref({});
 let user_avatar = ref('');
 
 function isDone() {
-	if (statDone && historyDone && avatarDone)
-		show.value = true;
+	if (statDone && historyDone && avatarDone) show.value = true;
 }
 
 function change_avatar() {
 	const input = document.createElement('input');
 	input.type = 'file';
-	input.accept = "image/png, image/jpeg";
+	input.accept = 'image/png, image/jpeg';
 	input.onchange = (event: any) => {
 		const file = event.target?.files[0];
 		if (!file) return;
@@ -113,76 +120,93 @@ function change_avatar() {
 		reader.readAsDataURL(file);
 		reader.onload = () => {
 			const image = reader.result as string;
-			socket.emit('changeAvatar', {
-				avatar: image,
-				bytes: file
-			}, (res: any) => {
-				if (res.status == 'ok')
-					document.querySelector('#img').src = `${image}`;
-				else
-					toast.error(res.status);
-			});
+			socket.emit(
+				'changeAvatar',
+				{
+					avatar: image,
+					bytes: file,
+				},
+				(res: any) => {
+					if (res.status == 'ok')
+						document.querySelector('#img').src = `${image}`;
+					else toast.error(res.status);
+				},
+			);
 		};
-	}
+	};
 	input.click();
 }
 
-
 function unblockUser(blocked: string) {
-	socket.emit("unblockUser",
-		{ blocker: me.value.login, blocked: blocked });
+	socket.emit('unblockUser', { blocker: me.value.login, blocked: blocked });
 }
 
-watch(show, () => {
-	var bar = new ProgressBar.Circle('#bar', {
-		color: define.color2,
-		strokeWidth: 8,
-		trailWidth: 0,
-		easing: 'easeInOut',
-		duration: 1400,
-	});
-	bar.animate(1 - user_ratio.value);
-}, { flush: 'post' })
+// watch(show, () => {
+// 	var bar = new ProgressBar.Circle('#bar', {
+// 		color: define.color2,
+// 		strokeWidth: 8,
+// 		trailWidth: 0,
+// 		easing: 'easeInOut',
+// 		duration: 1400,
+// 	});
+// 	bar.animate(1 - user_ratio.value);
+// }, { flush: 'post' })
 
 API.post('/user/get_user_avatar', {
 	login: myName,
-}).then((res) => {
-	user_avatar.value = res.data;
-	avatarDone = true;
-	isDone();
-}).catch((err) => {
-	console.log(err);
-});
-onMounted(async () => {
-	API.post('/user/get_user_avatar', {
-		login: myName,
-	}).then((res) => {
+})
+	.then((res) => {
 		user_avatar.value = res.data;
 		avatarDone = true;
 		isDone();
-	}).catch((err) => {
+	})
+	.catch((err) => {
 		console.log(err);
 	});
+onMounted(async () => {
+	API.post('/user/get_user_avatar', {
+		login: myName,
+	})
+		.then((res) => {
+			user_avatar.value = res.data;
+			avatarDone = true;
+			isDone();
+		})
+		.catch((err) => {
+			console.log(err);
+		});
 	API.post('/match/get_user_stats', {
 		login: myName,
-	}).then((res) => {
-		user_stats.value = res.data;
-		user_ratio.value = res.data.average_rank;
-		user_ratio_rounded.value = Math.round(res.data.average_rank * 100);
-		statDone = true;
-		isDone();
-	}).catch((err) => {
-		console.log(err);
-	});
+	})
+		.then((res) => {
+			user_stats.value = res.data;
+			user_ratio.value = res.data.average_rank;
+			user_ratio_rounded.value = Math.round(res.data.average_rank * 100);
+			statDone = true;
+			var bar = new ProgressBar.Circle('#bar', {
+				color: define.color2,
+				strokeWidth: 8,
+				trailWidth: 0,
+				easing: 'easeInOut',
+				duration: 1400,
+			});
+			bar.animate(1 - user_ratio.value);
+			isDone();
+		})
+		.catch((err) => {
+			console.log(err);
+		});
 	API.post('/match/get_user_history', {
 		login: myName,
-	}).then((res) => {
-		user_history.value = res.data;
-		historyDone = true;
-		isDone();
-	}).catch((err) => {
-		console.log(err);
-	});
+	})
+		.then((res) => {
+			user_history.value = res.data;
+			historyDone = true;
+			isDone();
+		})
+		.catch((err) => {
+			console.log(err);
+		});
 });
 </script>
 
@@ -238,7 +262,7 @@ onMounted(async () => {
 	flex-shrink: 0;
 	width: 60%;
 	height: 3px;
-	background-color: v-bind("define.color2");
+	background-color: v-bind('define.color2');
 	margin-bottom: 10px;
 }
 
@@ -280,7 +304,7 @@ onMounted(async () => {
 	width: auto;
 	border-radius: calc(1.5rem / 2);
 	font-weight: 500;
-	background-color: v-bind("define.color2");
+	background-color: v-bind('define.color2');
 	color: white;
 	padding: 0 10px;
 	box-shadow: 0px 0px 4px #aaa;
@@ -301,7 +325,8 @@ onMounted(async () => {
 .restoreImg {
 	height: 26px;
 	width: 26px;
-	filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg) brightness(86%) contrast(83%);
+	filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg)
+		brightness(86%) contrast(83%);
 }
 
 .titleCont {
@@ -329,6 +354,7 @@ onMounted(async () => {
 	width: 25px;
 	height: 25px;
 	margin-right: 10px;
-	filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg) brightness(86%) contrast(83%);
+	filter: invert(29%) sepia(16%) saturate(6497%) hue-rotate(176deg)
+		brightness(86%) contrast(83%);
 }
 </style>

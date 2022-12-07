@@ -8,6 +8,7 @@ import {
 	Headers,
 	UseGuards,
 	HttpException,
+	HttpStatus,
 } from '@nestjs/common';
 import { AuthenticationService } from './authentication.service';
 import RegisterDto from './dto/register.dto';
@@ -195,7 +196,13 @@ export class AuthenticationController {
 		} catch (error) {
 			throw error;
 		}
+		if (!usr) {
+			throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+		}
 		const full_usr = await this.usersService.getByAny(usr.login);
+		if (!full_usr) {
+			throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+		}
 		let cookie;
 		try {
 			cookie = await this.authenticationService.createCookie(full_usr.login);

@@ -16,6 +16,11 @@ import { MatchService } from './match.service';
 export class MatchController {
 	constructor(private matchService: MatchService) {}
 
+	// @Get('simulate')
+	// async simulate() {
+	// 	this.matchService.simulate_5_matches();
+	// }
+
 	@UseGuards(AuthGuard)
 	@Post('get_user_ratio')
 	async get_ratio(@Body() body: any) {

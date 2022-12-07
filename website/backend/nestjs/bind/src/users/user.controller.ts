@@ -90,6 +90,16 @@ export class UsersController {
 	// async getAnyByLogin(@Body() params: any) {
 	// 	return this.usersService.getAnyByLogin(params.login, params.infos);
 	// }
+
+	@UseGuards(AuthGuard)
+	@Post('get_user_login')
+	async get_user_login(@Body() params: any) {
+		const usr = await this.usersService.getByAny(params.email);
+		if (usr) {
+			return usr.login;
+		}
+	}
+
 	@UseGuards(AuthGuard)
 	@Post('get_user_avatar')
 	async get_user_avatar(@Body() params: any) {

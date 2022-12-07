@@ -1,5 +1,6 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { identity } from 'rxjs';
 import { Repository } from 'typeorm';
 import Game from '../game2.0/Game';
 import { UsersService } from '../users/users.service';
@@ -17,7 +18,30 @@ export class MatchService {
 		console.log('        Debug: from MatchService');
 	}
 
-	async add_match(game: Game) {
+	async create_match(): Promise<number> {
+		console.log('create_match: Starting');
+		const match = await this.matchRepository.save({
+			player_count: -1,
+			ball_count: -1,
+			lobby_name: '',
+			owner: '',
+			players: [],
+			ranking: [],
+			started: false,
+		});
+		return match.id;
+	}
+
+	async fill_match_infos(game: Game, id: number): Promise<number> {
+		console.log('create_match: Starting');
+		const match = await this.matchRepository.findOne({
+			where: { id: id },
+		});
+		if (!match) {
+			return;
+		} else if (match.started == true) {
+			return;
+		}
 		const game_players = game.profiles.map((profile) => profile.login);
 		// for each player, use their email
 		for (let i = 0; i < game_players.length; i++) {
@@ -25,33 +49,57 @@ export class MatchService {
 			if (usr) {
 				game_players[i] = usr.email;
 			}
+			// console.log('     fill_match_infos: id: ', id);
 		}
-		const game_scores = game.profiles.map((profile) => profile.score);
-		console.log('match players: ', game_players);
-		console.log('match scores: ', game_scores);
-		const ranks = [];
-		for (let i = 0; i < game_scores.length; i++) {
-			ranks.push(1);
-			for (let j = 0; j < game_scores.length; j++) {
-				if (game_scores[j] > game_scores[i]) {
-					ranks[i]++;
-				}
-			}
-		}
-		const match = await this.matchRepository.save({
-			player_count: game.nbrPlayer,
-			ball_count: game.nbrBall,
-			lobby_name: game.lobby_name,
-			owner: game.owner,
-			players: game_players,
-			scores: game_scores,
-			ranks: ranks,
+		const ranking: string[] = [];
+		match.player_count = game.nbrPlayer;
+		match.ball_count = game.nbrBall;
+		match.lobby_name = game.lobby_name;
+		match.owner = game.owner;
+		match.players = game_players;
+		match.ranking = ranking;
+		match.started = false;
+		await this.matchRepository.save(match);
+		return match.id;
+	}
+
+	async lock_match_infos(id: number): Promise<number> {
+		console.log('lock_match_infos: Starting');
+		const match = await this.matchRepository.findOne({
+			where: { id: id },
 		});
-		// console.log(match);
-		for (const profile of game.profiles) {
-			await this.assign_match_to_user(profile.login, match.id);
-			await this.usersService.set_status(profile.login, 'online');
+		if (!match) {
+			return;
 		}
+		match.started = true;
+		await this.matchRepository.save(match);
+		return match.id;
+	}
+
+	async add_ranking(id: number, login: string) {
+		console.log('add_ranking: Starting for id ' + id + ' and login ' + login);
+		const match = await this.matchRepository.findOne({
+			where: { id: id },
+		});
+		if (!match) {
+			return;
+		}
+		if (match.started == false) {
+			return;
+		}
+		const usr = await this.usersService.getByAny(login);
+		if (!usr) {
+			return;
+		}
+		if (match.ranking.includes(usr.email)) {
+			return;
+		}
+		match.ranking.push(usr.email);
+		await this.matchRepository.save(match);
+		await this.assign_match_to_user(login, match.id);
+		// await this.usersService.set_status(usr.email, 'online');
+		console.log('add_ranking: rank: ', match.ranking);
+		console.log('add_ranking: Returning');
 	}
 
 	async assign_match_to_user(login: string, match_id: number) {
@@ -123,19 +171,22 @@ export class MatchService {
 			level: level,
 		};
 		for (const match of matches) {
-			let winner_score = 0;
-			for (let i = 0; i < match.scores.length; i++) {
-				if (match.scores[i] > winner_score) {
-					winner_score = match.scores[i];
+			for (let i = 0; i < match.ranking.length; i++) {
+				const usr = await this.usersService.getByAny(match.ranking[i]);
+				if (usr) {
+					match.ranking[i] = usr.login;
 				}
 			}
-			const index = match.players.indexOf(login);
-			if (match.scores[index] == 0) {
-				stats.loses += 1;
-			} else if (match.scores[index] == winner_score) {
+			const index = match.ranking.reverse().indexOf(login);
+			if (index == 0) {
 				stats.wins += 1;
+			} else {
+				stats.loses += 1;
 			}
-			stats.average_rank += (match.ranks[index] - 1) / (match.player_count - 1);
+			if (match.player_count > 1) {
+				// omit the match if there is only one player
+				stats.average_rank += index / (match.player_count - 1);
+			}
 		}
 		if (stats.total < 1) {
 			stats.average_rank = 0.5;
@@ -153,12 +204,13 @@ export class MatchService {
 	// 			ball_count: 2,
 	// 			lobby_name: 'lobby_name',
 	// 			owner: 'owner',
-	// 			players: ['q', 'w'],
-	// 			scores: [1, 0],
-	// 			ranks: [0, 1],
+	// 			players: ['q', 'w', 'e', 'r'],
+	// 			ranking: ['q', 'w', 'e', 'r'],
 	// 		});
+	// 		await this.matchRepository.save(match);
+	// 		console.log('simulate_5_matches: match: ', match);
 	// 		for (const profile of match.players) {
-	// 			this.assign_match_to_user(profile, match.id);
+	// 			await this.assign_match_to_user(profile, match.id);
 	// 		}
 	// 	}
 	// }

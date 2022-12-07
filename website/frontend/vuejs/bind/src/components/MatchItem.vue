@@ -6,7 +6,7 @@
 				<div class="info center row space-around">
 					<div class="row center">
 						<img class="podium icon" src="@/assets/svg/leaderboard.svg" />
-						<h1 class="number">{{ get_rank() }}</h1>
+						<h1 class="number">{{ rank }}</h1>
 					</div>
 					<div class="row center">
 						<img class="icon" src="@/assets/svg/user.svg" />
@@ -31,19 +31,19 @@
 							<div class="info_details center row space-around">
 								<div class="row center">
 									<h1 class="player_login">
-										{{ get_player_name(props.match.players[i - 1]) }}
+										{{ props.match.ranking[i - 1] }}
 									</h1>
 								</div>
 								<div class="row center">
 									<img class="podium icon" src="@/assets/svg/leaderboard.svg" />
-									<h1 class="number_details">{{ props.match.ranks[i - 1] }}</h1>
+									<h1 class="number_details">{{ i }}</h1>
 								</div>
-								<div class="row center">
+								<!-- <div class="row center">
 									<img class="icon small_icon" src="@/assets/svg/heart.svg" />
 									<h1 class="number_details">
-										{{ props.match.scores[i - 1] }}
+										{{ props.match.ranking[i - 1] }}
 									</h1>
-								</div>
+								</div> -->
 							</div>
 						</div>
 					</div>
@@ -60,7 +60,9 @@ import ProfileUserDto from '../dto/ProfileUserDto';
 import API from './axios';
 import { useCookies } from 'vue3-cookies';
 import { useRouter, useRoute } from 'vue-router';
+import { VueCookies } from 'vue-cookies';
 
+const $cookies = inject<VueCookies>('$cookies');
 const route = useRoute();
 const router = useRouter();
 const { cookies } = useCookies();
@@ -69,17 +71,39 @@ let me: Ref<ProfileUserDto> = inject('user')!;
 let size = ref(0);
 const props = defineProps(['match']);
 
-function go_to_user_profile(i: number) {
-	let refresh = false;
-	if (route.path.startsWith('/home/player/'))
-		refresh = true;
-	router.push({name: 'player', params: {name: props.match.players[i - 1]}});
-	if (refresh == true) {
-		console.log(`refresh`);
-		setTimeout(() => {
-			router.go(0);
-		}, 100);
+props.match.ranking = props.match.ranking.reverse();
+
+let rank: Ref<number> = ref(0);
+
+async function get_names() {
+	for (let i = 0; i < props.match.ranking.length; i++) {
+		await API.post('/user/get_user_login', {
+			email: props.match.ranking[i],
+		})
+			.then((res) => {
+				props.match.ranking[i] = res.data;
+			})
+			.catch((err) => {
+				// console.log(err);
+			});
 	}
+	const my_login = $cookies.get('login');
+	rank.value = props.match.ranking.indexOf(my_login) + 1;
+}
+
+get_names();
+
+function go_to_user_profile(i: number) {
+	// let refresh = false;
+	// if (route.path.startsWith('/home/player/'))
+	// 	refresh = true;
+	router.push({name: 'player', params: {name: props.match.ranking[i - 1]}});
+	// if (refresh == true) {
+	// 	console.log(`refresh`);
+	// 	setTimeout(() => {
+	// 		router.go(0);
+	// 	}, 100);
+	// }
 }
 
 function open() {
@@ -87,23 +111,12 @@ function open() {
 	else size.value = props.match.player_count + 1;
 }
 
-function get_rank() {
-	let rank = 0;
-	for (let i = 0; i < props.match.players.length; i++) {
-		if (props.match.players[i] == me?.value?.login) {
-			rank = props.match.ranks[i];
-			break;
-		}
-	}
-	return rank;
-}
-
 let avatar = ref([]);
 
 async function get_avatars() {
-	for (let i = 0; i < props.match.players.length; i++) {
+	for (let i = 0; i < props.match.ranking.length; i++) {
 		await API.post('/user/get_user_avatar', {
-			login: props.match.players[i],
+			login: props.match.ranking[i],
 		})
 			.then((res) => {
 				avatar.value.push(res.data);
@@ -114,7 +127,18 @@ async function get_avatars() {
 	}
 }
 
-function get_player_name(player: string) {
+async function get_player_name(player: string) {
+	// get player name via email
+	await API.post('/user/get_user_login', {
+		email: player,
+	})
+		.then((res) => {
+			player = res.data;
+		})
+		.catch((err) => {
+			// console.log(err);
+			return '';
+		});
 	// send max 5 char
 	if (player.length > 6) {
 		return player.substring(0, 6) + '.';
@@ -144,7 +168,7 @@ onMounted(async () => {
 	border-left: 0;
 	background-color: v-bind('define.color0');
 	z-index: 10;
-	margin-bottom: v-bind("size ? (size - 1) * 55 + 'px' : 0");
+	margin-bottom: v-bind("size ? (size) * 50 + 5 + 65 + 'px' : 0");
 	cursor: pointer;
 	transition: all ease-in-out 0.2s;
 }

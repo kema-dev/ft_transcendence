@@ -35,9 +35,11 @@ import { InfoDto } from 'src/game2.0/dto/InfoDto';
 })
 @Injectable()
 export class AppGateway
-	implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+	implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+{
 	@WebSocketServer() server: Server;
 	games: Game[] = [];
+	id: number = 0;
 	private logger: Logger = new Logger('AppGateway');
 
 	constructor(
@@ -102,6 +104,15 @@ export class AppGateway
 					}
 			return;
 		}
+		await this.matchService.add_ranking(game.id, user.login);
+		if (game.players.length == 2) {
+			// this is a hack to avoid a bug
+			const other_usr = game.players.filter(
+				(player) => player.login !== user.login,
+			)[0];
+			this.matchService.add_ranking(game.id, other_usr.login);
+		}
+		console.log('     after add ranking, players', game.players.length);
 		game.destructor();
 		if (
 			(game.players.length - 1 >= 1 && !game.start) ||
@@ -123,6 +134,7 @@ export class AppGateway
 				game.img,
 				this.matchService,
 				this,
+				game.id,
 			);
 			for (const sock of game.socketsViewers) newGame.addViewer(sock);
 			this.games.push(newGame);
@@ -175,6 +187,7 @@ export class AppGateway
 			console.log('lobby already exist');
 			return;
 		}
+		this.id = await this.matchService.create_match();
 		const newGame = new Game(
 			1,
 			1,
@@ -185,6 +198,7 @@ export class AppGateway
 			user.avatar,
 			this.matchService,
 			this,
+			this.id,
 		);
 		console.log('newLobby', newGame.lobby_name);
 		this.games.push(newGame);
@@ -320,6 +334,7 @@ export class AppGateway
 			game.img,
 			this.matchService,
 			this,
+			game.id,
 		);
 		for (const sock of game.socketsViewers) newGame.addViewer(sock);
 		console.log('join_lobby: newGame created');
@@ -453,6 +468,7 @@ export class AppGateway
 			// 	});
 			// });
 			game.start = true;
+			this.matchService.lock_match_infos(game.id);
 			this.server.emit('lobbys', this.sendLobbys(this.games));
 			this.server
 				.to(game.sockets)
@@ -775,10 +791,10 @@ export class AppGateway
 			console.log('invite_to_game: No game found, returning');
 			client.emit('create_from_invitation');
 			// wait 0.1 sec for client to create game
-			const delay = (time: number) =>
-				new Promise((resolve) => setTimeout(resolve, time));
-			await delay(100);
-			client.emit('invite_to_game', { error: 'no game' });
+			// const delay = (time: number) =>
+			// 	new Promise((resolve) => setTimeout(resolve, time));
+			// await delay(100);
+			// client.emit('invite_to_game', { error: 'no game' });
 			return;
 		}
 		console.log('invite_to_game: Game found');
@@ -850,7 +866,7 @@ export class AppGateway
 	@SubscribeMessage('change_username')
 	async change_username(
 		@MessageBody() data: string,
-		@ConnectedSocket() client: Socket
+		@ConnectedSocket() client: Socket,
 	) {
 		const requestor = await this.userService.getBySocketId(client.id);
 		if (!requestor) {
@@ -860,6 +876,4 @@ export class AppGateway
 
 		return this.userService.change_username(requestor.login, data, this.server);
 	}
-
-
 }

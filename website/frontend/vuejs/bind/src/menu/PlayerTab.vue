@@ -31,7 +31,7 @@
 			</div>
 		</div>
 		<div v-if="userDone" class="playerBtnCont center raw">
-			<button v-if="userStatus != 'ingame'" @click="inviteGame()" 
+			<button v-if="userStatus != 'ingame'" @click="inviteGame()"
 				class="playerBtn center raw"
 			>
 				<img src="@/assets/ball_logo.svg" class="imgBtn">
