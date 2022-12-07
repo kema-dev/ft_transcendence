@@ -8,7 +8,7 @@ import {
 	MessageBody,
 	ConnectedSocket,
 } from '@nestjs/websockets';
-import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
+import { Body, forwardRef, Inject, Injectable, Logger, UploadedFile } from '@nestjs/common';
 import { Socket, Server } from 'socket.io';
 import Vector from './game2.0/objects/Vector';
 import Game from './game2.0/Game';
@@ -85,11 +85,11 @@ export class AppGateway
 			return;
 		}
 		const game = this.games.find((game) => game.lobby_name === user.lobby_name);
-		this.userService.set_status(user.login, 'online');
-		this.server.emit('userStatus', { user: user.login, status: 'online' });
 		user.lobby_name = '';
 		user.level = user.level + 1;
-		this.userService.saveUser(user);
+		user.status = 'online';
+		await this.userService.saveUser(user);
+		this.server.emit('userStatus', { user: user.login, status: 'online' });
 		if (!game) {
 			for (const g of this.games)
 				for (const sock of g.socketsViewers)
@@ -143,19 +143,21 @@ export class AppGateway
 			newGame.update();
 		} else if (game.players.length - 1 == 1) {
 			console.log('game.players.length - 1 == 1');
-			this.server
-				.to(game.players.find((player) => player.login !== user.login).socketId)
-				.emit('info_game', <InfoDto>{ isWin: true });
-			if (!data.lose)
+			if (data.lose || data.lose == undefined)
+				this.server
+					.to(game.players.find((player) => player.login !== user.login).socketId)
+					.emit('info_game', <InfoDto>{ isWin: true });
+			if (!data.notLeft) {
 				this.server
 					.to(game.sockets.filter((sock) => sock !== user.socketId))
 					.emit('info_game', <InfoDto>{ left: user.login });
+				this.quitGame(game.players.find((player) => player.login !== user.login).login, { notLeft: true, lose: false });
+			}
 		}
 		if (data.lose)
 			this.server
 				.to(user.socketId)
 				.emit('info_game', <InfoDto>{ isLose: true });
-		this.userService.saveUser(user);
 		this.games.splice(this.games.indexOf(game), 1);
 		this.server.emit('lobbys', this.sendLobbys(this.games));
 		console.log('game destroyed', this.games.length);
@@ -492,7 +494,7 @@ export class AppGateway
 	@SubscribeMessage('addFriend')
 	addFriend(client: Socket, payload: any): void {
 		this.userService.sendFriendRequest(
-			payload.sender,
+			client.handshake.query.login as string,
 			payload.receiver,
 			this.server,
 		);
@@ -500,7 +502,7 @@ export class AppGateway
 	@SubscribeMessage('removeFriend')
 	removeFriend(client: Socket, payload: any): void {
 		this.userService.removeFriend(
-			payload.sender,
+			client.handshake.query.login as string,
 			payload.receiver,
 			this.server,
 		);
@@ -521,28 +523,35 @@ export class AppGateway
 	}
 	@SubscribeMessage('acceptFriend')
 	acceptFriend(client: Socket, payload: any): void {
-		this.userService.addFriend(payload.sender, payload.receiver, this.server);
+		this.userService.addFriend(client.handshake.query.login as string, payload.receiver, this.server);
 	}
 	@SubscribeMessage('declineFriend')
 	declineFriend(client: Socket, payload: any): void {
 		this.userService.declineFriendRequest(
-			payload.sender,
+			client.handshake.query.login as string,
 			payload.receiver,
 			this.server,
 		);
 	}
 	@SubscribeMessage('changeAvatar')
-	async changeAvatar(client: Socket, payload: any) {
+	async changeAvatar(@ConnectedSocket() client: Socket,
+		@Body() payload: any,
+	) {
 		const sender = await this.userService.getBySocketId(client.id);
 		if (!sender) {
 			console.log(`NewChanMsg error: Sender user not found"`);
 			return;
 		}
-		this.userService.changeAvatar(sender, payload.avatar);
-		this.server.emit('change_avatar', {
-			login: sender.login,
-			avatar: payload.avatar,
-		});
+		let avatar: string = payload.avatar.toString();
+		let b = new Uint8Array(payload.bytes);
+		if (((b[0] == 0x89) && (b[1] == 0x50) && (b[2] == 0x4E) && (b[3] == 0x47) && (b[4] == 0x0D) && (b[5] == 0x0A) && (b[6] == 0x1A) && (b[7] == 0x0A)) ||
+			((b[0] == 0xFF) && (b[1] == 0xD8))) {
+			this.userService.changeAvatar(sender, avatar);
+			this.server.emit('change_avatar', { login: sender.login, avatar: avatar })
+			return { status: "ok" };
+		}
+		else
+			return { status: "Invalid image" };
 	}
 	@SubscribeMessage('userStatus')
 	async get_user_status(
@@ -856,6 +865,7 @@ export class AppGateway
 			console.log(`change_username error : Requestor user not found`);
 			return 'NOT_FOUND';
 		}
+
 		return this.userService.change_username(requestor.login, data, this.server);
 	}
 }

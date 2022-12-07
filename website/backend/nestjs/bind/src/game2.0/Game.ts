@@ -162,13 +162,17 @@ export default class Game {
 				game.server
 					.to(game.players.find((p) => p.login == login)?.socketId)
 					.emit('end', { win: false });
+				game.app.quitGame(game.players.find((p) => p.login != login)?.login, {
+					lose: false,
+					notLeft: true,
+				});
 			} else {
 				await game.match_service.add_ranking(game.id, login);
 				game.server
 					.to(game.players.find((p) => p.login == login)?.socketId)
 					.emit('end', { win: false });
 			}
-			game.app.quitGame(login, { lose: true });
+			game.app.quitGame(login, { lose: true, notLeft: true });
 			game.destructor();
 			return;
 		}

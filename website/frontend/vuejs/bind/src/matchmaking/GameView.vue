@@ -1,8 +1,8 @@
 <template>
-  <div>
+	<div>
 		<div class="center column stack" id="create">
 			<div id="game_pos">
-				<GameItem v-if="gameDto" :key="remount" :game="gameDto"/>
+				<GameItem v-if="gameDto" :key="remount" :game="gameDto" />
 			</div>
 			<div v-if="!start && isOwner" id="settings">
 				<h1>{{ nbrBall }}</h1>
@@ -25,7 +25,7 @@
 				<h1>YOU LOSE</h1>
 			</div>
 		</div>
-  </div>
+	</div>
 </template>
 
 <script setup lang="ts">
@@ -50,6 +50,8 @@ let me: Ref<any> = inject('user')!;
 let gameDto: Ref<GameDto | undefined> = ref(undefined);
 socket.on('init_game', (data: GameDto) => {
 	gameDto.value = data;
+	if (gameDto.value.start)
+		start.value = true;
 	console.log('reload');
 	remount.value = !remount.value;
 	socket.emit('get_game_info');
@@ -66,8 +68,15 @@ onMounted(() => {
 			win.value = data.isWin;
 		if (data.isLose !== undefined)
 			lose.value = data.isLose;
-		if (data.isStart !== undefined)
+		if (data.isStart !== undefined) {
 			start.value = data.isStart;
+			if (data.isStart == false) {
+				if (data.isWin == undefined)
+					win = ref(false);
+				if (data.isLose == undefined)
+					lose = ref(false);
+			}
+		}
 		if (data.owner !== undefined)
 			isOwner.value = data.owner == me?.value?.login;
 		if (data.nbrBall !== undefined)
@@ -117,24 +126,29 @@ function decrBall() {
 	top: 0;
 	left: 0;
 }
+
 #settings {
 	position: absolute;
 	top: calc(50% - 100px);
 	z-index: 10;
 }
+
 .button {
 	margin: 20px 10px;
 	font-size: 1rem;
 }
+
 .title {
 	margin-bottom: -18px;
 	font-size: 1.25rem;
 }
+
 .msg {
 	position: absolute;
 	top: calc(50 - 25px);
 	z-index: 10;
 }
+
 .start {
 	/* margin-top: 10px; */
 	/* margin-bottom: 95px; */
