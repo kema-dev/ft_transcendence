@@ -139,9 +139,10 @@ export class AppGateway
 			newGame.update();
 		} else if (game.players.length - 1 == 1) {
 			console.log('game.players.length - 1 == 1');
-			this.server
-				.to(game.players.find((player) => player.login !== user.login).socketId)
-				.emit('info_game', <InfoDto>{ isWin: true });
+			if (data.lose)
+				this.server
+					.to(game.players.find((player) => player.login !== user.login).socketId)
+					.emit('info_game', <InfoDto>{ isWin: true });
 			if (data.left)
 				this.server
 					.to(game.sockets.filter((sock) => sock !== user.socketId))

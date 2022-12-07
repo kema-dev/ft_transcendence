@@ -69,8 +69,10 @@ onMounted(() => {
 		if (data.isStart !== undefined) {
 			start.value = data.isStart;
 			if (data.isStart == false) {
-				win = ref(false);
-				lose = ref(false);
+				if (data.isWin == undefined)
+					win = ref(false);
+				if (data.isLose == undefined)
+					lose = ref(false);
 			}
 		}
 		if (data.owner !== undefined)
