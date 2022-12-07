@@ -35,7 +35,8 @@ import { InfoDto } from 'src/game2.0/dto/InfoDto';
 })
 @Injectable()
 export class AppGateway
-	implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+	implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+{
 	@WebSocketServer() server: Server;
 	games: Game[] = [];
 	id: number = 0;
@@ -124,7 +125,7 @@ export class AppGateway
 				game.img,
 				this.matchService,
 				this,
-				game.id
+				game.id,
 			);
 			for (const sock of game.socketsViewers) newGame.addViewer(sock);
 			this.games.push(newGame);
@@ -175,6 +176,7 @@ export class AppGateway
 			console.log('lobby already exist');
 			return;
 		}
+		this.id = await this.matchService.create_match();
 		const newGame = new Game(
 			1,
 			1,
@@ -185,9 +187,8 @@ export class AppGateway
 			user.avatar,
 			this.matchService,
 			this,
-			this.id
+			this.id,
 		);
-		this.id += 1;
 		console.log('newLobby', newGame.lobby_name);
 		this.games.push(newGame);
 		user.lobby_name = newGame.lobby_name;
@@ -322,7 +323,7 @@ export class AppGateway
 			game.img,
 			this.matchService,
 			this,
-			game.id
+			game.id,
 		);
 		for (const sock of game.socketsViewers) newGame.addViewer(sock);
 		console.log('join_lobby: newGame created');
@@ -536,7 +537,10 @@ export class AppGateway
 			return;
 		}
 		this.userService.changeAvatar(sender, payload.avatar);
-		this.server.emit('change_avatar', {login: sender.login, avatar: payload.avatar})
+		this.server.emit('change_avatar', {
+			login: sender.login,
+			avatar: payload.avatar,
+		});
 	}
 	@SubscribeMessage('userStatus')
 	async get_user_status(
@@ -843,7 +847,7 @@ export class AppGateway
 	@SubscribeMessage('change_username')
 	async change_username(
 		@MessageBody() data: string,
-		@ConnectedSocket() client: Socket
+		@ConnectedSocket() client: Socket,
 	) {
 		const requestor = await this.userService.getBySocketId(client.id);
 		if (!requestor) {
@@ -852,6 +856,4 @@ export class AppGateway
 		}
 		return this.userService.change_username(requestor.login, data, this.server);
 	}
-
-
 }

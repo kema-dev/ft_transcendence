@@ -75,6 +75,8 @@ export default class Game {
 		this.init();
 		this.update();
 		this.startTime = Date.now();
+		this.id = id;
+		this.match_service.fill_match_infos(this, this.id);
 		this.interval = setInterval(this.loop, 1000 / 90, this);
 	}
 	init() {
@@ -146,11 +148,11 @@ export default class Game {
 		if ((login = ball.detectCollision(game.objects))) {
 			game.run = false;
 			if (game.nbrPlayer == 1) {
-				game.match_service.add_ranking(game.id, login);
+				await game.match_service.add_ranking(game.id, login);
 				game.server.to(game.players[0].socketId).emit('end', { win: true });
 			} else if (game.nbrPlayer == 2) {
-				game.match_service.add_ranking(game.id, login);
-				game.match_service.add_ranking(
+				await game.match_service.add_ranking(game.id, login);
+				await game.match_service.add_ranking(
 					game.id,
 					game.players.find((p) => p.login != login).login,
 				);
@@ -161,7 +163,7 @@ export default class Game {
 					.to(game.players.find((p) => p.login == login)?.socketId)
 					.emit('end', { win: false });
 			} else {
-				game.match_service.add_ranking(game.id, login);
+				await game.match_service.add_ranking(game.id, login);
 				game.server
 					.to(game.players.find((p) => p.login == login)?.socketId)
 					.emit('end', { win: false });

@@ -71,6 +71,22 @@ const props = defineProps(['match']);
 
 props.match.ranking = props.match.ranking.reverse();
 
+async function get_names() {
+	for (let i = 0; i < props.match.ranking.length; i++) {
+		await API.post('/user/get_user_login', {
+			email: props.match.ranking[i],
+		})
+			.then((res) => {
+				props.match.ranking[i] = res.data;
+			})
+			.catch((err) => {
+				// console.log(err);
+			});
+	}
+}
+
+get_names();
+
 function go_to_user_profile(i: number) {
 	let refresh = false;
 	if (route.path.startsWith('/home/player/'))
@@ -96,7 +112,7 @@ function get_rank() {
 let avatar = ref([]);
 
 async function get_avatars() {
-	for (let i = 0; i < props.match.players.length; i++) {
+	for (let i = 0; i < props.match.ranking.length; i++) {
 		await API.post('/user/get_user_avatar', {
 			login: props.match.ranking[i],
 		})
@@ -109,7 +125,18 @@ async function get_avatars() {
 	}
 }
 
-function get_player_name(player: string) {
+async function get_player_name(player: string) {
+	// get player name via email
+	await API.post('/user/get_user_login', {
+		email: player,
+	})
+		.then((res) => {
+			player = res.data;
+		})
+		.catch((err) => {
+			// console.log(err);
+			return '';
+		});
 	// send max 5 char
 	if (player.length > 6) {
 		return player.substring(0, 6) + '.';

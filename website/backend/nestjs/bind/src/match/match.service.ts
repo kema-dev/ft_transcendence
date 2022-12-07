@@ -31,8 +31,16 @@ export class MatchService {
 		return match.id;
 	}
 
-	async fill_match_infos(game: Game): Promise<number> {
+	async fill_match_infos(game: Game, id: number): Promise<number> {
 		console.log('create_match: Starting');
+		const match = await this.matchRepository.findOne({
+			where: { id: id },
+		});
+		if (!match) {
+			return;
+		} else if (match.player_count >= game.nbrPlayer) {
+			return;
+		}
 		const game_players = game.profiles.map((profile) => profile.login);
 		// for each player, use their email
 		for (let i = 0; i < game_players.length; i++) {
@@ -40,32 +48,37 @@ export class MatchService {
 			if (usr) {
 				game_players[i] = usr.email;
 			}
+			// console.log('     fill_match_infos: id: ', id);
 		}
-		const game_scores = game.profiles.map((profile) => profile.score);
 		const ranking: string[] = [];
-		const match = await this.matchRepository.save({
-			player_count: game.nbrPlayer,
-			ball_count: game.nbrBall,
-			lobby_name: game.lobby_name,
-			owner: game.owner,
-			players: game_players,
-			scores: game_scores,
-			ranking: ranking,
-		});
+		match.player_count = game.nbrPlayer;
+		match.ball_count = game.nbrBall;
+		match.lobby_name = game.lobby_name;
+		match.owner = game.owner;
+		match.players = game_players;
+		match.ranking = ranking;
+		await this.matchRepository.save(match);
 		return match.id;
 	}
 
 	async add_ranking(id: number, login: string) {
+		console.log('add_ranking: Starting for id ' + id + ' and login ' + login);
 		const match = await this.matchRepository.findOne({
 			where: { id: id },
 		});
 		if (!match) {
 			return;
 		}
-		match.ranking.push(login);
+		const usr = await this.usersService.getByAny(login);
+		if (!usr) {
+			return;
+		}
+		match.ranking.push(usr.email);
 		await this.matchRepository.save(match);
 		await this.assign_match_to_user(login, match.id);
-		await this.usersService.set_status(login, 'online');
+		await this.usersService.set_status(usr.email, 'online');
+		console.log('add_ranking: rank: ', match.ranking);
+		console.log('add_ranking: Returning');
 	}
 
 	async assign_match_to_user(login: string, match_id: number) {
@@ -143,7 +156,10 @@ export class MatchService {
 			} else {
 				stats.loses += 1;
 			}
-			stats.average_rank += (index - 1) / (match.player_count - 1);
+			if (match.player_count > 1) {
+				// omit the match if there is only one player
+				stats.average_rank += index / (match.player_count - 1);
+			}
 		}
 		if (stats.total < 1) {
 			stats.average_rank = 0.5;
