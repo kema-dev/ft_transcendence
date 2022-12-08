@@ -423,6 +423,10 @@ socket.on('modifChan', (data: ModifChanDto) => {
 				setTimeout(() => {
 					chansRef.value.splice(i, 1);
 					console.log(`chan spliced`);
+					setTimeout(() => {
+						if (chanBan.value != '')
+							chanBan.value = ''
+					}, 500)
 				}, 300);
 			}
 			else {
@@ -440,7 +444,10 @@ socket.on('modifChan', (data: ModifChanDto) => {
 				setTimeout(() => {
 					chansRef.value.splice(i, 1);
 					console.log(`chan spliced`);
-					// chanBan.value = '';
+					setTimeout(() => {
+						if (chanBan.value != '')
+							chanBan.value = ''
+					}, 500)
 				}, 300);
 			}
 			else {
