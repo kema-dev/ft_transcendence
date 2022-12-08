@@ -149,7 +149,7 @@ export default class Game {
 			game.run = false;
 			if (game.nbrPlayer == 1) {
 				await game.match_service.add_ranking(game.id, login);
-				game.server.to(game.players[0].socketId).emit('end', { win: true });
+				// game.server.to(game.players[0].socketId).emit('info_game', { isWin: true });
 			} else if (game.nbrPlayer == 2) {
 				await game.match_service.add_ranking(game.id, login);
 				await game.match_service.add_ranking(
@@ -158,10 +158,11 @@ export default class Game {
 				);
 				game.server
 					.to(game.players.find((p) => p.login != login)?.socketId)
-					.emit('end', { win: true });
+					.emit('info_game', { isWin: true });
 				game.server
 					.to(game.players.find((p) => p.login == login)?.socketId)
-					.emit('end', { win: false });
+					.emit('info_game', { isWin: false });
+				console.log('info: ', game.players.find((p) => p.login != login)?.login, game.players.find((p) => p.login == login)?.login)
 				game.app.quitGame(game.players.find((p) => p.login != login)?.login, {
 					lose: false,
 					notLeft: true,
@@ -170,7 +171,7 @@ export default class Game {
 				await game.match_service.add_ranking(game.id, login);
 				game.server
 					.to(game.players.find((p) => p.login == login)?.socketId)
-					.emit('end', { win: false });
+					.emit('info_game', { isWin: false });
 			}
 			game.app.quitGame(login, { lose: true, notLeft: true });
 			game.destructor();

@@ -64,8 +64,11 @@ onMounted(() => {
 		console.log('info', data);
 		if (data.left !== undefined)
 			toast.warning(data.left + ' left the game');
-		if (data.isWin !== undefined)
+		if (data.isWin !== undefined) {
 			win.value = data.isWin;
+			if (!win.value)
+				lose.value = true;
+		}
 		if (data.isLose !== undefined)
 			lose.value = data.isLose;
 		if (data.isStart !== undefined) {
