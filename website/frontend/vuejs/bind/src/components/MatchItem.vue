@@ -88,7 +88,8 @@ async function get_names() {
 			});
 	}
 	const my_login = $cookies.get('login');
-	rank.value = props.match.ranking.indexOf(my_login) + 1;
+	const rank_diff = props.match.player_count - props.match.ranking.length;
+	rank.value = props.match.ranking.indexOf(my_login) + 1 + rank_diff;
 }
 
 get_names();
@@ -97,6 +98,9 @@ function go_to_user_profile(i: number) {
 	// let refresh = false;
 	// if (route.path.startsWith('/home/player/'))
 	// 	refresh = true;
+	if (!props.match.ranking[i - 1]) {
+		return;
+	}
 	router.push({name: 'player', params: {name: props.match.ranking[i - 1]}});
 	// if (refresh == true) {
 	// 	console.log(`refresh`);
