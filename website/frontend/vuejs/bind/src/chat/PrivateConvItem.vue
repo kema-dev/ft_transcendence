@@ -215,7 +215,13 @@ function toProfile() {
 }
 
 function sendMsg() {
-	if (myMsg.value != "") {
+	let input = document.getElementById("sendbox");
+	input?.classList.remove("invalidInput");
+	if (myMsg.value.length > 2000)
+		return setTimeout(() => {
+			input!.classList.add("invalidInput");
+		}, 50);
+	else if (myMsg.value != "") {
 		mySocket.emit("newPrivMsg", new NewPrivMsgDto(userName, myMsg.value));
 		myMsg.value = "";
 	}
@@ -507,5 +513,33 @@ function printPrivs(privs: PrivConvDto[] | undefined) {
 .wrongPathMsg {
 	position: absolute;
 	top: 30%;
+}
+.invalidInput {
+	animation: shake 0.4s linear;
+}
+@keyframes shake {
+	0%,
+	100% {
+		transform: translateX(0);
+	}
+	10%,
+	30%,
+	50%,
+	70%,
+	90% {
+		transform: translateX(-5px);
+	}
+	20%,
+	40%,
+	60%,
+	80% {
+		transform: translateX(5px);
+	}
+	0% {
+		background-color: rgb(255, 178, 178);
+	}
+	100.0% {
+		background-color: white;
+	}
 }
 </style>

@@ -305,7 +305,8 @@ function displayDate(date: Date, i: number) {
 function sendMsg() {
 	let input = document.getElementById("sendbox");
 	input?.classList.remove("invalidInput");
-	if (chansRef.value[index.value].mutes.find(m => m.login == myName))
+	if (chansRef.value[index.value].mutes.find(m => m.login == myName)
+		|| myMsg.value.length > 2000)
 		return setTimeout(() => {
 			input!.classList.add("invalidInput");
 		}, 50);
