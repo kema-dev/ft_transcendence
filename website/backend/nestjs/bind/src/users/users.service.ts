@@ -485,7 +485,7 @@ export class UsersService {
 		if (usr) {
 			if (
 				new_username.length > 25 ||
-				!new_username.match(/^[a-zA-Z0-9-_ ]{1,25}$/)
+				!new_username.match(/^[a-zA-Z0-9-_]{1,25}$/)
 			) {
 				console.error(
 					'register: ' + 'login does not meet requirements, returning ✘',

@@ -62,7 +62,7 @@ export class AuthenticationService {
 		}
 		if (
 			registrationData.login.length > 25 ||
-			!registrationData.login.match(/^[a-zA-Z0-9-_ ]{1,25}$/)
+			!registrationData.login.match(/^[a-zA-Z0-9-_]{1,25}$/)
 		) {
 			console.error(
 				'register: ' + 'login does not meet requirements, returning ✘',
