@@ -273,6 +273,7 @@ onMounted(async () => {
 				console.log(response);
 				$cookies.set(response.data.key, response.data.value);
 				$cookies.set('login', response.data.login);
+				$cookies.remove('mfa');
 				toast.success(
 					'Authentication success, welcome ' + response.data.login + ' !',
 				);

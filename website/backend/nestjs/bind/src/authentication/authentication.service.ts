@@ -312,7 +312,7 @@ export class AuthenticationService {
 		// we assume that the email fetched from 42 is unique and cannot be used by another user, nor changed
 		// auth_42_check_mfa will throw if any error occur
 		// check mfa
-		this.auth_42_check_mfa(mfa, existing_usr);
+		await this.auth_42_check_mfa(mfa, existing_usr);
 		// update user's auth data
 		await this.usersService.ft_update(
 			logobj.data.email,
@@ -543,7 +543,7 @@ export class AuthenticationService {
 	}
 
 	private async check_totp_code(name: string, code: string) {
-		console.log('check_totp_code: starting');
+		console.log('check_totp_code: starting for ' + name + ' and code ' + code);
 		const usr = await this.usersService.getByAny(name);
 		let truth;
 		await axios

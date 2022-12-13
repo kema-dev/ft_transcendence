@@ -95,6 +95,7 @@ function change_username() {
 		if (ret == 'OK') {
 			$cookies.set('login', '');
 			$cookies.set('session', '');
+			$cookies.remove('mfa');
 			socket.emit('logout');
 			toast.success('Username changed ! Please log in again');
 			router.go(0);
