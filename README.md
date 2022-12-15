@@ -1,7 +1,7 @@
 <div id="top"></div>
 
 <p align=center>
-  <img alt="Project's status" src="https://img.shields.io/badge/Status-Ongoing-brightgreen">
+  <img alt="Project's status" src="https://img.shields.io/badge/Status-Finished-brightgreen">
   <img alt="Project's primary language" src="https://img.shields.io/badge/Language-Typescript-blue">
   <img alt="Project's focus" src="https://img.shields.io/badge/Focus-Containerized%20website-blue">
 </p>
@@ -11,6 +11,10 @@
 <div align="center" style="height:200px; margin-bottom:10%">
   <img src="assets/docker_moby.png" alt="Docker logo" style="height:30vh">
 </div>
+
+## :warning: Warning
+
+This project has been made for educational purpose, it is not production ready. Some security caveats might exist, and no further work has been planned to fix them.
 
 <!-- ABOUT THE PROJECT -->
 ## About The Project
